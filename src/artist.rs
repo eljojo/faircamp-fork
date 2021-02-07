@@ -1,8 +1,10 @@
 use slug;
 
+use crate::image::Image;
+
 #[derive(Debug)]
 pub struct Artist {
-    pub image: Option<String>,
+    pub image: Option<Image>,
     pub links: Vec<Link>,
     pub location: Option<String>,
     pub name: String,

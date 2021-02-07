@@ -23,7 +23,12 @@ fn layout(page_depth: usize, body: &str, title: &str) -> String {
                     <link href="{root_prefix}styles.css" rel="stylesheet">
                 </head>
                 <body>
+                    <nav>
+                        <a href="{root_prefix}">Catalog</a>
+                        <a href="{root_prefix}artists/">Artists</a>
+                    </nav>
                     {body}
+                    <footer>faircamp alpha</footer>
                 </body>
             </html>
         "#,
@@ -60,7 +65,7 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
             }
             
             let release_cover_rendered = match &release.cover {
-                Some(image) => format!(r#"<img class="cover" src="{}">"#, image.transcoded_file),
+                Some(image) => format!(r#"<img class="cover" src="../{}">"#, image.transcoded_file),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
@@ -68,7 +73,7 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
                 r#"
                     <div>
                         {release_cover_rendered}
-                        <a href="{release_slug}/">{release_title}</a>
+                        <a href="../{release_slug}/">{release_title}</a>
                     </div>
                 "#,
                 release_cover_rendered=release_cover_rendered,
@@ -93,6 +98,43 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
     );
     
     layout(1, &body, &artist.name)
+}
+
+pub fn render_artists(catalog: &Catalog) -> String {
+    let artists_rendered = catalog.artists
+        .iter()
+        .map(|artist| {
+            let artist_cover_rendered = match &artist.image {
+                Some(image) => format!(r#"<img class="cover" src="{}">"#, image.transcoded_file),
+                None => String::from(r#"<div class="cover"></div>"#)
+            };
+            
+            formatdoc!(
+                r#"
+                    <div>
+                        {artist_cover_rendered}
+                        <a href="../{artist_slug}/">{artist_name}</a>
+                    </div>
+                "#,
+                artist_cover_rendered=artist_cover_rendered,
+                artist_slug=artist.slug,
+                artist_name=artist.name
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("<br><br>\n");
+    
+    let body = formatdoc!(
+        r#"
+            <h1>Artists</h1>
+            <div class="releases"> <!-- TODO: Generic class for the grid (or a specific "artists" class with similar behavior) -->
+                {artists_rendered}
+            </div>
+        "#,
+        artists_rendered=artists_rendered
+    );
+    
+    layout(1, &body, "Artists")
 }
 
 pub fn render_download(release: &Release) -> String {

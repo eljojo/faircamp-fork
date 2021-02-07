@@ -27,6 +27,11 @@ fn main() {
         source::source_catalog(build_dir, current_dir, &mut catalog).unwrap();
     }
     
+    // Render page for all artists
+    let artists_html = render::render_artists(&catalog);
+    fs::create_dir(build_dir.join("artists")).ok();
+    fs::write(build_dir.join("artists").join("index.html"), artists_html).unwrap();
+    
     // Render page for all releases
     let releases_html = render::render_releases(&catalog);
     fs::write(build_dir.join("index.html"), releases_html).unwrap();
