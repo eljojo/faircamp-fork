@@ -1,10 +1,10 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{fs, path::{Path, PathBuf}, rc::Rc};
 use uuid::Uuid;
 
 use crate::artist::Artist;
 use crate::catalog::Catalog;
 use crate::image::Image;
-use crate::meta;
+use crate::meta::Meta;
 use crate::release::Release;
 use crate::track::Track;
 
@@ -22,7 +22,8 @@ pub fn source_artist() -> Artist {
 
 pub fn source_catalog(build_dir: &Path, dir: PathBuf, catalog: &mut Catalog) -> Result<(), String> {
     let mut images: Vec<Image> = Vec::new();
-    let mut tracks: Vec<Track> = Vec::new();
+    let mut release_artists: Vec<Rc<Artist>> = Vec::new();
+    let mut release_tracks: Vec<Track> = Vec::new();
     
     match dir.read_dir() {
         Ok(dir_entries) => {
@@ -32,8 +33,12 @@ pub fn source_catalog(build_dir: &Path, dir: PathBuf, catalog: &mut Catalog) -> 
                         if file_type.is_dir() {
                             source_catalog(build_dir, dir_entry.path(), catalog).unwrap();
                         } else if file_type.is_file() {
-                            if let Some(track) = source_track(build_dir, dir_entry.path()) {
-                                tracks.push(track);
+                            if let Some(track) = source_track(build_dir, dir_entry.path(), catalog) {
+                                if let None = release_artists.iter().find(|release_artist| Rc::ptr_eq(release_artist, &track.artist)) {
+                                    release_artists.push(track.artist.clone());
+                                }
+                                
+                                release_tracks.push(track);
                             } else if let Some(image) = source_image(build_dir, dir_entry.path()) {
                                 images.push(image);
                             }
@@ -46,9 +51,9 @@ pub fn source_catalog(build_dir: &Path, dir: PathBuf, catalog: &mut Catalog) -> 
                 }
             }
             
-            if !tracks.is_empty() {
+            if !release_tracks.is_empty() {
                 let title = dir.file_name().unwrap().to_str().unwrap().to_string();
-                let release = Release::init(images, title, tracks);
+                let release = Release::init(release_artists, images, title, release_tracks);
                 
                 catalog.releases.push(release);
             } else if !images.is_empty() {
@@ -82,7 +87,7 @@ pub fn source_image(build_dir: &Path, path: PathBuf) -> Option<Image> {
     None
 }
 
-pub fn source_track(build_dir: &Path, path: PathBuf) -> Option<Track> {
+pub fn source_track(build_dir: &Path, path: PathBuf, catalog: &mut Catalog) -> Option<Track> {
     let path_clone = path.clone();
     let filename = path.file_name().unwrap().to_str().unwrap();
     
@@ -91,12 +96,14 @@ pub fn source_track(build_dir: &Path, path: PathBuf) -> Option<Track> {
             if SUPPORTED_AUDIO_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
                 let uuid = Uuid::new_v4().to_string();
                 let source_file = path.to_str().unwrap().to_string();
-                let title = meta::extract_title(extension_str, &path).unwrap_or(filename.to_string());
+                let meta = Meta::extract(extension_str, &path);
                 let transcoded_file = format!("{}.{}", uuid, extension_str);
                 
                 fs::copy(path_clone, build_dir.join(&transcoded_file)).unwrap();
                 
-                return Some(Track::init(source_file, title, transcoded_file));
+                let artist = catalog.track_artist(meta.artist);
+                let title = meta.title.unwrap_or(filename.to_string());
+                return Some(Track::init(artist, source_file, title, transcoded_file));
             }
         }
     }

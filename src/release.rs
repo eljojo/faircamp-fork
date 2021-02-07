@@ -2,9 +2,11 @@ use slug;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::Path;
+use std::rc::Rc;
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
+    artist::Artist,
     download_option::DownloadOption,
     image::Image,
     render,
@@ -14,6 +16,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Release {
+    pub artists: Vec<Rc<Artist>>,
     pub cover: Option<Image>,
     pub download_option: DownloadOption,
     pub release_date: Option<String>,
@@ -24,11 +27,12 @@ pub struct Release {
 }
 
 impl Release {
-    pub fn init(mut images: Vec<Image>, title: String, tracks: Vec<Track>) -> Release {
+    pub fn init(artists: Vec<Rc<Artist>>, mut images: Vec<Image>, title: String, tracks: Vec<Track>) -> Release {
         // TODO: Use/store multiple images (beyond just one cover)
         // TOOD: Basic logic to determine which of multiple images most likely is the cover
         
         Release {
+            artists,
             cover: images.pop(),
             download_option: DownloadOption::init_free(), // TODO: Revert to DownloadOption::Disabled after testing
             release_date: None,

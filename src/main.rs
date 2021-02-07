@@ -28,7 +28,7 @@ fn main() {
         source::source_catalog(build_dir, current_dir, &mut catalog).unwrap();
     }
     
-    // Render index for all releases 
+    // Render index for all releases
     let releases_html = render::render_releases(&artist, &catalog);
     fs::write(build_dir.join("index.html"), releases_html).unwrap();
     

@@ -6,6 +6,17 @@ pub struct Artist {
     pub name: String
 }
 
+impl Artist {
+    pub fn init(name: String) -> Artist {
+        Artist {
+            image: None,
+            links: Vec::new(),
+            location: None,
+            name
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Link {
     pub label: String,
