@@ -1,4 +1,9 @@
-use std::{fs, path::{Path, PathBuf}, rc::Rc};
+use std::{
+    path::{Path, PathBuf},
+    process::{Command, Output},
+    rc::Rc,
+    fs
+};
 use uuid::Uuid;
 
 use crate::artist::Artist;
@@ -93,7 +98,9 @@ pub fn source_track(build_dir: &Path, path: PathBuf, catalog: &mut Catalog) -> O
                 let meta = Meta::extract(extension_str, &path);
                 let transcoded_file = format!("{}.{}", uuid, extension_str);
                 
-                fs::copy(path_clone, build_dir.join(&transcoded_file)).unwrap();
+                fs::copy(path_clone.clone(), build_dir.join(&transcoded_file)).unwrap();
+                
+                // transcode(path_clone, build_dir.join("transcoded.flac")).unwrap();
                 
                 let artist = catalog.track_artist(meta.artist);
                 let title = meta.title.unwrap_or(filename.to_string());
@@ -103,4 +110,33 @@ pub fn source_track(build_dir: &Path, path: PathBuf, catalog: &mut Catalog) -> O
     }
     
     None
+}
+
+fn transcode(input_file: PathBuf, output_file: PathBuf) -> Result<(), String> {
+    let mut command = Command::new("ffmpeg");
+    
+    // command.env("FOR_REFERENCE_ENV_VAR_SETTING", &self.data_dir);
+    
+    command.arg("-y");
+    command.arg("-i").arg(input_file);
+    command.arg(output_file);
+
+    match command.output() {
+        Ok(output) => {
+            if output.status.success() {
+                Ok(())
+            } else {
+                let ffmpeg_output = transcode_debug_output(output);
+                Err(format!("The ffmpeg child process returned an error exit code.\n\n{}", ffmpeg_output))
+            }
+        }
+        Err(_) => Err("The ffmpeg child process could not be executed.".to_string())
+    }
+}
+
+pub fn transcode_debug_output(output: Output) -> String {
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    format!("stderr: {}\n\nstdout: {}", stderr, stdout)
 }
