@@ -1,6 +1,7 @@
 use std::{env, fs, path::Path};
 
 mod css;
+mod image;
 mod meta;
 mod release;
 mod render;

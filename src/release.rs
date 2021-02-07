@@ -2,19 +2,15 @@ use slug;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use zip::{
-    result::ZipError,
-    write::FileOptions,
-    CompressionMethod,
-    ZipWriter
-};
+use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
+use crate::image::Image;
 use crate::track::Track;
 use crate::types::DownloadOption;
 
 #[derive(Debug)]
 pub struct Release {
-    pub cover: Option<String>,
+    pub cover: Option<Image>,
     pub download_option: DownloadOption,
     pub release_date: Option<String>,
     pub slug: String,
@@ -24,9 +20,12 @@ pub struct Release {
 }
 
 impl Release {
-    pub fn init(title: String, tracks: Vec<Track>) -> Release {
+    pub fn init(mut images: Vec<Image>, title: String, tracks: Vec<Track>) -> Release {
+        // TODO: Use/store multiple images (beyond just one cover)
+        // TOOD: Basic logic to determine which of multiple images most likely is the cover
+        
         Release {
-            cover: None,
+            cover: images.pop(),
             download_option: DownloadOption::Disabled,
             release_date: None,
             slug: slug::slugify(&title),

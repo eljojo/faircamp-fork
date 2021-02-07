@@ -45,6 +45,11 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
         )
     };
     
+    let release_cover_rendered = match &release.cover {
+        Some(image) => format!(r#"<img class="cover" src="../{}">"#, image.transcoded_file),
+        None => String::from(r#"<div class="cover"></div>"#)
+    };
+    
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
@@ -69,7 +74,7 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
                     <meta name="description" content="{release_title}">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
                     <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="feed.rss"> <!--TODO-->
-                    <link href="styles.css" rel="stylesheet">
+                    <link href="../styles.css" rel="stylesheet">
                 </head>
                 <body>
                     <h1>{release_title}</h1>
@@ -77,7 +82,7 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
                     
                     {download_option_rendered}
                     
-                    <div class="cover"></div>
+                    {release_cover_rendered}
 
                     <div>{tracks}</div>
                     
@@ -88,6 +93,7 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
         artist_href="TODO",
         artist_name=artist.name,
         download_option_rendered=download_option_rendered,
+        release_cover_rendered=release_cover_rendered,
         release_text=release.text.as_ref().unwrap_or(&String::new()),
         release_title=release.title,
         tracks=tracks_rendered
@@ -97,13 +103,19 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
 pub fn render_releases(artist: &Artist, releases: &Vec<Release>) -> String {
     let releases_rendered = releases
         .iter()
-        .map(|release|
+        .map(|release| {
+            let release_cover_rendered = match &release.cover {
+                Some(image) => format!(r#"<img class="cover" src="{}">"#, image.transcoded_file),
+                None => String::from(r#"<div class="cover"></div>"#)
+            };
+            
             format!(
-                r#"<div class="cover"></div> <a href="{release_slug}">{release_title}</a>"#,
+                r#"{release_cover_rendered} <a href="{release_slug}">{release_title}</a>"#,
+                release_cover_rendered=release_cover_rendered,
                 release_slug=release.slug,
                 release_title=release.title
             )
-        )
+        })
         .collect::<Vec<String>>()
         .join("<br><br>\n");
     
