@@ -4,9 +4,9 @@ use std::io::prelude::*;
 use std::path::Path;
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
+use crate::download_option::DownloadOption;
 use crate::image::Image;
 use crate::track::Track;
-use crate::types::DownloadOption;
 
 #[derive(Debug)]
 pub struct Release {

@@ -1,15 +1,17 @@
 use std::{env, fs, path::Path};
 
+mod artist;
+mod catalog;
 mod css;
+mod download_option;
 mod image;
 mod meta;
 mod release;
 mod render;
 mod source;
 mod track;
-mod types;
 
-use release::Release;
+use catalog::Catalog;
 
 const BUILD_DIR: &str = "/tmp/faircamp_public/";
 
@@ -20,18 +22,18 @@ fn main() {
     fs::create_dir_all(BUILD_DIR).unwrap();
 
     let artist = source::source_artist();
-    let mut releases: Vec<Release> = Vec::new();
+    let mut catalog = Catalog::init();
     
     if let Ok(current_dir) = env::current_dir() {
-        source::source_releases(build_dir, current_dir, &mut releases);
+        source::source_catalog(build_dir, current_dir, &mut catalog).unwrap();
     }
     
     // Render index for all releases 
-    let html = render::render_releases(&artist, &releases);
+    let html = render::render_releases(&artist, &catalog);
     fs::write(build_dir.join("index.html"), html).unwrap();
     
     // Render index for each release
-    for release in releases {
+    for release in &catalog.releases {
         release.zip(build_dir).unwrap();
         
         let html = render::render_release(&artist, &release);

@@ -7,15 +7,6 @@ pub struct Artist {
 }
 
 #[derive(Debug)]
-pub enum DownloadOption {
-    Disabled,
-    Free,
-    NameYourPrice,
-    PayExactly(String),
-    PayMinimum(String)
-}
-
-#[derive(Debug)]
 pub struct Link {
     pub label: String,
     pub url: String

@@ -1,7 +1,9 @@
 use indoc::formatdoc;
 
+use crate::artist::Artist;
+use crate::catalog::Catalog;
 use crate::release::Release;
-use crate::types::{Artist, DownloadOption};
+use crate::download_option::DownloadOption;
 
 const DOWNLOAD_INCLUDES_TEXT: &str = "Includes high-quality download in MP3, FLAC and more.";
 const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
@@ -100,8 +102,8 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
     )
 }
 
-pub fn render_releases(artist: &Artist, releases: &Vec<Release>) -> String {
-    let releases_rendered = releases
+pub fn render_releases(artist: &Artist, catalog: &Catalog) -> String {
+    let releases_rendered = catalog.releases
         .iter()
         .map(|release| {
             let release_cover_rendered = match &release.cover {
