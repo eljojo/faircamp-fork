@@ -10,7 +10,6 @@ use crate::{
     download_option::DownloadOption,
     image::Image,
     render,
-    source,
     track::Track
 };
 
@@ -30,13 +29,14 @@ impl Release {
     pub fn init(artists: Vec<Rc<Artist>>, mut images: Vec<Image>, title: String, tracks: Vec<Track>) -> Release {
         // TODO: Use/store multiple images (beyond just one cover)
         // TOOD: Basic logic to determine which of multiple images most likely is the cover
+        let slug = slug::slugify(&title);
         
         Release {
             artists,
             cover: images.pop(),
             download_option: DownloadOption::init_free(), // TODO: Revert to DownloadOption::Disabled after testing
             release_date: None,
-            slug: slug::slugify(&title),
+            slug,
             text: Some(String::from("This is a dummy description for a release.")), // TODO: Remove and replace with true sourcing from content
             title,
             tracks
@@ -44,18 +44,16 @@ impl Release {
     }
     
     pub fn write_files(&self, build_dir: &Path) {
-        let artist = source::source_artist();
-        
         if let DownloadOption::Free(download_hash) = &self.download_option {
             fs::create_dir_all(build_dir.join("download").join(download_hash)).ok();
             
             self.zip(build_dir).unwrap();
             
-            let download_release_html = render::render_download(&artist, self);
+            let download_release_html = render::render_download(self);
             fs::write(build_dir.join("download").join(download_hash).join("index.html"), download_release_html).unwrap();
         }
         
-        let release_html = render::render_release(&artist, self);
+        let release_html = render::render_release(self);
         fs::create_dir(build_dir.join(&self.slug)).ok();
         fs::write(build_dir.join(&self.slug).join("index.html"), release_html).unwrap();
     }

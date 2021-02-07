@@ -1,4 +1,5 @@
 use indoc::formatdoc;
+use std::rc::Rc;
 
 use crate::artist::Artist;
 use crate::catalog::Catalog;
@@ -32,7 +33,71 @@ fn layout(page_depth: usize, body: &str, title: &str) -> String {
     )
 }
 
-pub fn render_download(artist: &Artist, release: &Release) -> String {
+fn list_artists(page_depth: usize, artists: &Vec<Rc<Artist>>) -> String {
+    artists
+        .iter()
+        .map(|artist|
+            format!(
+                r#"<a href="{root_prefix}{artist_slug}/">{artist_name}</a>"#,
+                artist_slug=artist.slug,
+                artist_name=artist.name,
+                root_prefix=("../".repeat(page_depth))
+            )
+        )
+        .collect::<Vec<String>>()
+        .join(", ") // TODO: Consider "Alice, Bob and Carol" as polish over "Alice, Bob, Carol" (something for later)
+}
+
+pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
+    let releases_rendered = catalog.releases
+        .iter()
+        .filter_map(|release| {
+            if release.artists
+                .iter()
+                .find(|release_artist| Rc::ptr_eq(release_artist, artist))
+                .is_none() {
+                return None;
+            }
+            
+            let release_cover_rendered = match &release.cover {
+                Some(image) => format!(r#"<img class="cover" src="{}">"#, image.transcoded_file),
+                None => String::from(r#"<div class="cover"></div>"#)
+            };
+            
+            let release_rendered = formatdoc!(
+                r#"
+                    <div>
+                        {release_cover_rendered}
+                        <a href="{release_slug}/">{release_title}</a>
+                    </div>
+                "#,
+                release_cover_rendered=release_cover_rendered,
+                release_slug=release.slug,
+                release_title=release.title
+            );
+            
+            Some(release_rendered)
+        })
+        .collect::<Vec<String>>()
+        .join("<br><br>\n");
+    
+    let body = formatdoc!(
+        r#"
+            <h1>{artist_name}</h1>
+            <div class="releases">
+                {releases}
+            </div>
+        "#,
+        artist_name=artist.name,
+        releases=releases_rendered
+    );
+    
+    layout(1, &body, &artist.name)
+}
+
+pub fn render_download(release: &Release) -> String {
+    let artists_rendered = list_artists(2, &release.artists);
+    
     let release_cover_rendered = match &release.cover {
         Some(image) => format!(r#"<img class="cover" src="../../{}">"#, image.transcoded_file),
         None => String::from(r#"<div class="cover"></div>"#)
@@ -43,12 +108,11 @@ pub fn render_download(artist: &Artist, release: &Release) -> String {
             {release_cover_rendered}
             
             <h1>Download {release_title}</h1>
-            <div>by <a href="{artist_href}">{artist_name}</a></div>
+            <div>by {artists_rendered}</div>
             
             <div><a download href="original.zip">Zip Archive</a></div>
         "#,
-        artist_href="TODO",
-        artist_name=artist.name,
+        artists_rendered=artists_rendered,
         release_cover_rendered=release_cover_rendered,
         release_title=release.title
     );
@@ -56,7 +120,11 @@ pub fn render_download(artist: &Artist, release: &Release) -> String {
     layout(2, &body, &release.title)
 }
 
-pub fn render_release(artist: &Artist, release: &Release) -> String {
+
+
+pub fn render_release(release: &Release) -> String {
+    let artists_rendered = list_artists(1, &release.artists);
+    
     // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
@@ -118,7 +186,7 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
     let body = formatdoc!(
         r#"
             <h1>{release_title}</h1>
-            <div>by <a href="{artist_href}">{artist_name}</a></div>
+            <div>by {artists_rendered}</div>
             
             {download_option_rendered}
             
@@ -128,8 +196,7 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
             
             <div>{release_text}</div>
         "#,
-        artist_href="TODO",
-        artist_name=artist.name,
+        artists_rendered=artists_rendered,
         download_option_rendered=download_option_rendered,
         release_cover_rendered=release_cover_rendered,
         release_text=release.text.as_ref().unwrap_or(&String::new()),
@@ -140,7 +207,7 @@ pub fn render_release(artist: &Artist, release: &Release) -> String {
     layout(1, &body, &release.title)
 }
 
-pub fn render_releases(artist: &Artist, catalog: &Catalog) -> String {
+pub fn render_releases(catalog: &Catalog) -> String {
     let releases_rendered = catalog.releases
         .iter()
         .map(|release| {
@@ -149,8 +216,13 @@ pub fn render_releases(artist: &Artist, catalog: &Catalog) -> String {
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
-            format!(
-                r#"{release_cover_rendered} <a href="{release_slug}/">{release_title}</a>"#,
+            formatdoc!(
+                r#"
+                    <div>
+                        {release_cover_rendered}
+                        <a href="{release_slug}/">{release_title}</a>
+                    </div>
+                "#,
                 release_cover_rendered=release_cover_rendered,
                 release_slug=release.slug,
                 release_title=release.title
@@ -161,12 +233,13 @@ pub fn render_releases(artist: &Artist, catalog: &Catalog) -> String {
     
     let body = formatdoc!(
         r#"
-            <h1>{artist_name}</h1>
-            <div>{releases}</div>
+            <h1>Catalog</h1>
+            <div class="releases">
+                {releases}
+            </div>
         "#,
-        artist_name=artist.name,
         releases=releases_rendered
     );
     
-    layout(0, &body, &artist.name)
+    layout(0, &body, "Catalog")
 }

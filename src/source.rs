@@ -11,15 +11,6 @@ use crate::track::Track;
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
-pub fn source_artist() -> Artist {
-    Artist {
-        image: None,
-        links: Vec::new(),
-        location: None,
-        name: String::from("Dummy Artist")
-    }
-}
-
 pub fn source_catalog(build_dir: &Path, dir: PathBuf, catalog: &mut Catalog) -> Result<(), String> {
     let mut images: Vec<Image> = Vec::new();
     let mut release_artists: Vec<Rc<Artist>> = Vec::new();
@@ -34,7 +25,10 @@ pub fn source_catalog(build_dir: &Path, dir: PathBuf, catalog: &mut Catalog) -> 
                             source_catalog(build_dir, dir_entry.path(), catalog).unwrap();
                         } else if file_type.is_file() {
                             if let Some(track) = source_track(build_dir, dir_entry.path(), catalog) {
-                                if let None = release_artists.iter().find(|release_artist| Rc::ptr_eq(release_artist, &track.artist)) {
+                                if release_artists
+                                    .iter()
+                                    .find(|release_artist| Rc::ptr_eq(release_artist, &track.artist))
+                                    .is_none() {
                                     release_artists.push(track.artist.clone());
                                 }
                                 

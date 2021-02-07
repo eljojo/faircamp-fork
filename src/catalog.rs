@@ -36,10 +36,10 @@ impl Catalog {
         } else {
             self.artists
                 .iter()
-                .find(|artist| artist.name == "")
+                .find(|artist| artist.name == "UNKNOWN_SPECIAL_STRING")
                 .map(|existing_artist| existing_artist.clone())
                 .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::init(String::new()));
+                    let new_artist = Rc::new(Artist::init(String::from("UNKNOWN_SPECIAL_STRING")));
                     self.artists.push(new_artist.clone());
                     new_artist
                 })

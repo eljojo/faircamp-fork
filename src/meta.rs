@@ -2,6 +2,7 @@ use id3;
 use metaflac;
 use std::path::Path;
 
+#[derive(Debug)]
 pub struct Meta {
     pub artist: Option<String>,
     pub title: Option<String>

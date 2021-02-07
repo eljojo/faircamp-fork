@@ -21,18 +21,24 @@ fn main() {
     fs::remove_dir_all(BUILD_DIR).unwrap();
     fs::create_dir_all(BUILD_DIR).unwrap();
 
-    let artist = source::source_artist();
     let mut catalog = Catalog::init();
     
     if let Ok(current_dir) = env::current_dir() {
         source::source_catalog(build_dir, current_dir, &mut catalog).unwrap();
     }
     
-    // Render index for all releases
-    let releases_html = render::render_releases(&artist, &catalog);
+    // Render page for all releases
+    let releases_html = render::render_releases(&catalog);
     fs::write(build_dir.join("index.html"), releases_html).unwrap();
     
-    // Render index for each release
+    // Render page for each artist
+    for artist in &catalog.artists {
+        let artist_html = render::render_artist(&artist, &catalog);
+        fs::create_dir(build_dir.join(&artist.slug)).ok();
+        fs::write(build_dir.join(&artist.slug).join("index.html"), artist_html).unwrap();
+    }
+    
+    // Render page for each release
     for release in &catalog.releases {
         release.write_files(build_dir);
     }
