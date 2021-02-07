@@ -1,0 +1,14 @@
+[package]
+authors = ["Simon Repp <simon@fdpl.io>"]
+edition = "2018"
+name = "faircamp"
+version = "0.1.0"
+
+[dependencies]
+clap = { git = "https://github.com/clap-rs/clap/" }
+id3 = "0.6.1"
+indoc = "1.0.3"
+metaflac = "0.2.4"
+slug = "0.1.4"
+uuid = { features = ["v4"], version = "0.8.2" }
+zip = { features = ["deflate"], version = "0.5.9" }
