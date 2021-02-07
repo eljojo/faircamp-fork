@@ -29,16 +29,12 @@ fn main() {
     }
     
     // Render index for all releases 
-    let html = render::render_releases(&artist, &catalog);
-    fs::write(build_dir.join("index.html"), html).unwrap();
+    let releases_html = render::render_releases(&artist, &catalog);
+    fs::write(build_dir.join("index.html"), releases_html).unwrap();
     
     // Render index for each release
     for release in &catalog.releases {
-        release.zip(build_dir).unwrap();
-        
-        let html = render::render_release(&artist, &release);
-        fs::create_dir(build_dir.join(&release.slug)).ok();
-        fs::write(build_dir.join(&release.slug).join("index.html"), html).unwrap();
+        release.write_files(build_dir);
     }
 
     fs::write(build_dir.join("styles.css"), css::DEFAULT).unwrap();

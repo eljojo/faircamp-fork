@@ -2,48 +2,84 @@ use indoc::formatdoc;
 
 use crate::artist::Artist;
 use crate::catalog::Catalog;
-use crate::release::Release;
 use crate::download_option::DownloadOption;
+use crate::release::Release;
 
 const DOWNLOAD_INCLUDES_TEXT: &str = "Includes high-quality download in MP3, FLAC and more.";
 const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
+
+pub fn render_download(artist: &Artist, release: &Release) -> String {
+    let release_cover_rendered = match &release.cover {
+        Some(image) => format!(r#"<img class="cover" src="../../{}">"#, image.transcoded_file),
+        None => String::from(r#"<div class="cover"></div>"#)
+    };
+    
+    formatdoc!(
+        r#"
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <title>Download {release_title}</title>
+                    <meta charset="utf-8">
+                    <meta name="description" content="Download {release_title}">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="feed.rss"> <!--TODO-->
+                    <link href="../../styles.css" rel="stylesheet">
+                </head>
+                <body>
+                    {release_cover_rendered}
+                    
+                    <h1>Download {release_title}</h1>
+                    <div>by <a href="{artist_href}">{artist_name}</a></div>
+                    
+                    <div><a download href="original.zip">Zip Archive</a></div>
+                </body>
+            </html>
+        "#,
+        artist_href="TODO",
+        artist_name=artist.name,
+        release_cover_rendered=release_cover_rendered,
+        release_title=release.title
+    )
+}
 
 pub fn render_release(artist: &Artist, release: &Release) -> String {
     // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
-        DownloadOption::Free => formatdoc!(
+        DownloadOption::Free(download_hash) => formatdoc!(
             r#"
-                <a href="">Download Digital Release</a>
-                {}
+                <a href="../download/{hash}/">Download Digital Release</a>
+                {includes_text}
             "#,
-            DOWNLOAD_INCLUDES_TEXT
+            hash=download_hash,
+            includes_text=DOWNLOAD_INCLUDES_TEXT
         ),
         DownloadOption::NameYourPrice => formatdoc!(
             r#"
-                <a href="">Buy Digital Release</a> Name Your Price
-                {} {}
+                <a href="../download/todo">Buy Digital Release</a> Name Your Price
+                {includes_text} {paying_text}
             "#,
-            DOWNLOAD_INCLUDES_TEXT,
-            PAYING_SUPPORTERS_TEXT
+            includes_text=DOWNLOAD_INCLUDES_TEXT,
+            paying_text=PAYING_SUPPORTERS_TEXT
         ),
         DownloadOption::PayExactly(price) => formatdoc!(
             r#"
-                <a href="">Buy Digital Release</a> {}
-                {} {}
+                <a href="../download/todo">Buy Digital Release</a> {price}
+                {includes_text} {paying_text}
             "#,
-            price,
-            DOWNLOAD_INCLUDES_TEXT,
-            PAYING_SUPPORTERS_TEXT
+            price=price,
+            includes_text=DOWNLOAD_INCLUDES_TEXT,
+            paying_text=PAYING_SUPPORTERS_TEXT
         ),
         DownloadOption::PayMinimum(price) => formatdoc!(
             r#"
-                <a href="">Buy Digital Release</a> {} or more
-                {} {}
+                <a href="../download/todo">Buy Digital Release</a> {price} or more
+                {includes_text} {paying_text}
             "#,
-            price,
-            DOWNLOAD_INCLUDES_TEXT,
-            PAYING_SUPPORTERS_TEXT
+            price=price,
+            includes_text=DOWNLOAD_INCLUDES_TEXT,
+            paying_text=PAYING_SUPPORTERS_TEXT
         )
     };
     

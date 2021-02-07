@@ -68,7 +68,7 @@ pub fn source_image(build_dir: &Path, path: PathBuf) -> Option<Image> {
     if let Some(extension_osstr) = path.extension() {
         if let Some(extension_str) =  extension_osstr.to_str() {
             if SUPPORTED_IMAGE_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
-                let uuid = Uuid::new_v4().to_simple().to_string();
+                let uuid = Uuid::new_v4().to_string();
                 let source_file = path.to_str().unwrap().to_string();
                 let transcoded_file = format!("{}.{}", uuid, extension_str);
                 
@@ -89,7 +89,7 @@ pub fn source_track(build_dir: &Path, path: PathBuf) -> Option<Track> {
     if let Some(extension_osstr) = path.extension() {
         if let Some(extension_str) =  extension_osstr.to_str() {
             if SUPPORTED_AUDIO_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
-                let uuid = Uuid::new_v4().to_simple().to_string();
+                let uuid = Uuid::new_v4().to_string();
                 let source_file = path.to_str().unwrap().to_string();
                 let title = meta::extract_title(extension_str, &path).unwrap_or(filename.to_string());
                 let transcoded_file = format!("{}.{}", uuid, extension_str);
