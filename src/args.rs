@@ -11,6 +11,14 @@ pub struct Args {
     /// Override cache directory (by default it's .faircamp_cache/ inside the current working directory)
     #[clap(long = "cache-dir", short = 'c')]
     pub cache_dir: Option<PathBuf>,
+    
+    /// Deploys to the configured server via rsync after the build is finished
+    #[clap(long = "deploy", short = 'd')]
+    pub deploy: bool,
+    
+    /// Locally previews the build in the browser after the build is finished
+    #[clap(long = "preview", short = 'p')]
+    pub preview: bool,
 
     /// Wipes the asset cache BEFORE building - it then gets newly populated during building.
     #[clap(long = "wipe-cache", short = 'w')]

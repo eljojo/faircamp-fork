@@ -9,6 +9,7 @@ mod asset_cache;
 mod build_settings;
 mod catalog;
 mod css;
+mod deploy;
 mod download_option;
 mod image;
 mod meta;
@@ -19,7 +20,7 @@ mod transcode;
 mod util;
 
 use args::Args;
-use build_settings::BuildSettings;
+use build_settings::{BuildSettings, PostBuildAction};
 use catalog::Catalog;
 
 fn main() {
@@ -61,4 +62,10 @@ fn main() {
     }
 
     fs::write(build_settings.build_dir.join("styles.css"), css::DEFAULT).unwrap();
+    
+    match build_settings.post_build_action {
+        PostBuildAction::None => (),
+        PostBuildAction::Deploy => deploy::deploy(&build_settings),
+        PostBuildAction::Preview => unimplemented!("Preview functionality is yet to be tackled")
+    }
 }
