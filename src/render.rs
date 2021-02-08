@@ -23,12 +23,21 @@ fn layout(page_depth: usize, body: &str, title: &str) -> String {
                     <link href="{root_prefix}styles.css" rel="stylesheet">
                 </head>
                 <body>
-                    <nav>
-                        <a href="{root_prefix}">Catalog</a>
-                        <a href="{root_prefix}artists/">Artists</a>
-                    </nav>
-                    {body}
-                    <footer>faircamp alpha</footer>
+                    <div class="layout">
+                        <header>
+                            <nav>
+                                <a href="{root_prefix}">Catalog</a>
+                                <a href="{root_prefix}artists/">Artists</a>
+                            </nav>
+                        </header>
+                        <main>
+                            {body}
+                        </main>
+                        <footer>
+                            <span>2021 faircamp alpha</span>
+                            <a href=".">^ top</a>
+                        </footer>
+                    </div>
                 </body>
             </html>
         "#,
@@ -172,24 +181,30 @@ pub fn render_release(release: &Release) -> String {
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free(download_hash) => formatdoc!(
             r#"
-                <a href="../download/{hash}/">Download Digital Release</a>
-                {includes_text}
+                <div>
+                    <a href="../download/{hash}/">Download Digital Release</a>
+                    <div>{includes_text}</div>
+                </div>
             "#,
             hash=download_hash,
             includes_text=DOWNLOAD_INCLUDES_TEXT
         ),
         DownloadOption::NameYourPrice => formatdoc!(
             r#"
-                <a href="../download/todo">Buy Digital Release</a> Name Your Price
-                {includes_text} {paying_text}
+                <div>
+                    <a href="../download/todo">Buy Digital Release</a> Name Your Price
+                    <div>{includes_text} {paying_text}</div>
+                </div>
             "#,
             includes_text=DOWNLOAD_INCLUDES_TEXT,
             paying_text=PAYING_SUPPORTERS_TEXT
         ),
         DownloadOption::PayExactly(price) => formatdoc!(
             r#"
-                <a href="../download/todo">Buy Digital Release</a> {price}
-                {includes_text} {paying_text}
+                <div>
+                    <a href="../download/todo">Buy Digital Release</a> {price}
+                    <div>{includes_text} {paying_text}</div>
+                </div>
             "#,
             price=price,
             includes_text=DOWNLOAD_INCLUDES_TEXT,
@@ -197,8 +212,10 @@ pub fn render_release(release: &Release) -> String {
         ),
         DownloadOption::PayMinimum(price) => formatdoc!(
             r#"
-                <a href="../download/todo">Buy Digital Release</a> {price} or more
-                {includes_text} {paying_text}
+                <div>
+                    <a href="../download/todo">Buy Digital Release</a> {price} or more
+                    <div>{includes_text} {paying_text}</div>
+                </div>
             "#,
             price=price,
             includes_text=DOWNLOAD_INCLUDES_TEXT,
