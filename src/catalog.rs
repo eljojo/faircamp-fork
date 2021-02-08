@@ -188,7 +188,7 @@ impl Catalog {
         track: &Track) {
         if build_settings.transcode_flac {
             if cached_track_assets.flac.is_none() {
-                dbg!("Transcoding it because we didn't find it in cache.");
+                dbg!("Transcoding FLAC because we didn't find it in cache.");
                 let cache_relative_path = format!("{}.flac", track.transcoded_file);
                 transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
                 cached_track_assets.flac = Some(cache_relative_path);
@@ -200,7 +200,23 @@ impl Catalog {
             ).unwrap();
         }
         
+        if build_settings.transcode_mp3_320cbr {
+            if cached_track_assets.mp3_cbr_320.is_none() {
+                dbg!("Transcoding MP3 CBR 320 because we didn't find it in cache.");
+                let cache_relative_path = format!("{}.cbr_320.mp3", track.transcoded_file);
+                transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
+                cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
+            }
+            
+            // TODO: Only one type of format should be copied to staging as separate tracks,
+            //       namely the one that is used for (streaming) playback on the page. All
+            //       other formats go into the zip downloads only (if downloads are enabled even - needs checking here as well!)
+            fs::copy(
+                cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
+                build_dir.join(format!("{}.mp3", &track.transcoded_file))
+            ).unwrap();
+        }
+        
         // TODO: Other formats
-        // let cache_path = format!("{}.cbr_320.mp3")
     }
 }
