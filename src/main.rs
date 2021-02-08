@@ -24,12 +24,17 @@ use catalog::Catalog;
 
 fn main() {
     let args: Args = Args::parse();
-    let build_settings = BuildSettings::init(args);
+    let build_settings = BuildSettings::init(&args);
     
     let mut catalog = Catalog::read(&build_settings.catalog_dir);
     
     util::ensure_empty_dir(&build_settings.build_dir);
-    util::ensure_dir(&build_settings.cache_dir);
+    
+    if args.wipe_cache {
+        util::ensure_empty_dir(&build_settings.cache_dir);
+    } else {
+        util::ensure_dir(&build_settings.cache_dir);
+    }
     
     catalog.write_assets(&build_settings);
 

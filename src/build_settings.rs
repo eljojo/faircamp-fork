@@ -14,14 +14,18 @@ pub struct BuildSettings {
 }
 
 impl BuildSettings {
-    pub fn init(args: Args) -> BuildSettings {
+    pub fn init(args: &Args) -> BuildSettings {
         let catalog_dir = env::current_dir()
             .expect("Current working directory can not be determined or is unaccessible");
             
         let build_dir = args.build_dir
+            .as_ref()
+            .map(|path| path.to_path_buf())
             .unwrap_or_else(|| catalog_dir.join(".faircamp_build"));
             
         let cache_dir = args.cache_dir
+            .as_ref()
+            .map(|path| path.to_path_buf())
             .unwrap_or_else(|| catalog_dir.join(".faircamp_cache"));
         
         BuildSettings {
