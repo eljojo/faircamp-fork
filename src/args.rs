@@ -4,13 +4,17 @@ use std::path::PathBuf;
 #[clap(version = env!("CARGO_PKG_VERSION"))]
 #[derive(Clap, Debug)]
 pub struct Args {
-    /// Override build directory (by default it's .faircamp_build/ inside the current working directory)
-    #[clap(long = "build-dir", short = 'b')]
+    /// Override build directory (default is .faircamp_build/ inside the current working directory)
+    #[clap(long = "build-dir")]
     pub build_dir: Option<PathBuf>,
     
-    /// Override cache directory (by default it's .faircamp_cache/ inside the current working directory)
-    #[clap(long = "cache-dir", short = 'c')]
+    /// Override cache directory (default is .faircamp_cache/ inside the current working directory)
+    #[clap(long = "cache-dir")]
     pub cache_dir: Option<PathBuf>,
+    
+    /// Override catalog directory (default is the current working directory)
+    #[clap(long = "catalog-dir")]
+    pub catalog_dir: Option<PathBuf>,
     
     /// Deploys to the configured server via rsync after the build is finished
     #[clap(long = "deploy", short = 'd')]
@@ -21,6 +25,6 @@ pub struct Args {
     pub preview: bool,
 
     /// Wipes the asset cache BEFORE building - it then gets newly populated during building.
-    #[clap(long = "wipe-cache", short = 'w')]
+    #[clap(long = "wipe-cache")]
     pub wipe_cache: bool
 }

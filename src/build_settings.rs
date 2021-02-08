@@ -22,8 +22,13 @@ pub enum PostBuildAction {
 
 impl BuildSettings {
     pub fn init(args: &Args) -> BuildSettings {
-        let catalog_dir = env::current_dir()
-            .expect("Current working directory can not be determined or is unaccessible");
+        let catalog_dir = args.catalog_dir
+            .as_ref()
+            .map(|path| path.to_path_buf())
+            .unwrap_or_else(||
+                env::current_dir()
+                    .expect("Current working directory can not be determined or is unaccessible")
+            );
             
         let build_dir = args.build_dir
             .as_ref()
