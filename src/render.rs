@@ -74,7 +74,7 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
             }
             
             let release_cover_rendered = match &release.cover {
-                Some(image) => format!(r#"<img class="cover" src="../{}">"#, image.transcoded_file),
+                Some(image) => format!(r#"<img class="cover" src="../{}.jpg">"#, image.uuid),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
@@ -114,7 +114,7 @@ pub fn render_artists(catalog: &Catalog) -> String {
         .iter()
         .map(|artist| {
             let artist_cover_rendered = match &artist.image {
-                Some(image) => format!(r#"<img class="cover" src="{}">"#, image.transcoded_file),
+                Some(image) => format!(r#"<img class="cover" src="{}.jpg">"#, image.uuid),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
@@ -150,7 +150,7 @@ pub fn render_download(release: &Release) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
-        Some(image) => format!(r#"<img class="cover" src="../../{}">"#, image.transcoded_file),
+        Some(image) => format!(r#"<img class="cover" src="../../{}.jpg">"#, image.uuid),
         None => String::from(r#"<div class="cover"></div>"#)
     };
     
@@ -224,7 +224,7 @@ pub fn render_release(release: &Release) -> String {
     };
     
     let release_cover_rendered = match &release.cover {
-        Some(image) => format!(r#"<img class="cover" src="../{}">"#, image.transcoded_file),
+        Some(image) => format!(r#"<img class="cover" src="../{}.jpg">"#, image.uuid),
         None => String::from(r#"<div class="cover"></div>"#)
     };
     
@@ -233,9 +233,9 @@ pub fn render_release(release: &Release) -> String {
         .enumerate()
         .map(|(index, track)|
             format!(
-                "{track_number}. {track_title} <audio controls src=\"../{track_transcoded_file}\"></audio>",
+                "{track_number}. {track_title} <audio controls src=\"../{track_src}\"></audio>",
                 track_number=index + 1,
-                track_transcoded_file=track.transcoded_file,
+                track_src=format!("{}.mp3", track.uuid),
                 track_title=track.title
             )
         )
@@ -271,7 +271,7 @@ pub fn render_releases(catalog: &Catalog) -> String {
         .iter()
         .map(|release| {
             let release_cover_rendered = match &release.cover {
-                Some(image) => format!(r#"<img class="cover" src="{}">"#, image.transcoded_file),
+                Some(image) => format!(r#"<img class="cover" src="{}.jpg">"#, image.uuid),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             

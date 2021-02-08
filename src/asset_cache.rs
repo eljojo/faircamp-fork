@@ -7,13 +7,38 @@ const CACHE_MANIFEST_FILENAME: &str = "manifest.bincode";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CacheManifest {
-    pub entries: Vec<CachedTrackAssets>,
+    pub images: Vec<CachedImageAssets>,
+    pub tracks: Vec<CachedTrackAssets>
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CachedImageAssets {
+    pub image: Option<String>,
+    pub source_file_signature: SourceFileSignature
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CachedTrackAssets {
+    pub flac: Option<String>,
+    pub mp3_cbr_320: Option<String>,
+    pub mp3_vbr_256: Option<String>,
+    pub source_file_signature: SourceFileSignature
+}
+
+// TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+pub struct SourceFileSignature {
+    pub hash: String,
+    pub modified: SystemTime,
+    pub path: PathBuf,
+    pub size: u64
 }
 
 impl CacheManifest {
     pub fn new() -> CacheManifest {
         CacheManifest {
-            entries: Vec::new(),
+            images: Vec::new(),
+            tracks: Vec::new()
         }
     }
     
@@ -33,12 +58,13 @@ impl CacheManifest {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct CachedTrackAssets {
-    pub flac: Option<String>,
-    pub mp3_cbr_320: Option<String>,
-    pub mp3_vbr_256: Option<String>,
-    pub source_file_signature: SourceFileSignature
+impl CachedImageAssets {
+    pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
+        CachedImageAssets {
+            image: None,
+            source_file_signature
+        }
+    }
 }
 
 impl CachedTrackAssets {
@@ -50,15 +76,6 @@ impl CachedTrackAssets {
             source_file_signature
         }
     }
-}
-
-// TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
-pub struct SourceFileSignature {
-    pub hash: String,
-    pub modified: SystemTime,
-    pub path: PathBuf,
-    pub size: u64
 }
 
 impl SourceFileSignature {

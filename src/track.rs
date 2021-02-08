@@ -9,17 +9,17 @@ pub struct Track {
     pub length: u8,
     pub source_file: PathBuf,
     pub title: String,
-    pub transcoded_file: String
+    pub uuid: String
 }
 
 impl Track {
-    pub fn init(artist: Rc<Artist>, source_file: PathBuf, title: String, transcoded_file: String) -> Track {
+    pub fn init(artist: Rc<Artist>, source_file: PathBuf, title: String, uuid: String) -> Track {
         Track {
             artist,
             length: 0,
             source_file,
             title,
-            transcoded_file
+            uuid
         }
     }
 }

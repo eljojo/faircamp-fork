@@ -1,14 +1,16 @@
+use std::path::PathBuf;
+
 #[derive(Debug)]
 pub struct Image {
-    pub source_file: String,
-    pub transcoded_file: String
+    pub source_file: PathBuf,
+    pub uuid: String
 }
 
 impl Image {
-    pub fn init(source_file: String, transcoded_file: String) -> Image {
+    pub fn init(source_file: PathBuf, uuid: String) -> Image {
         Image {
             source_file,
-            transcoded_file
+            uuid
         }
     }
 }

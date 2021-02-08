@@ -4,7 +4,12 @@ use std::rc::Rc;
 
 use crate::{
     artist::Artist,
-    asset_cache::{CacheManifest, CachedTrackAssets, SourceFileSignature},
+    asset_cache::{
+        CacheManifest,
+        CachedImageAssets,
+        CachedTrackAssets,
+        SourceFileSignature
+    },
     build_settings::BuildSettings,
     image::Image,
     meta::Meta,
@@ -98,8 +103,7 @@ impl Catalog {
         if let Some(extension_osstr) = path.extension() {
             if let Some(extension_str) =  extension_osstr.to_str() {
                 if SUPPORTED_IMAGE_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
-                    let source_file = path.to_str().unwrap().to_string();
-                    return Some(Image::init(source_file, util::uuid()));
+                    return Some(Image::init(path.to_path_buf(), util::uuid()));
                 }
             }
         }
@@ -153,30 +157,58 @@ impl Catalog {
         let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
         
         for release in &self.releases {
-            // // TODO: Copy image
-            // let transcoded_file = format!("{}.{}", util::uuid(), extension_str);
-            // fs::copy(path_clone, build_dir.join(&transcoded_file)).unwrap();
+            if let Some(image) = &release.cover {
+                let source_file_signature = SourceFileSignature::init(&image.source_file);
+                
+                if let Some(mut cached_image_assets) = cache_manifest.images
+                    .iter_mut()
+                    .find(|cached_image| cached_image.source_file_signature == source_file_signature) {
+                    self.write_image_assets(build_settings, &mut cached_image_assets, image);
+                } else {
+                    let mut cached_image_assets = CachedImageAssets::new(source_file_signature);
+                    self.write_image_assets(build_settings, &mut cached_image_assets, image);
+                    cache_manifest.images.push(cached_image_assets);
+                }
+            }
             
             for track in &release.tracks {
-                dbg!(&track.title);
-                
                 let source_file_signature = SourceFileSignature::init(&track.source_file);
                 
-                if let Some(mut cached_track_assets) = cache_manifest.entries
+                if let Some(mut cached_track_assets) = cache_manifest.tracks
                     .iter_mut()
-                    .find(|entry| entry.source_file_signature == source_file_signature) {
+                    .find(|cached_track| cached_track.source_file_signature == source_file_signature) {
                     self.write_track_assets(build_settings, &mut cached_track_assets, track);
                 } else {
                     let mut cached_track_assets = CachedTrackAssets::new(source_file_signature);
                     self.write_track_assets(build_settings, &mut cached_track_assets, track);
-                    cache_manifest.entries.push(cached_track_assets);
-                };
+                    cache_manifest.tracks.push(cached_track_assets);
+                }
             }
         }
         
         // dbg!(&cache_manifest);
         
         cache_manifest.persist(&build_settings.cache_dir);
+    }
+    
+    pub fn write_image_assets(
+        &self,
+        build_settings: &BuildSettings,
+        cached_image_assets: &mut CachedImageAssets,
+        image: &Image) {
+        if cached_image_assets.image.is_none() {
+            dbg!("Transcoding image because we didn't find it in cache.");
+            let cache_relative_path = format!("{}.jpg", image.uuid);
+            transcode::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+            cached_image_assets.image = Some(cache_relative_path);
+        }
+
+        fs::copy(
+            build_settings.cache_dir.join(cached_image_assets.image.as_ref().unwrap()),
+            build_settings.build_dir.join(format!("{}.jpg", &image.uuid))
+        ).unwrap();
+        
+        // TODO: Resized variants etc.
     }
     
     pub fn write_track_assets(
@@ -187,21 +219,21 @@ impl Catalog {
         if build_settings.transcode_flac {
             if cached_track_assets.flac.is_none() {
                 dbg!("Transcoding FLAC because we didn't find it in cache.");
-                let cache_relative_path = format!("{}.flac", track.transcoded_file);
+                let cache_relative_path = format!("{}.flac", track.uuid);
                 transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.flac = Some(cache_relative_path);
             }
             
             fs::copy(
                 build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_settings.build_dir.join(format!("{}.flac", &track.transcoded_file))
+                build_settings.build_dir.join(format!("{}.flac", &track.uuid))
             ).unwrap();
         }
         
         if build_settings.transcode_mp3_320cbr {
             if cached_track_assets.mp3_cbr_320.is_none() {
                 dbg!("Transcoding MP3 CBR 320 because we didn't find it in cache.");
-                let cache_relative_path = format!("{}.cbr_320.mp3", track.transcoded_file);
+                let cache_relative_path = format!("{}.cbr_320.mp3", track.uuid);
                 transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
             }
@@ -211,7 +243,7 @@ impl Catalog {
             //       other formats go into the zip downloads only (if downloads are enabled even - needs checking here as well!)
             fs::copy(
                 build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_settings.build_dir.join(format!("{}.mp3", &track.transcoded_file))
+                build_settings.build_dir.join(format!("{}.mp3", &track.uuid))
             ).unwrap();
         }
         
