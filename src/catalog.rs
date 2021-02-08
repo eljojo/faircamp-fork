@@ -45,6 +45,11 @@ impl Catalog {
             Ok(dir_entries) => {
                 for dir_entry_result in dir_entries {
                     if let Ok(dir_entry) = dir_entry_result {
+                        // Skip hidden files
+                        if let Some(str) = dir_entry.file_name().to_str() {
+                            if str.starts_with(".") { continue }
+                        }
+                        
                         if let Ok(file_type) = dir_entry.file_type() {
                             if file_type.is_dir() {
                                 self.read_dir(&dir_entry.path()).unwrap();
