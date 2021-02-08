@@ -149,8 +149,8 @@ impl Catalog {
         }
     }
     
-    pub fn write_assets(&self, build_settings: &BuildSettings, build_dir: &Path, cache_dir: &Path) {
-        let mut cache_manifest = CacheManifest::retrieve(cache_dir);
+    pub fn write_assets(&self, build_settings: &BuildSettings) {
+        let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
         
         for release in &self.releases {
             // // TODO: Copy image
@@ -165,10 +165,10 @@ impl Catalog {
                 if let Some(mut cached_track_assets) = cache_manifest.entries
                     .iter_mut()
                     .find(|entry| entry.source_file_signature == source_file_signature) {
-                    self.write_track_assets(build_settings, build_dir, cache_dir, &mut cached_track_assets, track);
+                    self.write_track_assets(build_settings, &mut cached_track_assets, track);
                 } else {
                     let mut cached_track_assets = CachedTrackAssets::new(source_file_signature);
-                    self.write_track_assets(build_settings, build_dir, cache_dir, &mut cached_track_assets, track);
+                    self.write_track_assets(build_settings, &mut cached_track_assets, track);
                     cache_manifest.entries.push(cached_track_assets);
                 };
             }
@@ -176,27 +176,25 @@ impl Catalog {
         
         // dbg!(&cache_manifest);
         
-        cache_manifest.persist(cache_dir);
+        cache_manifest.persist(&build_settings.cache_dir);
     }
     
     pub fn write_track_assets(
         &self,
         build_settings: &BuildSettings,
-        build_dir: &Path,
-        cache_dir: &Path,
         cached_track_assets: &mut CachedTrackAssets,
         track: &Track) {
         if build_settings.transcode_flac {
             if cached_track_assets.flac.is_none() {
                 dbg!("Transcoding FLAC because we didn't find it in cache.");
                 let cache_relative_path = format!("{}.flac", track.transcoded_file);
-                transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
+                transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.flac = Some(cache_relative_path);
             }
             
             fs::copy(
-                cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_dir.join(format!("{}.flac", &track.transcoded_file))
+                build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
+                build_settings.build_dir.join(format!("{}.flac", &track.transcoded_file))
             ).unwrap();
         }
         
@@ -204,7 +202,7 @@ impl Catalog {
             if cached_track_assets.mp3_cbr_320.is_none() {
                 dbg!("Transcoding MP3 CBR 320 because we didn't find it in cache.");
                 let cache_relative_path = format!("{}.cbr_320.mp3", track.transcoded_file);
-                transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
+                transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
             }
             
@@ -212,8 +210,8 @@ impl Catalog {
             //       namely the one that is used for (streaming) playback on the page. All
             //       other formats go into the zip downloads only (if downloads are enabled even - needs checking here as well!)
             fs::copy(
-                cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_dir.join(format!("{}.mp3", &track.transcoded_file))
+                build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
+                build_settings.build_dir.join(format!("{}.mp3", &track.transcoded_file))
             ).unwrap();
         }
         
