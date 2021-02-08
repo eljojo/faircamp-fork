@@ -1,7 +1,5 @@
-use std::{
-    path::Path,
-    process::{Command, Output},
-};
+use std::path::Path;
+use std::process::{Command, Output};
 
 pub fn transcode(input_file: &Path, output_file: &Path) -> Result<(), String> {
     let mut command = Command::new("ffmpeg");

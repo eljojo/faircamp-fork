@@ -12,12 +12,13 @@ mod catalog;
 mod css;
 mod deploy;
 mod download_option;
+mod ffmpeg;
 mod image;
 mod meta;
 mod release;
 mod render;
+mod rsync;
 mod track;
-mod transcode;
 mod util;
 
 use args::Args;

@@ -20,6 +20,10 @@ pub struct Args {
     #[clap(long = "deploy", short = 'd')]
     pub deploy: bool,
     
+    /// Configures the deploy destination (passed to rsync as [DEST] argument), e.g. "user@example.com:/var/www/example.com/music/"
+    #[clap(long = "deploy-destination")]
+    pub deploy_destination: Option<String>,
+    
     /// Locally previews the build in the browser after the build is finished
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,

@@ -15,7 +15,7 @@ use crate::{
     meta::Meta,
     release::Release,
     track::Track,
-    transcode,
+    ffmpeg,
     util
 };
 
@@ -197,7 +197,7 @@ impl Catalog {
         if cached_image_assets.image.is_none() {
             info!("Transcoding {:?} (no cached assets available)", image.source_file);
             let cache_relative_path = format!("{}.jpg", image.uuid);
-            transcode::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+            ffmpeg::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path));
             cached_image_assets.image = Some(cache_relative_path);
         }
 
@@ -218,7 +218,7 @@ impl Catalog {
             if cached_track_assets.flac.is_none() {
                 info!("Transcoding {:?} to FLAC (no cached assets available)", track.source_file);
                 let cache_relative_path = format!("{}.flac", track.uuid);
-                transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.flac = Some(cache_relative_path);
             }
             
@@ -232,7 +232,7 @@ impl Catalog {
             if cached_track_assets.mp3_cbr_320.is_none() {
                 info!("Transcoding {:?} to MP3 320 (no cached assets available)", track.source_file);
                 let cache_relative_path = format!("{}.cbr_320.mp3", track.uuid);
-                transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
             }
             
