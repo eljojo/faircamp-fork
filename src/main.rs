@@ -1,3 +1,4 @@
+#[macro_use] extern crate log;
 #[macro_use] extern crate serde_derive;
 
 use clap::Clap;
@@ -24,6 +25,8 @@ use build_settings::{BuildSettings, PostBuildAction};
 use catalog::Catalog;
 
 fn main() {
+    env_logger::init();
+    
     let args: Args = Args::parse();
     let build_settings = BuildSettings::init(&args);
     

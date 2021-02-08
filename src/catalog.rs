@@ -186,8 +186,6 @@ impl Catalog {
             }
         }
         
-        // dbg!(&cache_manifest);
-        
         cache_manifest.persist(&build_settings.cache_dir);
     }
     
@@ -197,7 +195,7 @@ impl Catalog {
         cached_image_assets: &mut CachedImageAssets,
         image: &Image) {
         if cached_image_assets.image.is_none() {
-            dbg!("Transcoding image because we didn't find it in cache.");
+            info!("Transcoding {:?} (no cached assets available)", image.source_file);
             let cache_relative_path = format!("{}.jpg", image.uuid);
             transcode::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path));
             cached_image_assets.image = Some(cache_relative_path);
@@ -218,7 +216,7 @@ impl Catalog {
         track: &Track) {
         if build_settings.transcode_flac {
             if cached_track_assets.flac.is_none() {
-                dbg!("Transcoding FLAC because we didn't find it in cache.");
+                info!("Transcoding {:?} to FLAC (no cached assets available)", track.source_file);
                 let cache_relative_path = format!("{}.flac", track.uuid);
                 transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.flac = Some(cache_relative_path);
@@ -232,7 +230,7 @@ impl Catalog {
         
         if build_settings.transcode_mp3_320cbr {
             if cached_track_assets.mp3_cbr_320.is_none() {
-                dbg!("Transcoding MP3 CBR 320 because we didn't find it in cache.");
+                info!("Transcoding {:?} to MP3 320 (no cached assets available)", track.source_file);
                 let cache_relative_path = format!("{}.cbr_320.mp3", track.uuid);
                 transcode::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
                 cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
