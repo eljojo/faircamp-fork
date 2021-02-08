@@ -1,6 +1,10 @@
+#[macro_use] extern crate serde_derive;
+
 use std::{env, fs};
 
 mod artist;
+mod asset_cache;
+mod build_settings;
 mod catalog;
 mod css;
 mod download_option;
@@ -8,10 +12,11 @@ mod image;
 mod meta;
 mod release;
 mod render;
-mod source;
 mod track;
+mod transcode;
 mod util;
 
+use build_settings::BuildSettings;
 use catalog::Catalog;
 
 fn main() {
@@ -21,12 +26,17 @@ fn main() {
     let build_dir = catalog_dir.join(".faircamp_build");
     let cache_dir = catalog_dir.join(".faircamp_cache");
     
+    
     let mut catalog = Catalog::read(&catalog_dir);
     
-    util::ensure_empty(&build_dir);
+    util::ensure_empty_dir(&build_dir);
     
-    catalog.write_assets(&build_dir, &cache_dir);
+    let build_settings = BuildSettings::default();
     
+    util::ensure_dir(&cache_dir);
+    
+    catalog.write_assets(&build_settings, &build_dir, &cache_dir);
+
     
     // Render page for all artists
     let artists_html = render::render_artists(&catalog);

@@ -4,10 +4,13 @@ use std::rc::Rc;
 
 use crate::{
     artist::Artist,
+    asset_cache::{CacheManifest, CachedTrackAssets, SourceFileSignature},
+    build_settings::BuildSettings,
     image::Image,
     meta::Meta,
     release::Release,
     track::Track,
+    transcode,
     util
 };
 
@@ -96,7 +99,7 @@ impl Catalog {
             if let Some(extension_str) =  extension_osstr.to_str() {
                 if SUPPORTED_IMAGE_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
                     let source_file = path.to_str().unwrap().to_string();
-                    return Some(Image::init(source_file, format!("todo_delayed")));
+                    return Some(Image::init(source_file, util::uuid()));
                 }
             }
         }
@@ -110,12 +113,11 @@ impl Catalog {
         if let Some(extension_osstr) = path.extension() {
             if let Some(extension_str) =  extension_osstr.to_str() {
                 if SUPPORTED_AUDIO_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
-                    let source_file = path.to_str().unwrap().to_string();
                     let meta = Meta::extract(extension_str, &path);
                     
                     let artist = self.track_artist(meta.artist); // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
                     let title = meta.title.unwrap_or(filename.to_string());
-                    return Some(Track::init(artist, source_file, title, format!("todo_delayed")));
+                    return Some(Track::init(artist, path.to_path_buf(), title, util::uuid()));
                 }
             }
         }
@@ -147,7 +149,9 @@ impl Catalog {
         }
     }
     
-    pub fn write_assets(&self, build_dir: &Path, cache_dir: &Path) {
+    pub fn write_assets(&self, build_settings: &BuildSettings, build_dir: &Path, cache_dir: &Path) {
+        let mut cache_manifest = CacheManifest::retrieve(cache_dir);
+        
         for release in &self.releases {
             dbg!("Writing a release:", &release.title);
             
@@ -158,10 +162,34 @@ impl Catalog {
             for track in &release.tracks {
                 dbg!("Writing a track:", &track.title);
                 
+                if build_settings.transcode_flac {
+                    let cache_relative_path = format!("{}.flac", track.transcoded_file);
+                    
+                    let source_file_signature = SourceFileSignature::init(&track.source_file);
+                    
+                    if let Some(cached_track_assets) = cache_manifest.entries
+                        .iter()
+                        .find(|entry| entry.source_file_signature == source_file_signature) {
+                    } else {
+                        // transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
+                        
+                        let cached_track_assets = CachedTrackAssets { assets: vec![cache_relative_path.clone()], source_file_signature };
+                        cache_manifest.entries.push(cached_track_assets);
+                    }
+                    
+                    // TODO: Copy from cache_dir into build_dir
+                }
+                
+                // let cache_path = format!("{}.cbr_320.mp3")
+                
                 // let transcoded_file = format!("{}.{}", util::uuid(), extension_str);
                 // fs::copy(path_clone.clone(), build_dir.join(&transcoded_file)).unwrap();
                 // transcode(path_clone, build_dir.join("transcoded.flac")).unwrap();
             }
         }
+        
+        // dbg!(&cache_manifest);
+        
+        cache_manifest.persist(cache_dir);
     }
 }

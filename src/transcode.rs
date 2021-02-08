@@ -1,9 +1,9 @@
 use std::{
-    path::PathBuf,
+    path::Path,
     process::{Command, Output},
 };
 
-fn transcode(input_file: PathBuf, output_file: PathBuf) -> Result<(), String> {
+pub fn transcode(input_file: &Path, output_file: &Path) -> Result<(), String> {
     let mut command = Command::new("ffmpeg");
     
     // command.env("FOR_REFERENCE_ENV_VAR_SETTING", &self.data_dir);
@@ -25,7 +25,7 @@ fn transcode(input_file: PathBuf, output_file: PathBuf) -> Result<(), String> {
     }
 }
 
-pub fn transcode_debug_output(output: Output) -> String {
+fn transcode_debug_output(output: Output) -> String {
     let stderr = String::from_utf8(output.stderr).unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
