@@ -35,8 +35,21 @@ impl CacheManifest {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CachedTrackAssets {
-    pub assets: Vec<String>,
-    pub source_file_signature: SourceFileSignature,
+    pub flac: Option<String>,
+    pub mp3_cbr_320: Option<String>,
+    pub mp3_vbr_256: Option<String>,
+    pub source_file_signature: SourceFileSignature
+}
+
+impl CachedTrackAssets {
+    pub fn new(source_file_signature: SourceFileSignature) -> CachedTrackAssets {
+        CachedTrackAssets {
+            flac: None,
+            mp3_cbr_320: None,
+            mp3_vbr_256: None,
+            source_file_signature
+        }
+    }
 }
 
 // TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)

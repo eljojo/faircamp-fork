@@ -153,43 +153,54 @@ impl Catalog {
         let mut cache_manifest = CacheManifest::retrieve(cache_dir);
         
         for release in &self.releases {
-            dbg!("Writing a release:", &release.title);
-            
             // // TODO: Copy image
             // let transcoded_file = format!("{}.{}", util::uuid(), extension_str);
             // fs::copy(path_clone, build_dir.join(&transcoded_file)).unwrap();
             
             for track in &release.tracks {
-                dbg!("Writing a track:", &track.title);
+                dbg!(&track.title);
                 
-                if build_settings.transcode_flac {
-                    let cache_relative_path = format!("{}.flac", track.transcoded_file);
-                    
-                    let source_file_signature = SourceFileSignature::init(&track.source_file);
-                    
-                    if let Some(cached_track_assets) = cache_manifest.entries
-                        .iter()
-                        .find(|entry| entry.source_file_signature == source_file_signature) {
-                    } else {
-                        // transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
-                        
-                        let cached_track_assets = CachedTrackAssets { assets: vec![cache_relative_path.clone()], source_file_signature };
-                        cache_manifest.entries.push(cached_track_assets);
-                    }
-                    
-                    // TODO: Copy from cache_dir into build_dir
-                }
+                let source_file_signature = SourceFileSignature::init(&track.source_file);
                 
-                // let cache_path = format!("{}.cbr_320.mp3")
-                
-                // let transcoded_file = format!("{}.{}", util::uuid(), extension_str);
-                // fs::copy(path_clone.clone(), build_dir.join(&transcoded_file)).unwrap();
-                // transcode(path_clone, build_dir.join("transcoded.flac")).unwrap();
+                if let Some(mut cached_track_assets) = cache_manifest.entries
+                    .iter_mut()
+                    .find(|entry| entry.source_file_signature == source_file_signature) {
+                    self.write_track_assets(build_settings, build_dir, cache_dir, &mut cached_track_assets, track);
+                } else {
+                    let mut cached_track_assets = CachedTrackAssets::new(source_file_signature);
+                    self.write_track_assets(build_settings, build_dir, cache_dir, &mut cached_track_assets, track);
+                    cache_manifest.entries.push(cached_track_assets);
+                };
             }
         }
         
         // dbg!(&cache_manifest);
         
         cache_manifest.persist(cache_dir);
+    }
+    
+    pub fn write_track_assets(
+        &self,
+        build_settings: &BuildSettings,
+        build_dir: &Path,
+        cache_dir: &Path,
+        cached_track_assets: &mut CachedTrackAssets,
+        track: &Track) {
+        if build_settings.transcode_flac {
+            if cached_track_assets.flac.is_none() {
+                dbg!("Transcoding it because we didn't find it in cache.");
+                let cache_relative_path = format!("{}.flac", track.transcoded_file);
+                transcode::transcode(&track.source_file, &cache_dir.join(&cache_relative_path));
+                cached_track_assets.flac = Some(cache_relative_path);
+            }
+            
+            fs::copy(
+                cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
+                build_dir.join(format!("{}.flac", &track.transcoded_file))
+            ).unwrap();
+        }
+        
+        // TODO: Other formats
+        // let cache_path = format!("{}.cbr_320.mp3")
     }
 }
