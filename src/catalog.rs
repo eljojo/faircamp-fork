@@ -10,13 +10,14 @@ use crate::{
         CachedTrackAssets,
         SourceFileSignature
     },
+    audio_meta::AudioMeta,
     build_settings::BuildSettings,
     download_option::DownloadOption,
     image::Image,
-    meta::Meta,
     release::Release,
     track::Track,
     ffmpeg,
+    manifest,
     util
 };
 
@@ -79,7 +80,7 @@ impl Catalog {
                                         )
                                     )
                                     .flatten() {
-                                    if extension == "eno" {
+                                    if extension == "txt" {
                                         meta_paths.push(path);
                                     } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
                                         track_paths.push((path, extension));
@@ -105,15 +106,21 @@ impl Catalog {
         
         for meta_path in &meta_paths {
             info!("Reading meta {}", meta_path.display());
-            if let Some(download_option_override) = self.read_meta(meta_path) {
+            
+            // TODO: Consider if this should instead return a "Vec<ManifestOverride>" over which we iterate and
+            //       with each item (which is an enum: ManifestOverride::DownloadOption(...), ManifestOverride::TrackArtist(...))
+            //       we override the actual manifest which gets passed down with each recursion?
+            let manifest = manifest::read(meta_path);
+            
+            if let Some(download_option_override) = manifest.download_option {
                 download_option = download_option_override;
             }
         }
         
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
-            let meta = Meta::extract(track_path, extension);
-            let track = self.read_track(track_path, meta);
+            let audio_meta = AudioMeta::extract(track_path, extension);
+            let track = self.read_track(track_path, audio_meta);
             
             if release_artists
                 .iter()
@@ -153,46 +160,10 @@ impl Catalog {
 
         Ok(())
     }
-    
-    pub fn read_meta(&self, path: &Path) -> Option<DownloadOption> {
-        match fs::read_to_string(path) {
-            Ok(content) => {
-                let mut download_option = None;
-                
-                for line in content.lines() {
-                    if line.starts_with("download:") {
-                        match &line[10..] {
-                            "disabled" => {
-                                download_option = Some(DownloadOption::Disabled);
-                            },
-                            "free" => {
-                                download_option = Some(DownloadOption::init_free());
-                            },
-                            "anyprice" => {
-                                download_option = Some(DownloadOption::NameYourPrice);
-                            },
-                            "minprice" => {
-                                download_option = Some(DownloadOption::PayMinimum("10 Republican Credits".to_string()));
-                            },
-                            "exactprice" => {
-                                download_option = Some(DownloadOption::PayExactly("10 Republican Credits".to_string()));
-                            },
-                            _ => error!("Ignoring invalid download setting value '{}' in {:?}", &line[10..], path)
-                        }
-                    }
-                }
-                
-                return download_option;
-            }
-            Err(err) => error!("Could not read meta file {:?} ({})", path, err)
-        } 
-        
-        None
-    }
 
-    pub fn read_track(&mut self, path: &Path, meta: Meta) -> Track {
-        let artist = self.track_artist(meta.artist); // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
-        let title = meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
+    pub fn read_track(&mut self, path: &Path, audio_meta: AudioMeta) -> Track {
+        let artist = self.track_artist(audio_meta.artist); // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
+        let title = audio_meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
         
         Track::init(artist, path.to_path_buf(), title, util::uuid())
     }
