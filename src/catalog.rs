@@ -55,7 +55,10 @@ impl Catalog {
                     if let Ok(dir_entry) = dir_entry_result {
                         // Skip hidden files
                         if let Some(str) = dir_entry.file_name().to_str() {
-                            if str.starts_with(".") { continue }
+                            if str.starts_with(".") {
+                                info!("Ignoring hidden file {:?} in catalog", dir_entry.path());
+                                continue
+                            }
                         }
                         
                         if let Ok(file_type) = dir_entry.file_type() {
@@ -73,11 +76,13 @@ impl Catalog {
                                     release_tracks.push(track);
                                 } else if let Some(image) = self.read_image(&dir_entry.path()) {
                                     images.push(image);
+                                } else {
+                                    warn!("Ignoring unsupported filetype {:?} in catalog", dir_entry.path());
                                 }
                             } else if file_type.is_symlink() {
-                                // TODO: Symlinks ignored for now, handle if and when requested
+                                warn!("Ignoring symlink {:?} in catalog", dir_entry.path());
                             } else {
-                                
+                                warn!("Ignoring unknown filetype {:?} in catalog", dir_entry.path());
                             }
                         }
                     }
