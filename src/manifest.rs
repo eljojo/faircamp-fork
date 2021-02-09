@@ -3,56 +3,60 @@ use std::path::Path;
 
 use crate::download_option::DownloadOption;
 
-pub struct Manifest {
-    pub download_option: Option<DownloadOption>,
-    pub release_artist: Option<String>,
-    pub track_artist: Option<String>
+#[derive(Clone)]
+pub struct Overrides {
+    pub download_option: DownloadOption,
+    pub release_artists: Option<Vec<String>>,
+    pub track_artists: Option<Vec<String>>
 }
 
-impl Manifest {
-    pub fn empty() -> Manifest {
-        Manifest {
-            download_option: None,
-            release_artist: None,
-            track_artist: None
+impl Overrides {
+    pub fn default() -> Overrides {
+        Overrides {
+            download_option: DownloadOption::Disabled,
+            release_artists: None,
+            track_artists: None
         }
     }
 }
 
-pub fn read(path: &Path) -> Manifest {
-    let mut manifest = Manifest::empty();
-    
+pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => for line in content.lines() {
             if line.starts_with("download:") {
                 match line[9..].trim() {
                     "disabled" => {
-                        manifest.download_option = Some(DownloadOption::Disabled);
+                        debug!("Applying download option override (disabled)");
+                        overrides.download_option = DownloadOption::Disabled;
                     },
                     "free" => {
-                        manifest.download_option = Some(DownloadOption::init_free());
+                        debug!("Applying download option override (free)");
+                        overrides.download_option = DownloadOption::init_free();
                     },
                     "anyprice" => {
-                        manifest.download_option = Some(DownloadOption::NameYourPrice);
+                        debug!("Applying download option override (anyprice)");
+                        overrides.download_option = DownloadOption::NameYourPrice;
                     },
                     "minprice" => {
-                        manifest.download_option = Some(DownloadOption::PayMinimum("10 Republican Credits".to_string()));
+                        debug!("Applying download option override (minprice)");
+                        overrides.download_option = DownloadOption::PayMinimum("10 Republican Credits".to_string());
                     },
                     "exactprice" => {
-                        manifest.download_option = Some(DownloadOption::PayExactly("10 Republican Credits".to_string()));
+                        debug!("Applying download option override (exactprice)");
+                        overrides.download_option = DownloadOption::PayExactly("10 Republican Credits".to_string());
                     },
                     _ => error!("Ignoring invalid download setting value '{}' in {:?}", &line[10..], path)
                 }
             } else if line.starts_with("release-artist:") {
-                manifest.release_artist = Some(line[15..].trim().to_string());
+                debug!("Applying release-artist override {}", line[15..].trim());
+                overrides.release_artists = Some(vec![line[15..].trim().to_string()]);
             } else if line.starts_with("track-artist:") {
-                manifest.track_artist = Some(line[13..].trim().to_string());
+                debug!("Applying track-artist override {}", line[13..].trim());
+                overrides.track_artists = Some(vec![line[13..].trim().to_string()]);
             } else if !line.trim().is_empty() && !line.starts_with(">") {
-                warn!("Ignoring unrecognized manifest line {}", line);
+                error!("Ignoring unrecognized manifest line {}", line);
             }
         }
         Err(err) => error!("Could not read meta file {:?} ({})", path, err)
     } 
-    
-    manifest
 }

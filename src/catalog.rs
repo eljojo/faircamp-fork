@@ -14,6 +14,7 @@ use crate::{
     build_settings::BuildSettings,
     download_option::DownloadOption,
     image::Image,
+    manifest::Overrides,
     release::Release,
     track::Track,
     ffmpeg,
@@ -42,11 +43,13 @@ impl Catalog {
     
     pub fn read(catalog_dir: &Path) -> Catalog {
         let mut catalog = Catalog::init_empty();
-        catalog.read_dir(catalog_dir, DownloadOption::Disabled).unwrap();
+        catalog.read_dir(catalog_dir, &Overrides::default()).unwrap();
         catalog
     }
     
-    fn read_dir(&mut self, dir: &Path, mut download_option: DownloadOption) -> Result<(), String> {
+    fn read_dir(&mut self, dir: &Path, parent_overrides: &Overrides) -> Result<(), String> {
+        let mut local_overrides = None;
+        
         let mut images: Vec<Image> = Vec::new();
         let mut release_artists: Vec<Rc<Artist>> = Vec::new();
         let mut release_tracks: Vec<Track> = Vec::new();
@@ -107,26 +110,26 @@ impl Catalog {
         for meta_path in &meta_paths {
             info!("Reading meta {}", meta_path.display());
             
-            // TODO: Consider if this should instead return a "Vec<ManifestOverride>" over which we iterate and
-            //       with each item (which is an enum: ManifestOverride::DownloadOption(...), ManifestOverride::TrackArtist(...))
-            //       we override the actual manifest which gets passed down with each recursion?
-            let manifest = manifest::read(meta_path);
-            
-            if let Some(download_option_override) = manifest.download_option {
-                download_option = download_option_override;
-            }
+            manifest::apply_overrides(
+                meta_path,
+                local_overrides.get_or_insert_with(|| parent_overrides.clone())
+            );
         }
         
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
             let audio_meta = AudioMeta::extract(track_path, extension);
-            let track = self.read_track(track_path, audio_meta);
+            let track = self.read_track(track_path, audio_meta, local_overrides.as_ref().unwrap_or(parent_overrides));
             
-            if release_artists
-                .iter()
-                .find(|release_artist| Rc::ptr_eq(release_artist, &track.artist))
-                .is_none() {
-                release_artists.push(track.artist.clone());
+            if local_overrides.as_ref().unwrap_or(parent_overrides).release_artists.is_none() {
+                for track_artist in &track.artists {
+                    if release_artists
+                    .iter()
+                    .find(|release_artist| Rc::ptr_eq(release_artist, track_artist))
+                    .is_none() {
+                        release_artists.push(track_artist.clone());
+                    }
+                }
             }
             
             release_tracks.push(track);
@@ -139,14 +142,25 @@ impl Catalog {
         
         for dir_path in &dir_paths {
             info!("Reading directory {}", dir_path.display());
-            self.read_dir(dir_path, download_option.clone()).unwrap();
+            self.read_dir(dir_path, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
         
         if !release_tracks.is_empty() {
+            if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
+                for artist_name in artist_names {
+                    let artist = self.track_artist(Some(artist_name.clone()));
+                    release_artists.push(artist);
+                }
+            }
+            
             let title = dir.file_name().unwrap().to_str().unwrap().to_string();
+            
             let release = Release::init(
                 release_artists,
-                download_option.clone(),
+                match local_overrides {
+                    Some(overrides) => overrides.download_option.clone(),
+                    None => parent_overrides.download_option.clone()
+                },
                 images,
                 title,
                 release_tracks
@@ -161,13 +175,22 @@ impl Catalog {
         Ok(())
     }
 
-    pub fn read_track(&mut self, path: &Path, audio_meta: AudioMeta) -> Track {
-        let artist = self.track_artist(audio_meta.artist); // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
+    pub fn read_track(&mut self, path: &Path, audio_meta: AudioMeta, overrides: &Overrides) -> Track {
+        let artists = if let Some(artist_names) = &overrides.track_artists {
+            artist_names
+                .iter()
+                .map(|name| self.track_artist(Some(name.to_string())))
+                .collect()
+        } else {
+            vec![self.track_artist(audio_meta.artist)]
+        };
+        
         let title = audio_meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
         
-        Track::init(artist, path.to_path_buf(), title, util::uuid())
+        Track::init(artists, path.to_path_buf(), title, util::uuid())
     }
     
+    // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
     pub fn track_artist(&mut self, new_artist_name: Option<String>) -> Rc<Artist> {
         if let Some(new_artist_name) = new_artist_name {
             self.artists

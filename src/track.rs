@@ -5,7 +5,7 @@ use crate::artist::Artist;
 
 #[derive(Debug)]
 pub struct Track {
-    pub artist: Rc<Artist>,
+    pub artists: Vec<Rc<Artist>>,
     pub length: u8,
     pub source_file: PathBuf,
     pub title: String,
@@ -13,9 +13,9 @@ pub struct Track {
 }
 
 impl Track {
-    pub fn init(artist: Rc<Artist>, source_file: PathBuf, title: String, uuid: String) -> Track {
+    pub fn init(artists: Vec<Rc<Artist>>, source_file: PathBuf, title: String, uuid: String) -> Track {
         Track {
-            artist,
+            artists,
             length: 0,
             source_file,
             title,
