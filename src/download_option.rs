@@ -1,6 +1,13 @@
-use uuid::Uuid;
+use crate::util;
 
-#[derive(Debug)]
+
+// TODO: Revisit option terminology? (in tandem with what the user sets in metadata) e.g. ...
+// Disabled
+// NoPrice
+// AnyPrice
+// MinimumPrice
+// ExactPrice
+#[derive(Clone, Debug)]
 pub enum DownloadOption {
     Disabled,
     Free(String),
@@ -11,7 +18,7 @@ pub enum DownloadOption {
 
 impl DownloadOption {
     pub fn init_free() -> DownloadOption {
-        let download_uuid = Uuid::new_v4().to_string();
+        let download_uuid = util::uuid();
         
         DownloadOption::Free(download_uuid)
     }

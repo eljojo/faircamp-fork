@@ -11,6 +11,7 @@ use crate::{
         SourceFileSignature
     },
     build_settings::BuildSettings,
+    download_option::DownloadOption,
     image::Image,
     meta::Meta,
     release::Release,
@@ -40,14 +41,19 @@ impl Catalog {
     
     pub fn read(catalog_dir: &Path) -> Catalog {
         let mut catalog = Catalog::init_empty();
-        catalog.read_dir(catalog_dir);
+        catalog.read_dir(catalog_dir, DownloadOption::Disabled);
         catalog
     }
     
-    fn read_dir(&mut self, dir: &Path) -> Result<(), String> {
+    fn read_dir(&mut self, dir: &Path, mut download_option: DownloadOption) -> Result<(), String> {
         let mut images: Vec<Image> = Vec::new();
         let mut release_artists: Vec<Rc<Artist>> = Vec::new();
         let mut release_tracks: Vec<Track> = Vec::new();
+        
+        // TODO: We need to ensure proper read-order:
+        //       - First we read all meta
+        //       - Then we read audio/images
+        //       - Then we recurse into subdirectories
         
         match dir.read_dir() {
             Ok(dir_entries) => {
@@ -63,7 +69,7 @@ impl Catalog {
                         
                         if let Ok(file_type) = dir_entry.file_type() {
                             if file_type.is_dir() {
-                                self.read_dir(&dir_entry.path()).unwrap();
+                                self.read_dir(&dir_entry.path(), download_option.clone()).unwrap();
                             } else if file_type.is_file() {
                                 if let Some(track) = self.read_track(&dir_entry.path()) {
                                     if release_artists
@@ -76,6 +82,9 @@ impl Catalog {
                                     release_tracks.push(track);
                                 } else if let Some(image) = self.read_image(&dir_entry.path()) {
                                     images.push(image);
+                                } else if let Some(download_option_override) = self.read_meta(&dir_entry.path()) {
+                                    info!("Reading meta {:?}", dir_entry.path());
+                                    download_option = download_option_override;
                                 } else {
                                     warn!("Ignoring unsupported filetype {:?} in catalog", dir_entry.path());
                                 }
@@ -90,7 +99,13 @@ impl Catalog {
                 
                 if !release_tracks.is_empty() {
                     let title = dir.file_name().unwrap().to_str().unwrap().to_string();
-                    let release = Release::init(release_artists, images, title, release_tracks);
+                    let release = Release::init(
+                        release_artists,
+                        download_option.clone(),
+                        images,
+                        title,
+                        release_tracks
+                    );
                     
                     self.releases.push(release);
                 } else if !images.is_empty() {
@@ -109,6 +124,48 @@ impl Catalog {
             if let Some(extension_str) =  extension_osstr.to_str() {
                 if SUPPORTED_IMAGE_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
                     return Some(Image::init(path.to_path_buf(), util::uuid()));
+                }
+            }
+        }
+        
+        None
+    }
+    
+    pub fn read_meta(&self, path: &Path) -> Option<DownloadOption> {
+        if let Some(extension_osstr) = path.extension() {
+            if let Some(extension_str) =  extension_osstr.to_str() {
+                if extension_str.to_lowercase().as_str() == "eno" {
+                    match fs::read_to_string(path) {
+                        Ok(content) => {
+                            let mut download_option = None;
+                            
+                            for line in content.lines() {
+                                if line.starts_with("download:") {
+                                    match &line[10..] {
+                                        "disabled" => {
+                                            download_option = Some(DownloadOption::Disabled);
+                                        },
+                                        "free" => {
+                                            download_option = Some(DownloadOption::init_free());
+                                        },
+                                        "anyprice" => {
+                                            download_option = Some(DownloadOption::NameYourPrice);
+                                        },
+                                        "minprice" => {
+                                            download_option = Some(DownloadOption::PayMinimum("10 Republican Credits".to_string()));
+                                        },
+                                        "exactprice" => {
+                                            download_option = Some(DownloadOption::PayExactly("10 Republican Credits".to_string()));
+                                        },
+                                        _ => error!("Ignoring invalid download setting value '{}' in {:?}", &line[10..], path)
+                                    }
+                                }
+                            }
+                            
+                            return download_option;
+                        }
+                        Err(err) => error!("Could not read meta file {:?} ({})", path, err)
+                    } 
                 }
             }
         }

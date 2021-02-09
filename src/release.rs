@@ -26,7 +26,13 @@ pub struct Release {
 }
 
 impl Release {
-    pub fn init(artists: Vec<Rc<Artist>>, mut images: Vec<Image>, title: String, tracks: Vec<Track>) -> Release {
+    pub fn init(
+        artists: Vec<Rc<Artist>>,
+        download_option: DownloadOption,
+        mut images: Vec<Image>,
+        title: String,
+        tracks: Vec<Track>
+    ) -> Release {
         // TODO: Use/store multiple images (beyond just one cover)
         // TOOD: Basic logic to determine which of multiple images most likely is the cover
         let slug = slug::slugify(&title);
@@ -34,7 +40,7 @@ impl Release {
         Release {
             artists,
             cover: images.pop(),
-            download_option: DownloadOption::init_free(), // TODO: Revert to DownloadOption::Disabled after testing
+            download_option,
             release_date: None,
             slug,
             text: Some(String::from("This is a dummy description for a release.")), // TODO: Remove and replace with true sourcing from content
