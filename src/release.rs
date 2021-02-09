@@ -30,6 +30,7 @@ impl Release {
         artists: Vec<Rc<Artist>>,
         download_option: DownloadOption,
         mut images: Vec<Image>,
+        text: Option<String>,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
@@ -43,7 +44,7 @@ impl Release {
             download_option,
             release_date: None,
             slug,
-            text: Some(String::from("This is a dummy description for a release.")), // TODO: Remove and replace with true sourcing from content
+            text,
             title,
             tracks
         }

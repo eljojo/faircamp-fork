@@ -155,6 +155,7 @@ impl Catalog {
                 release_artists,
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,
+                local_overrides.as_ref().unwrap_or(parent_overrides).release_text.clone(),
                 title,
                 release_tracks
             );

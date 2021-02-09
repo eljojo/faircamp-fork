@@ -7,6 +7,7 @@ use crate::download_option::DownloadOption;
 pub struct Overrides {
     pub download_option: DownloadOption,
     pub release_artists: Option<Vec<String>>,
+    pub release_text: Option<String>,
     pub track_artists: Option<Vec<String>>
 }
 
@@ -15,6 +16,7 @@ impl Overrides {
         Overrides {
             download_option: DownloadOption::Disabled,
             release_artists: None,
+            release_text: None,
             track_artists: None
         }
     }
@@ -50,6 +52,9 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
             } else if line.starts_with("release-artist:") {
                 debug!("Applying release-artist override {}", line[15..].trim());
                 overrides.release_artists = Some(vec![line[15..].trim().to_string()]);
+            } else if line.starts_with("release-text:") {
+                debug!("Applying release-text override {}", line[13..].trim());
+                overrides.release_text = Some(line[13..].trim().to_string());
             } else if line.starts_with("track-artist:") {
                 debug!("Applying track-artist override {}", line[13..].trim());
                 overrides.track_artists = Some(vec![line[13..].trim().to_string()]);
