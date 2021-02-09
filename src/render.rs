@@ -273,6 +273,8 @@ pub fn render_releases(catalog: &Catalog) -> String {
     let releases_rendered = catalog.releases
         .iter()
         .map(|release| {
+            let artists_rendered = list_artists(0, &release.artists);
+            
             let release_cover_rendered = match &release.cover {
                 Some(image) => format!(r#"<img class="cover" src="{}.jpg">"#, image.uuid),
                 None => String::from(r#"<div class="cover"></div>"#)
@@ -283,8 +285,10 @@ pub fn render_releases(catalog: &Catalog) -> String {
                     <div>
                         {release_cover_rendered}
                         <a href="{release_slug}/">{release_title}</a>
+                        <div>by {artists_rendered}</div>
                     </div>
                 "#,
+                artists_rendered=artists_rendered,
                 release_cover_rendered=release_cover_rendered,
                 release_slug=release.slug,
                 release_title=release.title
