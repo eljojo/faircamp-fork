@@ -9,7 +9,7 @@ pub struct Meta {
 }
 
 impl Meta {
-    pub fn extract(extension: &str, path: &Path) -> Meta {
+    pub fn extract(path: &Path, extension: &str) -> Meta {
         if extension == "flac" {
             if let Ok(tag) = metaflac::Tag::read_from_path(path) {
                 return Meta {

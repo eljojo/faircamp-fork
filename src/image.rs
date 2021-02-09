@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct Image {
@@ -7,9 +7,9 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn init(source_file: PathBuf, uuid: String) -> Image {
+    pub fn init(source_file: &Path, uuid: String) -> Image {
         Image {
-            source_file,
+            source_file: source_file.to_path_buf(),
             uuid
         }
     }

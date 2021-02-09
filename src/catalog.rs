@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::{
@@ -41,7 +41,7 @@ impl Catalog {
     
     pub fn read(catalog_dir: &Path) -> Catalog {
         let mut catalog = Catalog::init_empty();
-        catalog.read_dir(catalog_dir, DownloadOption::Disabled);
+        catalog.read_dir(catalog_dir, DownloadOption::Disabled).unwrap();
         catalog
     }
     
@@ -50,145 +50,151 @@ impl Catalog {
         let mut release_artists: Vec<Rc<Artist>> = Vec::new();
         let mut release_tracks: Vec<Track> = Vec::new();
         
-        // TODO: We need to ensure proper read-order:
-        //       - First we read all meta
-        //       - Then we read audio/images
-        //       - Then we recurse into subdirectories
+        let mut dir_paths: Vec<PathBuf> = Vec::new();
+        let mut image_paths: Vec<PathBuf> = Vec::new();
+        let mut meta_paths: Vec<PathBuf> = Vec::new();
+        let mut track_paths: Vec<(PathBuf, String)> = Vec::new();
         
         match dir.read_dir() {
             Ok(dir_entries) => {
                 for dir_entry_result in dir_entries {
                     if let Ok(dir_entry) = dir_entry_result {
-                        // Skip hidden files
-                        if let Some(str) = dir_entry.file_name().to_str() {
-                            if str.starts_with(".") {
-                                info!("Ignoring hidden file {:?} in catalog", dir_entry.path());
+                        if let Some(filename) = dir_entry.file_name().to_str() {
+                            if filename.starts_with(".") {
+                                info!("Ignoring hidden file '{}'", filename);
                                 continue
                             }
                         }
                         
                         if let Ok(file_type) = dir_entry.file_type() {
+                            let path = dir_entry.path();
+                            
                             if file_type.is_dir() {
-                                self.read_dir(&dir_entry.path(), download_option.clone()).unwrap();
+                                dir_paths.push(path);
                             } else if file_type.is_file() {
-                                if let Some(track) = self.read_track(&dir_entry.path()) {
-                                    if release_artists
-                                        .iter()
-                                        .find(|release_artist| Rc::ptr_eq(release_artist, &track.artist))
-                                        .is_none() {
-                                        release_artists.push(track.artist.clone());
+                                if let Some(extension) = path.extension()
+                                    .map(|osstr|
+                                        osstr.to_str().map(|str|
+                                            str.to_lowercase().as_str().to_string()
+                                        )
+                                    )
+                                    .flatten() {
+                                    if extension == "eno" {
+                                        meta_paths.push(path);
+                                    } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
+                                        track_paths.push((path, extension));
+                                    } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
+                                        image_paths.push(path);
+                                    } else {
+                                        warn!("Ignoring unsupported file '{}'", path.display());
                                     }
-                                    
-                                    release_tracks.push(track);
-                                } else if let Some(image) = self.read_image(&dir_entry.path()) {
-                                    images.push(image);
-                                } else if let Some(download_option_override) = self.read_meta(&dir_entry.path()) {
-                                    info!("Reading meta {:?}", dir_entry.path());
-                                    download_option = download_option_override;
                                 } else {
-                                    warn!("Ignoring unsupported filetype {:?} in catalog", dir_entry.path());
+                                    warn!("Ignoring unsupported file '{}'", path.display());
                                 }
                             } else if file_type.is_symlink() {
-                                warn!("Ignoring symlink {:?} in catalog", dir_entry.path());
+                                warn!("Ignoring symlink '{}'", path.display());
                             } else {
-                                warn!("Ignoring unknown filetype {:?} in catalog", dir_entry.path());
+                                warn!("Ignoring unsupported file '{}'", path.display());
                             }
                         }
                     }
                 }
-                
-                if !release_tracks.is_empty() {
-                    let title = dir.file_name().unwrap().to_str().unwrap().to_string();
-                    let release = Release::init(
-                        release_artists,
-                        download_option.clone(),
-                        images,
-                        title,
-                        release_tracks
-                    );
-                    
-                    self.releases.push(release);
-                } else if !images.is_empty() {
-                    // TODO: Some future logic/configuration lookup for  associating images with an artist
-                    self.images.append(&mut images);
-                }
-                
-                Ok(())
             }
-            Err(_) => Err(String::from("Cannot read directory."))
+            Err(err) => error!("Cannot read directory '{}' ({})", dir.display(), err)
         }
-    }
-    
-    pub fn read_image(&self, path: &Path) -> Option<Image> {
-        if let Some(extension_osstr) = path.extension() {
-            if let Some(extension_str) =  extension_osstr.to_str() {
-                if SUPPORTED_IMAGE_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
-                    return Some(Image::init(path.to_path_buf(), util::uuid()));
-                }
+        
+        for meta_path in &meta_paths {
+            info!("Reading meta {}", meta_path.display());
+            if let Some(download_option_override) = self.read_meta(meta_path) {
+                download_option = download_option_override;
             }
         }
         
-        None
+        for (track_path, extension) in &track_paths {
+            info!("Reading track {}", track_path.display());
+            let meta = Meta::extract(track_path, extension);
+            let track = self.read_track(track_path, meta);
+            
+            if release_artists
+                .iter()
+                .find(|release_artist| Rc::ptr_eq(release_artist, &track.artist))
+                .is_none() {
+                release_artists.push(track.artist.clone());
+            }
+            
+            release_tracks.push(track);
+        }
+        
+        for image_path in &image_paths {
+            info!("Reading image {}", image_path.display());
+            images.push(Image::init(image_path, util::uuid()));
+        }
+        
+        for dir_path in &dir_paths {
+            info!("Reading directory {}", dir_path.display());
+            self.read_dir(dir_path, download_option.clone()).unwrap();
+        }
+        
+        if !release_tracks.is_empty() {
+            let title = dir.file_name().unwrap().to_str().unwrap().to_string();
+            let release = Release::init(
+                release_artists,
+                download_option.clone(),
+                images,
+                title,
+                release_tracks
+            );
+
+            self.releases.push(release);
+        } else if !images.is_empty() {
+            // TODO: Some future logic/configuration lookup for  associating images with an artist
+            self.images.append(&mut images);
+        }
+
+        Ok(())
     }
     
     pub fn read_meta(&self, path: &Path) -> Option<DownloadOption> {
-        if let Some(extension_osstr) = path.extension() {
-            if let Some(extension_str) =  extension_osstr.to_str() {
-                if extension_str.to_lowercase().as_str() == "eno" {
-                    match fs::read_to_string(path) {
-                        Ok(content) => {
-                            let mut download_option = None;
-                            
-                            for line in content.lines() {
-                                if line.starts_with("download:") {
-                                    match &line[10..] {
-                                        "disabled" => {
-                                            download_option = Some(DownloadOption::Disabled);
-                                        },
-                                        "free" => {
-                                            download_option = Some(DownloadOption::init_free());
-                                        },
-                                        "anyprice" => {
-                                            download_option = Some(DownloadOption::NameYourPrice);
-                                        },
-                                        "minprice" => {
-                                            download_option = Some(DownloadOption::PayMinimum("10 Republican Credits".to_string()));
-                                        },
-                                        "exactprice" => {
-                                            download_option = Some(DownloadOption::PayExactly("10 Republican Credits".to_string()));
-                                        },
-                                        _ => error!("Ignoring invalid download setting value '{}' in {:?}", &line[10..], path)
-                                    }
-                                }
-                            }
-                            
-                            return download_option;
+        match fs::read_to_string(path) {
+            Ok(content) => {
+                let mut download_option = None;
+                
+                for line in content.lines() {
+                    if line.starts_with("download:") {
+                        match &line[10..] {
+                            "disabled" => {
+                                download_option = Some(DownloadOption::Disabled);
+                            },
+                            "free" => {
+                                download_option = Some(DownloadOption::init_free());
+                            },
+                            "anyprice" => {
+                                download_option = Some(DownloadOption::NameYourPrice);
+                            },
+                            "minprice" => {
+                                download_option = Some(DownloadOption::PayMinimum("10 Republican Credits".to_string()));
+                            },
+                            "exactprice" => {
+                                download_option = Some(DownloadOption::PayExactly("10 Republican Credits".to_string()));
+                            },
+                            _ => error!("Ignoring invalid download setting value '{}' in {:?}", &line[10..], path)
                         }
-                        Err(err) => error!("Could not read meta file {:?} ({})", path, err)
-                    } 
+                    }
                 }
+                
+                return download_option;
             }
-        }
+            Err(err) => error!("Could not read meta file {:?} ({})", path, err)
+        } 
         
         None
     }
 
-    pub fn read_track(&mut self, path: &Path) -> Option<Track> {
-        let filename = path.file_name().unwrap().to_str().unwrap();
+    pub fn read_track(&mut self, path: &Path, meta: Meta) -> Track {
+        let artist = self.track_artist(meta.artist); // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
+        let title = meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
         
-        if let Some(extension_osstr) = path.extension() {
-            if let Some(extension_str) =  extension_osstr.to_str() {
-                if SUPPORTED_AUDIO_EXTENSIONS.contains(&extension_str.to_lowercase().as_str()) {
-                    let meta = Meta::extract(extension_str, &path);
-                    
-                    let artist = self.track_artist(meta.artist); // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
-                    let title = meta.title.unwrap_or(filename.to_string());
-                    return Some(Track::init(artist, path.to_path_buf(), title, util::uuid()));
-                }
-            }
-        }
-        
-        None
+        Track::init(artist, path.to_path_buf(), title, util::uuid())
     }
     
     pub fn track_artist(&mut self, new_artist_name: Option<String>) -> Rc<Artist> {
@@ -259,7 +265,7 @@ impl Catalog {
         if cached_image_assets.image.is_none() {
             info!("Transcoding {:?} (no cached assets available)", image.source_file);
             let cache_relative_path = format!("{}.jpg", image.uuid);
-            ffmpeg::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+            ffmpeg::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
             cached_image_assets.image = Some(cache_relative_path);
         }
 
@@ -280,7 +286,7 @@ impl Catalog {
             if cached_track_assets.flac.is_none() {
                 info!("Transcoding {:?} to FLAC (no cached assets available)", track.source_file);
                 let cache_relative_path = format!("{}.flac", track.uuid);
-                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
                 cached_track_assets.flac = Some(cache_relative_path);
             }
             
@@ -294,7 +300,7 @@ impl Catalog {
             if cached_track_assets.mp3_cbr_320.is_none() {
                 info!("Transcoding {:?} to MP3 320 (no cached assets available)", track.source_file);
                 let cache_relative_path = format!("{}.cbr_320.mp3", track.uuid);
-                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path));
+                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
                 cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
             }
             
