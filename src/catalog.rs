@@ -48,6 +48,12 @@ impl Catalog {
         let mut local_overrides = None;
         
         let mut images: Vec<Image> = Vec::new();
+        // We get the 'album' metadata from each track in a release. As each track in a
+        // release could have a different 'album' specified, we count how often each
+        // distinct 'album' tag is present on a track in the release, and then when we
+        // create the release struct, we assign the 'album' title we've encountered most.
+        // (this is what release_title_metrics is for => Vec<count, title>)
+        let mut release_title_metrics: Vec<(u32, String)> = Vec::new();
         let mut release_tracks: Vec<Track> = Vec::new();
         
         let mut dir_paths: Vec<PathBuf> = Vec::new();
@@ -115,6 +121,17 @@ impl Catalog {
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
             let audio_meta = AudioMeta::extract(track_path, extension);
+            
+            if let Some(release_title) = &audio_meta.album {
+                if let Some(metric) = &mut release_title_metrics
+                    .iter_mut()
+                    .find(|(_count, title)| title == release_title) {
+                    metric.0 += 1;
+                } else {
+                    release_title_metrics.push((1, release_title.to_string()));
+                }
+            }
+            
             let track = self.read_track(track_path, audio_meta, local_overrides.as_ref().unwrap_or(parent_overrides));
             
             release_tracks.push(track);
@@ -127,6 +144,7 @@ impl Catalog {
         
         if !release_tracks.is_empty() {
             release_tracks.sort_by(|a, b| a.number.cmp(&b.number));
+            release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0)); // sort most often occuring title to the end of the Vec
             
             let mut release_artists: Vec<Rc<Artist>> = Vec::new();
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
@@ -147,15 +165,16 @@ impl Catalog {
                 }
             }
             
-            let title = dir.file_name().unwrap().to_str().unwrap().to_string();
-            
             let release = Release::init(
                 release_artists,
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_formats.clone(),
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,
                 local_overrides.as_ref().unwrap_or(parent_overrides).release_text.clone(),
-                title,
+                release_title_metrics
+                    .pop()
+                    .map(|(_count, title)| title) 
+                    .unwrap_or_else(|| dir.file_name().unwrap().to_str().unwrap().to_string()),
                 release_tracks
             );
 
