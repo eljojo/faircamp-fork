@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -16,7 +15,6 @@ use crate::{
     manifest::Overrides,
     release::Release,
     track::Track,
-    ffmpeg,
     manifest,
     util
 };
@@ -153,6 +151,7 @@ impl Catalog {
             
             let release = Release::init(
                 release_artists,
+                local_overrides.as_ref().unwrap_or(parent_overrides).download_formats.clone(),
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,
                 local_overrides.as_ref().unwrap_or(parent_overrides).release_text.clone(),
@@ -217,20 +216,22 @@ impl Catalog {
     pub fn write_assets(&self, build_settings: &BuildSettings) {
         let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
         
-        for release in &self.releases {
+        for release in &self.releases {            
             if let Some(image) = &release.cover {
                 let source_file_signature = SourceFileSignature::init(&image.source_file);
                 
                 if let Some(mut cached_image_assets) = cache_manifest.images
                     .iter_mut()
                     .find(|cached_image| cached_image.source_file_signature == source_file_signature) {
-                    self.write_image_assets(build_settings, &mut cached_image_assets, image);
+                    release.write_image_assets(build_settings, &mut cached_image_assets, image);
                 } else {
                     let mut cached_image_assets = CachedImageAssets::new(source_file_signature);
-                    self.write_image_assets(build_settings, &mut cached_image_assets, image);
+                    release.write_image_assets(build_settings, &mut cached_image_assets, image);
                     cache_manifest.images.push(cached_image_assets);
                 }
             }
+            
+            // TODO: Check release.download_option to see if we even need to transcode and copy tracks
             
             for track in &release.tracks {
                 let source_file_signature = SourceFileSignature::init(&track.source_file);
@@ -238,74 +239,15 @@ impl Catalog {
                 if let Some(mut cached_track_assets) = cache_manifest.tracks
                     .iter_mut()
                     .find(|cached_track| cached_track.source_file_signature == source_file_signature) {
-                    self.write_track_assets(build_settings, &mut cached_track_assets, track);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track);
                 } else {
                     let mut cached_track_assets = CachedTrackAssets::new(source_file_signature);
-                    self.write_track_assets(build_settings, &mut cached_track_assets, track);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track);
                     cache_manifest.tracks.push(cached_track_assets);
                 }
             }
         }
         
         cache_manifest.persist(&build_settings.cache_dir);
-    }
-    
-    pub fn write_image_assets(
-        &self,
-        build_settings: &BuildSettings,
-        cached_image_assets: &mut CachedImageAssets,
-        image: &Image) {
-        if cached_image_assets.image.is_none() {
-            info!("Transcoding {:?} (no cached assets available)", image.source_file);
-            let cache_relative_path = format!("{}.jpg", image.uuid);
-            ffmpeg::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
-            cached_image_assets.image = Some(cache_relative_path);
-        }
-
-        fs::copy(
-            build_settings.cache_dir.join(cached_image_assets.image.as_ref().unwrap()),
-            build_settings.build_dir.join(format!("{}.jpg", &image.uuid))
-        ).unwrap();
-        
-        // TODO: Resized variants etc.
-    }
-    
-    pub fn write_track_assets(
-        &self,
-        build_settings: &BuildSettings,
-        cached_track_assets: &mut CachedTrackAssets,
-        track: &Track) {
-        if build_settings.transcode_flac {
-            if cached_track_assets.flac.is_none() {
-                info!("Transcoding {:?} to FLAC (no cached assets available)", track.source_file);
-                let cache_relative_path = format!("{}.flac", track.uuid);
-                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
-                cached_track_assets.flac = Some(cache_relative_path);
-            }
-            
-            fs::copy(
-                build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_settings.build_dir.join(format!("{}.flac", &track.uuid))
-            ).unwrap();
-        }
-        
-        if build_settings.transcode_mp3_320cbr {
-            if cached_track_assets.mp3_cbr_320.is_none() {
-                info!("Transcoding {:?} to MP3 320 (no cached assets available)", track.source_file);
-                let cache_relative_path = format!("{}.cbr_320.mp3", track.uuid);
-                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
-                cached_track_assets.mp3_cbr_320 = Some(cache_relative_path);
-            }
-            
-            // TODO: Only one type of format should be copied to staging as separate tracks,
-            //       namely the one that is used for (streaming) playback on the page. All
-            //       other formats go into the zip downloads only (if downloads are enabled even - needs checking here as well!)
-            fs::copy(
-                build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_settings.build_dir.join(format!("{}.mp3", &track.uuid))
-            ).unwrap();
-        }
-        
-        // TODO: Other formats
     }
 }

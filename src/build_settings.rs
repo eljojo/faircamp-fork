@@ -9,10 +9,7 @@ pub struct BuildSettings {
     pub catalog_dir: PathBuf,
     pub deploy_destination: Option<String>,
     pub host_original_media: bool,
-    pub post_build_action: PostBuildAction,
-    pub transcode_flac: bool,
-    pub transcode_mp3_320cbr: bool,
-    pub transcode_mp3_256vbr: bool
+    pub post_build_action: PostBuildAction
 }
 
 pub enum PostBuildAction {
@@ -49,10 +46,7 @@ impl BuildSettings {
             catalog_dir,
             deploy_destination: args.deploy_destination.clone(),
             host_original_media: false,
-            post_build_action,
-            transcode_flac: true,
-            transcode_mp3_320cbr: true,
-            transcode_mp3_256vbr: false
+            post_build_action
         }
     }
 }

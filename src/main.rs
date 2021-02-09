@@ -12,6 +12,7 @@ mod build_settings;
 mod catalog;
 mod css;
 mod deploy;
+mod download_formats;
 mod download_option;
 mod ffmpeg;
 mod image;
