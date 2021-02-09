@@ -183,9 +183,17 @@ impl Catalog {
             vec![self.track_artist(audio_meta.artist)]
         };
         
+        let source_file = path.to_path_buf();
         let title = audio_meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
         
-        Track::init(artists, audio_meta.track_number, path.to_path_buf(), title, util::uuid())
+        Track::init(
+            artists,
+            audio_meta.duration_seconds,
+            audio_meta.track_number,
+            source_file,
+            title,
+            util::uuid()
+        )
     }
     
     // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"

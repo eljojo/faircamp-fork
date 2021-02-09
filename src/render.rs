@@ -232,8 +232,11 @@ pub fn render_release(release: &Release) -> String {
         .iter()
         .enumerate()
         .map(|(index, track)|
-            format!(
-                "{track_number}. {track_title} <audio controls src=\"../{track_src}\"></audio>",
+            formatdoc!(
+                r#"
+                    {track_number}. {track_title} <audio controls src=\"../{track_src}\"></audio> {track_duration}
+                "#,
+                track_duration=track.duration_formatted(),
                 track_number=index + 1,
                 track_src=format!("{}.mp3", track.uuid),
                 track_title=track.title
