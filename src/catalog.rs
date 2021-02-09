@@ -12,7 +12,6 @@ use crate::{
     },
     audio_meta::AudioMeta,
     build_settings::BuildSettings,
-    download_option::DownloadOption,
     image::Image,
     manifest::Overrides,
     release::Release,
@@ -51,7 +50,6 @@ impl Catalog {
         let mut local_overrides = None;
         
         let mut images: Vec<Image> = Vec::new();
-        let mut release_artists: Vec<Rc<Artist>> = Vec::new();
         let mut release_tracks: Vec<Track> = Vec::new();
         
         let mut dir_paths: Vec<PathBuf> = Vec::new();
@@ -121,17 +119,6 @@ impl Catalog {
             let audio_meta = AudioMeta::extract(track_path, extension);
             let track = self.read_track(track_path, audio_meta, local_overrides.as_ref().unwrap_or(parent_overrides));
             
-            if local_overrides.as_ref().unwrap_or(parent_overrides).release_artists.is_none() {
-                for track_artist in &track.artists {
-                    if release_artists
-                    .iter()
-                    .find(|release_artist| Rc::ptr_eq(release_artist, track_artist))
-                    .is_none() {
-                        release_artists.push(track_artist.clone());
-                    }
-                }
-            }
-            
             release_tracks.push(track);
         }
         
@@ -140,16 +127,25 @@ impl Catalog {
             images.push(Image::init(image_path, util::uuid()));
         }
         
-        for dir_path in &dir_paths {
-            info!("Reading directory {}", dir_path.display());
-            self.read_dir(dir_path, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
-        }
-        
         if !release_tracks.is_empty() {
+            release_tracks.sort_by(|a, b| a.number.cmp(&b.number));
+            
+            let mut release_artists: Vec<Rc<Artist>> = Vec::new();
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
                 for artist_name in artist_names {
                     let artist = self.track_artist(Some(artist_name.clone()));
                     release_artists.push(artist);
+                }
+            } else {
+                for release_track in &release_tracks {
+                    for track_artist in &release_track.artists {
+                        if release_artists
+                        .iter()
+                        .find(|release_artist| Rc::ptr_eq(release_artist, track_artist))
+                        .is_none() {
+                            release_artists.push(track_artist.clone());
+                        }
+                    }
                 }
             }
             
@@ -157,10 +153,7 @@ impl Catalog {
             
             let release = Release::init(
                 release_artists,
-                match local_overrides {
-                    Some(overrides) => overrides.download_option.clone(),
-                    None => parent_overrides.download_option.clone()
-                },
+                local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,
                 title,
                 release_tracks
@@ -170,6 +163,11 @@ impl Catalog {
         } else if !images.is_empty() {
             // TODO: Some future logic/configuration lookup for  associating images with an artist
             self.images.append(&mut images);
+        }
+        
+        for dir_path in &dir_paths {
+            info!("Reading directory {}", dir_path.display());
+            self.read_dir(dir_path, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
 
         Ok(())
@@ -187,7 +185,7 @@ impl Catalog {
         
         let title = audio_meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
         
-        Track::init(artists, path.to_path_buf(), title, util::uuid())
+        Track::init(artists, audio_meta.track_number, path.to_path_buf(), title, util::uuid())
     }
     
     // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
