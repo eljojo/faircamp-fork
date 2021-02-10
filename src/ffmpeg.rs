@@ -1,13 +1,63 @@
+use std::fmt;
 use std::path::Path;
 use std::process::{Command, Output};
 
-pub fn transcode(input_file: &Path, output_file: &Path) -> Result<(), String> {
+pub enum TranscodeFormat {
+    Flac,
+    Jpeg,
+    Mp3Cbr128,
+    Mp3Cbr320,
+    Mp3VbrV0
+}
+
+impl TranscodeFormat {
+    pub fn suffix_and_extension(&self) -> &str {
+        match self {
+            TranscodeFormat::Flac => ".flac",
+            TranscodeFormat::Jpeg => ".jpg", 
+            TranscodeFormat::Mp3Cbr128 => "-128.mp3",
+            TranscodeFormat::Mp3Cbr320 => "-320.mp3",
+            TranscodeFormat::Mp3VbrV0 => "-v0.mp3"
+        }
+    }
+}
+
+impl fmt::Display for TranscodeFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let text = match self {
+            TranscodeFormat::Flac => "FLAC",
+            TranscodeFormat::Jpeg => "JPEG", 
+            TranscodeFormat::Mp3Cbr128 => "MP3 128",
+            TranscodeFormat::Mp3Cbr320 => "MP3 320",
+            TranscodeFormat::Mp3VbrV0 => "MP3 V0"
+        };
+        
+        write!(f, "{}", text)
+    }
+}
+
+pub fn transcode(input_file: &Path, output_file: &Path, target_format: &TranscodeFormat) -> Result<(), String> {
     let mut command = Command::new("ffmpeg");
-    
-    // command.env("FOR_REFERENCE_ENV_VAR_SETTING", &self.data_dir);
     
     command.arg("-y");
     command.arg("-i").arg(input_file);
+    
+    match target_format {
+        TranscodeFormat::Mp3Cbr128 => {
+            command.arg("-codec:a").arg("libmp3lame");
+            command.arg("-b:a").arg("128");
+        }
+        TranscodeFormat::Mp3Cbr320 => {
+            command.arg("-codec:a").arg("libmp3lame");
+            command.arg("-b:a").arg("320");
+        }
+        TranscodeFormat::Mp3VbrV0 => {
+            command.arg("-codec:a").arg("libmp3lame");
+            command.arg("-qscale:a").arg("0");
+        }
+        _ => ()
+    }
+    
     command.arg(output_file);
 
     match command.output() {

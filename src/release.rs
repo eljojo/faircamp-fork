@@ -11,9 +11,9 @@ use crate::{
     build_settings::BuildSettings,
     download_formats::DownloadFormats,
     download_option::DownloadOption,
+    ffmpeg::{self, TranscodeFormat},
     image::Image,
     track::Track,
-    ffmpeg,
     render
 };
 
@@ -76,59 +76,58 @@ impl Release {
         &self,
         build_settings: &BuildSettings,
         cached_image_assets: &mut CachedImageAssets,
-        image: &Image) {
+        image: &Image,
+        target_format: &TranscodeFormat
+    ) {
+        let filename = format!("{}{}", image.uuid, target_format.suffix_and_extension());
+        
         if cached_image_assets.image.is_none() {
-            info!("Transcoding {:?} (no cached assets available)", image.source_file);
-            let cache_relative_path = format!("{}.jpg", image.uuid);
-            ffmpeg::transcode(&image.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
-            cached_image_assets.image = Some(cache_relative_path);
+            info!("Transcoding {:?} to {} (no cached assets available)", image.source_file, target_format);
+            ffmpeg::transcode(
+                &image.source_file,
+                &build_settings.cache_dir.join(&filename),
+                target_format
+            ).unwrap();
+            cached_image_assets.image = Some(filename.clone());
         }
 
         fs::copy(
             build_settings.cache_dir.join(cached_image_assets.image.as_ref().unwrap()),
-            build_settings.build_dir.join(format!("{}.jpg", &image.uuid))
+            build_settings.build_dir.join(&filename)
         ).unwrap();
-        
-        // TODO: Resized variants etc.
     }
     
     pub fn write_track_assets(
         &self,
         build_settings: &BuildSettings,
         cached_track_assets: &mut CachedTrackAssets,
-        track: &Track) {
-        if self.download_formats.flac {
-            if cached_track_assets.flac.is_none() {
-                info!("Transcoding {:?} to FLAC (no cached assets available)", track.source_file);
-                let cache_relative_path = format!("{}.flac", track.uuid);
-                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
-                cached_track_assets.flac = Some(cache_relative_path);
-            }
-            
-            fs::copy(
-                build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_settings.build_dir.join(format!("{}.flac", &track.uuid))
+        track: &Track,
+        target_format: &TranscodeFormat
+    ) {
+        let target_filename = format!("{}{}", track.uuid, target_format.suffix_and_extension());
+        
+        let cached_format = match target_format {
+            TranscodeFormat::Flac => &mut cached_track_assets.flac,
+            TranscodeFormat::Mp3Cbr128 => &mut cached_track_assets.mp3_128,
+            TranscodeFormat::Mp3Cbr320 => &mut cached_track_assets.mp3_320,
+            TranscodeFormat::Mp3VbrV0 => &mut cached_track_assets.mp3_v0,
+            _ => unreachable!() // TODO: Maybe rather have a separate AudioFormat and ImageFormat so we don't mix static code paths
+        };
+        
+        if cached_format.is_none() {
+            info!("Transcoding {:?} to {} (no cached assets available)", track.source_file, target_format);
+            ffmpeg::transcode(
+                &track.source_file,
+                &build_settings.cache_dir.join(&target_filename),
+                target_format
             ).unwrap();
+            cached_format.replace(target_filename.clone());
         }
         
-        if self.download_formats.mp3_320 {
-            if cached_track_assets.mp3_320.is_none() {
-                info!("Transcoding {:?} to MP3 320 (no cached assets available)", track.source_file);
-                let cache_relative_path = format!("{}.cbr_320.mp3", track.uuid);
-                ffmpeg::transcode(&track.source_file, &build_settings.cache_dir.join(&cache_relative_path)).unwrap();
-                cached_track_assets.mp3_320 = Some(cache_relative_path);
-            }
-            
-            // TODO: Only one type of format should be copied to staging as separate tracks,
-            //       namely the one that is used for (streaming) playback on the page. All
-            //       other formats go into the zip downloads only (if downloads are enabled even - needs checking here as well!)
-            fs::copy(
-                build_settings.cache_dir.join(cached_track_assets.flac.as_ref().unwrap()),
-                build_settings.build_dir.join(format!("{}.mp3", &track.uuid))
-            ).unwrap();
-        }
-        
-        // TODO: Other formats
+        fs::copy(
+            build_settings.cache_dir.join(cached_format.as_ref().unwrap()),
+            build_settings.build_dir.join(&target_filename)
+        ).unwrap();
     }
     
     pub fn zip(&self, build_dir: &Path) -> Result<(), String> {

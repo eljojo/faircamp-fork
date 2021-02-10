@@ -1,10 +1,13 @@
 use indoc::formatdoc;
 use std::rc::Rc;
 
-use crate::artist::Artist;
-use crate::catalog::Catalog;
-use crate::download_option::DownloadOption;
-use crate::release::Release;
+use crate::{
+    artist::Artist,
+    catalog::Catalog,
+    download_option::DownloadOption,
+    ffmpeg::TranscodeFormat,
+    release::Release
+};
 
 const DOWNLOAD_INCLUDES_TEXT: &str = "Includes high-quality download in MP3, FLAC and more.";
 const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
@@ -234,11 +237,11 @@ pub fn render_release(release: &Release) -> String {
         .map(|(index, track)|
             formatdoc!(
                 r#"
-                    {track_number}. {track_title} <audio controls src=\"../{track_src}\"></audio> {track_duration}
+                    {track_number}. {track_title} <audio controls src="../{track_src}"></audio> {track_duration}
                 "#,
                 track_duration=track.duration_formatted(),
                 track_number=index + 1,
-                track_src=format!("{}.mp3", track.uuid),
+                track_src=format!("{}{}", track.uuid, TranscodeFormat::Mp3Cbr128.suffix_and_extension()),
                 track_title=track.title
             )
         )

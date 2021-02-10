@@ -20,6 +20,7 @@ pub struct CachedImageAssets {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CachedTrackAssets {
     pub flac: Option<String>,
+    pub mp3_128: Option<String>,
     pub mp3_320: Option<String>,
     pub mp3_v0: Option<String>,
     pub source_file_signature: SourceFileSignature
@@ -71,6 +72,7 @@ impl CachedTrackAssets {
     pub fn new(source_file_signature: SourceFileSignature) -> CachedTrackAssets {
         CachedTrackAssets {
             flac: None,
+            mp3_128: None,
             mp3_320: None,
             mp3_v0: None,
             source_file_signature

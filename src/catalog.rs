@@ -11,6 +11,7 @@ use crate::{
     },
     audio_meta::AudioMeta,
     build_settings::BuildSettings,
+    ffmpeg::TranscodeFormat,
     image::Image,
     manifest::Overrides,
     release::Release,
@@ -247,15 +248,17 @@ impl Catalog {
             if let Some(image) = &release.cover {
                 let source_file_signature = SourceFileSignature::init(&image.source_file);
                 
-                if let Some(mut cached_image_assets) = cache_manifest.images
+                let mut cached_image_assets = match cache_manifest.images
                     .iter_mut()
                     .find(|cached_image| cached_image.source_file_signature == source_file_signature) {
-                    release.write_image_assets(build_settings, &mut cached_image_assets, image);
-                } else {
-                    let mut cached_image_assets = CachedImageAssets::new(source_file_signature);
-                    release.write_image_assets(build_settings, &mut cached_image_assets, image);
-                    cache_manifest.images.push(cached_image_assets);
-                }
+                    Some(cached_image_assets) => cached_image_assets,
+                    None => {
+                        cache_manifest.images.push(CachedImageAssets::new(source_file_signature));
+                        cache_manifest.images.last_mut().unwrap()
+                    }    
+                };
+                
+                release.write_image_assets(build_settings, &mut cached_image_assets, image, &TranscodeFormat::Jpeg);
             }
             
             // TODO: Check release.download_option to see if we even need to transcode and copy tracks
@@ -263,14 +266,28 @@ impl Catalog {
             for track in &release.tracks {
                 let source_file_signature = SourceFileSignature::init(&track.source_file);
                 
-                if let Some(mut cached_track_assets) = cache_manifest.tracks
+                let mut cached_track_assets = match cache_manifest.tracks
                     .iter_mut()
                     .find(|cached_track| cached_track.source_file_signature == source_file_signature) {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track);
-                } else {
-                    let mut cached_track_assets = CachedTrackAssets::new(source_file_signature);
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track);
-                    cache_manifest.tracks.push(cached_track_assets);
+                    Some(cached_track_assets) => cached_track_assets,
+                    None => {
+                        cache_manifest.tracks.push(CachedTrackAssets::new(source_file_signature));
+                        cache_manifest.tracks.last_mut().unwrap()
+                    }    
+                };
+                
+                release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr128);
+                
+                if release.download_formats.flac {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Flac);
+                }
+                
+                if release.download_formats.mp3_320 {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr320);
+                }
+                
+                if release.download_formats.mp3_v0 {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3VbrV0);
                 }
             }
         }
