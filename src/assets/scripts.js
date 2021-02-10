@@ -14,6 +14,13 @@ document.body.addEventListener('click', event => {
         const a = event.target;
         const audio = a.parentElement.querySelector('audio');
         
+        for (const iteratedAudio of document.querySelectorAll('audio')) {
+            if (iteratedAudio !== audio && !iteratedAudio.paused) {
+                iteratedAudio.pause();
+                iteratedAudio.parentElement.querySelector('a.play').innerHTML = '▶️';
+            }
+        }
+        
         if (audio.paused) {
             audio.play();
             a.innerHTML = '⏸︎';
