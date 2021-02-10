@@ -20,6 +20,8 @@ use crate::{
     util
 };
 
+// TODO: Verify if ogg even works already
+// TODO: See if aac as input is easily possible
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
@@ -278,6 +280,10 @@ impl Catalog {
                 
                 release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr128);
                 
+                if release.download_formats.aac {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Aac);
+                }
+                
                 if release.download_formats.flac {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Flac);
                 }
@@ -288,6 +294,10 @@ impl Catalog {
                 
                 if release.download_formats.mp3_v0 {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3VbrV0);
+                }
+                
+                if release.download_formats.ogg_vorbis {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::OggVorbis);
                 }
             }
         }

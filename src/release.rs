@@ -107,10 +107,12 @@ impl Release {
         let target_filename = format!("{}{}", track.uuid, target_format.suffix_and_extension());
         
         let cached_format = match target_format {
+            TranscodeFormat::Aac => &mut cached_track_assets.aac,
             TranscodeFormat::Flac => &mut cached_track_assets.flac,
             TranscodeFormat::Mp3Cbr128 => &mut cached_track_assets.mp3_128,
             TranscodeFormat::Mp3Cbr320 => &mut cached_track_assets.mp3_320,
             TranscodeFormat::Mp3VbrV0 => &mut cached_track_assets.mp3_v0,
+            TranscodeFormat::OggVorbis => &mut cached_track_assets.ogg_vorbis,
             _ => unreachable!() // TODO: Maybe rather have a separate AudioFormat and ImageFormat so we don't mix static code paths
         };
         

@@ -28,7 +28,10 @@ impl Overrides {
 pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
-            if trimmed_line == "disable-flac" {
+            if trimmed_line == "disable-aac" {
+                debug!("Applying disable-aac override");
+                overrides.download_formats.aac = false;
+            } else if trimmed_line == "disable-flac" {
                 debug!("Applying disable-flac override");
                 overrides.download_formats.flac = false;
             } else if trimmed_line == "disable-mp3-320" {
@@ -37,6 +40,9 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
             } else if trimmed_line == "disable-mp3-v0" {
                 debug!("Applying disable-mp3-v0 override");
                 overrides.download_formats.mp3_v0 = false;
+            } else if trimmed_line == "disable-ogg-vorbis" {
+                debug!("Applying disable-ogg-vorbis override");
+                overrides.download_formats.ogg_vorbis = false;
             } else if trimmed_line.starts_with("download:") {
                 match trimmed_line[9..].trim() {
                     "disabled" => {
@@ -61,6 +67,9 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
                     },
                     _ => error!("Ignoring invalid download setting value '{}' in {:?}", &trimmed_line[10..], path)
                 }
+            } else if trimmed_line == "enable-aac" {
+                debug!("Applying enable-aac override");
+                overrides.download_formats.aac = true;
             } else if trimmed_line == "enable-flac" {
                 debug!("Applying enable-flac override");
                 overrides.download_formats.flac = true;
@@ -70,6 +79,9 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
             } else if trimmed_line == "enable-mp3-v0" {
                 debug!("Applying enable-mp3-v0 override");
                 overrides.download_formats.mp3_v0 = true;
+            } else if trimmed_line == "enable-ogg-vorbis" {
+                debug!("Applying enable-ogg-vorbis override");
+                overrides.download_formats.ogg_vorbis = true;
             } else if trimmed_line.starts_with("release-artist:") {
                 debug!("Applying release-artist override {}", trimmed_line[15..].trim());
                 overrides.release_artists = Some(vec![trimmed_line[15..].trim().to_string()]);
