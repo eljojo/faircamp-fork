@@ -10,7 +10,6 @@ mod asset_cache;
 mod audio_meta;
 mod build_settings;
 mod catalog;
-mod css;
 mod deploy;
 mod download_formats;
 mod download_option;
@@ -67,7 +66,8 @@ fn main() {
         release.write_files(&build_settings.build_dir);
     }
 
-    fs::write(build_settings.build_dir.join("styles.css"), css::DEFAULT).unwrap();
+    fs::write(build_settings.build_dir.join("scripts.js"), include_str!("assets/scripts.js")).unwrap();
+    fs::write(build_settings.build_dir.join("styles.css"), include_str!("assets/styles.css")).unwrap();
     
     match build_settings.post_build_action {
         PostBuildAction::None => (),

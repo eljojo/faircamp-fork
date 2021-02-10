@@ -24,8 +24,10 @@ fn layout(page_depth: usize, body: &str, title: &str) -> String {
                     <meta name="viewport" content="width=device-width, initial-scale=1">
                     <!-- TODO: <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss"> -->
                     <link href="{root_prefix}styles.css" rel="stylesheet">
+                    <script defer src="{root_prefix}scripts.js"></script>
                 </head>
                 <body>
+                    <script>document.body.classList.add('js_enabled');</script>
                     <div class="layout">
                         <header>
                             <nav>
@@ -238,7 +240,7 @@ pub fn render_release(release: &Release) -> String {
             formatdoc!(
                 r#"
                     <div>
-                        <a class="play" style="display: none;">▶️</a><span class="muted">{track_number:02}</span> {track_title} <audio controls src="../{track_src}"></audio> {track_duration}
+                        <a class="play">▶️</a><span class="muted">{track_number:02}</span> {track_title} <audio controls src="../{track_src}"></audio> {track_duration}
                     </div>
                 "#,
                 track_duration=track.duration_formatted(),
@@ -261,29 +263,11 @@ pub fn render_release(release: &Release) -> String {
             
             {release_cover_rendered}
 
-            <div class="vpad">{tracks_rendered}</div>
+            <div class="vpad">
+                {tracks_rendered}
+            </div>
             
-            <script>
-                document.querySelectorAll('audio').forEach(audio => audio.removeAttribute('controls'));
-                document.querySelectorAll('a.play').forEach(a => {{
-                    a.style.removeProperty('display');
-                    a.addEventListener('click', event => {{
-                        const a = event.target;
-                        const audio = a.parentElement.querySelector('audio');
-                        
-                        if (audio.paused) {{
-                            audio.play();
-                            a.innerHTML = '⏸︎';
-                        }} else {{
-                            audio.pause();
-                            a.innerHTML = '▶️';
-                        }}
-                        
-                        console.log(a);
-                    }});
-                    
-                }});
-            </script>
+            {share_widget}
             
             <div>{release_text}</div>
         "#,
@@ -292,6 +276,7 @@ pub fn render_release(release: &Release) -> String {
         release_cover_rendered=release_cover_rendered,
         release_text=release.text.as_ref().unwrap_or(&String::new()),
         release_title=release.title,
+        share_widget=share_widget(&release.slug), // TODO: Build absolute url
         tracks_rendered=tracks_rendered
     );
     
@@ -336,4 +321,8 @@ pub fn render_releases(catalog: &Catalog) -> String {
     );
     
     layout(0, &body, "Catalog")
+}
+
+fn share_widget(url: &str) -> String {
+    format!(r#"<a class="disabled share" data-url="{}" title="Not available in your browser">Share</a>"#, url)
 }
