@@ -227,8 +227,8 @@ pub fn render_release(release: &Release) -> String {
     };
     
     let release_cover_rendered = match &release.cover {
-        Some(image) => format!(r#"<img class="cover" src="../{}.jpg">"#, image.uuid),
-        None => String::from(r#"<div class="cover"></div>"#)
+        Some(image) => format!(r#"<img class="cover vpad" src="../{}.jpg">"#, image.uuid),
+        None => String::from(r#"<div class="cover vpad"></div>"#)
     };
     
     let tracks_rendered = release.tracks
@@ -237,7 +237,9 @@ pub fn render_release(release: &Release) -> String {
         .map(|(index, track)|
             formatdoc!(
                 r#"
-                    {track_number}. {track_title} <audio controls src="../{track_src}"></audio> {track_duration}
+                    <div>
+                        <a class="play" style="display: none;">▶️</a><span class="muted">{track_number:02}</span> {track_title} <audio controls src="../{track_src}"></audio> {track_duration}
+                    </div>
                 "#,
                 track_duration=track.duration_formatted(),
                 track_number=index + 1,
@@ -246,18 +248,42 @@ pub fn render_release(release: &Release) -> String {
             )
         )
         .collect::<Vec<String>>()
-        .join("<br><br>\n");
+        .join("\n");
 
     let body = formatdoc!(
         r#"
-            <h1>{release_title}</h1>
-            <div>by {artists_rendered}</div>
+            <div class="vpad">
+                <h1>{release_title}</h1>
+                <div>by {artists_rendered}</div>
+            </div>
             
             {download_option_rendered}
             
             {release_cover_rendered}
 
-            <div>{tracks}</div>
+            <div class="vpad">{tracks_rendered}</div>
+            
+            <script>
+                document.querySelectorAll('audio').forEach(audio => audio.removeAttribute('controls'));
+                document.querySelectorAll('a.play').forEach(a => {{
+                    a.style.removeProperty('display');
+                    a.addEventListener('click', event => {{
+                        const a = event.target;
+                        const audio = a.parentElement.querySelector('audio');
+                        
+                        if (audio.paused) {{
+                            audio.play();
+                            a.innerHTML = '⏸︎';
+                        }} else {{
+                            audio.pause();
+                            a.innerHTML = '▶️';
+                        }}
+                        
+                        console.log(a);
+                    }});
+                    
+                }});
+            </script>
             
             <div>{release_text}</div>
         "#,
@@ -266,7 +292,7 @@ pub fn render_release(release: &Release) -> String {
         release_cover_rendered=release_cover_rendered,
         release_text=release.text.as_ref().unwrap_or(&String::new()),
         release_title=release.title,
-        tracks=tracks_rendered
+        tracks_rendered=tracks_rendered
     );
     
     layout(1, &body, &release.title)
@@ -288,7 +314,7 @@ pub fn render_releases(catalog: &Catalog) -> String {
                     <div>
                         {release_cover_rendered}
                         <a href="{release_slug}/">{release_title}</a>
-                        <div>by {artists_rendered}</div>
+                        <div>{artists_rendered}</div>
                     </div>
                 "#,
                 artists_rendered=artists_rendered,
@@ -302,7 +328,6 @@ pub fn render_releases(catalog: &Catalog) -> String {
     
     let body = formatdoc!(
         r#"
-            <h1>Catalog</h1>
             <div class="releases">
                 {releases}
             </div>
