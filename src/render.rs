@@ -127,6 +127,38 @@ pub fn render_download(release: &Release) -> String {
         None => String::from(r#"<div class="cover"></div>"#)
     };
     
+    // TODO: Possibly DRY this up (used in a very similar fashion in render_release)
+    let format_availability = &[
+        (release.download_formats.mp3_v0, "MP3 (high-quality with varying bitrate) - Recommended Format"),
+        (release.download_formats.mp3_320, "MP3 (high-quality with constant bitrate)"),
+        (release.download_formats.flac, "FLAC (lossless)"),
+        (release.download_formats.aac, "AAC"),
+        (release.download_formats.ogg_vorbis, "Ogg Vorbis"),
+        (true, "MP3 (128kbps, medium-quality)")
+    ];
+    
+    
+    let download_links = format_availability
+        .iter()
+        .filter_map(|(enabled, label)|
+            if *enabled { 
+                Some(
+                    formatdoc!(
+                        r#"
+                            <div>
+                                <a download href="todo.zip">Download {label}</a>
+                            </div>
+                        "#,
+                        label=label
+                    )
+                )
+            } else {
+                None
+            }
+        )
+        .collect::<Vec<String>>()
+        .join("\n");
+    
     let body = formatdoc!(
         r#"
             {release_cover_rendered}
@@ -134,9 +166,11 @@ pub fn render_download(release: &Release) -> String {
             <h1>Download {release_title}</h1>
             <div>by {artists_rendered}</div>
             
-            <div><a download href="original.zip">Zip Archive</a></div>
+            {download_links}
+            
         "#,
         artists_rendered=artists_rendered,
+        download_links=download_links,
         release_cover_rendered=release_cover_rendered,
         release_title=release.title
     );
