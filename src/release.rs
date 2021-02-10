@@ -14,6 +14,7 @@ use crate::{
     ffmpeg::{self, TranscodeFormat},
     image::Image,
     track::Track,
+    message,
     render
 };
 
@@ -82,7 +83,7 @@ impl Release {
         let filename = format!("{}{}", image.uuid, target_format.suffix_and_extension());
         
         if cached_image_assets.image.is_none() {
-            info!("Transcoding {:?} to {} (no cached assets available)", image.source_file, target_format);
+            message::transcoding(&format!("{:?} to {}", image.source_file, target_format));
             ffmpeg::transcode(
                 &image.source_file,
                 &build_settings.cache_dir.join(&filename),
@@ -117,7 +118,7 @@ impl Release {
         };
         
         if cached_format.is_none() {
-            info!("Transcoding {:?} to {} (no cached assets available)", track.source_file, target_format);
+            message::transcoding(&format!("{:?} to {}", track.source_file, target_format));
             ffmpeg::transcode(
                 &track.source_file,
                 &build_settings.cache_dir.join(&target_filename),
