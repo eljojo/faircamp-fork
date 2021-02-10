@@ -13,39 +13,8 @@ const DOWNLOAD_INCLUDES_TEXT: &str = "Includes high-quality download in MP3, FLA
 const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
 
 fn layout(page_depth: usize, body: &str, title: &str) -> String {
-    formatdoc!(
-        r#"
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <title>{title}</title>
-                    <meta charset="utf-8">
-                    <meta name="description" content="{title}">
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <!-- TODO: <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss"> -->
-                    <link href="{root_prefix}styles.css" rel="stylesheet">
-                    <script defer src="{root_prefix}scripts.js"></script>
-                </head>
-                <body>
-                    <script>document.body.classList.add('js_enabled');</script>
-                    <div class="layout">
-                        <header>
-                            <nav>
-                                <a href="{root_prefix}">Catalog</a>
-                                <a href="{root_prefix}artists/">Artists</a>
-                            </nav>
-                        </header>
-                        <main>
-                            {body}
-                        </main>
-                        <footer>
-                            <span>2021 faircamp alpha</span>
-                            <a href=".">^ top</a>
-                        </footer>
-                    </div>
-                </body>
-            </html>
-        "#,
+    format!(
+        include_str!("assets/layout.html"),
         body=body,
         root_prefix=("../".repeat(page_depth)),
         title=title
