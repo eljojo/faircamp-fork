@@ -261,7 +261,7 @@ pub fn render_release(release: &Release) -> String {
             formatdoc!(
                 r#"
                     <div>
-                        <a class="play">▶️</a><span class="muted">{track_number:02}</span> {track_title} <audio controls src="../{track_src}"></audio> {track_duration}
+                        <a class="play">▶️</a><span class="muted">{track_number:02}</span> {track_title} <audio controls src="../{track_src}"></audio> <span class="muted">{track_duration}</span>
                     </div>
                 "#,
                 track_duration=track.duration_formatted(),

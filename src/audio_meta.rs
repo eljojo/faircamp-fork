@@ -1,5 +1,7 @@
 use id3;
 use metaflac;
+use simplemad::Decoder;
+use std::fs::File;
 use std::path::Path;
 
 #[derive(Debug)]
@@ -33,7 +35,7 @@ impl AudioMeta {
                 return AudioMeta {
                     album: tag.album().map(|str| str.to_string()),
                     artist: tag.artist().map(|str| str.to_string()),
-                    duration_seconds: tag.duration(),
+                    duration_seconds: tag.duration().or_else(|| compute_mp3_duration_simplemad(path)),
                     title: tag.title().map(|str| str.to_string()),
                     track_number: tag.track()
                 };
@@ -47,5 +49,38 @@ impl AudioMeta {
             title: None,
             track_number: None
         }
+    }
+}
+
+fn compute_mp3_duration_simplemad(path: &Path) -> Option<u32> {
+    let file = match File::open(path) {
+        Ok(file) => file,
+        Err(_) => return None
+    };
+    
+    let decoder = match Decoder::decode(file) {
+        Ok(decoder) => decoder,
+        Err(_) => return None
+    };
+
+    let mut sampling_info = None;
+    let mut num_samples = 0;
+
+    for decoding_result in decoder {
+        match decoding_result {
+            Ok(frame) => {
+                if sampling_info.is_none() {
+                    sampling_info = Some((frame.samples.len(), frame.sample_rate));
+                }
+                
+                num_samples += frame.samples[0].len() as u32;
+            }
+            Err(_) => ()  // TODO: According to simplemad's documentation errors can mostly be ignored.
+        }
+    }
+
+    match sampling_info {
+        Some((_num_channels, sample_rate)) => Some(num_samples / sample_rate),
+        None => None
     }
 }

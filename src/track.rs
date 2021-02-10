@@ -20,9 +20,9 @@ impl Track {
         match self.duration_seconds {
             Some(seconds) => {
                 if seconds > HOUR_SECONDS {
-                    format!("{:02}:{:02}:{:02}", seconds / HOUR_SECONDS, (seconds % HOUR_SECONDS) / 60, seconds % 60)
+                    format!("{}:{}:{:02}", seconds / HOUR_SECONDS, (seconds % HOUR_SECONDS) / 60, seconds % 60)
                 } else {
-                    format!("{:02}:{:02}", (seconds % HOUR_SECONDS) / 60, seconds % 60)
+                    format!("{}:{:02}", (seconds % HOUR_SECONDS) / 60, seconds % 60)
                 }
             },
             None => String::new()
