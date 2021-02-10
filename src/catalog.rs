@@ -320,6 +320,7 @@ impl Catalog {
             }
         }
         
+        cache_manifest.report_unused_assets();
         cache_manifest.persist(&build_settings.cache_dir);
     }
 }

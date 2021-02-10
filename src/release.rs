@@ -91,6 +91,8 @@ impl Release {
             ).unwrap();
             cached_image_assets.image = Some(filename.clone());
         }
+        
+        cached_image_assets.used = true;
 
         fs::copy(
             build_settings.cache_dir.join(cached_image_assets.image.as_ref().unwrap()),
@@ -126,6 +128,8 @@ impl Release {
             ).unwrap();
             cached_format.replace(target_filename.clone());
         }
+        
+        cached_track_assets.used = true;
         
         fs::copy(
             build_settings.cache_dir.join(cached_format.as_ref().unwrap()),

@@ -34,6 +34,11 @@ fn main() {
     let args: Args = Args::parse();
     let build_settings = BuildSettings::init(&args);
     
+    if args.optimize_cache {
+        asset_cache::optimize_cache(&build_settings.cache_dir);
+        return;
+    }
+    
     let catalog = Catalog::read(&build_settings.catalog_dir);
     
     util::ensure_empty_dir(&build_settings.build_dir);

@@ -24,6 +24,10 @@ pub struct Args {
     #[clap(long = "deploy-destination")]
     pub deploy_destination: Option<String>,
     
+    /// Reclaims disk space by removing all cached assets that were not used for the last build (and it does only that, i.e. no build is performed)
+    #[clap(long = "optimize-cache")]
+    pub optimize_cache: bool,
+    
     /// Locally previews the build in the browser after the build is finished
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
