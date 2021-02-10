@@ -14,6 +14,7 @@ use crate::{
     ffmpeg::TranscodeFormat,
     image::Image,
     manifest::Overrides,
+    message,
     release::Release,
     track::Track,
     manifest,
@@ -123,6 +124,7 @@ impl Catalog {
         
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
+            
             let audio_meta = AudioMeta::extract(track_path, extension);
             
             if let Some(release_title) = &audio_meta.album {
@@ -135,7 +137,12 @@ impl Catalog {
                 }
             }
             
-            let track = self.read_track(track_path, audio_meta, local_overrides.as_ref().unwrap_or(parent_overrides));
+            let track = self.read_track(
+                track_path,
+                util::is_lossless(extension),
+                audio_meta,
+                local_overrides.as_ref().unwrap_or(parent_overrides)
+            );
             
             release_tracks.push(track);
         }
@@ -195,7 +202,13 @@ impl Catalog {
         Ok(())
     }
 
-    pub fn read_track(&mut self, path: &Path, audio_meta: AudioMeta, overrides: &Overrides) -> Track {
+    pub fn read_track(
+        &mut self,
+        path: &Path,
+        lossless_source: bool,
+        audio_meta: AudioMeta,
+        overrides: &Overrides
+    ) -> Track {
         let artists = if let Some(artist_names) = &overrides.track_artists {
             artist_names
                 .iter()
@@ -211,6 +224,7 @@ impl Catalog {
         Track::init(
             artists,
             audio_meta.duration_seconds,
+            lossless_source,
             audio_meta.track_number,
             source_file,
             title,
@@ -285,6 +299,10 @@ impl Catalog {
                 }
                 
                 if release.download_formats.flac {
+                    if !track.lossless_source {
+                        message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
+                    }
+                    
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Flac);
                 }
                 

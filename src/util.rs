@@ -10,6 +10,14 @@ pub fn ensure_empty_dir(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
 }
 
+pub fn is_lossless(extension: &str) -> bool {
+    match extension {
+        "aiff" | "alac" | "flac" | "wav" => true,
+        "aac" | "mp3" | "ogg" => false,
+        _ => unimplemented!("foo")
+    }
+}
+
 pub fn uuid() -> String {
     Uuid::new_v4().to_string()
 }

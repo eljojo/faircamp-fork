@@ -9,6 +9,7 @@ const HOUR_SECONDS: u32 = 60 * 60;
 pub struct Track {
     pub artists: Vec<Rc<Artist>>,
     pub duration_seconds: Option<u32>,
+    pub lossless_source: bool, 
     pub number: Option<u32>,
     pub source_file: PathBuf,
     pub title: String,
@@ -32,6 +33,7 @@ impl Track {
     pub fn init(
         artists: Vec<Rc<Artist>>,
         duration_seconds: Option<u32>,
+        lossless_source: bool,
         number: Option<u32>,
         source_file: PathBuf,
         title: String,
@@ -40,6 +42,7 @@ impl Track {
         Track {
             artists,
             duration_seconds,
+            lossless_source,
             number,
             source_file,
             title,

@@ -17,6 +17,7 @@ mod feed;
 mod ffmpeg;
 mod image;
 mod manifest;
+mod message;
 mod release;
 mod render;
 mod rsync;
