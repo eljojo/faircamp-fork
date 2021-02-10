@@ -9,7 +9,6 @@ use crate::{
     release::Release
 };
 
-const DOWNLOAD_INCLUDES_TEXT: &str = "Includes high-quality download in MP3, FLAC and more.";
 const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
 
 fn layout(page_depth: usize, body: &str, title: &str) -> String {
@@ -150,6 +149,25 @@ pub fn render_download(release: &Release) -> String {
 pub fn render_release(release: &Release) -> String {
     let artists_rendered = list_artists(1, &release.artists);
     
+    let format_availability = &[
+        (release.download_formats.aac, "AAC"),
+        (release.download_formats.flac, "FLAC"),
+        (release.download_formats.mp3_320 || release.download_formats.mp3_v0, "MP3"),
+        (release.download_formats.ogg_vorbis, "Ogg Vorbis")
+    ];
+    
+    let includes_text = if format_availability.iter().any(|(enabled, _label)| *enabled) {
+        let formats_list = format_availability
+            .iter()
+            .filter_map(|(enabled, label)| if *enabled { Some(label.to_string()) } else { None })
+            .collect::<Vec<String>>()
+            .join(",");
+        
+        format!("Includes high-quality download as {}", formats_list)
+    } else {
+        String::from("Includes medium-quality download as MP3 128")
+    };
+    
     // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
@@ -161,7 +179,7 @@ pub fn render_release(release: &Release) -> String {
                 </div>
             "#,
             hash=download_hash,
-            includes_text=DOWNLOAD_INCLUDES_TEXT
+            includes_text=includes_text
         ),
         DownloadOption::NameYourPrice => formatdoc!(
             r#"
@@ -170,7 +188,7 @@ pub fn render_release(release: &Release) -> String {
                     <div>{includes_text} {paying_text}</div>
                 </div>
             "#,
-            includes_text=DOWNLOAD_INCLUDES_TEXT,
+            includes_text=includes_text,
             paying_text=PAYING_SUPPORTERS_TEXT
         ),
         DownloadOption::PayExactly(price) => formatdoc!(
@@ -181,7 +199,7 @@ pub fn render_release(release: &Release) -> String {
                 </div>
             "#,
             price=price,
-            includes_text=DOWNLOAD_INCLUDES_TEXT,
+            includes_text=includes_text,
             paying_text=PAYING_SUPPORTERS_TEXT
         ),
         DownloadOption::PayMinimum(price) => formatdoc!(
@@ -192,7 +210,7 @@ pub fn render_release(release: &Release) -> String {
                 </div>
             "#,
             price=price,
-            includes_text=DOWNLOAD_INCLUDES_TEXT,
+            includes_text=includes_text,
             paying_text=PAYING_SUPPORTERS_TEXT
         )
     };
