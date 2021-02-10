@@ -13,6 +13,7 @@ mod catalog;
 mod deploy;
 mod download_formats;
 mod download_option;
+mod feed;
 mod ffmpeg;
 mod image;
 mod manifest;
@@ -68,6 +69,8 @@ fn main() {
 
     fs::write(build_settings.build_dir.join("scripts.js"), include_str!("assets/scripts.js")).unwrap();
     fs::write(build_settings.build_dir.join("styles.css"), include_str!("assets/styles.css")).unwrap();
+    
+    fs::write(build_settings.build_dir.join("feed.rss"), feed::generate()).unwrap();
     
     match build_settings.post_build_action {
         PostBuildAction::None => (),
