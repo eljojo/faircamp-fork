@@ -143,10 +143,14 @@ impl CacheManifest {
     
     pub fn report_unused_assets(&self) {
         let mut num_unused = 0;
+        let mut unused_bytesize = 0;
         
         for image in &self.images {
             if let Some(asset) = &image.jpg {
-                if !asset.used { num_unused += 1; }
+                if !asset.used {
+                    num_unused += 1;
+                    unused_bytesize += asset.filesize_bytes;
+                }
             }
         }
         for track in &self.tracks {
@@ -156,7 +160,11 @@ impl CacheManifest {
         }
         
         if num_unused > 0 {
-            message::cache(&format!("{} cached assets were not used for this build - you can run 'faircamp --optimize-cache' to reclaim disk space by removing unused cache assets.", num_unused))
+            message::cache(&format!(
+                "{num_unused} cached assets were not used for this build - you can run 'faircamp --optimize-cache' to reclaim these {unused_bytesize} bytes of disk space by removing unused cache assets.",
+                num_unused=num_unused,
+                unused_bytesize=unused_bytesize
+            ));
         }
     }
     

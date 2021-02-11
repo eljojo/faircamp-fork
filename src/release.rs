@@ -81,21 +81,21 @@ impl Release {
         target_format: &TranscodeFormat
     ) {
         let filename = format!("{}{}", image.uuid, target_format.suffix_and_extension());
-        
-        if cached_image_assets.jpg.is_none() {
+        let jpg = cached_image_assets.jpg.get_or_insert_with(|| {
             message::transcoding(&format!("{:?} to {}", image.source_file, target_format));
             ffmpeg::transcode(
                 &image.source_file,
                 &build_settings.cache_dir.join(&filename),
                 target_format
             ).unwrap();
-            cached_image_assets.jpg = Some(
-                Asset::init(&build_settings.cache_dir, filename.clone())
-            );
-        }
+            
+            Asset::init(&build_settings.cache_dir, filename.clone())
+        });
+        
+        jpg.used = true;
 
         fs::copy(
-            build_settings.cache_dir.join(&cached_image_assets.jpg.as_ref().unwrap().filename),
+            build_settings.cache_dir.join(&jpg.filename),
             build_settings.build_dir.join(&filename)
         ).unwrap();
     }
