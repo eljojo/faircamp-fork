@@ -11,6 +11,13 @@ use crate::message;
 const CACHE_MANIFEST_FILENAME: &str = "manifest.bincode";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Asset {
+    pub filename: String,
+    pub filesize_bytes: u64, 
+    pub used: bool
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CacheManifest {
     pub images: Vec<CachedImageAssets>,
     pub tracks: Vec<CachedTrackAssets>
@@ -18,9 +25,8 @@ pub struct CacheManifest {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CachedImageAssets {
-    pub image: Option<String>,
-    pub source_file_signature: SourceFileSignature,
-    pub used: bool
+    pub jpg: Option<Asset>,
+    pub source_file_signature: SourceFileSignature
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -52,13 +58,13 @@ pub fn optimize_cache(cache_dir: &Path) {
     
     let mut i = 0;
     while i != cache_manifest.images.len() {
-        if !cache_manifest.images[i].used {
-            message::cache(&format!("Removing cached assets for {}.", cache_manifest.images[i].source_file_signature.path.display()));
+        if cache_manifest.images[i].jpg.as_ref().filter(|asset| asset.used).is_none() {
+            message::cache(&format!("Removing cached image asset for {}.", cache_manifest.images[i].source_file_signature.path.display()));
             
             let cached_image_assets = cache_manifest.images.remove(i);
             
-            if let Some(path) = cached_image_assets.image {
-                remove_cached_asset(&cache_dir.join(path));
+            if let Some(asset) = cached_image_assets.jpg {
+                remove_cached_asset(&cache_dir.join(asset.filename));
             }
         } else {
             i += 1;
@@ -110,6 +116,18 @@ fn remove_cached_asset(path: &Path) {
     }
 }
 
+impl Asset {
+    pub fn init(cache_dir: &Path, filename: String) -> Asset {
+        let metadata = fs::metadata(cache_dir.join(&filename)).expect("Could not access asset");
+        
+        Asset {
+            filename,
+            filesize_bytes: metadata.len(),
+            used: true
+        }
+    }
+}
+
 impl CacheManifest {
     pub fn new() -> CacheManifest {
         CacheManifest {
@@ -127,8 +145,8 @@ impl CacheManifest {
         let mut num_unused = 0;
         
         for image in &self.images {
-            if !image.used {
-                num_unused += 1;
+            if let Some(asset) = &image.jpg {
+                if !asset.used { num_unused += 1; }
             }
         }
         for track in &self.tracks {
@@ -144,7 +162,9 @@ impl CacheManifest {
     
     fn reset_used_flags(&mut self) {
         for image in self.images.iter_mut() {
-            image.used = false;
+            if let Some(ref mut asset) = &mut image.jpg {
+                asset.used = false;
+            }
         }
         for track in self.tracks.iter_mut() {
             track.used = false;
@@ -167,9 +187,8 @@ impl CacheManifest {
 impl CachedImageAssets {
     pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
         CachedImageAssets {
-            image: None,
-            source_file_signature,
-            used: false
+            jpg: None,
+            source_file_signature
         }
     }
 }

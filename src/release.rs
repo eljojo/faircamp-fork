@@ -7,7 +7,7 @@ use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
-    asset_cache::{CachedImageAssets, CachedTrackAssets},
+    asset_cache::{Asset, CachedImageAssets, CachedTrackAssets},
     build_settings::BuildSettings,
     download_formats::DownloadFormats,
     download_option::DownloadOption,
@@ -82,20 +82,20 @@ impl Release {
     ) {
         let filename = format!("{}{}", image.uuid, target_format.suffix_and_extension());
         
-        if cached_image_assets.image.is_none() {
+        if cached_image_assets.jpg.is_none() {
             message::transcoding(&format!("{:?} to {}", image.source_file, target_format));
             ffmpeg::transcode(
                 &image.source_file,
                 &build_settings.cache_dir.join(&filename),
                 target_format
             ).unwrap();
-            cached_image_assets.image = Some(filename.clone());
+            cached_image_assets.jpg = Some(
+                Asset::init(&build_settings.cache_dir, filename.clone())
+            );
         }
-        
-        cached_image_assets.used = true;
 
         fs::copy(
-            build_settings.cache_dir.join(cached_image_assets.image.as_ref().unwrap()),
+            build_settings.cache_dir.join(&cached_image_assets.jpg.as_ref().unwrap().filename),
             build_settings.build_dir.join(&filename)
         ).unwrap();
     }
