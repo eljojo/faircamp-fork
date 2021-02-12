@@ -39,6 +39,16 @@ fn main() {
         return;
     }
     
+    if args.wipe_all || args.wipe_build || args.wipe_cache {
+        if args.wipe_build || args.wipe_all {
+            util::remove_dir(&build_settings.build_dir)
+        }
+        if args.wipe_cache || args.wipe_all {
+            util::remove_dir(&build_settings.cache_dir)
+        }
+        return;
+    }
+    
     let catalog = Catalog::read(&build_settings.catalog_dir);
     
     util::ensure_empty_dir(&build_settings.build_dir);

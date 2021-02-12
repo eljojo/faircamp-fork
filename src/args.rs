@@ -24,7 +24,7 @@ pub struct Args {
     #[clap(long = "deploy-destination")]
     pub deploy_destination: Option<String>,
     
-    /// Reclaims disk space by removing all cached assets that were not used for the last build (and it does only that, i.e. no build is performed)
+    /// Reclaims disk space by removing all cached assets that were not used for the last build and exits (no build is performed)
     #[clap(long = "optimize-cache")]
     pub optimize_cache: bool,
     
@@ -32,7 +32,15 @@ pub struct Args {
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
 
-    /// Wipes the asset cache BEFORE building - it then gets newly populated during building.
+    /// Wipes the build and cache directory and exits (no build is performed)
+    #[clap(long = "wipe-all")]
+    pub wipe_all: bool,
+    
+    /// Wipes the build directory and exits (no build is performed)
+    #[clap(long = "wipe-build")]
+    pub wipe_build: bool,
+    
+    /// Wipes the cache directory and exits (no build is performed)
     #[clap(long = "wipe-cache")]
     pub wipe_cache: bool
 }

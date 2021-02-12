@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{fs, io, path::Path};
 use uuid::Uuid;
 
 pub fn ensure_dir(dir: &Path) {
@@ -6,7 +6,7 @@ pub fn ensure_dir(dir: &Path) {
 }
 
 pub fn ensure_empty_dir(dir: &Path) {
-    fs::remove_dir_all(dir).ok(); // TODO: Here and elsewhere - catch only certain Err conditions (i.e. exists but undeletable)
+    remove_dir(dir);
     fs::create_dir_all(dir).unwrap();
 }
 
@@ -16,6 +16,14 @@ pub fn is_lossless(extension: &str) -> bool {
         "aac" | "mp3" | "ogg" => false,
         _ => unimplemented!("foo")
     }
+}
+
+pub fn remove_dir(dir: &Path) {
+    match fs::remove_dir_all(dir) {
+        Ok(()) => (),
+        Err(ref err) if err.kind() == io::ErrorKind::NotFound => (), // just what we want anyway \o/
+        Err(err) => panic!(err)
+    };
 }
 
 pub fn uuid() -> String {
