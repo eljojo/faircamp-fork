@@ -1,6 +1,7 @@
 // TODO: These would probably be more elegant as macros?
 
 const BLUE: &str = "\x1b[34m";
+const CYAN: &str = "\x1b[36m";
 const MAGENTA: &str = "\x1b[35m";
 const RED: &str = "\x1b[31m";
 const YELLOW: &str = "\x1b[33m";
@@ -17,6 +18,10 @@ pub fn discouraged(text: &str) {
 
 pub fn error(text: &str) {
     println!("{}[ERROR] {}{}", RED, text, RESET)
+}
+
+pub fn stats(text: &str) {
+    println!("{}[STATS] {}{}", CYAN, text, RESET)
 }
 
 pub fn transcoding(text: &str) {

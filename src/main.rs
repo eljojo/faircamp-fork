@@ -32,7 +32,7 @@ fn main() {
     env_logger::init();
     
     let args: Args = Args::parse();
-    let build_settings = BuildSettings::init(&args);
+    let mut build_settings = BuildSettings::init(&args);
     
     if args.optimize_cache {
         asset_cache::optimize_cache(&build_settings.cache_dir);
@@ -59,7 +59,7 @@ fn main() {
         util::ensure_dir(&build_settings.cache_dir);
     }
     
-    catalog.write_assets(&build_settings);
+    catalog.write_assets(&mut build_settings);
 
     
     // Render page for all artists
@@ -87,6 +87,8 @@ fn main() {
     fs::write(build_settings.build_dir.join("styles.css"), include_str!("assets/styles.css")).unwrap();
     
     fs::write(build_settings.build_dir.join("feed.rss"), feed::generate()).unwrap();
+    
+    build_settings.print_stats();
     
     match build_settings.post_build_action {
         PostBuildAction::None => (),

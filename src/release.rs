@@ -75,7 +75,7 @@ impl Release {
     
     pub fn write_image_assets(
         &self,
-        build_settings: &BuildSettings,
+        build_settings: &mut BuildSettings,
         cached_image_assets: &mut CachedImageAssets,
         image: &Image,
         target_format: &TranscodeFormat
@@ -98,6 +98,8 @@ impl Release {
             build_settings.cache_dir.join(&jpg.filename),
             build_settings.build_dir.join(&filename)
         ).unwrap();
+        
+        build_settings.stats.add_image(jpg.filesize_bytes);
     }
     
     pub fn write_track_assets(

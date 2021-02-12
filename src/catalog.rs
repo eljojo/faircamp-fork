@@ -257,7 +257,7 @@ impl Catalog {
         }
     }
     
-    pub fn write_assets(&self, build_settings: &BuildSettings) {
+    pub fn write_assets(&self, build_settings: &mut BuildSettings) {
         let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
         
         for release in &self.releases {            
