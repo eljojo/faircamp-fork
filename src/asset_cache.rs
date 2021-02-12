@@ -6,7 +6,7 @@ use std::{
     time::SystemTime
 };
 
-use crate::message;
+use crate::{message, util};
 
 const CACHE_MANIFEST_FILENAME: &str = "manifest.bincode";
 
@@ -171,7 +171,7 @@ impl CacheManifest {
             message::cache(&format!(
                 "{num_unused} cached assets were not used for this build - you can run 'faircamp --optimize-cache' to reclaim these {unused_bytesize} bytes of disk space by removing unused cache assets.",
                 num_unused=num_unused,
-                unused_bytesize=unused_bytesize
+                unused_bytesize=util::format_bytes(unused_bytesize)
             ));
         }
     }
