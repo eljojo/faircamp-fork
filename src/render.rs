@@ -47,7 +47,10 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
             }
             
             let release_cover_rendered = match &release.cover {
-                Some(image) => format!(r#"<img class="cover" src="../{}.jpg">"#, image.uuid),
+                Some(image) => format!(
+                    r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
+                    image_uuid=image.uuid
+                ),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
@@ -86,19 +89,22 @@ pub fn render_artists(catalog: &Catalog) -> String {
     let artists_rendered = catalog.artists
         .iter()
         .map(|artist| {
-            let artist_cover_rendered = match &artist.image {
-                Some(image) => format!(r#"<img class="cover" src="{}.jpg">"#, image.uuid),
+            let artist_image_rendered = match &artist.image {
+                Some(image) => format!(
+                    r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
+                    image_uuid=image.uuid
+                ),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
             formatdoc!(
                 r#"
                     <div>
-                        {artist_cover_rendered}
+                        {artist_image_rendered}
                         <a href="../{artist_slug}/">{artist_name}</a>
                     </div>
                 "#,
-                artist_cover_rendered=artist_cover_rendered,
+                artist_image_rendered=artist_image_rendered,
                 artist_slug=artist.slug,
                 artist_name=artist.name
             )
@@ -123,7 +129,10 @@ pub fn render_download(release: &Release) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
-        Some(image) => format!(r#"<img class="cover" src="../../{}.jpg">"#, image.uuid),
+        Some(image) => format!(
+            r#"<img alt="Release cover" class="cover" src="../../{image_uuid}.jpg">"#,
+            image_uuid=image.uuid
+        ),
         None => String::from(r#"<div class="cover"></div>"#)
     };
     
@@ -251,8 +260,12 @@ pub fn render_release(release: &Release) -> String {
         )
     };
     
+    // TODO: Here and elsewhere DRY this up, repeats multiple times
     let release_cover_rendered = match &release.cover {
-        Some(image) => format!(r#"<img class="cover vpad" src="../{}.jpg">"#, image.uuid),
+        Some(image) => format!(
+            r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
+            image_uuid=image.uuid
+        ),
         None => String::from(r#"<div class="cover vpad"></div>"#)
     };
     
@@ -313,7 +326,10 @@ pub fn render_releases(catalog: &Catalog) -> String {
             let artists_rendered = list_artists(0, &release.artists);
             
             let release_cover_rendered = match &release.cover {
-                Some(image) => format!(r#"<img class="cover" src="{}.jpg">"#, image.uuid),
+                Some(image) => format!(
+                    r#"<img alt="Release cover" class="cover" src="{image_uuid}.jpg">"#,
+                    image_uuid=image.uuid
+                ),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
             
