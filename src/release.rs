@@ -104,7 +104,7 @@ impl Release {
     
     pub fn write_track_assets(
         &self,
-        build_settings: &BuildSettings,
+        build_settings: &mut BuildSettings,
         cached_track_assets: &mut CachedTrackAssets,
         track: &Track,
         target_format: &TranscodeFormat
@@ -123,22 +123,25 @@ impl Release {
             TranscodeFormat::Jpeg => unreachable!() // TODO: Maybe rather have a separate AudioFormat and ImageFormat so we don't mix static code paths
         };
         
-        if cached_format.is_none() {
+        let cached_format_unpacked = cached_format.get_or_insert_with(|| {
             message::transcoding(&format!("{:?} to {}", track.source_file, target_format));
             ffmpeg::transcode(
                 &track.source_file,
                 &build_settings.cache_dir.join(&target_filename),
                 target_format
             ).unwrap();
-            cached_format.replace(target_filename.clone());
-        }
+            
+            Asset::init(&build_settings.cache_dir, target_filename.clone())
+        });
         
-        cached_track_assets.used = true;
+        cached_format_unpacked.used = true;
         
         fs::copy(
-            build_settings.cache_dir.join(cached_format.as_ref().unwrap()),
+            build_settings.cache_dir.join(&cached_format_unpacked.filename),
             build_settings.build_dir.join(&target_filename)
         ).unwrap();
+        
+        build_settings.stats.add_track(cached_format_unpacked.filesize_bytes);
     }
     
     pub fn zip(&self, build_dir: &Path) -> Result<(), String> {

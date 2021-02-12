@@ -271,7 +271,7 @@ impl Catalog {
                     None => {
                         cache_manifest.images.push(CachedImageAssets::new(source_file_signature));
                         cache_manifest.images.last_mut().unwrap()
-                    }    
+                    }
                 };
                 
                 release.write_image_assets(build_settings, &mut cached_image_assets, image, &TranscodeFormat::Jpeg);

@@ -113,11 +113,12 @@ impl Stats {
     }
     
     pub fn to_string(&self) -> String {
-        // TODO: Add track statistics as soon as we have them
         format!(
-            "{num_images} images written ({bytes_used_images})",
+            "{num_images} images ({bytes_used_images}) and {num_tracks} tracks ({bytes_used_tracks}) written",
             num_images=self.num_images,
-            bytes_used_images=util::format_bytes(self.bytes_used_images)
+            num_tracks=self.num_tracks,
+            bytes_used_images=util::format_bytes(self.bytes_used_images),
+            bytes_used_tracks=util::format_bytes(self.bytes_used_tracks)
         )
     }
 }

@@ -31,16 +31,15 @@ pub struct CachedImageAssets {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CachedTrackAssets {
-    pub aac: Option<String>,
-    pub aiff: Option<String>,
-    pub flac: Option<String>,
-    pub mp3_128: Option<String>,
-    pub mp3_320: Option<String>,
-    pub mp3_v0: Option<String>,
-    pub ogg_vorbis: Option<String>,
+    pub aac: Option<Asset>,
+    pub aiff: Option<Asset>,
+    pub flac: Option<Asset>,
+    pub mp3_128: Option<Asset>,
+    pub mp3_320: Option<Asset>,
+    pub mp3_v0: Option<Asset>,
+    pub ogg_vorbis: Option<Asset>,
     pub source_file_signature: SourceFileSignature,
-    pub used: bool,  // TODO: Track at a more granular level (e.g. identify that FLAC has been used, but AAC hasn't, etc.)
-    pub wav: Option<String>
+    pub wav: Option<Asset>
 }
 
 // TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)
@@ -61,7 +60,7 @@ pub fn optimize_cache(cache_dir: &Path) {
     let mut i = 0;
     while i != cache_manifest.images.len() {
         if cache_manifest.images[i].jpg.as_ref().filter(|asset| asset.used).is_none() {
-            message::cache(&format!("Removing cached image asset for {}.", cache_manifest.images[i].source_file_signature.path.display()));
+            message::cache(&format!("Removing cached image asset (JPEG) for {}.", cache_manifest.images[i].source_file_signature.path.display()));
             
             let cached_image_assets = cache_manifest.images.remove(i);
             
@@ -75,39 +74,75 @@ pub fn optimize_cache(cache_dir: &Path) {
     
     i = 0;
     while i != cache_manifest.tracks.len() {
-        if !cache_manifest.tracks[i].used {
-            message::cache(&format!("Removing cached assets for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-            
-            let cached_track_assets = cache_manifest.tracks.remove(i);
-            
-            // TODO: That the checks/clean up below can be non-exhaustive (the compiler won't
-            //       know when new formats are added) is an(other) indication that the data modeling
-            //       for this is not good at all - deal with this at some point.
-            
-            if let Some(path) = cached_track_assets.aac {
-                remove_cached_asset(&cache_dir.join(path));
+        let mut keep_container = false;
+        
+        if let Some(asset) = &cache_manifest.tracks[i].aac {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (AAC) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.aiff {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].aiff {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (AIFF) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.flac {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].flac {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (FLAC) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.mp3_128 {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].mp3_128 {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (MP3 128) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.mp3_320 {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].mp3_320 {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (MP3 320) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.mp3_v0 {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].mp3_v0 {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (MP3 V0) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.ogg_vorbis {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].ogg_vorbis {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (Ogg Vorbis) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
-            if let Some(path) = cached_track_assets.wav {
-                remove_cached_asset(&cache_dir.join(path));
+        }
+        if let Some(asset) = &cache_manifest.tracks[i].wav {
+            if asset.used {
+                keep_container = true;
+            } else {
+                message::cache(&format!("Removing cached track asset (WAV) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
+                remove_cached_asset(&cache_dir.join(&asset.filename));
             }
+        }
+        
+        if !keep_container {
+            cache_manifest.tracks.remove(i);
         } else {
             i += 1;
         }
@@ -154,16 +189,43 @@ impl CacheManifest {
         let mut unused_bytesize = 0;
         
         for image in &self.images {
-            if let Some(asset) = &image.jpg {
-                if !asset.used {
-                    num_unused += 1;
-                    unused_bytesize += asset.filesize_bytes;
-                }
+            if let Some(filesize_bytes) = image.jpg.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
             }
         }
         for track in &self.tracks {
-            if !track.used {
+            if let Some(filesize_bytes) = track.aac.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.aiff.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.flac.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.mp3_128.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.mp3_320.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.mp3_v0.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.ogg_vorbis.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
+            }
+            if let Some(filesize_bytes) = track.wav.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+                num_unused += 1;
+                unused_bytesize += filesize_bytes;
             }
         }
         
@@ -178,12 +240,18 @@ impl CacheManifest {
     
     fn reset_used_flags(&mut self) {
         for image in self.images.iter_mut() {
-            if let Some(ref mut asset) = &mut image.jpg {
-                asset.used = false;
-            }
+            // Note here and below that we only iterate over the single inner value of the option (if present)
+            image.jpg.iter_mut().for_each(|asset| asset.used = false);
         }
         for track in self.tracks.iter_mut() {
-            track.used = false;
+            track.aac.iter_mut().for_each(|asset| asset.used = false);
+            track.aiff.iter_mut().for_each(|asset| asset.used = false);
+            track.flac.iter_mut().for_each(|asset| asset.used = false);
+            track.mp3_128.iter_mut().for_each(|asset| asset.used = false);
+            track.mp3_320.iter_mut().for_each(|asset| asset.used = false);
+            track.mp3_v0.iter_mut().for_each(|asset| asset.used = false);
+            track.ogg_vorbis.iter_mut().for_each(|asset| asset.used = false);
+            track.wav.iter_mut().for_each(|asset| asset.used = false);
         }
     }
         
@@ -220,7 +288,6 @@ impl CachedTrackAssets {
             mp3_v0: None,
             ogg_vorbis: None,
             source_file_signature,
-            used: false,
             wav: None
         }
     }
