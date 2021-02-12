@@ -22,7 +22,7 @@ use crate::{
 };
 
 // TODO: Verify if ogg even works already
-// TODO: See if aac as input is easily possible
+// TODO: See if aac, aiff as input is easily possible
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
@@ -298,6 +298,10 @@ impl Catalog {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Aac);
                 }
                 
+                if release.download_formats.aiff {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Aiff);
+                }
+                
                 if release.download_formats.flac {
                     if !track.lossless_source {
                         message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
@@ -316,6 +320,10 @@ impl Catalog {
                 
                 if release.download_formats.ogg_vorbis {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::OggVorbis);
+                }
+                
+                if release.download_formats.wav {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Wav);
                 }
             }
         }

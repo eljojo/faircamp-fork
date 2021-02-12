@@ -129,12 +129,14 @@ pub fn render_download(release: &Release) -> String {
     
     // TODO: Possibly DRY this up (used in a very similar fashion in render_release)
     let format_availability = &[
-        (release.download_formats.mp3_v0, "MP3 (high-quality with varying bitrate) - Recommended Format"),
-        (release.download_formats.mp3_320, "MP3 (high-quality with constant bitrate)"),
-        (release.download_formats.flac, "FLAC (lossless)"),
+        (release.download_formats.mp3_v0, "MP3 (VBR/V0) - Recommended Format"),
+        (release.download_formats.mp3_320, "MP3 (CBR/320kbps)"),
+        (release.download_formats.flac, "FLAC"),
         (release.download_formats.aac, "AAC"),
         (release.download_formats.ogg_vorbis, "Ogg Vorbis"),
-        (true, "MP3 (128kbps, medium-quality)")
+        (release.download_formats.wav, "WAV"),
+        (release.download_formats.aiff, "AIFF"),
+        (true, "MP3 (CBR/128kbps)")
     ];
     
     

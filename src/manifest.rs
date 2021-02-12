@@ -33,6 +33,8 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
         Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
             if trimmed_line == "disable-aac" {
                 overrides.download_formats.aac = false;
+            } else if trimmed_line == "disable-aiff" {
+                overrides.download_formats.aiff = false;
             } else if trimmed_line == "disable-flac" {
                 overrides.download_formats.flac = false;
             } else if trimmed_line == "disable-mp3-320" {
@@ -41,6 +43,8 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
                 overrides.download_formats.mp3_v0 = false;
             } else if trimmed_line == "disable-ogg-vorbis" {
                 overrides.download_formats.ogg_vorbis = false;
+            } else if trimmed_line == "disable-wav" {
+                overrides.download_formats.wav = false;
             } else if trimmed_line.starts_with("download:") {
                 match trimmed_line[9..].trim() {
                     "disabled" => {
@@ -62,6 +66,8 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
                 }
             } else if trimmed_line == "enable-aac" {
                 overrides.download_formats.aac = true;
+            } else if trimmed_line == "enable-aiff" {
+                overrides.download_formats.aiff = true;
             } else if trimmed_line == "enable-flac" {
                 overrides.download_formats.flac = true;
             } else if trimmed_line == "enable-mp3-320" {
@@ -70,6 +76,8 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
                 overrides.download_formats.mp3_v0 = true;
             } else if trimmed_line == "enable-ogg-vorbis" {
                 overrides.download_formats.ogg_vorbis = true;
+            } else if trimmed_line == "enable-wav" {
+                overrides.download_formats.wav = true;
             } else if trimmed_line.starts_with("release-artist:") {
                 overrides.release_artists = Some(vec![trimmed_line[15..].trim().to_string()]);
             } else if trimmed_line.starts_with("release-text:") {

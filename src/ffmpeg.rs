@@ -4,24 +4,28 @@ use std::process::{Command, Output};
 
 pub enum TranscodeFormat {
     Aac,
+    Aiff,
     Flac,
     Jpeg,
     Mp3Cbr128,
     Mp3Cbr320,
     Mp3VbrV0,
-    OggVorbis
+    OggVorbis,
+    Wav
 }
 
 impl TranscodeFormat {
     pub fn suffix_and_extension(&self) -> &str {
         match self {
             TranscodeFormat::Aac => ".aac",
+            TranscodeFormat::Aiff => ".aiff",
             TranscodeFormat::Flac => ".flac",
             TranscodeFormat::Jpeg => ".jpg", 
             TranscodeFormat::Mp3Cbr128 => "-128.mp3",
             TranscodeFormat::Mp3Cbr320 => "-320.mp3",
             TranscodeFormat::Mp3VbrV0 => "-v0.mp3",
-            TranscodeFormat::OggVorbis => ".ogg"
+            TranscodeFormat::OggVorbis => ".ogg",
+            TranscodeFormat::Wav => ".wav"
         }
     }
 }
@@ -30,12 +34,14 @@ impl fmt::Display for TranscodeFormat {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let text = match self {
             TranscodeFormat::Aac => "AAC",
+            TranscodeFormat::Aiff => "AIFF",
             TranscodeFormat::Flac => "FLAC",
             TranscodeFormat::Jpeg => "JPEG", 
             TranscodeFormat::Mp3Cbr128 => "MP3 128",
             TranscodeFormat::Mp3Cbr320 => "MP3 320",
             TranscodeFormat::Mp3VbrV0 => "MP3 V0",
-            TranscodeFormat::OggVorbis => "Ogg Vorbis"
+            TranscodeFormat::OggVorbis => "Ogg Vorbis",
+            TranscodeFormat::Wav => "WAV"
         };
         
         write!(f, "{}", text)

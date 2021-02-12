@@ -32,13 +32,15 @@ pub struct CachedImageAssets {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CachedTrackAssets {
     pub aac: Option<String>,
+    pub aiff: Option<String>,
     pub flac: Option<String>,
     pub mp3_128: Option<String>,
     pub mp3_320: Option<String>,
     pub mp3_v0: Option<String>,
     pub ogg_vorbis: Option<String>,
     pub source_file_signature: SourceFileSignature,
-    pub used: bool  // TODO: Track at a more granular level (e.g. identify that FLAC has been used, but AAC hasn't, etc.)
+    pub used: bool,  // TODO: Track at a more granular level (e.g. identify that FLAC has been used, but AAC hasn't, etc.)
+    pub wav: Option<String>
 }
 
 // TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)
@@ -85,6 +87,9 @@ pub fn optimize_cache(cache_dir: &Path) {
             if let Some(path) = cached_track_assets.aac {
                 remove_cached_asset(&cache_dir.join(path));
             }
+            if let Some(path) = cached_track_assets.aiff {
+                remove_cached_asset(&cache_dir.join(path));
+            }
             if let Some(path) = cached_track_assets.flac {
                 remove_cached_asset(&cache_dir.join(path));
             }
@@ -98,6 +103,9 @@ pub fn optimize_cache(cache_dir: &Path) {
                 remove_cached_asset(&cache_dir.join(path));
             }
             if let Some(path) = cached_track_assets.ogg_vorbis {
+                remove_cached_asset(&cache_dir.join(path));
+            }
+            if let Some(path) = cached_track_assets.wav {
                 remove_cached_asset(&cache_dir.join(path));
             }
         } else {
@@ -205,13 +213,15 @@ impl CachedTrackAssets {
     pub fn new(source_file_signature: SourceFileSignature) -> CachedTrackAssets {
         CachedTrackAssets {
             aac: None,
+            aiff: None,
             flac: None,
             mp3_128: None,
             mp3_320: None,
             mp3_v0: None,
             ogg_vorbis: None,
             source_file_signature,
-            used: false
+            used: false,
+            wav: None
         }
     }
 }

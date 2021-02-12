@@ -111,12 +111,14 @@ impl Release {
         
         let cached_format = match target_format {
             TranscodeFormat::Aac => &mut cached_track_assets.aac,
+            TranscodeFormat::Aiff => &mut cached_track_assets.aiff,
             TranscodeFormat::Flac => &mut cached_track_assets.flac,
             TranscodeFormat::Mp3Cbr128 => &mut cached_track_assets.mp3_128,
             TranscodeFormat::Mp3Cbr320 => &mut cached_track_assets.mp3_320,
             TranscodeFormat::Mp3VbrV0 => &mut cached_track_assets.mp3_v0,
             TranscodeFormat::OggVorbis => &mut cached_track_assets.ogg_vorbis,
-            _ => unreachable!() // TODO: Maybe rather have a separate AudioFormat and ImageFormat so we don't mix static code paths
+            TranscodeFormat::Wav => &mut cached_track_assets.wav,
+            TranscodeFormat::Jpeg => unreachable!() // TODO: Maybe rather have a separate AudioFormat and ImageFormat so we don't mix static code paths
         };
         
         if cached_format.is_none() {
