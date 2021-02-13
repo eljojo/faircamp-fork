@@ -1,6 +1,8 @@
 @font-face {
+    font-family: 'Barlow';
     font-style: normal;
     font-weight: 400;
+    src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
 }
 a {
     color: #ddd;
@@ -14,6 +16,7 @@ a.play {
 body {
     background-color: #191919;
     color: #bbb;
+    font-family: 'Barlow';
     font-size: 18px;
     margin: 0;
 }
@@ -29,6 +32,7 @@ footer {
 footer > * { padding: .6em; }
 h1 {
     font-size: 1.8em;
+    font-weight: 400;
     margin: 0;
 }
 header > nav { padding: .6em; }

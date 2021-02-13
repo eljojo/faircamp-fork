@@ -83,8 +83,9 @@ fn main() {
         release.write_files(&build_settings.build_dir);
     }
 
-    fs::write(build_settings.build_dir.join("scripts.js"), include_str!("assets/scripts.js")).unwrap();
-    fs::write(build_settings.build_dir.join("styles.css"), include_str!("assets/styles.css")).unwrap();
+    fs::write(build_settings.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
+    fs::write(build_settings.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
+    fs::write(build_settings.build_dir.join("styles.css"), include_bytes!("assets/styles.css")).unwrap();
     
     fs::write(build_settings.build_dir.join("feed.rss"), feed::generate()).unwrap();
     
