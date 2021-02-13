@@ -364,22 +364,39 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
         None => String::from(r#"<div class="cover vpad"></div>"#)
     };
     
+    let longest_track_duration = release.tracks
+        .iter()
+        .map(|track| track.duration_seconds.unwrap_or(0))
+        .max();
+    
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
-        .map(|(index, track)|
+        .map(|(index, track)| {
+            let track_duration_width_em = match (track.duration_seconds, longest_track_duration) {
+                (Some(this_duration), Some(longest_duration)) => (36.0 * (this_duration as f32 / longest_duration as f32)) as u32,
+                _ => 0
+            };
+        
             formatdoc!(
                 r#"
-                    <div>
-                        <a class="play">▶️</a><span class="muted">{track_number:02}</span> {track_title} <audio controls src="../{track_src}"></audio> <span class="muted">{track_duration}</span>
+                    <div class="track">
+                        <a class="muted track_number">{track_number}</a>
+                        <span class="track_title">
+                            <div class="track_duration_bar" style="width: {track_duration_width_em}em;"></div>
+                            <span class="muted track_duration_text" style="left: {track_duration_width_em}em;">{track_duration}</span>
+                            {track_title}
+                        </span>
+                        <audio controls src="../{track_src}"></audio>
                     </div>
                 "#,
                 track_duration=track.duration_formatted(),
+                track_duration_width_em=track_duration_width_em,
                 track_number=index + 1,
                 track_src=format!("{}{}", track.uuid, release.streaming_format.suffix_and_extension()),
                 track_title=track.title
             )
-        )
+        })
         .collect::<Vec<String>>()
         .join("\n");
 

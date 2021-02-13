@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', event => {
 });
 
 document.body.addEventListener('click', event => {
-    if (event.target.classList.contains('play')) {
+    if (event.target.classList.contains('track_number')) {
         event.preventDefault();
         
         const a = event.target;
@@ -23,10 +23,10 @@ document.body.addEventListener('click', event => {
         
         if (audio.paused) {
             audio.play();
-            a.innerHTML = '⏸︎';
+            a.innerHTML = 'Pa';
         } else {
             audio.pause();
-            a.innerHTML = '▶️';
+            a.innerHTML = 'Pl';
         }
     } else if (event.target.classList.contains('share') && !event.target.classList.contains('disabled')) {
         event.preventDefault();
