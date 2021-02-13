@@ -231,7 +231,7 @@ impl CacheManifest {
         
         if num_unused > 0 {
             message::cache(&format!(
-                "{num_unused} cached assets were not used for this build - you can run 'faircamp --optimize-cache' to reclaim these {unused_bytesize} bytes of disk space by removing unused cache assets.",
+                "{num_unused} cached assets were not used for this build - you can run 'faircamp --optimize-cache' to reclaim {unused_bytesize} of disk space by removing unused cache assets.",
                 num_unused=num_unused,
                 unused_bytesize=util::format_bytes(unused_bytesize)
             ));

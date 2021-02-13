@@ -16,7 +16,8 @@ fn layout(page_depth: usize, body: &str, title: &str) -> String {
         include_str!("assets/layout.html"),
         body=body,
         root_prefix=("../".repeat(page_depth)),
-        title=title
+        title=title,
+        version=env!("CARGO_PKG_VERSION")
     )
 }
 
@@ -175,7 +176,7 @@ pub fn render_download(release: &Release) -> String {
             {release_cover_rendered}
             
             <h1>Download {release_title}</h1>
-            <div>by {artists_rendered}</div>
+            <div>{artists_rendered}</div>
             
             {download_links}
             
@@ -218,7 +219,7 @@ pub fn render_release(release: &Release) -> String {
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free(download_hash) => formatdoc!(
             r#"
-                <div>
+                <div class="vpad">
                     <a href="../download/{hash}/">Download Digital Release</a>
                     <div>{includes_text}</div>
                 </div>
@@ -228,7 +229,7 @@ pub fn render_release(release: &Release) -> String {
         ),
         DownloadOption::NameYourPrice => formatdoc!(
             r#"
-                <div>
+                <div class="vpad">
                     <a href="../download/todo">Buy Digital Release</a> Name Your Price
                     <div>{includes_text} {paying_text}</div>
                 </div>
@@ -238,7 +239,7 @@ pub fn render_release(release: &Release) -> String {
         ),
         DownloadOption::PayExactly(price) => formatdoc!(
             r#"
-                <div>
+                <div class="vpad">
                     <a href="../download/todo">Buy Digital Release</a> {price}
                     <div>{includes_text} {paying_text}</div>
                 </div>
@@ -249,7 +250,7 @@ pub fn render_release(release: &Release) -> String {
         ),
         DownloadOption::PayMinimum(price) => formatdoc!(
             r#"
-                <div>
+                <div class="vpad">
                     <a href="../download/todo">Buy Digital Release</a> {price} or more
                     <div>{includes_text} {paying_text}</div>
                 </div>
