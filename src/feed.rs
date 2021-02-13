@@ -1,56 +1,50 @@
-use indoc::formatdoc;
+use chrono::Utc;
+use url::Url;
 
-pub fn generate(base_url: &str) -> String {
-    let items = &["TODO", "TODO"]
+use crate::catalog::Catalog;
+
+pub fn generate(base_url: &Url, catalog: &Catalog) -> String {
+    let items = catalog.releases
         .iter()
-        .map(|_entry_todo|
-            formatdoc!(
-                r#"
-                    <item>
-                        <description>{item_description}</description>
-                        <guid>{base_url}/{item_permalink}</guid>
-                        <link>{base_url}/{item_permalink}</link>
-                        <pubDate>{item_date}</pubDate>
-                        <title>{item_title}</title>
-                    </item>
-                "#,
-                base_url=base_url,
-                item_date="TODO",
-                item_description="TODO",
-                item_permalink="TODO",
-                item_title="TODO",
+        .map(|release| {
+            let artists_list = release.artists
+                .iter()
+                .map(|artist| artist.name.as_str())
+                .collect::<Vec<&str>>()
+                .join(", ");
+            
+            format!(
+                include_str!("templates/feed/item.xml"),
+                date="TODO",
+                description=format!("A release by {}", artists_list),
+                permalink=base_url.join(&release.slug).unwrap(),
+                title=release.title,
             )
-        )
+        })
         .collect::<Vec<String>>()
         .join("\n");
     
-    formatdoc!(
-        r#"
-            <?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-                <channel>
-                    <atom:link href="{base_url}/feed.rss" rel="self" type="application/rss+xml"/>
-                    <description>{description}</description>
-                    <image>
-                        <url>{base_url}/{feed_image}</url>
-                        <title>{image_title}</title>
-                        <link>{base_url}</link>
-                    </image>
-                    <language>{language}</language>
-                    <lastBuildDate>{build_date}</lastBuildDate>
-                    <link>{base_url}</link>
-                    <title>{feed_title}</title>
-                    
-                    {items}
-                </channel>
-            </rss>
-        "#,
+    // TODO: This should maybe be stripped off html (?) - practically speaking
+    //       our markdown parser allows us to manually generate such output.
+    let channel_description = catalog.text
+        .as_ref()
+        .map(|string| string.as_str())
+        .unwrap_or("A faircamp-based music catalog");
+    
+    let channel_title = catalog.title
+        .as_ref()
+        .map(|string| string.as_str())
+        .unwrap_or("Catalog");
+    
+    format!(
+        include_str!("templates/feed/channel.xml"),
         base_url=base_url,
-        build_date="TODO",
-        description="TODO",
+        build_date=Utc::now().to_rfc2822(),
+        channel_description=channel_description,
+        channel_title=channel_title,
         feed_image="TODO.png",
-        feed_title="TODO",
-        image_title="TODO",
+        feed_image_title="TODO",
+        feed_url=base_url.join("feed.rss").unwrap(),
         items=items,
         language="en"
     )

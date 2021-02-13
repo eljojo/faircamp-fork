@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <atom:link href="{feed_url}" rel="self" type="application/rss+xml"/>
+        <description>{channel_description}</description>
+        <image>
+            <url>{base_url}/{feed_image}</url>
+            <title>{feed_image_title}</title>
+            <link>{base_url}</link>
+        </image>
+        <language>{language}</language>
+        <lastBuildDate>{build_date}</lastBuildDate>
+        <link>{base_url}</link>
+        <title>{channel_title}</title>
+        
+        {items}
+    </channel>
+</rss>

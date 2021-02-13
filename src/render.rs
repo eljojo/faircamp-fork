@@ -28,7 +28,7 @@ fn layout(page_depth: usize, body: &str, build_settings: &BuildSettings, catalog
     };
     
     format!(
-        include_str!("assets/layout.html"),
+        include_str!("templates/layout.html"),
         body=body,
         catalog_title=catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("About"),
         feed_meta_link=feed_meta_link,

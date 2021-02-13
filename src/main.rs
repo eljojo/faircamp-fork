@@ -92,7 +92,8 @@ fn main() {
     fs::write(build_settings.build_dir.join("styles.css"), include_bytes!("assets/styles.css")).unwrap();
     
     if let Some(base_url) = &build_settings.base_url {
-        fs::write(build_settings.build_dir.join("feed.rss"), feed::generate(base_url)).unwrap();
+        let feed_xml = feed::generate(base_url, &catalog);
+        fs::write(build_settings.build_dir.join("feed.rss"), feed_xml).unwrap();
     } else {
         message::warning(&format!("No base_url specified, skipping RSS feed generation"));
     }

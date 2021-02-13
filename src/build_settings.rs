@@ -1,6 +1,9 @@
-use std::env;
-use std::path::PathBuf;
-use std::time::Instant;
+use std::{
+    env,
+    path::PathBuf,
+    time::Instant
+};
+use url::Url;
 
 use crate::{
     args::Args,
@@ -11,7 +14,7 @@ use crate::{
 // TODO: Now that this holds stats as well it should be just "Build"
 //       or something like that, as it is more than just settings.
 pub struct BuildSettings {
-    pub base_url: Option<String>,
+    pub base_url: Option<Url>,
     pub build_dir: PathBuf,
     begin_instant: Instant,
     pub cache_dir: PathBuf,

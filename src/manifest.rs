@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::Path;
+use url::Url;
 
 use crate::{
     download_option::DownloadOption,
@@ -9,7 +10,7 @@ use crate::{
 };
 
 pub struct Globals {
-    pub base_url: Option<String>,
+    pub base_url: Option<Url>,
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>
 }
@@ -50,16 +51,27 @@ impl Overrides {
 pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
-            if trimmed_line.starts_with("base_url:") {
-                if let Some(previous_url) = &globals.base_url {
-                    message::warning(&format!(
-                        "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
-                        previous_url=previous_url,
-                        new_url=trimmed_line[9..].trim()
-                    ));
-                }
-                
-                globals.base_url = Some(trimmed_line[13..].trim().to_string());
+            if trimmed_line.starts_with("base_url:") {        
+                match Url::parse(trimmed_line[9..].trim()) {
+                    Ok(url) => {
+                        if let Some(previous_url) = &globals.base_url {
+                            message::warning(&format!(
+                                "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
+                                previous_url=previous_url,
+                                new_url=url
+                            ));
+                        }
+                        
+                        globals.base_url = Some(url);
+                    }
+                    Err(err) => {
+                        message::error(&format!(
+                            "Global 'base_url' supplied with invalid value ({err})",
+                            err=err
+                        ));
+                    }
+                };
+                 Some(trimmed_line[9..].trim().to_string());
             } else if trimmed_line.starts_with("catalog_text:") {
                 if let Some(previous_title) = &globals.catalog_text {
                     message::warning(&format!(

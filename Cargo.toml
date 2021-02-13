@@ -6,6 +6,7 @@ version = "0.1.0"
 
 [dependencies]
 bincode = "1.3.1"
+chrono = "0.4.19"
 clap = { git = "https://github.com/clap-rs/clap/" }
 env_logger = "0.8.2"
 id3 = "0.6.1"
@@ -17,5 +18,6 @@ rmp3 = "0.2.1"
 serde = "1.0.123"
 serde_derive = "1.0.123"
 slug = "0.1.4"
+url = "2.2.0"
 uuid = { features = ["v4"], version = "0.8.2" }
 zip = { features = ["deflate"], version = "0.5.9" }
