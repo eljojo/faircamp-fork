@@ -226,31 +226,37 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
     };
     
     // TODO: Possibly DRY this up (used in a very similar fashion in render_release)
-    // TODO: Dynamically assign the "Recommended format", depending on what formats are available
     let format_availability = &[
-        (release.download_formats.mp3_v0, "MP3 (VBR/V0) - Recommended Format"),
-        (release.download_formats.mp3_320, "MP3 (CBR/320kbps)"),
-        (release.download_formats.mp3_128, "MP3 (CBR/128kbps)"),
-        (release.download_formats.flac, "FLAC"),
-        (release.download_formats.aac, "AAC"),
-        (release.download_formats.ogg_vorbis, "Ogg Vorbis"),
-        (release.download_formats.wav, "WAV"),
-        (release.download_formats.aiff, "AIFF")
+        (true, release.download_formats.mp3_v0, "MP3 (VBR/V0)"),
+        (true, release.download_formats.mp3_320, "MP3 (CBR/320kbps)"),
+        (false, release.download_formats.mp3_128, "MP3 (CBR/128kbps)"),
+        (true, release.download_formats.ogg_vorbis, "Ogg Vorbis"),
+        (true, release.download_formats.flac, "FLAC"),
+        (false, release.download_formats.wav, "WAV"),
+        (false, release.download_formats.aiff, "AIFF"),
+        (false, release.download_formats.aac, "AAC")
     ];
     
+    let mut recommendation_given = false;
     
     let download_links = format_availability
         .iter()
-        .filter_map(|(enabled, label)|
+        .filter_map(|(recommendable, enabled, label)|
             if *enabled { 
                 Some(
                     formatdoc!(
                         r#"
                             <div>
-                                <a download href="todo.zip">Download {label}</a>
+                                <a download href="todo.zip">Download {label}{recommendation}</a>
                             </div>
                         "#,
-                        label=label
+                        label=label,
+                        recommendation=if *recommendable && !recommendation_given {
+                            recommendation_given = true;
+                            " - Recommended Format"
+                        } else {
+                            ""
+                        }
                     )
                 )
             } else {
