@@ -46,12 +46,13 @@ impl Catalog {
         }
     }
     
-    pub fn read(catalog_dir: &Path) -> Catalog {
+    pub fn read(build_settings: &mut BuildSettings) -> Catalog {
         let mut catalog = Catalog::init_empty();
         let mut globals = Globals::empty();
         
-        catalog.read_dir(catalog_dir, &mut globals, &Overrides::default()).unwrap();
+        catalog.read_dir(&build_settings.catalog_dir, &mut globals, &Overrides::default()).unwrap();
         
+        build_settings.base_url = globals.base_url;
         catalog.text = globals.catalog_text.map(|markdown| util::markdown_to_html(&markdown));
         catalog.title = globals.catalog_title;
         

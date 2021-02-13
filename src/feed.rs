@@ -1,6 +1,6 @@
 use indoc::formatdoc;
 
-pub fn generate() -> String {
+pub fn generate(base_url: &str) -> String {
     let items = &["TODO", "TODO"]
         .iter()
         .map(|_entry_todo|
@@ -14,7 +14,7 @@ pub fn generate() -> String {
                         <title>{item_title}</title>
                     </item>
                 "#,
-                base_url="TODO",
+                base_url=base_url,
                 item_date="TODO",
                 item_description="TODO",
                 item_permalink="TODO",
@@ -45,7 +45,7 @@ pub fn generate() -> String {
                 </channel>
             </rss>
         "#,
-        base_url="https://TODO",
+        base_url=base_url,
         build_date="TODO",
         description="TODO",
         feed_image="TODO.png",

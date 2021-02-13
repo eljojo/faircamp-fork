@@ -5,7 +5,7 @@
         <meta charset="utf-8">
         <meta name="description" content="{title}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">
+        {feed_meta_link}
         <link href="{root_prefix}styles.css" rel="stylesheet">
         <script defer src="{root_prefix}scripts.js"></script>
     </head>
@@ -22,7 +22,7 @@
             </main>
             <footer>
                 <span>faircamp {version}</span>
-                <a href="{root_prefix}feed.rss">RSS</a>
+                {feed_user_link}
             </footer>
         </div>
     </body>

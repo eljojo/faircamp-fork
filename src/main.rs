@@ -49,7 +49,7 @@ fn main() {
         return;
     }
     
-    let catalog = Catalog::read(&build_settings.catalog_dir);
+    let catalog = Catalog::read(&mut build_settings);
     
     util::ensure_empty_dir(&build_settings.build_dir);
     
@@ -62,36 +62,40 @@ fn main() {
     catalog.write_assets(&mut build_settings);
 
     // Render about page
-    let about_html = render::render_about(&catalog);
+    let about_html = render::render_about(&build_settings, &catalog);
     fs::create_dir(build_settings.build_dir.join("about")).unwrap();
     fs::write(build_settings.build_dir.join("about/index.html"), about_html).unwrap();
     
     // Render page for all artists
-    let artists_html = render::render_artists(&catalog);
+    let artists_html = render::render_artists(&build_settings, &catalog);
     fs::create_dir(build_settings.build_dir.join("artists")).unwrap();
     fs::write(build_settings.build_dir.join("artists/index.html"), artists_html).unwrap();
     
     // Render page for all releases
-    let releases_html = render::render_releases(&catalog);
+    let releases_html = render::render_releases(&build_settings, &catalog);
     fs::write(build_settings.build_dir.join("index.html"), releases_html).unwrap();
     
     // Render page for each artist
     for artist in &catalog.artists {
-        let artist_html = render::render_artist(&artist, &catalog);
+        let artist_html = render::render_artist(&build_settings, &artist, &catalog);
         fs::create_dir(build_settings.build_dir.join(&artist.slug)).unwrap();
         fs::write(build_settings.build_dir.join(&artist.slug).join("index.html"), artist_html).unwrap();
     }
     
     // Render page for each release
     for release in &catalog.releases {
-        release.write_files(&catalog, &build_settings.build_dir);
+        release.write_files(&build_settings, &catalog);
     }
 
     fs::write(build_settings.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
     fs::write(build_settings.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     fs::write(build_settings.build_dir.join("styles.css"), include_bytes!("assets/styles.css")).unwrap();
     
-    fs::write(build_settings.build_dir.join("feed.rss"), feed::generate()).unwrap();
+    if let Some(base_url) = &build_settings.base_url {
+        fs::write(build_settings.build_dir.join("feed.rss"), feed::generate(base_url)).unwrap();
+    } else {
+        message::warning(&format!("No base_url specified, skipping RSS feed generation"));
+    }
     
     build_settings.print_stats();
     

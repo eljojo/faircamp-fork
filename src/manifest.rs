@@ -9,8 +9,9 @@ use crate::{
 };
 
 pub struct Globals {
-    pub catalog_title: Option<String>,
-    pub catalog_text: Option<String>
+    pub base_url: Option<String>,
+    pub catalog_text: Option<String>,
+    pub catalog_title: Option<String>
 }
 
 #[derive(Clone)]
@@ -26,8 +27,9 @@ pub struct Overrides {
 impl Globals {
     pub fn empty() -> Globals {
         Globals {
-            catalog_title: None,
-            catalog_text: None
+            base_url: None,
+            catalog_text: None,
+            catalog_title: None
         }
     }
 }
@@ -48,16 +50,16 @@ impl Overrides {
 pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
-            if trimmed_line.starts_with("catalog_title:") {
-                if let Some(previous_title) = &globals.catalog_title {
+            if trimmed_line.starts_with("base_url:") {
+                if let Some(previous_url) = &globals.base_url {
                     message::warning(&format!(
-                        "Global 'catalog_title' is set more than once ('{previous_title}', '{new_title}')",
-                        previous_title=previous_title,
-                        new_title=trimmed_line[14..].trim()
+                        "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
+                        previous_url=previous_url,
+                        new_url=trimmed_line[9..].trim()
                     ));
                 }
                 
-                globals.catalog_title = Some(trimmed_line[14..].trim().to_string());
+                globals.base_url = Some(trimmed_line[13..].trim().to_string());
             } else if trimmed_line.starts_with("catalog_text:") {
                 if let Some(previous_title) = &globals.catalog_text {
                     message::warning(&format!(
@@ -67,7 +69,17 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                     ));
                 }
                 
-                globals.catalog_text = Some(trimmed_line[14..].trim().to_string());
+                globals.catalog_text = Some(trimmed_line[14..].trim().to_string());                
+            } else if trimmed_line.starts_with("catalog_title:") {
+                if let Some(previous_title) = &globals.catalog_title {
+                    message::warning(&format!(
+                        "Global 'catalog_title' is set more than once ('{previous_title}', '{new_title}')",
+                        previous_title=previous_title,
+                        new_title=trimmed_line[14..].trim()
+                    ));
+                }
+                
+                globals.catalog_title = Some(trimmed_line[14..].trim().to_string());
             } else if trimmed_line == "disable-aac" {
                 overrides.download_formats.aac = false;
             } else if trimmed_line == "disable-aiff" {
