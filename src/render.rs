@@ -138,15 +138,16 @@ pub fn render_download(release: &Release) -> String {
     };
     
     // TODO: Possibly DRY this up (used in a very similar fashion in render_release)
+    // TODO: Dynamically assign the "Recommended format", depending on what formats are available
     let format_availability = &[
         (release.download_formats.mp3_v0, "MP3 (VBR/V0) - Recommended Format"),
         (release.download_formats.mp3_320, "MP3 (CBR/320kbps)"),
+        (release.download_formats.mp3_128, "MP3 (CBR/128kbps)"),
         (release.download_formats.flac, "FLAC"),
         (release.download_formats.aac, "AAC"),
         (release.download_formats.ogg_vorbis, "Ogg Vorbis"),
         (release.download_formats.wav, "WAV"),
-        (release.download_formats.aiff, "AIFF"),
-        (true, "MP3 (CBR/128kbps)")
+        (release.download_formats.aiff, "AIFF")
     ];
     
     
@@ -198,7 +199,12 @@ pub fn render_release(release: &Release) -> String {
     let format_availability = &[
         (release.download_formats.aac, "AAC"),
         (release.download_formats.flac, "FLAC"),
-        (release.download_formats.mp3_320 || release.download_formats.mp3_v0, "MP3"),
+        (
+            release.download_formats.mp3_128 ||
+            release.download_formats.mp3_320 ||
+            release.download_formats.mp3_v0,
+            "MP3"
+        ),
         (release.download_formats.ogg_vorbis, "Ogg Vorbis")
     ];
     
@@ -282,7 +288,7 @@ pub fn render_release(release: &Release) -> String {
                 "#,
                 track_duration=track.duration_formatted(),
                 track_number=index + 1,
-                track_src=format!("{}{}", track.uuid, TranscodeFormat::Mp3Cbr128.suffix_and_extension()),
+                track_src=format!("{}{}", track.uuid, release.streaming_format.suffix_and_extension()),
                 track_title=track.title
             )
         )

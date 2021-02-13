@@ -180,6 +180,7 @@ impl Catalog {
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_formats.clone(),
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,
+                local_overrides.as_ref().unwrap_or(parent_overrides).streaming_format.clone(),
                 local_overrides.as_ref().unwrap_or(parent_overrides).release_text.clone(),
                 release_title_metrics
                     .pop()
@@ -277,7 +278,7 @@ impl Catalog {
                 release.write_image_assets(build_settings, &mut cached_image_assets, image, &TranscodeFormat::Jpeg);
             }
             
-            // TODO: Check release.download_option to see if we even need to transcode and copy tracks
+            // TODO: Check release.download_option to see if we even need to transcode and copy tracks for download purposes
             
             for track in &release.tracks {
                 let source_file_signature = SourceFileSignature::init(&track.source_file);
@@ -291,8 +292,6 @@ impl Catalog {
                         cache_manifest.tracks.last_mut().unwrap()
                     }    
                 };
-                
-                release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr128);
                 
                 if release.download_formats.aac {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Aac);
@@ -310,11 +309,15 @@ impl Catalog {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Flac);
                 }
                 
-                if release.download_formats.mp3_320 {
+                if release.download_formats.mp3_128 || release.streaming_format == TranscodeFormat::Mp3Cbr128 {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr128);
+                }
+                
+                if release.download_formats.mp3_320 || release.streaming_format == TranscodeFormat::Mp3Cbr320 {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr320);
                 }
                 
-                if release.download_formats.mp3_v0 {
+                if release.download_formats.mp3_v0 || release.streaming_format == TranscodeFormat::Mp3VbrV0 {
                     release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3VbrV0);
                 }
                 

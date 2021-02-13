@@ -2,6 +2,7 @@ use std::fmt;
 use std::path::Path;
 use std::process::{Command, Output};
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum TranscodeFormat {
     Aac,
     Aiff,

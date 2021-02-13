@@ -26,6 +26,7 @@ pub struct Release {
     pub download_option: DownloadOption,
     pub release_date: Option<String>,
     pub slug: String,
+    pub streaming_format: TranscodeFormat,
     pub text: Option<String>,
     pub title: String,
     pub tracks: Vec<Track>
@@ -37,6 +38,7 @@ impl Release {
         download_formats: DownloadFormats,
         download_option: DownloadOption,
         mut images: Vec<Image>,
+        streaming_format: TranscodeFormat,
         text: Option<String>,
         title: String,
         tracks: Vec<Track>
@@ -52,6 +54,7 @@ impl Release {
             download_option,
             release_date: None,
             slug,
+            streaming_format,
             text,
             title,
             tracks

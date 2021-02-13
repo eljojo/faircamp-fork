@@ -4,6 +4,7 @@ use std::path::Path;
 use crate::{
     download_option::DownloadOption,
     download_formats::DownloadFormats,
+    ffmpeg::TranscodeFormat,
     message
 };
 
@@ -13,6 +14,7 @@ pub struct Overrides {
     pub download_formats: DownloadFormats,
     pub release_artists: Option<Vec<String>>,
     pub release_text: Option<String>,
+    pub streaming_format: TranscodeFormat,
     pub track_artists: Option<Vec<String>>
 }
 
@@ -23,6 +25,7 @@ impl Overrides {
             download_formats: DownloadFormats::none(),
             release_artists: None,
             release_text: None,
+            streaming_format: TranscodeFormat::Mp3Cbr128,
             track_artists: None
         }
     }
@@ -82,6 +85,12 @@ pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
                 overrides.release_artists = Some(vec![trimmed_line[15..].trim().to_string()]);
             } else if trimmed_line.starts_with("release-text:") {
                 overrides.release_text = Some(trimmed_line[13..].trim().to_string());
+            } else if trimmed_line == "stream-mp3-128" {
+                overrides.streaming_format = TranscodeFormat::Mp3Cbr128;
+            } else if trimmed_line == "stream-mp3-320" {
+                overrides.streaming_format = TranscodeFormat::Mp3Cbr320;
+            } else if trimmed_line == "stream-mp3-v0" {
+                overrides.streaming_format = TranscodeFormat::Mp3VbrV0;
             } else if trimmed_line.starts_with("track-artist:") {
                 overrides.track_artists = Some(vec![trimmed_line[13..].trim().to_string()]);
             } else if !trimmed_line.is_empty() && !trimmed_line.starts_with(">") {
