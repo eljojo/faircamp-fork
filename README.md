@@ -44,11 +44,10 @@ you have *FFmpeg* installed, such that `ffmpeg -version` called in a terminal
 at any location confirms ffmpeg being available. On Linux you can use your distro's
 package manager to install `ffmpeg`, it's readily available on all major distros.
 
-Faircamp has so far only been tested on Linux - macOS probably works too,
-Windows likely not (yet), although it would likely only require minor
-modifications at this point.
+Faircamp has so far only been tested on Linux - architecturally there should be
+no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
 
-**Note that faircamp is still in early and fast development and *might* do bad things - delete/overwrite your existing files, create tons of new files - if you run into unlucky circumstances. For the time being you're running faircamp completely at your own risk.**
+**Note that faircamp is still in early development and *might* do bad things - delete/overwrite existing files, create tons of files - if you run into unlucky circumstances. For the time being you're running faircamp completely at your own risk.**
 
 Run this to build and install faircamp on your system:
 

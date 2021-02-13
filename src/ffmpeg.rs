@@ -2,6 +2,12 @@ use std::fmt;
 use std::path::Path;
 use std::process::{Command, Output};
 
+#[cfg(not(target_os = "windows"))]
+pub const FFMPEG_BINARY: &str = "ffmpeg";
+
+#[cfg(target_os = "windows")]
+pub const FFMPEG_BINARY: &str = "ffmpeg.exe";
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum TranscodeFormat {
     Aac,
@@ -50,7 +56,7 @@ impl fmt::Display for TranscodeFormat {
 }
 
 pub fn transcode(input_file: &Path, output_file: &Path, target_format: &TranscodeFormat) -> Result<(), String> {
-    let mut command = Command::new("ffmpeg");
+    let mut command = Command::new(FFMPEG_BINARY);
     
     command.arg("-y");
     command.arg("-i").arg(input_file);
