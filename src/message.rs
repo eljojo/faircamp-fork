@@ -27,3 +27,7 @@ pub fn stats(text: &str) {
 pub fn transcoding(text: &str) {
     println!("{}[TRANSCODING] {}{}", BLUE, text, RESET)
 }
+
+pub fn warning(text: &str) {
+    println!("{}[WARNING] {}{}", YELLOW, text, RESET)
+}

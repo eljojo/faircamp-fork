@@ -9,6 +9,7 @@ use crate::{
     artist::Artist,
     asset_cache::{Asset, CachedImageAssets, CachedTrackAssets},
     build_settings::BuildSettings,
+    catalog::Catalog,
     download_formats::DownloadFormats,
     download_option::DownloadOption,
     ffmpeg::{self, TranscodeFormat},
@@ -61,17 +62,17 @@ impl Release {
         }
     }
     
-    pub fn write_files(&self, build_dir: &Path) {
+    pub fn write_files(&self, catalog: &Catalog, build_dir: &Path) {
         if let DownloadOption::Free(download_hash) = &self.download_option {
             fs::create_dir_all(build_dir.join("download").join(download_hash)).ok();
             
             self.zip(build_dir).unwrap();
             
-            let download_release_html = render::render_download(self);
+            let download_release_html = render::render_download(&catalog, self);
             fs::write(build_dir.join("download").join(download_hash).join("index.html"), download_release_html).unwrap();
         }
         
-        let release_html = render::render_release(self);
+        let release_html = render::render_release(catalog, self);
         fs::create_dir(build_dir.join(&self.slug)).ok();
         fs::write(build_dir.join(&self.slug).join("index.html"), release_html).unwrap();
     }

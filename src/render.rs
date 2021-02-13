@@ -10,10 +10,11 @@ use crate::{
 
 const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
 
-fn layout(page_depth: usize, body: &str, title: &str) -> String {
+fn layout(page_depth: usize, body: &str, catalog: &Catalog, title: &str) -> String {
     format!(
         include_str!("assets/layout.html"),
         body=body,
+        catalog_title=catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("About"),
         root_prefix=("../".repeat(page_depth)),
         title=title,
         version=env!("CARGO_PKG_VERSION")
@@ -33,6 +34,39 @@ fn list_artists(page_depth: usize, artists: &Vec<Rc<Artist>>) -> String {
         )
         .collect::<Vec<String>>()
         .join(", ") // TODO: Consider "Alice, Bob and Carol" as polish over "Alice, Bob, Carol" (something for later)
+}
+
+pub fn render_about(catalog: &Catalog) -> String {
+    let text = catalog.text
+        .as_ref()
+        .map(|title| title.as_str())
+        .unwrap_or("");
+        
+    let title = catalog.title
+        .as_ref()
+        .map(|title| title.as_str())
+        .unwrap_or("Catalog");
+    
+    let body = formatdoc!(
+        r#"
+            <div class="center">
+                <div class="vpad">
+                    <h1>{title}</h1>
+                </div>
+                
+                <div class="vpad">
+                    {text}
+                </div>
+                
+                {share_widget}
+            </div>
+        "#,
+        share_widget=share_widget("about"), // TODO: As elsewhere - actual, full URL
+        text=text,
+        title=title
+    );
+    
+    layout(1, &body, catalog, title)
 }
 
 pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
@@ -94,7 +128,7 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
         share_widget=share_widget(&artist.slug)
     );
     
-    layout(1, &body, &artist.name)
+    layout(1, &body, catalog, &artist.name)
 }
 
 pub fn render_artists(catalog: &Catalog) -> String {
@@ -159,10 +193,10 @@ pub fn render_artists(catalog: &Catalog) -> String {
         artists_rendered=artists_rendered
     );
     
-    layout(1, &body, "Artists")
+    layout(1, &body, catalog, "Artists")
 }
 
-pub fn render_download(release: &Release) -> String {
+pub fn render_download(catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
@@ -224,12 +258,12 @@ pub fn render_download(release: &Release) -> String {
         release_title=release.title
     );
     
-    layout(2, &body, &release.title)
+    layout(2, &body, catalog, &release.title)
 }
 
 
 
-pub fn render_release(release: &Release) -> String {
+pub fn render_release(catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(1, &release.artists);
     
     let format_availability = &[
@@ -368,7 +402,7 @@ pub fn render_release(release: &Release) -> String {
         tracks_rendered=tracks_rendered
     );
     
-    layout(1, &body, &release.title)
+    layout(1, &body, catalog, &release.title)
 }
 
 pub fn render_releases(catalog: &Catalog) -> String {
@@ -411,7 +445,7 @@ pub fn render_releases(catalog: &Catalog) -> String {
         releases=releases_rendered
     );
     
-    layout(0, &body, "Catalog")
+    layout(0, &body, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
 }
 
 fn share_widget(url: &str) -> String {

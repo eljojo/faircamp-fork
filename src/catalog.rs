@@ -13,7 +13,7 @@ use crate::{
     build_settings::BuildSettings,
     ffmpeg::TranscodeFormat,
     image::Image,
-    manifest::Overrides,
+    manifest::{Globals, Overrides},
     message,
     release::Release,
     track::Track,
@@ -30,7 +30,9 @@ const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 pub struct Catalog {
     pub artists: Vec<Rc<Artist>>,
     pub images: Vec<Image>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
-    pub releases: Vec<Release>
+    pub releases: Vec<Release>,
+    pub text: Option<String>,
+    pub title: Option<String>
 }
 
 impl Catalog {
@@ -38,17 +40,25 @@ impl Catalog {
         Catalog {
             artists: Vec::new(),
             images: Vec::new(),
-            releases: Vec::new()
+            releases: Vec::new(),
+            text: None,
+            title: None
         }
     }
     
     pub fn read(catalog_dir: &Path) -> Catalog {
         let mut catalog = Catalog::init_empty();
-        catalog.read_dir(catalog_dir, &Overrides::default()).unwrap();
+        let mut globals = Globals::empty();
+        
+        catalog.read_dir(catalog_dir, &mut globals, &Overrides::default()).unwrap();
+        
+        catalog.text = globals.catalog_text.map(|markdown| util::markdown_to_html(&markdown));
+        catalog.title = globals.catalog_title;
+        
         catalog
     }
     
-    fn read_dir(&mut self, dir: &Path, parent_overrides: &Overrides) -> Result<(), String> {
+    fn read_dir(&mut self, dir: &Path, globals: &mut Globals, parent_overrides: &Overrides) -> Result<(), String> {
         let mut local_overrides = None;
         
         let mut images: Vec<Image> = Vec::new();
@@ -116,8 +126,9 @@ impl Catalog {
         for meta_path in &meta_paths {
             info!("Reading meta {}", meta_path.display());
             
-            manifest::apply_overrides(
+            manifest::apply_globals_and_overrides(
                 meta_path,
+                globals,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
             );
         }
@@ -197,7 +208,7 @@ impl Catalog {
         
         for dir_path in &dir_paths {
             info!("Reading directory {}", dir_path.display());
-            self.read_dir(dir_path, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
+            self.read_dir(dir_path, globals, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
 
         Ok(())

@@ -8,6 +8,11 @@ use crate::{
     message
 };
 
+pub struct Globals {
+    pub catalog_title: Option<String>,
+    pub catalog_text: Option<String>
+}
+
 #[derive(Clone)]
 pub struct Overrides {
     pub download_option: DownloadOption,
@@ -16,6 +21,15 @@ pub struct Overrides {
     pub release_text: Option<String>,
     pub streaming_format: TranscodeFormat,
     pub track_artists: Option<Vec<String>>
+}
+
+impl Globals {
+    pub fn empty() -> Globals {
+        Globals {
+            catalog_title: None,
+            catalog_text: None
+        }
+    }
 }
 
 impl Overrides {
@@ -31,10 +45,30 @@ impl Overrides {
     }
 }
 
-pub fn apply_overrides(path: &Path, overrides: &mut Overrides) {
+pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
-            if trimmed_line == "disable-aac" {
+            if trimmed_line.starts_with("catalog_title:") {
+                if let Some(previous_title) = &globals.catalog_title {
+                    message::warning(&format!(
+                        "Global 'catalog_title' is set more than once ('{previous_title}', '{new_title}')",
+                        previous_title=previous_title,
+                        new_title=trimmed_line[14..].trim()
+                    ));
+                }
+                
+                globals.catalog_title = Some(trimmed_line[14..].trim().to_string());
+            } else if trimmed_line.starts_with("catalog_text:") {
+                if let Some(previous_title) = &globals.catalog_text {
+                    message::warning(&format!(
+                        "Global 'catalog_text' is set more than once ('{previous_title}', '{new_title}')",
+                        previous_title=previous_title,
+                        new_title=trimmed_line[14..].trim()
+                    ));
+                }
+                
+                globals.catalog_text = Some(trimmed_line[14..].trim().to_string());
+            } else if trimmed_line == "disable-aac" {
                 overrides.download_formats.aac = false;
             } else if trimmed_line == "disable-aiff" {
                 overrides.download_formats.aiff = false;
