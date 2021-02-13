@@ -5,7 +5,6 @@ use crate::{
     artist::Artist,
     catalog::Catalog,
     download_option::DownloadOption,
-    ffmpeg::TranscodeFormat,
     release::Release
 };
 
@@ -74,13 +73,25 @@ pub fn render_artist(artist: &Rc<Artist>, catalog: &Catalog) -> String {
     
     let body = formatdoc!(
         r#"
-            <h1>{artist_name}</h1>
-            <div class="releases">
-                {releases}
+            <div class="center">
+                TODO: Artist image
+
+                <div class="vpad">
+                    <h1>{artist_name}</h1>
+                </div>
+                
+                <div class="vpad">
+                    TODO: Artist text
+                </div>
+                
+                {releases_rendered}
+                
+                {share_widget}
             </div>
         "#,
         artist_name=artist.name,
-        releases=releases_rendered
+        releases_rendered=releases_rendered,
+        share_widget=share_widget(&artist.slug)
     );
     
     layout(1, &body, &artist.name)
@@ -90,24 +101,50 @@ pub fn render_artists(catalog: &Catalog) -> String {
     let artists_rendered = catalog.artists
         .iter()
         .map(|artist| {
-            let artist_image_rendered = match &artist.image {
-                Some(image) => format!(
-                    r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
-                    image_uuid=image.uuid
-                ),
-                None => String::from(r#"<div class="cover"></div>"#)
-            };
+            let releases_rendered = catalog.releases
+                .iter()
+                .filter_map(|release| {
+                    if release.artists
+                        .iter()
+                        .find(|release_artist| Rc::ptr_eq(release_artist, artist))
+                        .is_none() {
+                        return None;
+                    }
+                    
+                    let release_cover_rendered = match &release.cover {
+                        Some(image) => format!(
+                            r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
+                            image_uuid=image.uuid
+                        ),
+                        None => String::from(r#"<div class="cover"></div>"#)
+                    };
+                    
+                    let release_rendered = formatdoc!(
+                        r#"
+                            <div>
+                                <a href="../{release_slug}/" title="{release_title}">{release_cover_rendered}</a>
+                            </div>
+                        "#,
+                        release_cover_rendered=release_cover_rendered,
+                        release_slug=release.slug,
+                        release_title=release.title
+                    );
+                    
+                    Some(release_rendered)
+                })
+                .collect::<Vec<String>>()
+                .join("<br><br>\n");
             
             formatdoc!(
                 r#"
                     <div>
-                        {artist_image_rendered}
                         <a href="../{artist_slug}/">{artist_name}</a>
+                        {releases_rendered}
                     </div>
                 "#,
-                artist_image_rendered=artist_image_rendered,
                 artist_slug=artist.slug,
-                artist_name=artist.name
+                artist_name=artist.name,
+                releases_rendered=releases_rendered
             )
         })
         .collect::<Vec<String>>()
@@ -115,8 +152,7 @@ pub fn render_artists(catalog: &Catalog) -> String {
     
     let body = formatdoc!(
         r#"
-            <h1>Artists</h1>
-            <div class="releases"> <!-- TODO: Generic class for the grid (or a specific "artists" class with similar behavior) -->
+            <div>
                 {artists_rendered}
             </div>
         "#,
@@ -296,24 +332,33 @@ pub fn render_release(release: &Release) -> String {
         .join("\n");
 
     let body = formatdoc!(
-        r#"
-            <div class="vpad">
-                <h1>{release_title}</h1>
-                <div>by {artists_rendered}</div>
-            </div>
-            
-            {download_option_rendered}
-            
-            {release_cover_rendered}
+        r##"
+            <div class="center">
+                {release_cover_rendered}
 
-            <div class="vpad">
-                {tracks_rendered}
+                <div class="apart hsplit vpad">
+                    <div>
+                        <h1>{release_title}</h1>
+                        <div>{artists_rendered}</div>
+                    </div>
+                    
+                    <!-- TODO: This one needs to be conditional actually depending on download/buy option-->
+                    <div>
+                        <a href="#download_buy_todo">$</a>
+                    </div>
+                </div>
+                
+                <div class="vpad">
+                    {tracks_rendered}
+                </div>
+                
+                {download_option_rendered}
+                
+                {share_widget}
+                
+                <div>{release_text}</div>
             </div>
-            
-            {share_widget}
-            
-            <div>{release_text}</div>
-        "#,
+        "##,
         artists_rendered=artists_rendered,
         download_option_rendered=download_option_rendered,
         release_cover_rendered=release_cover_rendered,
