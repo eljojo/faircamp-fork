@@ -20,7 +20,6 @@ pub struct BuildSettings {
     pub cache_dir: PathBuf,
     pub catalog_dir: PathBuf,
     pub deploy_destination: Option<String>,
-    pub host_original_media: bool, // TODO: ?
     pub post_build_action: PostBuildAction,
     pub stats: Stats
 }
@@ -67,7 +66,6 @@ impl BuildSettings {
             cache_dir,
             catalog_dir,
             deploy_destination: args.deploy_destination.clone(),
-            host_original_media: false,
             post_build_action,
             stats: Stats::empty()
         }
