@@ -28,6 +28,7 @@ mod util;
 use args::Args;
 use build_settings::{BuildSettings, PostBuildAction};
 use catalog::Catalog;
+use ffmpeg::TranscodeFormat;
 
 fn main() {
     env_logger::init();
@@ -87,11 +88,19 @@ fn main() {
     for release in &catalog.releases {
         release.write_files(&build_settings, &catalog);
     }
+    
+    if let Some(background_image) = &build_settings.background_image {
+        ffmpeg::transcode(
+            &build_settings.catalog_dir.join(background_image),
+            &build_settings.build_dir.join("background.jpg"),
+            &TranscodeFormat::Jpeg
+        ).unwrap();
+    }
 
     fs::write(build_settings.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
     fs::write(build_settings.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
-    let css = styles::generate(&build_settings.theme);
+    let css = styles::generate(&build_settings.theme, build_settings.background_image.is_some());
     fs::write(build_settings.build_dir.join("styles.css"), css).unwrap();
     
     if let Some(base_url) = &build_settings.base_url {

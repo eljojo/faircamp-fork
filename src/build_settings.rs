@@ -15,6 +15,7 @@ use crate::{
 // TODO: Now that this holds stats as well it should be just "Build"
 //       or something like that, as it is more than just settings.
 pub struct BuildSettings {
+    pub background_image: Option<String>,
     pub base_url: Option<Url>,
     pub build_dir: PathBuf,
     begin_instant: Instant,
@@ -62,6 +63,7 @@ impl BuildSettings {
         let post_build_action = PostBuildAction::init(args);
         
         BuildSettings {
+            background_image: None,
             base_url: None,
             begin_instant: Instant::now(),
             build_dir,

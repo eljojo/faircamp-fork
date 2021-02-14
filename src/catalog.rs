@@ -52,6 +52,7 @@ impl Catalog {
         
         catalog.read_dir(&build_settings.catalog_dir, &mut globals, &Overrides::default()).unwrap();
         
+        build_settings.background_image = globals.background_image;
         build_settings.base_url = globals.base_url;
         
         if let Some(theme) = globals.theme {

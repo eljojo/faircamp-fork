@@ -11,6 +11,7 @@ use crate::{
 };
 
 pub struct Globals {
+    pub background_image: Option<String>,
     pub base_url: Option<Url>,
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>,
@@ -30,6 +31,7 @@ pub struct Overrides {
 impl Globals {
     pub fn empty() -> Globals {
         Globals {
+            background_image: None,
             base_url: None,
             catalog_text: None,
             catalog_title: None,
@@ -54,7 +56,17 @@ impl Overrides {
 pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
-            if trimmed_line.starts_with("base_url:") {        
+            if trimmed_line.starts_with("background_image:") {    
+                if let Some(previous_image) = &globals.background_image {
+                    message::warning(&format!(
+                        "Global 'background_image' is set more than once ('{previous_image}', '{new_image}')",
+                        previous_image=previous_image,
+                        new_image=trimmed_line[17..].trim()
+                    ));
+                }
+                
+                globals.background_image = Some(trimmed_line[17..].trim().to_string());    
+            } else if trimmed_line.starts_with("base_url:") {        
                 match Url::parse(trimmed_line[9..].trim()) {
                     Ok(url) => {
                         if let Some(previous_url) = &globals.base_url {
