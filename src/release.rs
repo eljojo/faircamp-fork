@@ -1,8 +1,10 @@
 use slug;
-use std::fs::{self, File};
-use std::io::prelude::*;
-use std::path::Path;
-use std::rc::Rc;
+use std::{
+    fs::{self, File},
+    io::prelude::*,
+    path::Path,
+    rc::Rc
+};
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
@@ -25,7 +27,6 @@ pub struct Release {
     pub cover: Option<Image>,
     pub download_formats: DownloadFormats,
     pub download_option: DownloadOption,
-    pub release_date: Option<String>,
     pub slug: String,
     pub streaming_format: TranscodeFormat,
     pub text: Option<String>,
@@ -53,7 +54,6 @@ impl Release {
             cover: images.pop(),
             download_formats,
             download_option,
-            release_date: None,
             slug,
             streaming_format,
             text,

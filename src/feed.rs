@@ -15,7 +15,6 @@ pub fn generate(base_url: &Url, catalog: &Catalog) -> String {
             
             format!(
                 include_str!("templates/feed/item.xml"),
-                date="TODO",
                 description=format!("A release by {}", artists_list),
                 permalink=base_url.join(&release.slug).unwrap(),
                 title=release.title,
