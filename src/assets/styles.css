@@ -47,9 +47,10 @@ nav {
   writing-mode: vertical-rl;
 }
 nav > a {
-  color: hsl(0, 0%, var(--muted-lightness));
+  color: hsl(0, 0%, var(--link-lightness));
   text-transform: uppercase;
 }
+nav > a:hover { color: hsl(0, 0%, var(--link-hover-lightness)); }
 nav > *:not(:first-child) { margin-top: .3em; }
 img {
   display: block;

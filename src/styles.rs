@@ -27,7 +27,7 @@ pub const DARK_THEME: Theme = Theme {
 pub const LIGHT_THEME: Theme = Theme {
     background_lightness_percent: 90,
     cover_lightness_percent: 87,
-    link_hover_lightness_percent: 42,
+    link_hover_lightness_percent: 48,
     link_hue_degrees: 198,
     link_lightness_percent: 42,
     link_saturation_percent: 100,
