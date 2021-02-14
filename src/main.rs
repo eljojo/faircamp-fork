@@ -21,6 +21,7 @@ mod message;
 mod release;
 mod render;
 mod rsync;
+mod styles;
 mod track;
 mod util;
 
@@ -89,7 +90,9 @@ fn main() {
 
     fs::write(build_settings.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
     fs::write(build_settings.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
-    fs::write(build_settings.build_dir.join("styles.css"), include_bytes!("assets/styles.css")).unwrap();
+    
+    let css = styles::generate(&build_settings.theme);
+    fs::write(build_settings.build_dir.join("styles.css"), css).unwrap();
     
     if let Some(base_url) = &build_settings.base_url {
         let feed_xml = feed::generate(base_url, &catalog);

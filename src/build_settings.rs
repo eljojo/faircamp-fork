@@ -8,6 +8,7 @@ use url::Url;
 use crate::{
     args::Args,
     message,
+    styles::{Theme, DARK_THEME},
     util
 };
 
@@ -21,7 +22,8 @@ pub struct BuildSettings {
     pub catalog_dir: PathBuf,
     pub deploy_destination: Option<String>,
     pub post_build_action: PostBuildAction,
-    pub stats: Stats
+    pub stats: Stats,
+    pub theme: Theme
 }
 
 pub enum PostBuildAction {
@@ -67,7 +69,8 @@ impl BuildSettings {
             catalog_dir,
             deploy_destination: args.deploy_destination.clone(),
             post_build_action,
-            stats: Stats::empty()
+            stats: Stats::empty(),
+            theme: DARK_THEME
         }
     }
     

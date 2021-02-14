@@ -1,25 +1,3 @@
-/* LIGHT */
-:root {
-	--lightness-background: 90%;
-	--lightness-cover: 87%;
-	--lightness-link: 42%;
-	--lightness-link-hover: 42%;
-	--lightness-muted: 68%;
-	--lightness-text: 14%;
-	--hue-link: 198deg;
-	--saturation-link: 100%;
-}
-/* DARK */
-:root {
-	--lightness-background: 10%;
-	--lightness-cover: 13%;
-	--lightness-link: 68%;
-	--lightness-link-hover: 82%;
-	--lightness-muted: 23%;
-	--lightness-text: 86%;
-	--hue-link: 198deg;
-	--saturation-link: 62%;
-}
 @font-face {
     font-family: 'Barlow';
     font-style: normal;
@@ -27,30 +5,30 @@
     src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
 }
 a {
-    color:hsl(var(--hue-link), var(--saturation-link), var(--lightness-link));
+    color:hsl(var(--link-hue), var(--link-saturation), var(--link-lightness));
     cursor: pointer;
     text-decoration: none;
 }
-a:hover { color: hsl(var(--hue-link), var(--saturation-link), var(--lightness-link-hover)); }
+a:hover { color: hsl(var(--link-hue), var(--link-saturation), var(--link-hover-lightness)); }
 a.play {
     cursor: pointer;
     margin-right: .3em;
 }
 body {
-    background-color: hsl(0, 0%, var(--lightness-background));
-    color: hsl(0, 0%, var(--lightness-text));
+    background-color: hsl(0, 0%, var(--background-lightness));
+    color: hsl(0, 0%, var(--text-lightness));
     font-family: 'Barlow';
     font-size: 18px;
     margin: 0;
 }
 div.cover {
-    background-color: hsl(0, 0%, var(--lightness-cover));
+    background-color: hsl(0, 0%, var(--cover-lightness));
     height: 20em;
     width: 20em;
 }
 footer {
     bottom: 0;
-    color: hsl(0, 0%, var(--lightness-muted));
+    color: hsl(0, 0%, var(--muted-lightness));
     display: flex;
     justify-content: space-between;
     left: 0;
@@ -69,7 +47,7 @@ nav {
   writing-mode: vertical-rl;
 }
 nav > a {
-  color: hsl(0, 0%, var(--lightness-muted));
+  color: hsl(0, 0%, var(--muted-lightness));
   text-transform: uppercase;
 }
 nav > *:not(:first-child) { margin-top: .3em; }
@@ -99,7 +77,7 @@ main {
     overflow-x: hidden;
     overflow-y: auto;
 }
-.muted { color: hsl(0, 0%, var(--lightness-muted)); }
+.muted { color: hsl(0, 0%, var(--muted-lightness)); }
 .releases {
     align-content: center;
     display: grid;
@@ -109,7 +87,7 @@ main {
     justify-content: center;
 }
 .share.disabled {
-    color: hsl(0, 0%, var(--lightness-muted));
+    color: hsl(0, 0%, var(--muted-lightness));
 }
 .track {
   display: flex;
@@ -119,7 +97,7 @@ main {
   margin-left: .4em;
 }
 .track_duration_bar {
-  background-color: hsl(0, 0%, var(--lightness-muted));
+  background-color: hsl(0, 0%, var(--muted-lightness));
   bottom: .3em;
   height: 1px;
   position: absolute;
@@ -131,7 +109,7 @@ main {
 }
 .track_number {
   align-items: center;
-  border: 1px solid hsl(0, 0%, var(--lightness-muted));
+  border: 1px solid hsl(0, 0%, var(--muted-lightness));
   border-radius: 50%;
   bottom: .1em;
   display: flex;
@@ -141,6 +119,6 @@ main {
   position: relative;
   width: 1.2em;
 }
-.track_number:hover { border-color: hsl(0, 0%, var(--lightness-link-hover)); }
+.track_number:hover { border-color: hsl(0, 0%, var(--link-hover-lightness)); }
 .track_title { position: relative; }
 .vpad { margin: 1em 0; }

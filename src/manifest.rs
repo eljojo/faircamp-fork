@@ -6,13 +6,15 @@ use crate::{
     download_option::DownloadOption,
     download_formats::DownloadFormats,
     ffmpeg::TranscodeFormat,
-    message
+    message,
+    styles::{Theme, DARK_THEME, LIGHT_THEME}
 };
 
 pub struct Globals {
     pub base_url: Option<Url>,
     pub catalog_text: Option<String>,
-    pub catalog_title: Option<String>
+    pub catalog_title: Option<String>,
+    pub theme: Option<Theme>
 }
 
 #[derive(Clone)]
@@ -30,7 +32,8 @@ impl Globals {
         Globals {
             base_url: None,
             catalog_text: None,
-            catalog_title: None
+            catalog_title: None,
+            theme: None
         }
     }
 }
@@ -149,10 +152,20 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                 overrides.streaming_format = TranscodeFormat::Mp3Cbr320;
             } else if trimmed_line == "stream-mp3-v0" {
                 overrides.streaming_format = TranscodeFormat::Mp3VbrV0;
+            } else if trimmed_line.starts_with("theme:") {
+                if globals.theme.is_some() {
+                    message::warning(&format!("Global 'theme' is set more than once"));
+                }
+                
+                match trimmed_line[6..].trim() {
+                    "dark" => globals.theme = Some(DARK_THEME),
+                    "light" => globals.theme = Some(LIGHT_THEME),
+                    unsupported => message::error(&format!("Ignoring unsupported value '{}' for global 'theme' (supported values are 'dark' and 'light')", unsupported))
+                }
             } else if trimmed_line.starts_with("track-artist:") {
                 overrides.track_artists = Some(vec![trimmed_line[13..].trim().to_string()]);
             } else if !trimmed_line.is_empty() && !trimmed_line.starts_with(">") {
-                message::error(&format!("Ignoring unrecognized manifest line {}", trimmed_line));
+                message::error(&format!("Ignoring unrecognized manifest line '{}'", trimmed_line));
             }
         }
         Err(err) => message::error(&format!("Could not read meta file {:?} ({})", path, err))
