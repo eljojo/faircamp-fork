@@ -13,14 +13,12 @@ pub enum AudioFormat {
 }
 
 impl AudioFormat {
-    pub fn suffix_and_extension(&self) -> &str {
+    pub fn extension(&self) -> &str {
         match self {
             AudioFormat::Aac => ".aac",
             AudioFormat::Aiff => ".aiff",
             AudioFormat::Flac => ".flac",
-            AudioFormat::Mp3Cbr128 => "-128.mp3",
-            AudioFormat::Mp3Cbr320 => "-320.mp3",
-            AudioFormat::Mp3VbrV0 => "-v0.mp3",
+            AudioFormat::Mp3Cbr128 | AudioFormat::Mp3Cbr320 | AudioFormat::Mp3VbrV0 => ".mp3",
             AudioFormat::OggVorbis => ".ogg",
             AudioFormat::Wav => ".wav"
         }

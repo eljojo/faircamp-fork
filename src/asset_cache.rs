@@ -8,6 +8,7 @@ use std::{
 
 use crate::{
     audio_format::AudioFormat,
+    image_format::ImageFormat,
     message,
     util
 };
@@ -29,7 +30,7 @@ pub struct CacheManifest {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CachedImageAssets {
-    pub jpg: Option<Asset>,
+    pub jpeg: Option<Asset>,
     pub source_file_signature: SourceFileSignature
 }
 
@@ -55,20 +56,18 @@ pub struct SourceFileSignature {
     pub size: u64
 }
 
-pub fn optimize_cache(cache_dir: &Path) {
-    let mut cache_manifest = CacheManifest::retrieve(cache_dir);
-    
+pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest) {
     // TODO: In 2022 check if drain_filter() is available in stable rust, and if it is, rewrite code below.
     //       (see https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain_filter)
     
     let mut i = 0;
     while i != cache_manifest.images.len() {
-        if cache_manifest.images[i].jpg.as_ref().filter(|asset| asset.used).is_none() {
+        if cache_manifest.images[i].jpeg.as_ref().filter(|asset| asset.used).is_none() {
             message::cache(&format!("Removing cached image asset (JPEG) for {}.", cache_manifest.images[i].source_file_signature.path.display()));
             
             let cached_image_assets = cache_manifest.images.remove(i);
             
-            if let Some(asset) = cached_image_assets.jpg {
+            if let Some(asset) = cached_image_assets.jpeg {
                 remove_cached_asset(&cache_dir.join(asset.filename));
             }
         } else {
@@ -176,6 +175,27 @@ impl Asset {
 }
 
 impl CacheManifest {
+    // TODO: This is basically identical with get_track_assets(...) below - unify this via generics or enum or something
+    pub fn get_image_assets(&self, source_path: &Path) -> CachedImageAssets {
+        let source_file_signature = SourceFileSignature::init(source_path);
+        
+        self.images
+            .iter()
+            .find(|cached_assets| cached_assets.source_file_signature == source_file_signature)
+            .map(|cached_assets| cached_assets.clone())
+            .unwrap_or_else(|| CachedImageAssets::new(source_file_signature))
+    }
+    
+    pub fn get_track_assets(&self, source_path: &Path) -> CachedTrackAssets {
+        let source_file_signature = SourceFileSignature::init(source_path);
+        
+        self.tracks
+            .iter()
+            .find(|cached_assets| cached_assets.source_file_signature == source_file_signature)
+            .map(|cached_assets| cached_assets.clone())
+            .unwrap_or_else(|| CachedTrackAssets::new(source_file_signature))
+    }
+    
     pub fn new() -> CacheManifest {
         CacheManifest {
             images: Vec::new(),
@@ -193,7 +213,7 @@ impl CacheManifest {
         let mut unused_bytesize = 0;
         
         for image in &self.images {
-            if let Some(filesize_bytes) = image.jpg.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = image.jpeg.as_ref().filter(|asset| !asset.used).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
@@ -245,7 +265,7 @@ impl CacheManifest {
     fn reset_used_flags(&mut self) {
         for image in self.images.iter_mut() {
             // Note here and below that we only iterate over the single inner value of the option (if present)
-            image.jpg.iter_mut().for_each(|asset| asset.used = false);
+            image.jpeg.iter_mut().for_each(|asset| asset.used = false);
         }
         for track in self.tracks.iter_mut() {
             track.aac.iter_mut().for_each(|asset| asset.used = false);
@@ -273,16 +293,41 @@ impl CacheManifest {
 }
 
 impl CachedImageAssets {
+    pub fn get(&self, format: &ImageFormat) -> &Option<Asset> {
+        match format {
+            ImageFormat::Jpeg => &self.jpeg
+        }
+    }
+    
+    pub fn get_mut(&mut self, format: &ImageFormat) -> &mut Option<Asset> {
+        match format {
+            ImageFormat::Jpeg => &mut self.jpeg
+        }
+    }
+    
     pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
         CachedImageAssets {
-            jpg: None,
+            jpeg: None,
             source_file_signature
         }
     }
 }
 
 impl CachedTrackAssets {
-    pub fn get(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+    pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
+        match format {
+            AudioFormat::Aac => &self.aac,
+            AudioFormat::Aiff => &self.aiff,
+            AudioFormat::Flac => &self.flac,
+            AudioFormat::Mp3Cbr128 => &self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &self.mp3_v0,
+            AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Wav => &self.wav
+        }
+    }
+    
+    pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
         match format {
             AudioFormat::Aac => &mut self.aac,
             AudioFormat::Aiff => &mut self.aiff,

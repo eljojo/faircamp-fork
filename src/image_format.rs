@@ -6,7 +6,7 @@ pub enum ImageFormat {
 }
 
 impl ImageFormat {
-    pub fn suffix_and_extension(&self) -> &str {
+    pub fn extension(&self) -> &str {
         match self {
             ImageFormat::Jpeg => ".jpg"
         }

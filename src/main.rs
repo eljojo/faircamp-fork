@@ -28,6 +28,7 @@ mod track;
 mod util;
 
 use args::Args;
+use asset_cache::CacheManifest;
 use ffmpeg::MediaFormat;
 use image_format::ImageFormat;
 use build_settings::{BuildSettings, PostBuildAction};
@@ -38,9 +39,10 @@ fn main() {
     
     let args: Args = Args::parse();
     let mut build_settings = BuildSettings::init(&args);
+    let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
     
     if args.optimize_cache {
-        asset_cache::optimize_cache(&build_settings.cache_dir);
+        asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest);
         return;
     }
     
@@ -54,7 +56,7 @@ fn main() {
         return;
     }
     
-    let mut catalog = Catalog::read(&mut build_settings);
+    let mut catalog = Catalog::read(&mut build_settings, &cache_manifest);  // TODO: Consider putting cache[_manifest] into the planned "Build" super context
     
     util::ensure_empty_dir(&build_settings.build_dir);
     
@@ -112,6 +114,9 @@ fn main() {
     } else {
         message::warning(&format!("No base_url specified, skipping RSS feed generation"));
     }
+    
+    cache_manifest.report_unused_assets();
+    cache_manifest.persist(&build_settings.cache_dir);
     
     build_settings.print_stats();
     

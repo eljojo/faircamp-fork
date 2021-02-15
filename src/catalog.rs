@@ -8,9 +8,7 @@ use crate::{
     artist::Artist,
     asset_cache::{
         CacheManifest,
-        CachedImageAssets,
         CachedTrackAssets,
-        SourceFileSignature
     },
     audio_format::AudioFormat,
     audio_meta::AudioMeta,
@@ -51,11 +49,11 @@ impl Catalog {
         }
     }
     
-    pub fn read(build_settings: &mut BuildSettings) -> Catalog {
+    pub fn read(build_settings: &mut BuildSettings, cache_manifest: &CacheManifest) -> Catalog {
         let mut catalog = Catalog::init_empty();
         let mut globals = Globals::empty();
         
-        catalog.read_dir(&build_settings.catalog_dir, &mut globals, &Overrides::default()).unwrap();
+        catalog.read_dir(&build_settings.catalog_dir, cache_manifest, &mut globals, &Overrides::default()).unwrap();
         
         build_settings.background_image = globals.background_image;
         build_settings.base_url = globals.base_url;
@@ -70,7 +68,13 @@ impl Catalog {
         catalog
     }
     
-    fn read_dir(&mut self, dir: &Path, globals: &mut Globals, parent_overrides: &Overrides) -> Result<(), String> {
+    fn read_dir(
+        &mut self,
+        dir: &Path,
+        cache_manifest: &CacheManifest,
+        globals: &mut Globals,
+        parent_overrides: &Overrides
+    ) -> Result<(), String> {
         let mut local_overrides = None;
         
         let mut images: Vec<Image> = Vec::new();
@@ -148,7 +152,10 @@ impl Catalog {
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
             
+            // TODO: Move audio_meta into cached structures too so it doesn't need to be recomputed everytime
             let audio_meta = AudioMeta::extract(track_path, extension);
+            
+            let cached_assets = cache_manifest.get_track_assets(track_path);
             
             if let Some(release_title) = &audio_meta.album {
                 if let Some(metric) = &mut release_title_metrics
@@ -164,7 +171,8 @@ impl Catalog {
                 track_path,
                 util::is_lossless(extension),
                 audio_meta,
-                local_overrides.as_ref().unwrap_or(parent_overrides)
+                local_overrides.as_ref().unwrap_or(parent_overrides),
+                cached_assets
             );
             
             release_tracks.push(track);
@@ -172,7 +180,10 @@ impl Catalog {
         
         for image_path in &image_paths {
             info!("Reading image {}", image_path.display());
-            images.push(Image::init(image_path, util::uuid()));
+            
+            let cached_assets = cache_manifest.get_image_assets(image_path);
+            
+            images.push(Image::init(cached_assets, image_path, util::uuid()));
         }
         
         if !release_tracks.is_empty() {
@@ -220,7 +231,7 @@ impl Catalog {
         
         for dir_path in &dir_paths {
             info!("Reading directory {}", dir_path.display());
-            self.read_dir(dir_path, globals, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
+            self.read_dir(dir_path, cache_manifest, globals, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
 
         Ok(())
@@ -231,7 +242,8 @@ impl Catalog {
         path: &Path,
         lossless_source: bool,
         audio_meta: AudioMeta,
-        overrides: &Overrides
+        overrides: &Overrides,
+        cached_assets: CachedTrackAssets
     ) -> Track {
         let artists = if let Some(artist_names) = &overrides.track_artists {
             artist_names
@@ -247,6 +259,7 @@ impl Catalog {
         
         Track::init(
             artists,
+            cached_assets,
             audio_meta.duration_seconds,
             lossless_source,
             audio_meta.track_number,
@@ -282,39 +295,22 @@ impl Catalog {
     }
     
     pub fn write_assets(&mut self, build_settings: &mut BuildSettings) {
-        let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
-        
         for release in self.releases.iter_mut() {            
-            if let Some(image) = &release.cover {
-                let source_file_signature = SourceFileSignature::init(&image.source_file);
+            if let Some(image) = &mut release.cover {
+                let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir);
                 
-                let mut cached_image_assets = match cache_manifest.images
-                    .iter_mut()
-                    .find(|cached_image| cached_image.source_file_signature == source_file_signature) {
-                    Some(cached_image_assets) => cached_image_assets,
-                    None => {
-                        cache_manifest.images.push(CachedImageAssets::new(source_file_signature));
-                        cache_manifest.images.last_mut().unwrap()
-                    }
-                };
+                image_asset.used = true;
                 
-                release.write_image_assets(build_settings, &mut cached_image_assets, image, &ImageFormat::Jpeg);
+                fs::copy(
+                    build_settings.cache_dir.join(&image_asset.filename),
+                    build_settings.build_dir.join(&image_asset.filename)
+                ).unwrap();
+                
+                build_settings.stats.add_image(image_asset.filesize_bytes);
             }
             
             for track in release.tracks.iter_mut() {
-                let source_file_signature = SourceFileSignature::init(&track.source_file);
-                
-                let cached_track_assets = match cache_manifest.tracks
-                    .iter_mut()
-                    .find(|cached_track| cached_track.source_file_signature == source_file_signature) {
-                    Some(cached_track_assets) => cached_track_assets,
-                    None => {
-                        cache_manifest.tracks.push(CachedTrackAssets::new(source_file_signature));
-                        cache_manifest.tracks.last_mut().unwrap()
-                    }    
-                };
-                
-                let streaming_asset = track.get_as(&release.streaming_format, &build_settings.cache_dir, cached_track_assets);
+                let streaming_asset = track.get_or_transcode_as(&release.streaming_format, &build_settings.cache_dir);
                 
                 streaming_asset.used = true; // TODO: Probably should be used_in_build or such to differentiate from intermediately used (but ultimately discardable) cache assets used for building a zip
                 
@@ -330,7 +326,7 @@ impl Catalog {
                     if release.download_formats.aac {
                         // TODO: Here and below needs to be followed up (outside of tracks iteration?) to zip the collected files together
                         // TODO: Should probably be track.get_cached (...) or such to indicate we're just pre-building an asset in the cache
-                        track.get_as(&AudioFormat::Aac, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Aac, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.aiff {
@@ -338,7 +334,7 @@ impl Catalog {
                             message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                         }
                         
-                        track.get_as(&AudioFormat::Aiff, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Aiff, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.flac {
@@ -346,23 +342,23 @@ impl Catalog {
                             message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                         }
                         
-                        track.get_as(&AudioFormat::Flac, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Flac, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.mp3_128 {
-                        track.get_as(&AudioFormat::Mp3Cbr128, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Mp3Cbr128, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.mp3_320 {
-                        track.get_as(&AudioFormat::Mp3Cbr320, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Mp3Cbr320, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.mp3_v0 {
-                        track.get_as(&AudioFormat::Mp3VbrV0, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Mp3VbrV0, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.ogg_vorbis {
-                        track.get_as(&AudioFormat::OggVorbis, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::OggVorbis, &build_settings.cache_dir);
                     }
                     
                     if release.download_formats.wav {
@@ -370,13 +366,10 @@ impl Catalog {
                             message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                         }
                         
-                        track.get_as(&AudioFormat::Wav, &build_settings.cache_dir, cached_track_assets);
+                        track.get_or_transcode_as(&AudioFormat::Wav, &build_settings.cache_dir);
                     }        
                 }
             }
         }
-        
-        cache_manifest.report_unused_assets();
-        cache_manifest.persist(&build_settings.cache_dir);
     }
 }

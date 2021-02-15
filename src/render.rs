@@ -6,6 +6,7 @@ use crate::{
     build_settings::BuildSettings,
     catalog::Catalog,
     download_option::DownloadOption,
+    image_format::ImageFormat,
     release::Release
 };
 
@@ -100,8 +101,8 @@ pub fn render_artist(build_settings: &BuildSettings, artist: &Rc<Artist>, catalo
             
             let release_cover_rendered = match &release.cover {
                 Some(image) => format!(
-                    r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
-                    image_uuid=image.uuid
+                    r#"<img alt="Release cover" class="cover" src="../{filename}">"#,
+                    filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
                 ),
                 None => String::from(r#"<div class="cover"></div>"#)
             };
@@ -165,8 +166,8 @@ pub fn render_artists(build_settings: &BuildSettings, catalog: &Catalog) -> Stri
                     
                     let release_cover_rendered = match &release.cover {
                         Some(image) => format!(
-                            r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
-                            image_uuid=image.uuid
+                            r#"<img alt="Release cover" class="cover" src="../{filename}">"#,
+                            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
                         ),
                         None => String::from(r#"<div class="cover"></div>"#)
                     };
@@ -219,8 +220,8 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
     
     let release_cover_rendered = match &release.cover {
         Some(image) => format!(
-            r#"<img alt="Release cover" class="cover" src="../../{image_uuid}.jpg">"#,
-            image_uuid=image.uuid
+            r#"<img alt="Release cover" class="cover" src="../../{filename}">"#,
+            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
         ),
         None => String::from(r#"<div class="cover"></div>"#)
     };
@@ -364,8 +365,8 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
     // TODO: Here and elsewhere DRY this up, repeats multiple times
     let release_cover_rendered = match &release.cover {
         Some(image) => format!(
-            r#"<img alt="Release cover" class="cover" src="../{image_uuid}.jpg">"#,
-            image_uuid=image.uuid
+            r#"<img alt="Release cover" class="cover" src="../{filename}">"#,
+            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
         ),
         None => String::from(r#"<div class="cover vpad"></div>"#)
     };
@@ -399,7 +400,7 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
                 track_duration=track.duration_formatted(),
                 track_duration_width_em=track_duration_width_em,
                 track_number=index + 1,
-                track_src=format!("{}{}", track.uuid, release.streaming_format.suffix_and_extension()),
+                track_src=track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title=track.title
             )
         })
@@ -454,8 +455,8 @@ pub fn render_releases(build_settings: &BuildSettings, catalog: &Catalog) -> Str
             
             let release_cover_rendered = match &release.cover {
                 Some(image) => format!(
-                    r#"<img alt="Release cover" class="cover" src="{image_uuid}.jpg">"#,
-                    image_uuid=image.uuid
+                    r#"<img alt="Release cover" src="{filename}">"#,
+                    filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
                 ),
                 None => String::from(r#"<div class="cover"></div>"#)
             };

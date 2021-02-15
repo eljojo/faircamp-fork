@@ -9,17 +9,13 @@ use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, CachedImageAssets},
     audio_format::AudioFormat,
     build_settings::BuildSettings,
     catalog::Catalog,
     download_formats::DownloadFormats,
     download_option::DownloadOption,
-    ffmpeg::{self, MediaFormat},
     image::Image,
-    image_format::ImageFormat,
     track::Track,
-    message,
     render
 };
 
@@ -77,36 +73,6 @@ impl Release {
         let release_html = render::render_release(build_settings, catalog, self);
         fs::create_dir(build_settings.build_dir.join(&self.slug)).ok();
         fs::write(build_settings.build_dir.join(&self.slug).join("index.html"), release_html).unwrap();
-    }
-    
-    // TODO: Need not be on release at all (?) - self not used
-    pub fn write_image_assets(
-        &self,
-        build_settings: &mut BuildSettings,
-        cached_image_assets: &mut CachedImageAssets,
-        image: &Image,
-        target_format: &ImageFormat
-    ) {
-        let filename = format!("{}{}", image.uuid, target_format.suffix_and_extension());
-        let jpg = cached_image_assets.jpg.get_or_insert_with(|| {
-            message::transcoding(&format!("{:?} to {}", image.source_file, target_format));
-            ffmpeg::transcode(
-                &image.source_file,
-                &build_settings.cache_dir.join(&filename),
-                MediaFormat::Image(target_format)
-            ).unwrap();
-            
-            Asset::init(&build_settings.cache_dir, filename.clone())
-        });
-        
-        jpg.used = true;
-
-        fs::copy(
-            build_settings.cache_dir.join(&jpg.filename),
-            build_settings.build_dir.join(&filename)
-        ).unwrap();
-        
-        build_settings.stats.add_image(jpg.filesize_bytes);
     }
     
     pub fn zip(&self, build_dir: &Path) -> Result<(), String> {

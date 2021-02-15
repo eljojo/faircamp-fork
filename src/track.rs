@@ -6,7 +6,8 @@ use crate::{
     asset_cache::{Asset, CachedTrackAssets},
     audio_format::AudioFormat,
     ffmpeg::{self, MediaFormat},
-    message
+    message,
+    util
 };
 
 const HOUR_SECONDS: u32 = 60 * 60;
@@ -14,6 +15,7 @@ const HOUR_SECONDS: u32 = 60 * 60;
 #[derive(Debug)]
 pub struct Track {
     pub artists: Vec<Rc<Artist>>,
+    pub cached_assets: CachedTrackAssets,
     pub duration_seconds: Option<u32>,
     pub lossless_source: bool, 
     pub number: Option<u32>,
@@ -36,16 +38,15 @@ impl Track {
         }
     }
     
-    pub fn get_as<'a>(
-        &mut self,
-        format: &AudioFormat,
-        cache_dir: &Path,
-        cached_track_assets: &'a mut CachedTrackAssets
-    ) -> &'a mut Asset {
-        let cached_format = cached_track_assets.get(format);
+    pub fn get_as(&self, format: &AudioFormat) -> &Option<Asset> {
+        self.cached_assets.get(format)
+    }
+    
+    pub fn get_or_transcode_as(&mut self, format: &AudioFormat, cache_dir: &Path) -> &mut Asset {
+        let cached_format = self.cached_assets.get_mut(format);
         
-        cached_format.get_or_insert_with(|| {
-            let target_filename = format!("{}{}", self.uuid, format.suffix_and_extension());
+        if cached_format.is_none() {
+            let target_filename = format!("{}{}", util::uuid(), format.extension());
             
             message::transcoding(&format!("{:?} to {}", self.source_file, format));
             ffmpeg::transcode(
@@ -54,12 +55,15 @@ impl Track {
                 MediaFormat::Audio(format)
             ).unwrap();
             
-            Asset::init(cache_dir, target_filename)
-        })
+            cached_format.replace(Asset::init(cache_dir, target_filename));
+        }
+        
+        cached_format.as_mut().unwrap()
     }
     
     pub fn init(
         artists: Vec<Rc<Artist>>,
+        cached_assets: CachedTrackAssets,
         duration_seconds: Option<u32>,
         lossless_source: bool,
         number: Option<u32>,
@@ -69,6 +73,7 @@ impl Track {
     ) -> Track {
         Track {
             artists,
+            cached_assets,
             duration_seconds,
             lossless_source,
             number,
