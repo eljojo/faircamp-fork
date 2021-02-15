@@ -16,7 +16,6 @@ use crate::{
     image::Image,
     image_format::ImageFormat,
     manifest::{Globals, Overrides},
-    message,
     release::Release,
     track::Track,
     manifest,
@@ -315,54 +314,40 @@ impl Catalog {
                 ).unwrap();
                 
                 build_settings.stats.add_track(streaming_asset.filesize_bytes);
+            }
                 
                 
-                if release.download_option != DownloadOption::Disabled {
-                    if release.download_formats.aac {
-                        // TODO: Here and below needs to be followed up (outside of tracks iteration?) to zip the collected files together
-                        // TODO: Should probably be track.get_cached (...) or such to indicate we're just pre-building an asset in the cache
-                        track.get_or_transcode_as(&AudioFormat::Aac, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.aiff {
-                        if !track.cached_assets.source_meta.lossless {
-                            message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
-                        }
-                        
-                        track.get_or_transcode_as(&AudioFormat::Aiff, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.flac {
-                        if !track.cached_assets.source_meta.lossless {
-                            message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
-                        }
-                        
-                        track.get_or_transcode_as(&AudioFormat::Flac, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.mp3_128 {
-                        track.get_or_transcode_as(&AudioFormat::Mp3Cbr128, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.mp3_320 {
-                        track.get_or_transcode_as(&AudioFormat::Mp3Cbr320, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.mp3_v0 {
-                        track.get_or_transcode_as(&AudioFormat::Mp3VbrV0, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.ogg_vorbis {
-                        track.get_or_transcode_as(&AudioFormat::OggVorbis, &build_settings.cache_dir);
-                    }
-                    
-                    if release.download_formats.wav {
-                        if !track.cached_assets.source_meta.lossless {
-                            message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
-                        }
-                        
-                        track.get_or_transcode_as(&AudioFormat::Wav, &build_settings.cache_dir);
-                    }        
+            if release.download_option != DownloadOption::Disabled {
+                if release.download_formats.aac {
+                    release.zip(build_settings, &AudioFormat::Aac).unwrap();
+                }
+                
+                if release.download_formats.aiff {
+                    release.zip(build_settings, &AudioFormat::Aiff).unwrap();
+                }
+                
+                if release.download_formats.flac {
+                    release.zip(build_settings, &AudioFormat::Flac).unwrap();
+                }
+                
+                if release.download_formats.mp3_128 {
+                    release.zip(build_settings, &AudioFormat::Mp3Cbr128).unwrap();
+                }
+                
+                if release.download_formats.mp3_320 {
+                    release.zip(build_settings, &AudioFormat::Mp3Cbr320).unwrap();
+                }
+                
+                if release.download_formats.mp3_v0 {
+                    release.zip(build_settings, &AudioFormat::Mp3VbrV0).unwrap();
+                }
+                
+                if release.download_formats.ogg_vorbis {
+                    release.zip(build_settings, &AudioFormat::OggVorbis).unwrap();
+                }
+                
+                if release.download_formats.wav {
+                    release.zip(build_settings, &AudioFormat::Wav).unwrap();
                 }
             }
         }

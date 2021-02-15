@@ -2,7 +2,6 @@ use slug;
 use std::{
     fs::{self, File},
     io::prelude::*,
-    path::Path,
     rc::Rc
 };
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
@@ -15,6 +14,7 @@ use crate::{
     download_formats::DownloadFormats,
     download_option::DownloadOption,
     image::Image,
+    message,
     track::Track,
     render
 };
@@ -64,8 +64,6 @@ impl Release {
         if let DownloadOption::Free(download_hash) = &self.download_option {
             fs::create_dir_all(build_settings.build_dir.join("download").join(download_hash)).ok();
             
-            self.zip(&build_settings.build_dir).unwrap();
-            
             let download_release_html = render::render_download(build_settings, &catalog, self);
             fs::write(build_settings.build_dir.join("download").join(download_hash).join("index.html"), download_release_html).unwrap();
         }
@@ -75,33 +73,63 @@ impl Release {
         fs::write(build_settings.build_dir.join(&self.slug).join("index.html"), release_html).unwrap();
     }
     
-    pub fn zip(&self, build_dir: &Path) -> Result<(), String> {
-        let download_uuid = if let DownloadOption::Free(download_uuid) = &self.download_option {
-            download_uuid
-        } else {
-            "todo"
-        };
+    pub fn zip(&mut self, build_settings: &BuildSettings, download_format: &AudioFormat) -> Result<(), String> {
+        // TODO: Save as cached_asset to release
         
-        let zip_file = File::create(build_dir.join("download").join(download_uuid).join("original.zip")).unwrap();
+        let zip_file = File::create(
+            build_settings.build_dir.join("download").join(format!("{}.zip", &self.slug))
+        ).unwrap();
         let mut zip_writer = ZipWriter::new(zip_file);
         let options = FileOptions::default()
             .compression_method(CompressionMethod::Deflated)
             .unix_permissions(0o755);
             
-        // TODO: For now we skip this time-consuming computation
-        // let mut buffer = Vec::new();
-        // for track in &self.tracks {
-        //     let filename = Path::new(&track.transcoded_file);
-        // 
-        //     zip_writer.start_file_from_path(filename, options).unwrap();
-        // 
-        //     // TODO: Read file into buffer in one go (helper method in fs:: available?)
-        //     let mut zip_inner_file = File::open(build_dir.join(&track.transcoded_file)).unwrap();
-        //     zip_inner_file.read_to_end(&mut buffer).unwrap();
-        // 
-        //     zip_writer.write_all(&*buffer).unwrap();
-        //     buffer.clear();
-        // }
+        let mut buffer = Vec::new();
+        
+        for (index, track) in self.tracks.iter_mut().enumerate() {
+            if !track.cached_assets.source_meta.lossless {
+                match download_format {
+                    AudioFormat::Aiff |
+                    AudioFormat::Flac |
+                    AudioFormat::Wav => {
+                        message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
+                        
+                    }
+                    AudioFormat::Aac |
+                    AudioFormat::Mp3Cbr128 |
+                    AudioFormat::Mp3Cbr320 |
+                    AudioFormat::Mp3VbrV0 |
+                    AudioFormat::OggVorbis => () // we spell out all formats so the compiler catches future modifications/additions that need to be added here
+                }
+            }
+            
+            let filename = format!(
+                "{track_number:02} {artists}{separator}{title}{extension}",
+                artists=track.artists
+                    .iter()
+                    .map(|artist| artist.name.clone())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                extension=download_format.extension(),
+                separator=if track.artists.is_empty() { "" } else { " - " },
+                track_number=index + 1,
+                title=track.title
+            );
+            
+            // TODO: Should probably be track.get_cached (...) or such to indicate we're just pre-building an asset in the cache
+            let download_asset = track.get_or_transcode_as(download_format, &build_settings.cache_dir);
+            
+            zip_writer.start_file(&filename, options).unwrap();
+        
+            let mut zip_inner_file = File::open(
+                &build_settings.cache_dir.join(&download_asset.filename)
+            ).unwrap();
+                
+            zip_inner_file.read_to_end(&mut buffer).unwrap();
+        
+            zip_writer.write_all(&*buffer).unwrap();
+            buffer.clear();
+        }
             
         match zip_writer.finish() {
             Ok(_) => Ok(()),

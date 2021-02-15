@@ -66,6 +66,7 @@ fn main() {
         util::ensure_dir(&build_settings.cache_dir);
     }
     
+    util::ensure_dir(&build_settings.build_dir.join("download"));
     catalog.write_assets(&mut build_settings);
 
     // Render about page
