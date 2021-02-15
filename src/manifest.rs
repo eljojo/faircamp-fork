@@ -3,9 +3,9 @@ use std::path::Path;
 use url::Url;
 
 use crate::{
+    audio_format::AudioFormat,
     download_option::DownloadOption,
     download_formats::DownloadFormats,
-    ffmpeg::TranscodeFormat,
     message,
     styles::{Theme, DARK_THEME, LIGHT_THEME}
 };
@@ -24,7 +24,7 @@ pub struct Overrides {
     pub download_formats: DownloadFormats,
     pub release_artists: Option<Vec<String>>,
     pub release_text: Option<String>,
-    pub streaming_format: TranscodeFormat,
+    pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>
 }
 
@@ -47,7 +47,7 @@ impl Overrides {
             download_formats: DownloadFormats::none(),
             release_artists: None,
             release_text: None,
-            streaming_format: TranscodeFormat::Mp3Cbr128,
+            streaming_format: AudioFormat::Mp3Cbr128,
             track_artists: None
         }
     }
@@ -159,11 +159,11 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
             } else if trimmed_line.starts_with("release-text:") {
                 overrides.release_text = Some(trimmed_line[13..].trim().to_string());
             } else if trimmed_line == "stream-mp3-128" {
-                overrides.streaming_format = TranscodeFormat::Mp3Cbr128;
+                overrides.streaming_format = AudioFormat::Mp3Cbr128;
             } else if trimmed_line == "stream-mp3-320" {
-                overrides.streaming_format = TranscodeFormat::Mp3Cbr320;
+                overrides.streaming_format = AudioFormat::Mp3Cbr320;
             } else if trimmed_line == "stream-mp3-v0" {
-                overrides.streaming_format = TranscodeFormat::Mp3VbrV0;
+                overrides.streaming_format = AudioFormat::Mp3VbrV0;
             } else if trimmed_line.starts_with("theme:") {
                 if globals.theme.is_some() {
                     message::warning(&format!("Global 'theme' is set more than once"));

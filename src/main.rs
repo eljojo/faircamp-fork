@@ -7,6 +7,7 @@ use std::fs;
 mod args;
 mod artist;
 mod asset_cache;
+mod audio_format;
 mod audio_meta;
 mod build_settings;
 mod catalog;
@@ -16,6 +17,7 @@ mod download_option;
 mod feed;
 mod ffmpeg;
 mod image;
+mod image_format;
 mod manifest;
 mod message;
 mod release;
@@ -26,9 +28,10 @@ mod track;
 mod util;
 
 use args::Args;
+use ffmpeg::MediaFormat;
+use image_format::ImageFormat;
 use build_settings::{BuildSettings, PostBuildAction};
 use catalog::Catalog;
-use ffmpeg::TranscodeFormat;
 
 fn main() {
     env_logger::init();
@@ -93,7 +96,7 @@ fn main() {
         ffmpeg::transcode(
             &build_settings.catalog_dir.join(background_image),
             &build_settings.build_dir.join("background.jpg"),
-            &TranscodeFormat::Jpeg
+            MediaFormat::Image(&ImageFormat::Jpeg)
         ).unwrap();
     }
 

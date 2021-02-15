@@ -9,10 +9,11 @@ use crate::{
         CachedTrackAssets,
         SourceFileSignature
     },
+    audio_format::AudioFormat,
     audio_meta::AudioMeta,
     build_settings::BuildSettings,
-    ffmpeg::TranscodeFormat,
     image::Image,
+    image_format::ImageFormat,
     manifest::{Globals, Overrides},
     message,
     release::Release,
@@ -293,10 +294,8 @@ impl Catalog {
                     }
                 };
                 
-                release.write_image_assets(build_settings, &mut cached_image_assets, image, &TranscodeFormat::Jpeg);
+                release.write_image_assets(build_settings, &mut cached_image_assets, image, &ImageFormat::Jpeg);
             }
-            
-            // TODO: Check release.download_option to see if we even need to transcode and copy tracks for download purposes
             
             for track in &release.tracks {
                 let source_file_signature = SourceFileSignature::init(&track.source_file);
@@ -311,12 +310,14 @@ impl Catalog {
                     }    
                 };
                 
+                // TODO: Check release.download_option to see if we even need to transcode and copy tracks for download purposes
+                
                 if release.download_formats.aac {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Aac);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Aac);
                 }
                 
                 if release.download_formats.aiff {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Aiff);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Aiff);
                 }
                 
                 if release.download_formats.flac {
@@ -324,27 +325,27 @@ impl Catalog {
                         message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                     }
                     
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Flac);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Flac);
                 }
                 
-                if release.download_formats.mp3_128 || release.streaming_format == TranscodeFormat::Mp3Cbr128 {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr128);
+                if release.download_formats.mp3_128 || release.streaming_format == AudioFormat::Mp3Cbr128 {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Mp3Cbr128);
                 }
                 
-                if release.download_formats.mp3_320 || release.streaming_format == TranscodeFormat::Mp3Cbr320 {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3Cbr320);
+                if release.download_formats.mp3_320 || release.streaming_format == AudioFormat::Mp3Cbr320 {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Mp3Cbr320);
                 }
                 
-                if release.download_formats.mp3_v0 || release.streaming_format == TranscodeFormat::Mp3VbrV0 {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Mp3VbrV0);
+                if release.download_formats.mp3_v0 || release.streaming_format == AudioFormat::Mp3VbrV0 {
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Mp3VbrV0);
                 }
                 
                 if release.download_formats.ogg_vorbis {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::OggVorbis);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::OggVorbis);
                 }
                 
                 if release.download_formats.wav {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &TranscodeFormat::Wav);
+                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Wav);
                 }
             }
         }

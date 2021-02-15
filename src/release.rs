@@ -10,12 +10,14 @@ use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 use crate::{
     artist::Artist,
     asset_cache::{Asset, CachedImageAssets, CachedTrackAssets},
+    audio_format::AudioFormat,
     build_settings::BuildSettings,
     catalog::Catalog,
     download_formats::DownloadFormats,
     download_option::DownloadOption,
-    ffmpeg::{self, TranscodeFormat},
+    ffmpeg::{self, MediaFormat},
     image::Image,
+    image_format::ImageFormat,
     track::Track,
     message,
     render
@@ -28,7 +30,7 @@ pub struct Release {
     pub download_formats: DownloadFormats,
     pub download_option: DownloadOption,
     pub slug: String,
-    pub streaming_format: TranscodeFormat,
+    pub streaming_format: AudioFormat,
     pub text: Option<String>,
     pub title: String,
     pub tracks: Vec<Track>
@@ -40,7 +42,7 @@ impl Release {
         download_formats: DownloadFormats,
         download_option: DownloadOption,
         mut images: Vec<Image>,
-        streaming_format: TranscodeFormat,
+        streaming_format: AudioFormat,
         text: Option<String>,
         title: String,
         tracks: Vec<Track>
@@ -82,7 +84,7 @@ impl Release {
         build_settings: &mut BuildSettings,
         cached_image_assets: &mut CachedImageAssets,
         image: &Image,
-        target_format: &TranscodeFormat
+        target_format: &ImageFormat
     ) {
         let filename = format!("{}{}", image.uuid, target_format.suffix_and_extension());
         let jpg = cached_image_assets.jpg.get_or_insert_with(|| {
@@ -90,7 +92,7 @@ impl Release {
             ffmpeg::transcode(
                 &image.source_file,
                 &build_settings.cache_dir.join(&filename),
-                target_format
+                MediaFormat::Image(target_format)
             ).unwrap();
             
             Asset::init(&build_settings.cache_dir, filename.clone())
@@ -111,28 +113,17 @@ impl Release {
         build_settings: &mut BuildSettings,
         cached_track_assets: &mut CachedTrackAssets,
         track: &Track,
-        target_format: &TranscodeFormat
+        target_format: &AudioFormat
     ) {
         let target_filename = format!("{}{}", track.uuid, target_format.suffix_and_extension());
         
-        let cached_format = match target_format {
-            TranscodeFormat::Aac => &mut cached_track_assets.aac,
-            TranscodeFormat::Aiff => &mut cached_track_assets.aiff,
-            TranscodeFormat::Flac => &mut cached_track_assets.flac,
-            TranscodeFormat::Mp3Cbr128 => &mut cached_track_assets.mp3_128,
-            TranscodeFormat::Mp3Cbr320 => &mut cached_track_assets.mp3_320,
-            TranscodeFormat::Mp3VbrV0 => &mut cached_track_assets.mp3_v0,
-            TranscodeFormat::OggVorbis => &mut cached_track_assets.ogg_vorbis,
-            TranscodeFormat::Wav => &mut cached_track_assets.wav,
-            TranscodeFormat::Jpeg => unreachable!() // TODO: Maybe rather have a separate AudioFormat and ImageFormat so we don't mix static code paths
-        };
-        
+        let cached_format = cached_track_assets.get(target_format);
         let cached_format_unpacked = cached_format.get_or_insert_with(|| {
             message::transcoding(&format!("{:?} to {}", track.source_file, target_format));
             ffmpeg::transcode(
                 &track.source_file,
                 &build_settings.cache_dir.join(&target_filename),
-                target_format
+                MediaFormat::Audio(target_format)
             ).unwrap();
             
             Asset::init(&build_settings.cache_dir, target_filename.clone())

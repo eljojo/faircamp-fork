@@ -6,7 +6,11 @@ use std::{
     time::SystemTime
 };
 
-use crate::{message, util};
+use crate::{
+    audio_format::AudioFormat,
+    message,
+    util
+};
 
 const CACHE_MANIFEST_FILENAME: &str = "manifest.bincode";
 
@@ -278,6 +282,19 @@ impl CachedImageAssets {
 }
 
 impl CachedTrackAssets {
+    pub fn get(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+        match format {
+            AudioFormat::Aac => &mut self.aac,
+            AudioFormat::Aiff => &mut self.aiff,
+            AudioFormat::Flac => &mut self.flac,
+            AudioFormat::Mp3Cbr128 => &mut self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
+            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Wav => &mut self.wav
+        }
+    }
+
     pub fn new(source_file_signature: SourceFileSignature) -> CachedTrackAssets {
         CachedTrackAssets {
             aac: None,
