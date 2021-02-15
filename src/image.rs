@@ -11,8 +11,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Image {
     pub cached_assets: CachedImageAssets,
-    pub source_file: PathBuf,
-    pub uuid: String
+    pub source_file: PathBuf
 }
 
 impl Image {
@@ -39,11 +38,10 @@ impl Image {
         cached_format.as_mut().unwrap()
     }
     
-    pub fn init(cached_assets: CachedImageAssets, source_file: &Path, uuid: String) -> Image {
+    pub fn init(cached_assets: CachedImageAssets, source_file: &Path) -> Image {
         Image {
             cached_assets,
-            source_file: source_file.to_path_buf(),
-            uuid
+            source_file: source_file.to_path_buf()
         }
     }
 }

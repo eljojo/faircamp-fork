@@ -11,7 +11,6 @@ use crate::{
         CachedTrackAssets,
     },
     audio_format::AudioFormat,
-    audio_meta::AudioMeta,
     build_settings::BuildSettings,
     download_option::DownloadOption,
     image::Image,
@@ -152,12 +151,9 @@ impl Catalog {
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
             
-            // TODO: Move audio_meta into cached structures too so it doesn't need to be recomputed everytime
-            let audio_meta = AudioMeta::extract(track_path, extension);
+            let cached_assets = cache_manifest.get_track_assets(track_path, extension);
             
-            let cached_assets = cache_manifest.get_track_assets(track_path);
-            
-            if let Some(release_title) = &audio_meta.album {
+            if let Some(release_title) = &cached_assets.source_meta.album {
                 if let Some(metric) = &mut release_title_metrics
                     .iter_mut()
                     .find(|(_count, title)| title == release_title) {
@@ -169,8 +165,6 @@ impl Catalog {
             
             let track = self.read_track(
                 track_path,
-                util::is_lossless(extension),
-                audio_meta,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 cached_assets
             );
@@ -183,17 +177,21 @@ impl Catalog {
             
             let cached_assets = cache_manifest.get_image_assets(image_path);
             
-            images.push(Image::init(cached_assets, image_path, util::uuid()));
+            images.push(Image::init(cached_assets, image_path));
         }
         
         if !release_tracks.is_empty() {
-            release_tracks.sort_by(|a, b| a.number.cmp(&b.number));
+            release_tracks.sort_by(|a, b|
+                a.cached_assets.source_meta.track_number.cmp(
+                    &b.cached_assets.source_meta.track_number
+                )
+            );
             release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0)); // sort most often occuring title to the end of the Vec
             
             let mut release_artists: Vec<Rc<Artist>> = Vec::new();
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
                 for artist_name in artist_names {
-                    let artist = self.track_artist(Some(artist_name.clone()));
+                    let artist = self.track_artist(Some(&artist_name));
                     release_artists.push(artist);
                 }
             } else {
@@ -240,44 +238,41 @@ impl Catalog {
     pub fn read_track(
         &mut self,
         path: &Path,
-        lossless_source: bool,
-        audio_meta: AudioMeta,
         overrides: &Overrides,
         cached_assets: CachedTrackAssets
     ) -> Track {
         let artists = if let Some(artist_names) = &overrides.track_artists {
             artist_names
                 .iter()
-                .map(|name| self.track_artist(Some(name.to_string())))
+                .map(|name| self.track_artist(Some(name)))
                 .collect()
         } else {
-            vec![self.track_artist(audio_meta.artist)]
+            vec![self.track_artist(cached_assets.source_meta.artist.as_ref().map(|name| name.as_str()))]
         };
         
         let source_file = path.to_path_buf();
-        let title = audio_meta.title.unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
+        let title = cached_assets.source_meta.title
+            .as_ref()
+            .map(|title| title.clone())
+            .unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
         
         Track::init(
             artists,
             cached_assets,
-            audio_meta.duration_seconds,
-            lossless_source,
-            audio_meta.track_number,
             source_file,
-            title,
-            util::uuid()
+            title
         )
     }
     
     // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
-    pub fn track_artist(&mut self, new_artist_name: Option<String>) -> Rc<Artist> {
+    pub fn track_artist(&mut self, new_artist_name: Option<&str>) -> Rc<Artist> {
         if let Some(new_artist_name) = new_artist_name {
             self.artists
                 .iter()
-                .find(|artist| artist.name == new_artist_name)
+                .find(|artist| &artist.name == new_artist_name)
                 .map(|existing_artist| existing_artist.clone())
                 .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::init(new_artist_name));
+                    let new_artist = Rc::new(Artist::init(new_artist_name.to_string()));
                     self.artists.push(new_artist.clone());
                     new_artist
                 })
@@ -330,7 +325,7 @@ impl Catalog {
                     }
                     
                     if release.download_formats.aiff {
-                        if !track.lossless_source {
+                        if !track.cached_assets.source_meta.lossless {
                             message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                         }
                         
@@ -338,7 +333,7 @@ impl Catalog {
                     }
                     
                     if release.download_formats.flac {
-                        if !track.lossless_source {
+                        if !track.cached_assets.source_meta.lossless {
                             message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                         }
                         
@@ -362,7 +357,7 @@ impl Catalog {
                     }
                     
                     if release.download_formats.wav {
-                        if !track.lossless_source {
+                        if !track.cached_assets.source_meta.lossless {
                             message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
                         }
                         

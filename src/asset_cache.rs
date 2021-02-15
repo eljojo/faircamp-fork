@@ -8,6 +8,7 @@ use std::{
 
 use crate::{
     audio_format::AudioFormat,
+    audio_meta::AudioMeta,
     image_format::ImageFormat,
     message,
     util
@@ -43,7 +44,9 @@ pub struct CachedTrackAssets {
     pub mp3_320: Option<Asset>,
     pub mp3_v0: Option<Asset>,
     pub ogg_vorbis: Option<Asset>,
+    // TODO: There is overlap between this and track.source_file - probably implications for model changes that could/should be made
     pub source_file_signature: SourceFileSignature,
+    pub source_meta: AudioMeta,
     pub wav: Option<Asset>
 }
 
@@ -186,14 +189,18 @@ impl CacheManifest {
             .unwrap_or_else(|| CachedImageAssets::new(source_file_signature))
     }
     
-    pub fn get_track_assets(&self, source_path: &Path) -> CachedTrackAssets {
+    pub fn get_track_assets(&self, source_path: &Path, extension: &str) -> CachedTrackAssets {
         let source_file_signature = SourceFileSignature::init(source_path);
         
         self.tracks
             .iter()
             .find(|cached_assets| cached_assets.source_file_signature == source_file_signature)
             .map(|cached_assets| cached_assets.clone())
-            .unwrap_or_else(|| CachedTrackAssets::new(source_file_signature))
+            .unwrap_or_else(|| {
+                let source_meta = AudioMeta::extract(source_path, extension);
+                
+                CachedTrackAssets::new(source_file_signature, source_meta)
+            })
     }
     
     pub fn new() -> CacheManifest {
@@ -340,7 +347,7 @@ impl CachedTrackAssets {
         }
     }
 
-    pub fn new(source_file_signature: SourceFileSignature) -> CachedTrackAssets {
+    pub fn new(source_file_signature: SourceFileSignature, source_meta: AudioMeta) -> CachedTrackAssets {
         CachedTrackAssets {
             aac: None,
             aiff: None,
@@ -350,6 +357,7 @@ impl CachedTrackAssets {
             mp3_v0: None,
             ogg_vorbis: None,
             source_file_signature,
+            source_meta,
             wav: None
         }
     }

@@ -373,14 +373,14 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
     
     let longest_track_duration = release.tracks
         .iter()
-        .map(|track| track.duration_seconds.unwrap_or(0))
+        .map(|track| track.cached_assets.source_meta.duration_seconds.unwrap_or(0))
         .max();
     
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
         .map(|(index, track)| {
-            let track_duration_width_em = match (track.duration_seconds, longest_track_duration) {
+            let track_duration_width_em = match (track.cached_assets.source_meta.duration_seconds, longest_track_duration) {
                 (Some(this_duration), Some(longest_duration)) => (36.0 * (this_duration as f32 / longest_duration as f32)) as u32,
                 _ => 0
             };

@@ -4,17 +4,24 @@ use rmp3::{Decoder, Frame};
 use std::fs;
 use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
     pub artist: Option<String>,
     pub duration_seconds: Option<u32>,
+    pub lossless: bool,
     pub title: Option<String>,
     pub track_number: Option<u32>
 }
 
 impl AudioMeta {
     pub fn extract(path: &Path, extension: &str) -> AudioMeta {
+        let lossless = match extension {
+            "aiff" | "alac" | "flac" | "wav" => true,
+            "aac" | "mp3" | "ogg" => false,
+            _ => unimplemented!("Determination whether extension {} indicates lossless audio in the file not yet implemented.", extension)
+        };
+        
         if extension == "flac" {
             if let Ok(tag) = metaflac::Tag::read_from_path(path) {
                 return AudioMeta {
@@ -23,6 +30,7 @@ impl AudioMeta {
                     duration_seconds: tag.get_streaminfo().map(|streaminfo|
                         (streaminfo.total_samples / streaminfo.sample_rate as u64) as u32
                     ),
+                    lossless,
                     title: tag.get_vorbis("title").map(|iter| iter.collect()),
                     track_number: tag.get_vorbis("track") // TODO: Unconfirmed if that key is correct/available ("guessed it" for now :))
                         .map(|iter| iter.collect())
@@ -36,6 +44,7 @@ impl AudioMeta {
                     album: tag.album().map(|str| str.to_string()),
                     artist: tag.artist().map(|str| str.to_string()),
                     duration_seconds: mp3_duration_from_frame_info(path),
+                    lossless,
                     title: tag.title().map(|str| str.to_string()),
                     track_number: tag.track()
                 };
@@ -46,6 +55,7 @@ impl AudioMeta {
             album: None,
             artist: None,
             duration_seconds: None,
+            lossless,
             title: None,
             track_number: None
         }

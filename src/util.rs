@@ -27,14 +27,6 @@ pub fn format_bytes(size: u64) -> String {
     }
 }
 
-pub fn is_lossless(extension: &str) -> bool {
-    match extension {
-        "aiff" | "alac" | "flac" | "wav" => true,
-        "aac" | "mp3" | "ogg" => false,
-        _ => unimplemented!("foo")
-    }
-}
-
 pub fn markdown_to_html(markdown: &str) -> String {
     let parser = Parser::new(markdown);
     
