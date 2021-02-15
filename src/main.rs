@@ -54,7 +54,7 @@ fn main() {
         return;
     }
     
-    let catalog = Catalog::read(&mut build_settings);
+    let mut catalog = Catalog::read(&mut build_settings);
     
     util::ensure_empty_dir(&build_settings.build_dir);
     

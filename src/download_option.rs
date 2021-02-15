@@ -7,7 +7,7 @@ use crate::util;
 // AnyPrice
 // MinimumPrice
 // ExactPrice
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DownloadOption {
     Disabled,
     Free(String),

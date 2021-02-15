@@ -1,5 +1,8 @@
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    rc::Rc
+};
 
 use crate::{
     artist::Artist,
@@ -12,6 +15,7 @@ use crate::{
     audio_format::AudioFormat,
     audio_meta::AudioMeta,
     build_settings::BuildSettings,
+    download_option::DownloadOption,
     image::Image,
     image_format::ImageFormat,
     manifest::{Globals, Overrides},
@@ -277,10 +281,10 @@ impl Catalog {
         }
     }
     
-    pub fn write_assets(&self, build_settings: &mut BuildSettings) {
+    pub fn write_assets(&mut self, build_settings: &mut BuildSettings) {
         let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
         
-        for release in &self.releases {            
+        for release in self.releases.iter_mut() {            
             if let Some(image) = &release.cover {
                 let source_file_signature = SourceFileSignature::init(&image.source_file);
                 
@@ -297,10 +301,10 @@ impl Catalog {
                 release.write_image_assets(build_settings, &mut cached_image_assets, image, &ImageFormat::Jpeg);
             }
             
-            for track in &release.tracks {
+            for track in release.tracks.iter_mut() {
                 let source_file_signature = SourceFileSignature::init(&track.source_file);
                 
-                let mut cached_track_assets = match cache_manifest.tracks
+                let cached_track_assets = match cache_manifest.tracks
                     .iter_mut()
                     .find(|cached_track| cached_track.source_file_signature == source_file_signature) {
                     Some(cached_track_assets) => cached_track_assets,
@@ -310,42 +314,64 @@ impl Catalog {
                     }    
                 };
                 
-                // TODO: Check release.download_option to see if we even need to transcode and copy tracks for download purposes
+                let streaming_asset = track.get_as(&release.streaming_format, &build_settings.cache_dir, cached_track_assets);
                 
-                if release.download_formats.aac {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Aac);
-                }
+                streaming_asset.used = true; // TODO: Probably should be used_in_build or such to differentiate from intermediately used (but ultimately discardable) cache assets used for building a zip
                 
-                if release.download_formats.aiff {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Aiff);
-                }
+                fs::copy(
+                    build_settings.cache_dir.join(&streaming_asset.filename),
+                    build_settings.build_dir.join(&streaming_asset.filename)
+                ).unwrap();
                 
-                if release.download_formats.flac {
-                    if !track.lossless_source {
-                        message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
+                build_settings.stats.add_track(streaming_asset.filesize_bytes);
+                
+                
+                if release.download_option != DownloadOption::Disabled {
+                    if release.download_formats.aac {
+                        // TODO: Here and below needs to be followed up (outside of tracks iteration?) to zip the collected files together
+                        // TODO: Should probably be track.get_cached (...) or such to indicate we're just pre-building an asset in the cache
+                        track.get_as(&AudioFormat::Aac, &build_settings.cache_dir, cached_track_assets);
                     }
                     
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Flac);
-                }
-                
-                if release.download_formats.mp3_128 || release.streaming_format == AudioFormat::Mp3Cbr128 {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Mp3Cbr128);
-                }
-                
-                if release.download_formats.mp3_320 || release.streaming_format == AudioFormat::Mp3Cbr320 {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Mp3Cbr320);
-                }
-                
-                if release.download_formats.mp3_v0 || release.streaming_format == AudioFormat::Mp3VbrV0 {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Mp3VbrV0);
-                }
-                
-                if release.download_formats.ogg_vorbis {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::OggVorbis);
-                }
-                
-                if release.download_formats.wav {
-                    release.write_track_assets(build_settings, &mut cached_track_assets, track, &AudioFormat::Wav);
+                    if release.download_formats.aiff {
+                        if !track.lossless_source {
+                            message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
+                        }
+                        
+                        track.get_as(&AudioFormat::Aiff, &build_settings.cache_dir, cached_track_assets);
+                    }
+                    
+                    if release.download_formats.flac {
+                        if !track.lossless_source {
+                            message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
+                        }
+                        
+                        track.get_as(&AudioFormat::Flac, &build_settings.cache_dir, cached_track_assets);
+                    }
+                    
+                    if release.download_formats.mp3_128 {
+                        track.get_as(&AudioFormat::Mp3Cbr128, &build_settings.cache_dir, cached_track_assets);
+                    }
+                    
+                    if release.download_formats.mp3_320 {
+                        track.get_as(&AudioFormat::Mp3Cbr320, &build_settings.cache_dir, cached_track_assets);
+                    }
+                    
+                    if release.download_formats.mp3_v0 {
+                        track.get_as(&AudioFormat::Mp3VbrV0, &build_settings.cache_dir, cached_track_assets);
+                    }
+                    
+                    if release.download_formats.ogg_vorbis {
+                        track.get_as(&AudioFormat::OggVorbis, &build_settings.cache_dir, cached_track_assets);
+                    }
+                    
+                    if release.download_formats.wav {
+                        if !track.lossless_source {
+                            message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
+                        }
+                        
+                        track.get_as(&AudioFormat::Wav, &build_settings.cache_dir, cached_track_assets);
+                    }        
                 }
             }
         }

@@ -9,7 +9,7 @@ use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, CachedImageAssets, CachedTrackAssets},
+    asset_cache::{Asset, CachedImageAssets},
     audio_format::AudioFormat,
     build_settings::BuildSettings,
     catalog::Catalog,
@@ -79,6 +79,7 @@ impl Release {
         fs::write(build_settings.build_dir.join(&self.slug).join("index.html"), release_html).unwrap();
     }
     
+    // TODO: Need not be on release at all (?) - self not used
     pub fn write_image_assets(
         &self,
         build_settings: &mut BuildSettings,
@@ -106,37 +107,6 @@ impl Release {
         ).unwrap();
         
         build_settings.stats.add_image(jpg.filesize_bytes);
-    }
-    
-    pub fn write_track_assets(
-        &self,
-        build_settings: &mut BuildSettings,
-        cached_track_assets: &mut CachedTrackAssets,
-        track: &Track,
-        target_format: &AudioFormat
-    ) {
-        let target_filename = format!("{}{}", track.uuid, target_format.suffix_and_extension());
-        
-        let cached_format = cached_track_assets.get(target_format);
-        let cached_format_unpacked = cached_format.get_or_insert_with(|| {
-            message::transcoding(&format!("{:?} to {}", track.source_file, target_format));
-            ffmpeg::transcode(
-                &track.source_file,
-                &build_settings.cache_dir.join(&target_filename),
-                MediaFormat::Audio(target_format)
-            ).unwrap();
-            
-            Asset::init(&build_settings.cache_dir, target_filename.clone())
-        });
-        
-        cached_format_unpacked.used = true;
-        
-        fs::copy(
-            build_settings.cache_dir.join(&cached_format_unpacked.filename),
-            build_settings.build_dir.join(&target_filename)
-        ).unwrap();
-        
-        build_settings.stats.add_track(cached_format_unpacked.filesize_bytes);
     }
     
     pub fn zip(&self, build_dir: &Path) -> Result<(), String> {
