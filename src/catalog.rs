@@ -180,6 +180,8 @@ impl Catalog {
         }
         
         if !release_tracks.is_empty() {
+            let cached_assets = cache_manifest.get_release_assets(&release_tracks);
+            
             release_tracks.sort_by(|a, b|
                 a.cached_assets.source_meta.track_number.cmp(
                     &b.cached_assets.source_meta.track_number
@@ -208,6 +210,7 @@ impl Catalog {
             
             let release = Release::init(
                 release_artists,
+                cached_assets,
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_formats.clone(),
                 local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,

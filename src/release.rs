@@ -8,6 +8,7 @@ use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
+    asset_cache::CachedReleaseAssets,
     audio_format::AudioFormat,
     build_settings::BuildSettings,
     catalog::Catalog,
@@ -22,6 +23,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Release {
     pub artists: Vec<Rc<Artist>>,
+    pub cached_assets: CachedReleaseAssets,
     pub cover: Option<Image>,
     pub download_formats: DownloadFormats,
     pub download_option: DownloadOption,
@@ -35,6 +37,7 @@ pub struct Release {
 impl Release {
     pub fn init(
         artists: Vec<Rc<Artist>>,
+        cached_assets: CachedReleaseAssets,
         download_formats: DownloadFormats,
         download_option: DownloadOption,
         mut images: Vec<Image>,
@@ -49,6 +52,7 @@ impl Release {
         
         Release {
             artists,
+            cached_assets,
             cover: images.pop(),
             download_formats,
             download_option,

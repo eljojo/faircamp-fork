@@ -11,6 +11,7 @@ use crate::{
     audio_meta::AudioMeta,
     image_format::ImageFormat,
     message,
+    track::Track,
     util
 };
 
@@ -26,6 +27,7 @@ pub struct Asset {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CacheManifest {
     pub images: Vec<CachedImageAssets>,
+    pub releases: Vec<CachedReleaseAssets>,
     pub tracks: Vec<CachedTrackAssets>
 }
 
@@ -33,6 +35,19 @@ pub struct CacheManifest {
 pub struct CachedImageAssets {
     pub jpeg: Option<Asset>,
     pub source_file_signature: SourceFileSignature
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CachedReleaseAssets {
+    pub aac: Option<Asset>,
+    pub aiff: Option<Asset>,
+    pub flac: Option<Asset>,
+    pub mp3_128: Option<Asset>,
+    pub mp3_320: Option<Asset>,
+    pub mp3_v0: Option<Asset>,
+    pub ogg_vorbis: Option<Asset>,
+    pub source_file_signatures: Vec<SourceFileSignature>,
+    pub wav: Option<Asset>
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -189,6 +204,28 @@ impl CacheManifest {
             .unwrap_or_else(|| CachedImageAssets::new(source_file_signature))
     }
     
+    pub fn get_release_assets(&self, tracks: &Vec<Track>) -> CachedReleaseAssets {
+        self.releases
+            .iter()
+            .find(|cached_assets| {
+                tracks
+                    .iter()
+                    .zip(cached_assets.source_file_signatures.iter())
+                    .all(|(track, source_file_signature)| {
+                        &track.cached_assets.source_file_signature == source_file_signature
+                    })
+            })
+            .map(|cached_assets| cached_assets.clone())
+            .unwrap_or_else(|| {
+                CachedReleaseAssets::new(
+                    tracks
+                        .iter()
+                        .map(|track| track.cached_assets.source_file_signature.clone())
+                        .collect()
+                )
+            })
+    }
+    
     pub fn get_track_assets(&self, source_path: &Path, extension: &str) -> CachedTrackAssets {
         let source_file_signature = SourceFileSignature::init(source_path);
         
@@ -206,6 +243,7 @@ impl CacheManifest {
     pub fn new() -> CacheManifest {
         CacheManifest {
             images: Vec::new(),
+            releases: Vec::new(),
             tracks: Vec::new()
         }
     }
@@ -316,6 +354,48 @@ impl CachedImageAssets {
         CachedImageAssets {
             jpeg: None,
             source_file_signature
+        }
+    }
+}
+
+impl CachedReleaseAssets {
+    pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
+        match format {
+            AudioFormat::Aac => &self.aac,
+            AudioFormat::Aiff => &self.aiff,
+            AudioFormat::Flac => &self.flac,
+            AudioFormat::Mp3Cbr128 => &self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &self.mp3_v0,
+            AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Wav => &self.wav
+        }
+    }
+    
+    pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+        match format {
+            AudioFormat::Aac => &mut self.aac,
+            AudioFormat::Aiff => &mut self.aiff,
+            AudioFormat::Flac => &mut self.flac,
+            AudioFormat::Mp3Cbr128 => &mut self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
+            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Wav => &mut self.wav
+        }
+    }
+
+    pub fn new(source_file_signatures: Vec<SourceFileSignature>) -> CachedReleaseAssets {
+        CachedReleaseAssets {
+            aac: None,
+            aiff: None,
+            flac: None,
+            mp3_128: None,
+            mp3_320: None,
+            mp3_v0: None,
+            ogg_vorbis: None,
+            source_file_signatures,
+            wav: None
         }
     }
 }
