@@ -37,6 +37,62 @@ recording within a release) level.
 
 Faircamp already does a lot of things (reading, transcoding, zipping, caching, rendering, deploying), and for testing purposes it's already fully usable. For anything productive you will want to wait a few more weeks though, as as of yet faircamp also does not yet do anything really well - for now it's a prototype and a demo!
 
+## Early Documentation
+
+This documentation is still incomplete, in parts potentially inaccurate and subject to change.
+
+### Manifests
+
+To specify metadata and settings create files with the extension `.eno` and any
+filename of your choosing anywhere inside the catalog. Each manifest applies to
+the folder  it is contained in, as well as (recursively) to all subfolders
+therein. Manifests located deeper down in the folder hierarchy can override
+metadata and settings specified in manifests in folders above.
+
+```
+catalog/
+├─ my_top_level_manifest.eno
+├─ release_a/
+│  ├─ my_release_manifest_a.eno
+│  ├─ track_a1.mp3
+│  ├─ track_a2.mp3
+│  └─ track_a3.mp3
+└─ release_b/
+   ├─ my_release_manifest_b.eno
+   ├─ track_b1.mp3
+   ├─ track_b2.mp3
+   └─ track_b3.mp3
+```
+
+In the example above, everything defined in `my_top_level_manifest.eno` applies
+to everything within `release_a` and `release_b`, but
+`my_release_manifest_a.eno` can selectively override certain things for
+everything in its containing folder `release_a`, as likewise
+`my_release_manifest_b.eno` can selectively override certain things for
+everything in its containing folder `release_b`.
+
+### Example manifest
+
+Note that this demonstrates only a subset of available options:
+
+```eno
+> Sets the URL under which you intend to host faircamp, only used for RSS feed generation
+base_url: https://myawesomemusic.site/
+
+> Sets the global about page text for your site
+catalog_text: My self hosted faircamp site, which presents some of my awesome music. Nice of you to stop by!
+
+> Sets the title of your site, appears at the title of browser tabs, inside the RSS feed, etc.
+catalog_title: My awesome music
+
+> Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
+streaming_quality: standard
+
+> You can choose between a dark and light visual theme
+theme: light
+```
+
+
 ## Build
 
 Faircamp compiles on recent stable rust, its only *runtime* requirement is that
