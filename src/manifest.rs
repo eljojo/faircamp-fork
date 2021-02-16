@@ -75,9 +75,6 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             "enable_mp3_v0" => overrides.download_formats.mp3_v0 = true,
                             "enable_ogg_vorbis" => overrides.download_formats.ogg_vorbis = true,
                             "enable_wav" => overrides.download_formats.wav = true,
-                            "stream_mp3_128" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
-                            "stream_mp3_320" => overrides.streaming_format = AudioFormat::Mp3Cbr320,
-                            "stream_mp3_v0" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
                             key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
                         Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
@@ -150,6 +147,11 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             }
                             "release_artist" => overrides.release_artists = Some(vec![value]),
                             "release_text" => overrides.release_text = Some(value),
+                            "streaming_quality" => match value.as_str() {
+                                "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
+                                "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
+                                value => message::error(&format!("Ignoring invalid streaming_quality setting value '{value}' (available: standard, transparent) in {path:?}", path=path, value=value))
+                            }
                             "theme" => {
                                 if globals.theme.is_some() {
                                     message::warning(&format!("Global 'theme' is set more than once"));
