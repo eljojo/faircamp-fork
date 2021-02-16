@@ -15,6 +15,7 @@ use crate::{
     download_formats::DownloadFormats,
     download_option::DownloadOption,
     image::Image,
+    image_format::ImageFormat,
     message,
     render,
     track::Track,
@@ -133,12 +134,23 @@ impl Release {
                 ).unwrap();
                     
                 zip_inner_file.read_to_end(&mut buffer).unwrap();
-            
                 zip_writer.write_all(&*buffer).unwrap();
                 buffer.clear();
             }
             
-            // TODO: Add cover image to archive
+            if let Some(cover) = &mut self.cover {
+                let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir);
+                
+                zip_writer.start_file("cover.jpg", options).unwrap();
+                
+                let mut zip_inner_file = File::open(
+                    &build_settings.cache_dir.join(&cover_asset.filename)
+                ).unwrap();
+                
+                zip_inner_file.read_to_end(&mut buffer).unwrap();
+                zip_writer.write_all(&*buffer).unwrap();
+                buffer.clear();
+            }
                 
             return match zip_writer.finish() {
                 Ok(_) => {
