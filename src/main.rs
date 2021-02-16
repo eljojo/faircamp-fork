@@ -14,6 +14,7 @@ mod catalog;
 mod deploy;
 mod download_formats;
 mod download_option;
+mod eno;
 mod feed;
 mod ffmpeg;
 mod image;

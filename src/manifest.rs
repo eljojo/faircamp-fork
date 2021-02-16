@@ -6,6 +6,7 @@ use crate::{
     audio_format::AudioFormat,
     download_option::DownloadOption,
     download_formats::DownloadFormats,
+    eno::{self, Element, FieldContent},
     message,
     styles::{Theme, DARK_THEME, LIGHT_THEME}
 };
@@ -55,131 +56,126 @@ impl Overrides {
 
 pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
-        Ok(content) => for trimmed_line in content.lines().map(|line| line.trim()) {
-            if trimmed_line.starts_with("background_image:") {    
-                if let Some(previous_image) = &globals.background_image {
-                    message::warning(&format!(
-                        "Global 'background_image' is set more than once ('{previous_image}', '{new_image}')",
-                        previous_image=previous_image,
-                        new_image=trimmed_line[17..].trim()
-                    ));
-                }
-                
-                globals.background_image = Some(trimmed_line[17..].trim().to_string());    
-            } else if trimmed_line.starts_with("base_url:") {        
-                match Url::parse(trimmed_line[9..].trim()) {
-                    Ok(url) => {
-                        if let Some(previous_url) = &globals.base_url {
-                            message::warning(&format!(
-                                "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
-                                previous_url=previous_url,
-                                new_url=url
-                            ));
+        Ok(content) => {
+            match eno::parse(&content) {
+                Ok(elements) => for element in elements {
+                    match element {
+                        Element::Empty { key } => match key.as_str() {
+                            "disable-aac" => overrides.download_formats.aac = false,
+                            "disable-aiff" => overrides.download_formats.aiff = false,
+                            "disable-flac" => overrides.download_formats.flac = false,
+                            "disable-mp3-320" => overrides.download_formats.mp3_320 = false,
+                            "disable-mp3-v0" => overrides.download_formats.mp3_v0 = false,
+                            "disable-ogg-vorbis" => overrides.download_formats.ogg_vorbis = false,
+                            "disable-wav" => overrides.download_formats.wav = false,
+                            "enable-aac" => overrides.download_formats.aac = true,
+                            "enable-aiff" => overrides.download_formats.aiff = true,
+                            "enable-flac" => overrides.download_formats.flac = true,
+                            "enable-mp3-320" => overrides.download_formats.mp3_320 = true,
+                            "enable-mp3-v0" => overrides.download_formats.mp3_v0 = true,
+                            "enable-ogg-vorbis" => overrides.download_formats.ogg_vorbis = true,
+                            "enable-wav" => overrides.download_formats.wav = true,
+                            "stream-mp3-128" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
+                            "stream-mp3-320" => overrides.streaming_format = AudioFormat::Mp3Cbr320,
+                            "stream-mp3-v0" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
+                            key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
-                        
-                        globals.base_url = Some(url);
+                        Element::Field { content: FieldContent::Value(value), key } => match key.as_str() {
+                            "background-image" => {
+                                if let Some(previous_image) = &globals.background_image {
+                                    message::warning(&format!(
+                                        "Global 'background_image' is set more than once ('{previous_image}', '{new_image}')",
+                                        previous_image=previous_image,
+                                        new_image=value
+                                    ));
+                                }
+                                
+                                globals.background_image = Some(value); 
+                            }
+                            "background_image" => {
+                                if let Some(previous_image) = &globals.background_image {
+                                    message::warning(&format!(
+                                        "Global 'background_image' is set more than once ('{previous_image}', '{new_image}')",
+                                        previous_image=previous_image,
+                                        new_image=value
+                                    ));
+                                }
+                                
+                                globals.background_image = Some(value); 
+                            }
+                            "base_url" => match Url::parse(&value) {
+                                Ok(url) => {
+                                    if let Some(previous_url) = &globals.base_url {
+                                        message::warning(&format!(
+                                            "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
+                                            previous_url=previous_url,
+                                            new_url=url
+                                        ));
+                                    }
+                                    
+                                    globals.base_url = Some(url);
+                                }
+                                Err(err) => {
+                                    message::error(&format!(
+                                        "Global 'base_url' supplied with invalid value ({err})",
+                                        err=err
+                                    ));
+                                }
+                            }
+                            "catalog_text" => {
+                                if let Some(previous_text) = &globals.catalog_text {
+                                    message::warning(&format!(
+                                        "Global 'catalog_text' is set more than once ('{previous_text}', '{new_text}')",
+                                        previous_text=previous_text,
+                                        new_text=value
+                                    ));
+                                }
+                                
+                                globals.catalog_text = Some(value);      
+                            }
+                            "catalog_title" => {
+                                if let Some(previous_title) = &globals.catalog_title {
+                                    message::warning(&format!(
+                                        "Global 'catalog_title' is set more than once ('{previous_title}', '{new_title}')",
+                                        previous_title=previous_title,
+                                        new_title=value
+                                    ));
+                                }
+                                
+                                globals.catalog_title = Some(value);      
+                            }
+                            "download" => {
+                                match value.as_str() {
+                                    "disabled" => overrides.download_option = DownloadOption::Disabled,
+                                    "free" => overrides.download_option = DownloadOption::init_free(),
+                                    "anyprice" => overrides.download_option = DownloadOption::NameYourPrice,
+                                    "minprice" => overrides.download_option = DownloadOption::PayMinimum("10 Republican Credits".to_string()),
+                                    "exactprice" => overrides.download_option = DownloadOption::PayExactly("10 Republican Credits".to_string()),
+                                    value => message::error(&format!("Ignoring invalid download setting value '{value}' in {path:?}", path=path, value=value))
+                                }
+                            }
+                            "release_artist" => overrides.release_artists = Some(vec![value]),
+                            "release_text" => overrides.release_text = Some(value),
+                            "theme" => {
+                                if globals.theme.is_some() {
+                                    message::warning(&format!("Global 'theme' is set more than once"));
+                                }
+                                
+                                match value.as_str() {
+                                    "dark" => globals.theme = Some(DARK_THEME),
+                                    "light" => globals.theme = Some(LIGHT_THEME),
+                                    unsupported => message::error(&format!("Ignoring unsupported value '{}' for global 'theme' (supported values are 'dark' and 'light')", unsupported))
+                                }
+                            }
+                            "track_artist" => overrides.track_artists = Some(vec![value]),
+                            key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                        }
+                        element => message::error(&format!("Ignoring unsupported element '{element:?}' in manifest '{path:?}'", element=element, path=path))
                     }
-                    Err(err) => {
-                        message::error(&format!(
-                            "Global 'base_url' supplied with invalid value ({err})",
-                            err=err
-                        ));
-                    }
-                };
-                 Some(trimmed_line[9..].trim().to_string());
-            } else if trimmed_line.starts_with("catalog_text:") {
-                if let Some(previous_title) = &globals.catalog_text {
-                    message::warning(&format!(
-                        "Global 'catalog_text' is set more than once ('{previous_title}', '{new_title}')",
-                        previous_title=previous_title,
-                        new_title=trimmed_line[14..].trim()
-                    ));
                 }
-                
-                globals.catalog_text = Some(trimmed_line[14..].trim().to_string());                
-            } else if trimmed_line.starts_with("catalog_title:") {
-                if let Some(previous_title) = &globals.catalog_title {
-                    message::warning(&format!(
-                        "Global 'catalog_title' is set more than once ('{previous_title}', '{new_title}')",
-                        previous_title=previous_title,
-                        new_title=trimmed_line[14..].trim()
-                    ));
-                }
-                
-                globals.catalog_title = Some(trimmed_line[14..].trim().to_string());
-            } else if trimmed_line == "disable-aac" {
-                overrides.download_formats.aac = false;
-            } else if trimmed_line == "disable-aiff" {
-                overrides.download_formats.aiff = false;
-            } else if trimmed_line == "disable-flac" {
-                overrides.download_formats.flac = false;
-            } else if trimmed_line == "disable-mp3-320" {
-                overrides.download_formats.mp3_320 = false;
-            } else if trimmed_line == "disable-mp3-v0" {
-                overrides.download_formats.mp3_v0 = false;
-            } else if trimmed_line == "disable-ogg-vorbis" {
-                overrides.download_formats.ogg_vorbis = false;
-            } else if trimmed_line == "disable-wav" {
-                overrides.download_formats.wav = false;
-            } else if trimmed_line.starts_with("download:") {
-                match trimmed_line[9..].trim() {
-                    "disabled" => {
-                        overrides.download_option = DownloadOption::Disabled;
-                    },
-                    "free" => {
-                        overrides.download_option = DownloadOption::init_free();
-                    },
-                    "anyprice" => {
-                        overrides.download_option = DownloadOption::NameYourPrice;
-                    },
-                    "minprice" => {
-                        overrides.download_option = DownloadOption::PayMinimum("10 Republican Credits".to_string());
-                    },
-                    "exactprice" => {
-                        overrides.download_option = DownloadOption::PayExactly("10 Republican Credits".to_string());
-                    },
-                    _ => message::error(&format!("Ignoring invalid download setting value '{}' in {:?}", &trimmed_line[9..], path))
-                }
-            } else if trimmed_line == "enable-aac" {
-                overrides.download_formats.aac = true;
-            } else if trimmed_line == "enable-aiff" {
-                overrides.download_formats.aiff = true;
-            } else if trimmed_line == "enable-flac" {
-                overrides.download_formats.flac = true;
-            } else if trimmed_line == "enable-mp3-320" {
-                overrides.download_formats.mp3_320 = true;
-            } else if trimmed_line == "enable-mp3-v0" {
-                overrides.download_formats.mp3_v0 = true;
-            } else if trimmed_line == "enable-ogg-vorbis" {
-                overrides.download_formats.ogg_vorbis = true;
-            } else if trimmed_line == "enable-wav" {
-                overrides.download_formats.wav = true;
-            } else if trimmed_line.starts_with("release-artist:") {
-                overrides.release_artists = Some(vec![trimmed_line[15..].trim().to_string()]);
-            } else if trimmed_line.starts_with("release-text:") {
-                overrides.release_text = Some(trimmed_line[13..].trim().to_string());
-            } else if trimmed_line == "stream-mp3-128" {
-                overrides.streaming_format = AudioFormat::Mp3Cbr128;
-            } else if trimmed_line == "stream-mp3-320" {
-                overrides.streaming_format = AudioFormat::Mp3Cbr320;
-            } else if trimmed_line == "stream-mp3-v0" {
-                overrides.streaming_format = AudioFormat::Mp3VbrV0;
-            } else if trimmed_line.starts_with("theme:") {
-                if globals.theme.is_some() {
-                    message::warning(&format!("Global 'theme' is set more than once"));
-                }
-                
-                match trimmed_line[6..].trim() {
-                    "dark" => globals.theme = Some(DARK_THEME),
-                    "light" => globals.theme = Some(LIGHT_THEME),
-                    unsupported => message::error(&format!("Ignoring unsupported value '{}' for global 'theme' (supported values are 'dark' and 'light')", unsupported))
-                }
-            } else if trimmed_line.starts_with("track-artist:") {
-                overrides.track_artists = Some(vec![trimmed_line[13..].trim().to_string()]);
-            } else if !trimmed_line.is_empty() && !trimmed_line.starts_with(">") {
-                message::error(&format!("Ignoring unrecognized manifest line '{}'", trimmed_line));
+                Err(err) => message::error(&format!("Syntax error in manifest {path:?} ({err})", path=path, err=err))
             }
         }
-        Err(err) => message::error(&format!("Could not read meta file {:?} ({})", path, err))
+        Err(err) => message::error(&format!("Could not read manifest {path:?} ({err})", path=path, err=err))
     } 
 }

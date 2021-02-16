@@ -113,7 +113,7 @@ impl Catalog {
                                         )
                                     )
                                     .flatten() {
-                                    if extension == "txt" {
+                                    if extension == "eno" {
                                         meta_paths.push(path);
                                     } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
                                         track_paths.push((path, extension));
