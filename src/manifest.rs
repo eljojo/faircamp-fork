@@ -80,6 +80,11 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             "stream_mp3_v0" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
                             key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
+                        Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
+                            "release_artists" => overrides.release_artists = Some(items),
+                            "track_artists" => overrides.release_artists = Some(items),
+                            key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                        }
                         Element::Field { content: FieldContent::Value(value), key } => match key.as_str() {
                             "background_image" => {
                                 if let Some(previous_image) = &globals.background_image {
