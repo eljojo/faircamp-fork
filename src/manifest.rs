@@ -61,37 +61,26 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                 Ok(elements) => for element in elements {
                     match element {
                         Element::Empty { key } => match key.as_str() {
-                            "disable-aac" => overrides.download_formats.aac = false,
-                            "disable-aiff" => overrides.download_formats.aiff = false,
-                            "disable-flac" => overrides.download_formats.flac = false,
-                            "disable-mp3-320" => overrides.download_formats.mp3_320 = false,
-                            "disable-mp3-v0" => overrides.download_formats.mp3_v0 = false,
-                            "disable-ogg-vorbis" => overrides.download_formats.ogg_vorbis = false,
-                            "disable-wav" => overrides.download_formats.wav = false,
-                            "enable-aac" => overrides.download_formats.aac = true,
-                            "enable-aiff" => overrides.download_formats.aiff = true,
-                            "enable-flac" => overrides.download_formats.flac = true,
-                            "enable-mp3-320" => overrides.download_formats.mp3_320 = true,
-                            "enable-mp3-v0" => overrides.download_formats.mp3_v0 = true,
-                            "enable-ogg-vorbis" => overrides.download_formats.ogg_vorbis = true,
-                            "enable-wav" => overrides.download_formats.wav = true,
-                            "stream-mp3-128" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
-                            "stream-mp3-320" => overrides.streaming_format = AudioFormat::Mp3Cbr320,
-                            "stream-mp3-v0" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
+                            "disable_aac" => overrides.download_formats.aac = false,
+                            "disable_aiff" => overrides.download_formats.aiff = false,
+                            "disable_flac" => overrides.download_formats.flac = false,
+                            "disable_mp3_320" => overrides.download_formats.mp3_320 = false,
+                            "disable_mp3_v0" => overrides.download_formats.mp3_v0 = false,
+                            "disable_ogg_vorbis" => overrides.download_formats.ogg_vorbis = false,
+                            "disable_wav" => overrides.download_formats.wav = false,
+                            "enable_aac" => overrides.download_formats.aac = true,
+                            "enable_aiff" => overrides.download_formats.aiff = true,
+                            "enable_flac" => overrides.download_formats.flac = true,
+                            "enable_mp3_320" => overrides.download_formats.mp3_320 = true,
+                            "enable_mp3_v0" => overrides.download_formats.mp3_v0 = true,
+                            "enable_ogg_vorbis" => overrides.download_formats.ogg_vorbis = true,
+                            "enable_wav" => overrides.download_formats.wav = true,
+                            "stream_mp3_128" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
+                            "stream_mp3_320" => overrides.streaming_format = AudioFormat::Mp3Cbr320,
+                            "stream_mp3_v0" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
                             key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
                         Element::Field { content: FieldContent::Value(value), key } => match key.as_str() {
-                            "background-image" => {
-                                if let Some(previous_image) = &globals.background_image {
-                                    message::warning(&format!(
-                                        "Global 'background_image' is set more than once ('{previous_image}', '{new_image}')",
-                                        previous_image=previous_image,
-                                        new_image=value
-                                    ));
-                                }
-                                
-                                globals.background_image = Some(value); 
-                            }
                             "background_image" => {
                                 if let Some(previous_image) = &globals.background_image {
                                     message::warning(&format!(
