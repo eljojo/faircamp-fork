@@ -10,6 +10,11 @@ pub fn ensure_dir(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
 }
 
+pub fn ensure_dir_and_write_index(dir: &Path, html: &str) {
+    ensure_dir(dir);
+    fs::write(dir.join("index.html"), html).unwrap();
+}
+
 pub fn ensure_empty_dir(dir: &Path) {
     remove_dir(dir);
     fs::create_dir_all(dir).unwrap();

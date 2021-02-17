@@ -6,23 +6,29 @@ use crate::util;
 #[derive(Clone, Debug, PartialEq)]
 pub enum DownloadOption {
     Disabled,
-    Free(String),
+    Free {
+        download_page_uuid: String
+    },
     Paid {
+        checkout_page_uuid: String,
         currency: Currency,
+        download_page_uuid: String,
         range: Range<f32>
     }
 }
 
 impl DownloadOption {
     pub fn init_free() -> DownloadOption {
-        let download_uuid = util::uuid();
-        
-        DownloadOption::Free(download_uuid)
+        DownloadOption::Free{
+            download_page_uuid: util::uuid()
+        }
     }
     
     pub fn init_paid(currency: Currency, range: Range<f32>) -> DownloadOption {
         DownloadOption::Paid {
+            checkout_page_uuid: util::uuid(),
             currency,
+            download_page_uuid: util::uuid(),
             range
         }
     }

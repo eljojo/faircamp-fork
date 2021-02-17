@@ -12,8 +12,6 @@ use crate::{
     release::Release
 };
 
-const PAYING_SUPPORTERS_TEXT: &str = "Paying supporters make a dignified life for artists possible, giving them some financial security in their life.";
-
 fn layout(page_depth: usize, body: &str, build_settings: &BuildSettings, catalog: &Catalog, title: &str) -> String {
     let root_prefix = "../".repeat(page_depth);
     let (feed_meta_link, feed_user_link) = match &build_settings.base_url.is_some() {
@@ -217,52 +215,7 @@ pub fn render_artists(build_settings: &BuildSettings, catalog: &Catalog) -> Stri
     layout(1, &body, build_settings, catalog, "Artists")
 }
 
-pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
-    let artists_rendered = list_artists(2, &release.artists);
-    
-    let release_cover_rendered = match &release.cover {
-        Some(image) => format!(
-            r#"<img alt="Release cover" class="cover" src="../../{filename}">"#,
-            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
-        ),
-        None => String::from(r#"<div class="cover"></div>"#)
-    };
-    
-    let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
-        .iter()
-        .map(|(label, annotation)|
-            formatdoc!(
-                r#"
-                    <div>
-                        <a download href="todo.zip">Download {label}{annotation}</a>
-                    </div>
-                "#,
-                annotation=annotation.as_ref().map(|annotation| annotation.as_str()).unwrap_or(""),
-                label=label
-            )
-        )
-        .collect::<Vec<String>>()
-        .join("\n");
-    
-    let body = formatdoc!(
-        r#"
-            {release_cover_rendered}
-            
-            <h1>Download {release_title}</h1>
-            <div>{artists_rendered}</div>
-            
-            {download_links}
-        "#,
-        artists_rendered=artists_rendered,
-        download_links=download_links,
-        release_cover_rendered=release_cover_rendered,
-        release_title=release.title
-    );
-    
-    layout(2, &body, build_settings, catalog, &release.title)
-}
-
-pub fn render_payment(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
+pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, release: &Release, download_page_uuid: &str) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
@@ -277,12 +230,31 @@ pub fn render_payment(build_settings: &BuildSettings, catalog: &Catalog, release
         .iter()
         .map(|option|
             match &option {
-                PaymentOption::Custom(html) => html.to_string(),
+                PaymentOption::Custom(html) => {
+                    format!(
+                        r#"
+                            <div>
+                                <div>{message}</div>
+                                <a href="../../download/{download_page_uuid}/">I have made the payment — Continue</a>
+                            </div>
+                        "#,
+                        download_page_uuid=download_page_uuid,
+                        message=html.to_string()
+                    )
+                },
                 PaymentOption::Liberapay(account_name) => {
                     let liberapay_url = format!("https://liberapay.com/{}", account_name);
                     
                     format!(
-                        r#"<div>Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a></div>"#,
+                        r#"
+                            <div>
+                                <div>
+                                    Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a>
+                                </div>
+                                <a href="../../download/{download_page_uuid}/">I have made the payment — Continue</a>
+                            </div>
+                        "#,
+                        download_page_uuid=download_page_uuid,
                         liberapay_url=liberapay_url
                     )
                 }
@@ -309,6 +281,52 @@ pub fn render_payment(build_settings: &BuildSettings, catalog: &Catalog, release
     layout(2, &body, build_settings, catalog, &release.title)
 }
 
+pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
+    let artists_rendered = list_artists(2, &release.artists);
+    
+    let release_cover_rendered = match &release.cover {
+        Some(image) => format!(
+            r#"<img alt="Release cover" class="cover" src="../../{filename}">"#,
+            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
+        ),
+        None => String::from(r#"<div class="cover"></div>"#)
+    };
+    
+    let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
+        .iter()
+        .map(|(format, annotation)|
+            formatdoc!(
+                r#"
+                    <div>
+                        <a download href="../../{filename}">Download {label}{annotation}</a>
+                    </div>
+                "#,
+                annotation=annotation.as_ref().map(|annotation| annotation.as_str()).unwrap_or(""),
+                filename=release.cached_assets.get(format).as_ref().unwrap().filename,
+                label=format.user_label()
+            )
+        )
+        .collect::<Vec<String>>()
+        .join("\n");
+    
+    let body = formatdoc!(
+        r#"
+            {release_cover_rendered}
+            
+            <h1>Download {release_title}</h1>
+            <div>{artists_rendered}</div>
+            
+            {download_links}
+        "#,
+        artists_rendered=artists_rendered,
+        download_links=download_links,
+        release_cover_rendered=release_cover_rendered,
+        release_title=release.title
+    );
+    
+    layout(2, &body, build_settings, catalog, &release.title)
+}
+
 pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(1, &release.artists);
     
@@ -323,17 +341,17 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
     // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
-        DownloadOption::Free(download_hash) => formatdoc!(
+        DownloadOption::Free { download_page_uuid } => formatdoc!(
             r#"
                 <div class="vpad">
-                    <a href="../download/{hash}/">Download Digital Release</a>
+                    <a href="../download/{download_page_uuid}/">Download Digital Release</a>
                     <div>{includes_text}</div>
                 </div>
             "#,
-            hash=download_hash,
+            download_page_uuid=download_page_uuid,
             includes_text=includes_text
         ),
-        DownloadOption::Paid { currency, range } => {
+        DownloadOption::Paid { checkout_page_uuid, currency, range, .. } => {
             let price_label = if range.end == f32::INFINITY {
                 if range.start > 0.0 {
                     format!(
@@ -372,12 +390,12 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
             formatdoc!(
                 r#"
                     <div class="vpad">
-                        <a href="../download/todo">Buy Digital Release</a> {price_label}
-                        <div>{includes_text} {paying_text}</div>
+                        <a href="../checkout/{checkout_page_uuid}/">Buy Digital Release</a> {price_label}
+                        <div>{includes_text}</div>
                     </div>
                 "#,
+                checkout_page_uuid=checkout_page_uuid,
                 includes_text=includes_text,
-                paying_text=PAYING_SUPPORTERS_TEXT,
                 price_label=price_label
             )
         }
@@ -485,9 +503,13 @@ pub fn render_releases(build_settings: &BuildSettings, catalog: &Catalog) -> Str
             formatdoc!(
                 r#"
                     <div>
-                        {release_cover_rendered}
-                        <a href="{release_slug}/">{release_title}</a>
-                        <div>{artists_rendered}</div>
+                        <a class="cover" href="{release_slug}/">
+                            {release_cover_rendered}
+                        </a>
+                        <div class="vpad">
+                            <a class="large" href="{release_slug}/">{release_title}</a>
+                            <div>{artists_rendered}</div>
+                        </div>
                     </div>
                 "#,
                 artists_rendered=artists_rendered,

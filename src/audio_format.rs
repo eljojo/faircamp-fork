@@ -12,7 +12,7 @@ pub enum AudioFormat {
     Wav
 }
 
-pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) -> Vec<(String, Option<String>)> {
+pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) -> Vec<(&AudioFormat, Option<String>)> {
     download_formats.clone().sort_by(|a, b| a.download_rank().cmp(&b.download_rank()));
     
     let mut recommendation_given = false;
@@ -27,7 +27,7 @@ pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) ->
                 None
             };
             
-            (format.user_label().to_string(), annotation)
+            (format, annotation)
         })
         .collect()
 }

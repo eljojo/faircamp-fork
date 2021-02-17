@@ -166,25 +166,24 @@ impl Release {
     pub fn write_files(&self, build_settings: &BuildSettings, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Disabled => (),
-            DownloadOption::Free(download_hash) => {
-                fs::create_dir_all(build_settings.build_dir.join("download").join(download_hash)).ok();
-                
-                let download_release_html = render::render_download(build_settings, &catalog, self);
-                fs::write(build_settings.build_dir.join("download").join(download_hash).join("index.html"), download_release_html).unwrap();
+            DownloadOption::Free { download_page_uuid }  => {
+                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uuid);
+                let download_html = render::render_download(build_settings, catalog, self);
+                util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
-            DownloadOption::Paid { .. } => {
-                fs::create_dir_all(build_settings.build_dir.join("download").join(&self.slug)).ok();
+            DownloadOption::Paid { checkout_page_uuid, download_page_uuid, .. } => {
+                let checkout_page_dir = build_settings.build_dir.join("checkout").join(checkout_page_uuid);
+                let checkout_html = render::render_checkout(build_settings, catalog, self, download_page_uuid);
+                util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
                 
-                let payment_release_html = render::render_payment(build_settings, &catalog, self);
-                fs::write(build_settings.build_dir.join("download").join(&self.slug).join("payment.html"), payment_release_html).unwrap();
-                
-                let download_release_html = render::render_download(build_settings, &catalog, self);
-                fs::write(build_settings.build_dir.join("download").join(&self.slug).join("index.html"), download_release_html).unwrap();
+                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uuid);
+                let download_html = render::render_download(build_settings, catalog, self);
+                util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
         }
         
+        let release_dir = build_settings.build_dir.join(&self.slug);
         let release_html = render::render_release(build_settings, catalog, self);
-        fs::create_dir(build_settings.build_dir.join(&self.slug)).ok();
-        fs::write(build_settings.build_dir.join(&self.slug).join("index.html"), release_html).unwrap();
+        util::ensure_dir_and_write_index(&release_dir, &release_html);
     }
 }
