@@ -72,7 +72,7 @@ impl Release {
                 let cached_format = self.cached_assets.get_mut(format);
                 
                 if cached_format.is_none() {
-                    let target_filename = format!("{}.zip", util::uuid());
+                    let target_filename = format!("{}.zip", util::nanoid());
                     
                     let zip_file = File::create(
                         build_settings.cache_dir.join(&target_filename)
@@ -166,17 +166,17 @@ impl Release {
     pub fn write_files(&self, build_settings: &BuildSettings, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Disabled => (),
-            DownloadOption::Free { download_page_uuid }  => {
-                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uuid);
+            DownloadOption::Free { download_page_nanoid }  => {
+                let download_page_dir = build_settings.build_dir.join("download").join(download_page_nanoid);
                 let download_html = render::render_download(build_settings, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
-            DownloadOption::Paid { checkout_page_uuid, download_page_uuid, .. } => {
-                let checkout_page_dir = build_settings.build_dir.join("checkout").join(checkout_page_uuid);
-                let checkout_html = render::render_checkout(build_settings, catalog, self, download_page_uuid);
+            DownloadOption::Paid { checkout_page_nanoid, download_page_nanoid, .. } => {
+                let checkout_page_dir = build_settings.build_dir.join("checkout").join(checkout_page_nanoid);
+                let checkout_html = render::render_checkout(build_settings, catalog, self, download_page_nanoid);
                 util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
                 
-                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uuid);
+                let download_page_dir = build_settings.build_dir.join("download").join(download_page_nanoid);
                 let download_html = render::render_download(build_settings, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }

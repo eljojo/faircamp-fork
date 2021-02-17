@@ -215,7 +215,7 @@ pub fn render_artists(build_settings: &BuildSettings, catalog: &Catalog) -> Stri
     layout(1, &body, build_settings, catalog, "Artists")
 }
 
-pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, release: &Release, download_page_uuid: &str) -> String {
+pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, release: &Release, download_page_nanoid: &str) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
@@ -235,10 +235,10 @@ pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, releas
                         r#"
                             <div>
                                 <div>{message}</div>
-                                <a href="../../download/{download_page_uuid}/">I have made the payment — Continue</a>
+                                <a href="../../download/{download_page_nanoid}/">I have made the payment — Continue</a>
                             </div>
                         "#,
-                        download_page_uuid=download_page_uuid,
+                        download_page_nanoid=download_page_nanoid,
                         message=html.to_string()
                     )
                 },
@@ -251,10 +251,10 @@ pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, releas
                                 <div>
                                     Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a>
                                 </div>
-                                <a href="../../download/{download_page_uuid}/">I have made the payment — Continue</a>
+                                <a href="../../download/{download_page_nanoid}/">I have made the payment — Continue</a>
                             </div>
                         "#,
-                        download_page_uuid=download_page_uuid,
+                        download_page_nanoid=download_page_nanoid,
                         liberapay_url=liberapay_url
                     )
                 }
@@ -341,17 +341,17 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
     // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
-        DownloadOption::Free { download_page_uuid } => formatdoc!(
+        DownloadOption::Free { download_page_nanoid } => formatdoc!(
             r#"
                 <div class="vpad">
-                    <a href="../download/{download_page_uuid}/">Download Digital Release</a>
+                    <a href="../download/{download_page_nanoid}/">Download Digital Release</a>
                     <div>{includes_text}</div>
                 </div>
             "#,
-            download_page_uuid=download_page_uuid,
+            download_page_nanoid=download_page_nanoid,
             includes_text=includes_text
         ),
-        DownloadOption::Paid { checkout_page_uuid, currency, range, .. } => {
+        DownloadOption::Paid { checkout_page_nanoid, currency, range, .. } => {
             let price_label = if range.end == f32::INFINITY {
                 if range.start > 0.0 {
                     format!(
@@ -390,11 +390,11 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
             formatdoc!(
                 r#"
                     <div class="vpad">
-                        <a href="../checkout/{checkout_page_uuid}/">Buy Digital Release</a> {price_label}
+                        <a href="../checkout/{checkout_page_nanoid}/">Buy Digital Release</a> {price_label}
                         <div>{includes_text}</div>
                     </div>
                 "#,
-                checkout_page_uuid=checkout_page_uuid,
+                checkout_page_nanoid=checkout_page_nanoid,
                 includes_text=includes_text,
                 price_label=price_label
             )

@@ -14,11 +14,11 @@ indoc = "1.0.3"
 iso_currency = "0.4.0"
 log = "0.4.14"
 metaflac = "0.2.4"
+nanoid = "0.3.0"
 pulldown-cmark = "0.8.0"
 rmp3 = "0.2.1"
 serde = "1.0.123"
 serde_derive = "1.0.123"
 slug = "0.1.4"
 url = "2.2.0"
-uuid = { features = ["v4"], version = "0.8.2" }
 zip = { features = ["deflate"], version = "0.5.10" }

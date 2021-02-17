@@ -42,7 +42,7 @@ impl Track {
         let cached_format = self.cached_assets.get_mut(format);
         
         if cached_format.is_none() {
-            let target_filename = format!("{}{}", util::uuid(), format.extension());
+            let target_filename = format!("{}{}", util::nanoid(), format.extension());
             
             message::transcoding(&format!("{:?} to {}", self.source_file, format));
             ffmpeg::transcode(

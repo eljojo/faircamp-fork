@@ -1,6 +1,6 @@
+use nanoid::nanoid;
 use pulldown_cmark::{html, Parser};
 use std::{fs, io, path::Path};
-use uuid::Uuid;
 
 const BYTES_KB: u64 = 1024; 
 const BYTES_MB: u64 = 1024 * BYTES_KB; 
@@ -49,6 +49,6 @@ pub fn remove_dir(dir: &Path) {
     };
 }
 
-pub fn uuid() -> String {
-    Uuid::new_v4().to_string()
+pub fn nanoid() -> String {
+    nanoid!(8)
 }
