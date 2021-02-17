@@ -12,6 +12,8 @@ use crate::{
     release::Release
 };
 
+const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
+
 fn layout(page_depth: usize, body: &str, build_settings: &BuildSettings, catalog: &Catalog, title: &str) -> String {
     let root_prefix = "../".repeat(page_depth);
     let (feed_meta_link, feed_user_link) = match &build_settings.base_url.is_some() {
@@ -80,7 +82,7 @@ pub fn render_about(build_settings: &BuildSettings, catalog: &Catalog) -> String
                 {share_widget}
             </div>
         "#,
-        share_widget=share_widget("about"), // TODO: As elsewhere - actual, full URL
+        share_widget=SHARE_WIDGET,
         text=text,
         title=title
     );
@@ -144,7 +146,7 @@ pub fn render_artist(build_settings: &BuildSettings, artist: &Rc<Artist>, catalo
         "#,
         artist_name=artist.name,
         releases_rendered=releases_rendered,
-        share_widget=share_widget(&artist.slug)
+        share_widget=SHARE_WIDGET
     );
     
     layout(1, &body, build_settings, catalog, &artist.name)
@@ -479,7 +481,7 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
         release_cover_rendered=release_cover_rendered,
         release_text=release.text.as_ref().unwrap_or(&String::new()),
         release_title=release.title,
-        share_widget=share_widget(&release.slug), // TODO: Build absolute url
+        share_widget=SHARE_WIDGET,
         tracks_rendered=tracks_rendered
     );
     
@@ -531,8 +533,4 @@ pub fn render_releases(build_settings: &BuildSettings, catalog: &Catalog) -> Str
     );
     
     layout(0, &body, build_settings, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
-}
-
-fn share_widget(url: &str) -> String {
-    format!(r#"<a class="disabled share" data-url="{}" title="Not available in your browser">Share</a>"#, url)
 }
