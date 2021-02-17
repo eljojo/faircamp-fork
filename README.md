@@ -35,11 +35,15 @@ recording within a release) level.
 
 ## Current development state
 
-Faircamp already does a lot of things (reading, transcoding, zipping, caching, rendering, deploying), and for testing purposes it's already fully usable. For anything productive you will want to wait a few more weeks though, as as of yet faircamp also does not yet do anything really well - for now it's a prototype and a demo!
+Faircamp already does a lot of things (reading, transcoding, zipping, caching, rendering, deploying), and for testing purposes faircamp can be stably run on the main branch. For anything productive you will want to wait a few more weeks though, as as of yet faircamp also does not yet do anything really well - for now it's a prototype and a demo!
 
 ## Early Documentation
 
 This documentation is still incomplete, in parts potentially inaccurate and subject to change.
+
+### Commandline arguments
+
+Consult `faircamp --help` for up-to-date information on that.
 
 ### Manifests
 
