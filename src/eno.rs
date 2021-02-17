@@ -11,8 +11,8 @@ pub enum Element {
 
 #[derive(Debug)]
 pub struct Entry {
-    key: String,
-    value: String
+    pub key: String,
+    pub value: String
 }
 
 #[derive(Debug)]

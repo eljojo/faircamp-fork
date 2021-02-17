@@ -116,6 +116,12 @@ disable_download
 > (This overrides download_price & disable_download and in practice would not be used along side these in the same manifest)
 free_download
 
+> This sets payment options that are shown when someone wants to buy one of your releases (for liberapay just provide your account name)
+payment_options:
+custom = I'm playing a show at *Substage Indenhoven* on Dec 19th - you can get the digital album now and meet me at the merch stand in december in person to give me the money yourself!
+custom = If you're in europe you can send the money via SEPA, contact me at [lila@thatawesomeartist42.com](mailto:lila@thatawesomeartist42.com) and I'll send you the account details
+liberapay = ThatAwesomeArtist42
+
 > Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
 streaming_quality: standard
 

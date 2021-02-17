@@ -209,11 +209,8 @@ impl Catalog {
             let release = Release::init(
                 release_artists,
                 cached_assets,
-                local_overrides.as_ref().unwrap_or(parent_overrides).download_formats.clone(),
-                local_overrides.as_ref().unwrap_or(parent_overrides).download_option.clone(),
                 images,
-                local_overrides.as_ref().unwrap_or(parent_overrides).streaming_format.clone(),
-                local_overrides.as_ref().unwrap_or(parent_overrides).release_text.clone(),
+                local_overrides.as_ref().unwrap_or(parent_overrides),
                 release_title_metrics
                     .pop()
                     .map(|(_count, title)| title) 

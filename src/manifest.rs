@@ -7,6 +7,7 @@ use crate::{
     download_option::DownloadOption,
     eno::{self, Element, FieldContent},
     message,
+    payment_option::PaymentOption,
     styles::{Theme, DARK_THEME, LIGHT_THEME}
 };
 
@@ -22,6 +23,7 @@ pub struct Globals {
 pub struct Overrides {
     pub download_option: DownloadOption,
     pub download_formats: Vec<AudioFormat>,
+    pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_text: Option<String>,
     pub streaming_format: AudioFormat,
@@ -45,6 +47,7 @@ impl Overrides {
         Overrides {
             download_option: DownloadOption::Disabled,
             download_formats: Vec::with_capacity(5),  // assuming e.g. MP3 320 + MP3 V0 + Ogg Vorbis + AAC + FLAC as a reasonably frequent choice
+            payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
             release_artists: None,
             release_text: None,
             streaming_format: AudioFormat::Mp3Cbr128,
@@ -63,6 +66,24 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             "disable_download" => overrides.download_option = DownloadOption::Disabled,
                             "free_download" => overrides.download_option = DownloadOption::init_free(),
                             key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                        }
+                        Element::Field { content: FieldContent::Entries(entries), key } => match key.as_str() {
+                            "payment_options" => {
+                                overrides.payment_options = entries
+                                    .iter()
+                                    .filter_map(|entry|
+                                        match entry.key.as_str() {
+                                            "custom" => Some(PaymentOption::init_custom(&entry.value)),
+                                            "liberapay" => Some(PaymentOption::init_liberapay(&entry.value)),
+                                            key => {
+                                                message::error(&format!("Ignoring unsupported payment_options entry '{key}' in manifest '{path:?}'", key=key, path=path));
+                                                None
+                                            }
+                                        }
+                                    )
+                                    .collect();
+                            }
+                            key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
                         Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
                             "download_formats" => {

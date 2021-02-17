@@ -8,6 +8,7 @@ use crate::{
     catalog::Catalog,
     download_option::DownloadOption,
     image_format::ImageFormat,
+    payment_option::PaymentOption,
     release::Release
 };
 
@@ -251,7 +252,6 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
             <div>{artists_rendered}</div>
             
             {download_links}
-            
         "#,
         artists_rendered=artists_rendered,
         download_links=download_links,
@@ -262,7 +262,52 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
     layout(2, &body, build_settings, catalog, &release.title)
 }
 
-
+pub fn render_payment(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
+    let artists_rendered = list_artists(2, &release.artists);
+    
+    let release_cover_rendered = match &release.cover {
+        Some(image) => format!(
+            r#"<img alt="Release cover" class="cover" src="../../{filename}">"#,
+            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
+        ),
+        None => String::from(r#"<div class="cover"></div>"#)
+    };
+    
+    let payment_options = &release.payment_options
+        .iter()
+        .map(|option|
+            match &option {
+                PaymentOption::Custom(html) => html.to_string(),
+                PaymentOption::Liberapay(account_name) => {
+                    let liberapay_url = format!("https://liberapay.com/{}", account_name);
+                    
+                    format!(
+                        r#"<div>Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a></div>"#,
+                        liberapay_url=liberapay_url
+                    )
+                }
+            }
+        )
+        .collect::<Vec<String>>()
+        .join("\n");
+    
+    let body = formatdoc!(
+        r#"
+            {release_cover_rendered}
+            
+            <h1>Buy {release_title}</h1>
+            <div>{artists_rendered}</div>
+            
+            {payment_options}
+        "#,
+        artists_rendered=artists_rendered,
+        payment_options=payment_options,
+        release_cover_rendered=release_cover_rendered,
+        release_title=release.title
+    );
+    
+    layout(2, &body, build_settings, catalog, &release.title)
+}
 
 pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(1, &release.artists);

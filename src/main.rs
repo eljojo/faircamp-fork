@@ -20,6 +20,7 @@ mod image;
 mod image_format;
 mod manifest;
 mod message;
+mod payment_option;
 mod release;
 mod render;
 mod rsync;

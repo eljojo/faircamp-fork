@@ -15,7 +15,9 @@ use crate::{
     download_option::DownloadOption,
     image::Image,
     image_format::ImageFormat,
+    manifest::Overrides,
     message,
+    payment_option::PaymentOption,
     render,
     track::Track,
     util
@@ -28,6 +30,7 @@ pub struct Release {
     pub cover: Option<Image>,
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
+    pub payment_options: Vec<PaymentOption>,
     pub slug: String,
     pub streaming_format: AudioFormat,
     pub text: Option<String>,
@@ -39,11 +42,8 @@ impl Release {
     pub fn init(
         artists: Vec<Rc<Artist>>,
         cached_assets: CachedReleaseAssets,
-        download_formats: Vec<AudioFormat>,
-        download_option: DownloadOption,
         mut images: Vec<Image>,
-        streaming_format: AudioFormat,
-        text: Option<String>,
+        manifest_overrides: &Overrides,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
@@ -55,11 +55,12 @@ impl Release {
             artists,
             cached_assets,
             cover: images.pop(),
-            download_formats,
-            download_option,
+            download_formats: manifest_overrides.download_formats.clone(),
+            download_option: manifest_overrides.download_option.clone(),
+            payment_options: manifest_overrides.payment_options.clone(),
             slug,
-            streaming_format,
-            text,
+            streaming_format: manifest_overrides.streaming_format.clone(),
+            text: manifest_overrides.release_text.clone(),
             title,
             tracks
         }
@@ -163,11 +164,23 @@ impl Release {
     }
     
     pub fn write_files(&self, build_settings: &BuildSettings, catalog: &Catalog) {
-        if let DownloadOption::Free(download_hash) = &self.download_option {
-            fs::create_dir_all(build_settings.build_dir.join("download").join(download_hash)).ok();
-            
-            let download_release_html = render::render_download(build_settings, &catalog, self);
-            fs::write(build_settings.build_dir.join("download").join(download_hash).join("index.html"), download_release_html).unwrap();
+        match &self.download_option {
+            DownloadOption::Disabled => (),
+            DownloadOption::Free(download_hash) => {
+                fs::create_dir_all(build_settings.build_dir.join("download").join(download_hash)).ok();
+                
+                let download_release_html = render::render_download(build_settings, &catalog, self);
+                fs::write(build_settings.build_dir.join("download").join(download_hash).join("index.html"), download_release_html).unwrap();
+            }
+            DownloadOption::Paid { .. } => {
+                fs::create_dir_all(build_settings.build_dir.join("download").join(&self.slug)).ok();
+                
+                let payment_release_html = render::render_payment(build_settings, &catalog, self);
+                fs::write(build_settings.build_dir.join("download").join(&self.slug).join("payment.html"), payment_release_html).unwrap();
+                
+                let download_release_html = render::render_download(build_settings, &catalog, self);
+                fs::write(build_settings.build_dir.join("download").join(&self.slug).join("index.html"), download_release_html).unwrap();
+            }
         }
         
         let release_html = render::render_release(build_settings, catalog, self);
