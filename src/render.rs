@@ -288,38 +288,54 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
             hash=download_hash,
             includes_text=includes_text
         ),
-        DownloadOption::NameYourPrice => formatdoc!(
-            r#"
-                <div class="vpad">
-                    <a href="../download/todo">Buy Digital Release</a> Name Your Price
-                    <div>{includes_text} {paying_text}</div>
-                </div>
-            "#,
-            includes_text=includes_text,
-            paying_text=PAYING_SUPPORTERS_TEXT
-        ),
-        DownloadOption::PayExactly(price) => formatdoc!(
-            r#"
-                <div class="vpad">
-                    <a href="../download/todo">Buy Digital Release</a> {price}
-                    <div>{includes_text} {paying_text}</div>
-                </div>
-            "#,
-            price=price,
-            includes_text=includes_text,
-            paying_text=PAYING_SUPPORTERS_TEXT
-        ),
-        DownloadOption::PayMinimum(price) => formatdoc!(
-            r#"
-                <div class="vpad">
-                    <a href="../download/todo">Buy Digital Release</a> {price} or more
-                    <div>{includes_text} {paying_text}</div>
-                </div>
-            "#,
-            price=price,
-            includes_text=includes_text,
-            paying_text=PAYING_SUPPORTERS_TEXT
-        )
+        DownloadOption::Paid { currency, range } => {
+            let price_label = if range.end == f32::INFINITY {
+                if range.start > 0.0 {
+                    format!(
+                        "{currency_symbol}{min_price} {currency_code} or more",
+                        currency_code=currency.code(),
+                        currency_symbol=currency.symbol(),
+                        min_price=range.start
+                    )
+                } else {
+                    format!("Name Your Price ({})", currency.code())
+                }
+            } else if range.start == range.end {
+                format!(
+                    "{currency_symbol}{price} {currency_code}",
+                    currency_code=currency.code(),
+                    currency_symbol=currency.symbol(),
+                    price=range.start
+                )
+            } else if range.start > 0.0 {
+                format!(
+                    "{currency_symbol}{min_price}-{currency_symbol}{max_price} {currency_code}",
+                    currency_code=currency.code(),
+                    currency_symbol=currency.symbol(),
+                    max_price=range.end,
+                    min_price=range.start
+                )
+            } else {
+                format!(
+                    "Up to {currency_symbol}{max_price} {currency_code}",
+                    currency_code=currency.code(),
+                    currency_symbol=currency.symbol(),
+                    max_price=range.end
+                )
+            };
+
+            formatdoc!(
+                r#"
+                    <div class="vpad">
+                        <a href="../download/todo">Buy Digital Release</a> {price_label}
+                        <div>{includes_text} {paying_text}</div>
+                    </div>
+                "#,
+                includes_text=includes_text,
+                paying_text=PAYING_SUPPORTERS_TEXT,
+                price_label=price_label
+            )
+        }
     };
     
     // TODO: Here and elsewhere DRY this up, repeats multiple times

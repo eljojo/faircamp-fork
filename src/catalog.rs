@@ -11,7 +11,6 @@ use crate::{
         CachedTrackAssets,
     },
     build_settings::BuildSettings,
-    download_option::DownloadOption,
     image::Image,
     image_format::ImageFormat,
     manifest::{Globals, Overrides},

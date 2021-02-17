@@ -73,7 +73,7 @@ everything in its containing folder `release_b`.
 
 ### Example manifest
 
-Note that this demonstrates only a subset of available options:
+Note that this demonstrates only a subset of available options, and because it is a demonstration, more options than you will usually see in a manifest:
 
 ```eno
 > Sets the URL under which you intend to host faircamp, only used for RSS feed generation
@@ -94,6 +94,23 @@ download_formats:
 - mp3_v0
 - ogg_vorbis
 - wav
+
+> This enables downloading of (a) release(s) behind a soft - i.e. not technically enforced - paycurtain (by default only streaming is enabled)
+> (Note that in practice this overrides free_download - it is shown in the same manifest here for the sake of showing the option)
+>
+> This setting accepts (in any order) a currency code (ISO 4217 [1]) and a price range as in these examples:
+> USD 0+ (Name your price, including zero dollars as a valid option)
+> 3.50 EUR (Exactly 3.50 euros)
+> KRW 9080 (Exactly 9080 south korean won)
+> INR 230+ (230 indian rupees or more)
+> JPY 400-800 (Between 400 and 800 japanese yen)
+>
+> [1] https://en.wikipedia.org/wiki/ISO_4217
+download_price: RUB 700+
+
+> This enables downloading of (a) release(s) unconditionally without mention of financial recompensation (by default only streaming is enabled)
+> (Note that in practice this overrides download_price - it is shown in the same manifest here for the sake of showing the option)
+free_download
 
 > Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
 streaming_quality: standard

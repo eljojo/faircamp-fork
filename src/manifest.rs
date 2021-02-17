@@ -1,3 +1,4 @@
+use iso_currency::Currency;
 use std::{fs, path::Path};
 use url::Url;
 
@@ -58,6 +59,11 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
             match eno::parse(&content) {
                 Ok(elements) => for element in elements {
                     match element {
+                        Element::Empty { key } => match key.as_str() {
+                            "disable_download" => overrides.download_option = DownloadOption::Disabled,
+                            "free_download" => overrides.download_option = DownloadOption::init_free(),
+                            key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                        }
                         Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
                             "download_formats" => {
                                 overrides.download_formats = items
@@ -130,17 +136,77 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                 
                                 globals.catalog_title = Some(value);      
                             }
-                            "download" => match value.as_str() {
-                                "disabled" => overrides.download_option = DownloadOption::Disabled,
-                                "free" => overrides.download_option = DownloadOption::init_free(),
-                                "anyprice" => overrides.download_option = DownloadOption::NameYourPrice,
-                                "minprice" => overrides.download_option = DownloadOption::PayMinimum("10 Republican Credits".to_string()),
-                                "exactprice" => overrides.download_option = DownloadOption::PayExactly("10 Republican Credits".to_string()),
-                                value => message::error(&format!("Ignoring invalid download setting value '{value}' in {path:?}", path=path, value=value))
-                            }
                             "download_format" => match AudioFormat::from_manifest_key(value.as_str()) {
                                 Some(format) => overrides.download_formats = vec![format],
                                 None => message::error(&format!("Ignoring invalid download_format setting value '{value}' in {path:?}", path=path, value=value))
+                            }
+                            "paid_download" =>  {
+                                let mut split_by_whitespace = value.split_ascii_whitespace();
+                                
+                                if let Some(first_token) = split_by_whitespace.next() {
+                                    if let Some(currency) = Currency::from_code(first_token) {
+                                        let recombined = &value[4..];
+                                        
+                                        if recombined.ends_with("+") {
+                                            if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
+                                                overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
+                                            } else {
+                                                message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                            }
+                                        } else {
+                                            let mut split_by_dash = recombined.split("-");
+                                            
+                                            if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
+                                                if let Some(max_amount) = split_by_dash.next() {
+                                                    if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
+                                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
+                                                    } else {
+                                                        message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                    }
+                                                } else {
+                                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
+                                                }
+                                            } else {
+                                                message::error(&format!("Ignoring paid_download option '{value}' with malformed price in {path:?}", path=path, value=value));
+                                            }
+                                        }
+                                    } else if let Some(last_token) = split_by_whitespace.last() {
+                                        if let Some(currency) = Currency::from_code(last_token) {
+                                            let recombined = &value[..(value.len() - 4)];
+                                            
+                                            // TODO: DRY - exact copy from above
+                                            if recombined.ends_with("+") {
+                                                if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
+                                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
+                                                } else {
+                                                    message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                }
+                                            } else {
+                                                let mut split_by_dash = recombined.split("-");
+                                                
+                                                if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
+                                                    if let Some(max_amount) = split_by_dash.next() {
+                                                        if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
+                                                            overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
+                                                        } else {
+                                                            message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                        }
+                                                    } else {
+                                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
+                                                    }
+                                                } else {
+                                                    message::error(&format!("Ignoring paid_download option '{value}' with malformed price in {path:?}", path=path, value=value));
+                                                }
+                                            }
+                                        } else {
+                                            message::error(&format!("Ignoring paid_download option '{value}' without recognizable currency code in {path:?}", path=path, value=value))
+                                        }
+                                    } else {
+                                        message::error(&format!("Ignoring unrecognized paid_download option '{value}' in {path:?}", path=path, value=value))
+                                    }
+                                } else {
+                                    message::error(&format!("Ignoring unrecognized paid_download option '{value}' in {path:?}", path=path, value=value))
+                                }
                             }
                             "release_artist" => overrides.release_artists = Some(vec![value]),
                             "release_text" => overrides.release_text = Some(value),
