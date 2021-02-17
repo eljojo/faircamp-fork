@@ -96,7 +96,7 @@ download_formats:
 - wav
 
 > This enables downloading of (a) release(s) behind a soft - i.e. not technically enforced - paycurtain (by default only streaming is enabled)
-> (Note that in practice this overrides free_download - it is shown in the same manifest here for the sake of showing the option)
+> (This overrides disable_download & free_download and in practice would not be used along side these in the same manifest)
 >
 > This setting accepts (in any order) a currency code (ISO 4217 [1]) and a price range as in these examples:
 > USD 0+ (Name your price, including zero dollars as a valid option)
@@ -108,8 +108,12 @@ download_formats:
 > [1] https://en.wikipedia.org/wiki/ISO_4217
 download_price: RUB 700+
 
+> This can be used to disable downloading (both free & paid) for specific releases (when it has been enabled in a manifest above in the hierarchy)
+> (This overrides download_price & free_download and in practice would not be used along side these in the same manifest)
+disable_download
+
 > This enables downloading of (a) release(s) unconditionally without mention of financial recompensation (by default only streaming is enabled)
-> (Note that in practice this overrides download_price - it is shown in the same manifest here for the sake of showing the option)
+> (This overrides download_price & disable_download and in practice would not be used along side these in the same manifest)
 free_download
 
 > Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
