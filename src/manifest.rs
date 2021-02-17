@@ -1,11 +1,9 @@
-use std::fs;
-use std::path::Path;
+use std::{fs, path::Path};
 use url::Url;
 
 use crate::{
     audio_format::AudioFormat,
     download_option::DownloadOption,
-    download_formats::DownloadFormats,
     eno::{self, Element, FieldContent},
     message,
     styles::{Theme, DARK_THEME, LIGHT_THEME}
@@ -22,7 +20,7 @@ pub struct Globals {
 #[derive(Clone)]
 pub struct Overrides {
     pub download_option: DownloadOption,
-    pub download_formats: DownloadFormats,
+    pub download_formats: Vec<AudioFormat>,
     pub release_artists: Option<Vec<String>>,
     pub release_text: Option<String>,
     pub streaming_format: AudioFormat,
@@ -45,7 +43,7 @@ impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
             download_option: DownloadOption::Disabled,
-            download_formats: DownloadFormats::none(),
+            download_formats: Vec::with_capacity(5),  // assuming e.g. MP3 320 + MP3 V0 + Ogg Vorbis + AAC + FLAC as a reasonably frequent choice
             release_artists: None,
             release_text: None,
             streaming_format: AudioFormat::Mp3Cbr128,
@@ -60,24 +58,21 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
             match eno::parse(&content) {
                 Ok(elements) => for element in elements {
                     match element {
-                        Element::Empty { key } => match key.as_str() {
-                            "disable_aac" => overrides.download_formats.aac = false,
-                            "disable_aiff" => overrides.download_formats.aiff = false,
-                            "disable_flac" => overrides.download_formats.flac = false,
-                            "disable_mp3_320" => overrides.download_formats.mp3_320 = false,
-                            "disable_mp3_v0" => overrides.download_formats.mp3_v0 = false,
-                            "disable_ogg_vorbis" => overrides.download_formats.ogg_vorbis = false,
-                            "disable_wav" => overrides.download_formats.wav = false,
-                            "enable_aac" => overrides.download_formats.aac = true,
-                            "enable_aiff" => overrides.download_formats.aiff = true,
-                            "enable_flac" => overrides.download_formats.flac = true,
-                            "enable_mp3_320" => overrides.download_formats.mp3_320 = true,
-                            "enable_mp3_v0" => overrides.download_formats.mp3_v0 = true,
-                            "enable_ogg_vorbis" => overrides.download_formats.ogg_vorbis = true,
-                            "enable_wav" => overrides.download_formats.wav = true,
-                            key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
-                        }
                         Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
+                            "download_formats" => {
+                                overrides.download_formats = items
+                                    .iter()
+                                    .filter_map(|key|
+                                        match AudioFormat::from_manifest_key(key.as_str()) {
+                                            None => {
+                                                message::error(&format!("Ignoring invalid download_formats setting value '{key}' in {path:?}", key=key, path=path));
+                                                None
+                                            }
+                                            some_format => some_format
+                                        }
+                                    )
+                                    .collect();
+                            }
                             "release_artists" => overrides.release_artists = Some(items),
                             "track_artists" => overrides.release_artists = Some(items),
                             key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
@@ -135,15 +130,17 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                 
                                 globals.catalog_title = Some(value);      
                             }
-                            "download" => {
-                                match value.as_str() {
-                                    "disabled" => overrides.download_option = DownloadOption::Disabled,
-                                    "free" => overrides.download_option = DownloadOption::init_free(),
-                                    "anyprice" => overrides.download_option = DownloadOption::NameYourPrice,
-                                    "minprice" => overrides.download_option = DownloadOption::PayMinimum("10 Republican Credits".to_string()),
-                                    "exactprice" => overrides.download_option = DownloadOption::PayExactly("10 Republican Credits".to_string()),
-                                    value => message::error(&format!("Ignoring invalid download setting value '{value}' in {path:?}", path=path, value=value))
-                                }
+                            "download" => match value.as_str() {
+                                "disabled" => overrides.download_option = DownloadOption::Disabled,
+                                "free" => overrides.download_option = DownloadOption::init_free(),
+                                "anyprice" => overrides.download_option = DownloadOption::NameYourPrice,
+                                "minprice" => overrides.download_option = DownloadOption::PayMinimum("10 Republican Credits".to_string()),
+                                "exactprice" => overrides.download_option = DownloadOption::PayExactly("10 Republican Credits".to_string()),
+                                value => message::error(&format!("Ignoring invalid download setting value '{value}' in {path:?}", path=path, value=value))
+                            }
+                            "download_format" => match AudioFormat::from_manifest_key(value.as_str()) {
+                                Some(format) => overrides.download_formats = vec![format],
+                                None => message::error(&format!("Ignoring invalid download_format setting value '{value}' in {path:?}", path=path, value=value))
                             }
                             "release_artist" => overrides.release_artists = Some(vec![value]),
                             "release_text" => overrides.release_text = Some(value),

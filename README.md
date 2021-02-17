@@ -85,6 +85,16 @@ catalog_text: My self hosted faircamp site, which presents some of my awesome mu
 > Sets the title of your site, appears at the title of browser tabs, inside the RSS feed, etc.
 catalog_title: My awesome music
 
+> Enable all download formats for demonstration purposes (in practice less is recommended, e.g. flac + mp3_v0 + ogg_vorbis)
+download_formats:
+- aac
+- aiff
+- flac
+- mp3_320
+- mp3_v0
+- ogg_vorbis
+- wav
+
 > Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
 streaming_quality: standard
 

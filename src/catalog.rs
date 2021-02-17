@@ -10,7 +10,6 @@ use crate::{
         CacheManifest,
         CachedTrackAssets,
     },
-    audio_format::AudioFormat,
     build_settings::BuildSettings,
     download_option::DownloadOption,
     image::Image,
@@ -318,41 +317,8 @@ impl Catalog {
                 
                 build_settings.stats.add_track(streaming_asset.filesize_bytes);
             }
-                
-                
-            if release.download_option != DownloadOption::Disabled {
-                if release.download_formats.aac {
-                    release.zip(build_settings, &AudioFormat::Aac).unwrap();
-                }
-                
-                if release.download_formats.aiff {
-                    release.zip(build_settings, &AudioFormat::Aiff).unwrap();
-                }
-                
-                if release.download_formats.flac {
-                    release.zip(build_settings, &AudioFormat::Flac).unwrap();
-                }
-                
-                if release.download_formats.mp3_128 {
-                    release.zip(build_settings, &AudioFormat::Mp3Cbr128).unwrap();
-                }
-                
-                if release.download_formats.mp3_320 {
-                    release.zip(build_settings, &AudioFormat::Mp3Cbr320).unwrap();
-                }
-                
-                if release.download_formats.mp3_v0 {
-                    release.zip(build_settings, &AudioFormat::Mp3VbrV0).unwrap();
-                }
-                
-                if release.download_formats.ogg_vorbis {
-                    release.zip(build_settings, &AudioFormat::OggVorbis).unwrap();
-                }
-                
-                if release.download_formats.wav {
-                    release.zip(build_settings, &AudioFormat::Wav).unwrap();
-                }
-            }
+            
+            release.write_download_archives(build_settings);
         }
     }
 }

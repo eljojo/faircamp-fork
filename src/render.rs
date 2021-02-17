@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::{
     artist::Artist,
+    audio_format,
     build_settings::BuildSettings,
     catalog::Catalog,
     download_option::DownloadOption,
@@ -226,43 +227,18 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
         None => String::from(r#"<div class="cover"></div>"#)
     };
     
-    // TODO: Possibly DRY this up (used in a very similar fashion in render_release)
-    let format_availability = &[
-        (true, release.download_formats.mp3_v0, "MP3 (VBR/V0)"),
-        (true, release.download_formats.mp3_320, "MP3 (CBR/320kbps)"),
-        (false, release.download_formats.mp3_128, "MP3 (CBR/128kbps)"),
-        (true, release.download_formats.ogg_vorbis, "Ogg Vorbis"),
-        (true, release.download_formats.flac, "FLAC"),
-        (false, release.download_formats.wav, "WAV"),
-        (false, release.download_formats.aiff, "AIFF"),
-        (false, release.download_formats.aac, "AAC")
-    ];
-    
-    let mut recommendation_given = false;
-    
-    let download_links = format_availability
+    let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
         .iter()
-        .filter_map(|(recommendable, enabled, label)|
-            if *enabled { 
-                Some(
-                    formatdoc!(
-                        r#"
-                            <div>
-                                <a download href="todo.zip">Download {label}{recommendation}</a>
-                            </div>
-                        "#,
-                        label=label,
-                        recommendation=if *recommendable && !recommendation_given {
-                            recommendation_given = true;
-                            " - Recommended Format"
-                        } else {
-                            ""
-                        }
-                    )
-                )
-            } else {
-                None
-            }
+        .map(|(label, annotation)|
+            formatdoc!(
+                r#"
+                    <div>
+                        <a download href="todo.zip">Download {label}{annotation}</a>
+                    </div>
+                "#,
+                annotation=annotation.as_ref().map(|annotation| annotation.as_str()).unwrap_or(""),
+                label=label
+            )
         )
         .collect::<Vec<String>>()
         .join("\n");
@@ -291,29 +267,13 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
 pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(1, &release.artists);
     
-    let format_availability = &[
-        (release.download_formats.aac, "AAC"),
-        (release.download_formats.flac, "FLAC"),
-        (
-            release.download_formats.mp3_128 ||
-            release.download_formats.mp3_320 ||
-            release.download_formats.mp3_v0,
-            "MP3"
-        ),
-        (release.download_formats.ogg_vorbis, "Ogg Vorbis")
-    ];
-    
-    let includes_text = if format_availability.iter().any(|(enabled, _label)| *enabled) {
-        let formats_list = format_availability
-            .iter()
-            .filter_map(|(enabled, label)| if *enabled { Some(label.to_string()) } else { None })
-            .collect::<Vec<String>>()
-            .join(",");
+    let formats_list = release.download_formats
+        .iter()
+        .map(|format| format.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
         
-        format!("Includes high-quality download as {}", formats_list)
-    } else {
-        String::from("Includes medium-quality download as MP3 128")
-    };
+    let includes_text = format!("Available Formats: {}", formats_list);
     
     // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
