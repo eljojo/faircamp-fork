@@ -1,5 +1,16 @@
 use std::fmt;
 
+pub const AUDIO_FORMATS: &[AudioFormat] = &[
+    AudioFormat::Aac,
+    AudioFormat::Aiff,
+    AudioFormat::Flac,
+    AudioFormat::Mp3Cbr128,
+    AudioFormat::Mp3Cbr320,
+    AudioFormat::Mp3VbrV0,
+    AudioFormat::OggVorbis,
+    AudioFormat::Wav
+];
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum AudioFormat {
     Aac,

@@ -45,12 +45,17 @@ fn main() {
     let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
     
     if args.analyze_cache {
-        cache_manifest.report_unused_assets();
+        asset_cache::analyze_cache(&cache_manifest, &Catalog::init_empty());
         return;
     }
     
     if args.optimize_cache {
-        asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest, &CacheOptimization::Immediate);
+        asset_cache::optimize_cache(
+            &build_settings.cache_dir,
+            &mut cache_manifest,
+            &CacheOptimization::Immediate,
+            &mut Catalog::init_empty()
+        );
         return;
     }
     
@@ -64,7 +69,9 @@ fn main() {
         return;
     }
     
-    let mut catalog = Catalog::read(&mut build_settings, &cache_manifest);
+    cache_manifest.mark_all_stale();
+    
+    let mut catalog = Catalog::read(&mut build_settings, &mut cache_manifest);
     
     util::ensure_empty_dir(&build_settings.build_dir);
     
@@ -126,19 +133,14 @@ fn main() {
     
     match build_settings.cache_optimization {
         CacheOptimization::Delayed | CacheOptimization::Immediate => {
-            // TODO: Presently during Catalog::read() we create Cached*Assets that are not 
-            //       added/tracked within the global manifest retrieved on build begin (not
-            //       within that same build run that is), therefore these assets are excluded
-            //       from optimization currently - need to do some architectural changes for
-            //       this.
-            // TODO: Further this means that if assets are read from the manifest and then
-            //       cloned to the Catalog tree they are only marked as non-stale in the
-            //       catalog tree - but not in the original manifest which still lives -
-            //       and thus with CacheOptimization::Immediate they are immediately wiped,
-            //       although they should not.
-            asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest, &build_settings.cache_optimization);
+            asset_cache::optimize_cache(
+                &build_settings.cache_dir,
+                &mut cache_manifest,
+                &build_settings.cache_optimization,
+                &mut catalog
+            );
         }
-        CacheOptimization::Manual => cache_manifest.report_unused_assets(),
+        CacheOptimization::Manual => asset_cache::analyze_cache(&cache_manifest, &catalog),
         CacheOptimization::Wipe => {
             util::remove_dir(&build_settings.cache_dir);
             message::cache(&format!("Wiped cache"));

@@ -32,7 +32,7 @@ pub struct Catalog {
 }
 
 impl Catalog {
-    fn init_empty() -> Catalog {
+    pub fn init_empty() -> Catalog {
         Catalog {
             artists: Vec::new(),
             images: Vec::new(),
@@ -42,7 +42,7 @@ impl Catalog {
         }
     }
     
-    pub fn read(build_settings: &mut BuildSettings, cache_manifest: &CacheManifest) -> Catalog {
+    pub fn read(build_settings: &mut BuildSettings, cache_manifest: &mut CacheManifest) -> Catalog {
         let mut catalog = Catalog::init_empty();
         let mut globals = Globals::empty();
         
@@ -68,7 +68,7 @@ impl Catalog {
     fn read_dir(
         &mut self,
         dir: &Path,
-        cache_manifest: &CacheManifest,
+        cache_manifest: &mut CacheManifest,
         globals: &mut Globals,
         parent_overrides: &Overrides
     ) -> Result<(), String> {

@@ -7,7 +7,7 @@ use std::{
 use crate::{
     artist::Artist,
     asset_cache::{Asset, CacheManifest, SourceFileSignature},
-    audio_format::AudioFormat,
+    audio_format::{AUDIO_FORMATS, AudioFormat},
     audio_meta::AudioMeta,
     ffmpeg::{self, MediaFormat},
     message,
@@ -42,22 +42,10 @@ pub struct Track {
 
 impl CachedTrackAssets {
     pub fn deserialize(path: &Path) -> Option<CachedTrackAssets> {
-        if let Ok(bytes) = fs::read(path) {
-            if let Ok(mut cached_assets) = bincode::deserialize::<CachedTrackAssets>(&bytes) {
-                cached_assets.aac.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.aiff.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.flac.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.mp3_128.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.mp3_320.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.mp3_v0.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.ogg_vorbis.iter_mut().for_each(|asset| asset.mark_stale());
-                cached_assets.wav.iter_mut().for_each(|asset| asset.mark_stale());
-                
-                return Some(cached_assets);
-            }
+        match fs::read(path) {
+            Ok(bytes) => bincode::deserialize::<CachedTrackAssets>(&bytes).ok(),
+            Err(_) => None
         }
-        
-        None
     }
     
     pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
@@ -89,6 +77,14 @@ impl CachedTrackAssets {
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
         cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR).join(filename)
+    }
+    
+    pub fn mark_all_stale(&mut self) {
+        for format in AUDIO_FORMATS {
+            if let Some(asset) = self.get_mut(format) {
+                asset.mark_stale();
+            }
+        }
     }
 
     pub fn new(source_file_signature: SourceFileSignature, source_meta: AudioMeta) -> CachedTrackAssets {

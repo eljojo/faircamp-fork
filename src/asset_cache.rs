@@ -7,8 +7,9 @@ use std::{
 };
 
 use crate::{
-    audio_format::AudioFormat,
+    audio_format::AUDIO_FORMATS,
     audio_meta::AudioMeta,
+    catalog::Catalog,
     image::CachedImageAssets,
     message,
     release::{CachedReleaseAssets},
@@ -46,89 +47,189 @@ pub struct SourceFileSignature {
     pub size: u64
 }
 
-pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest, cache_optimization: &CacheOptimization) {
+pub fn analyze_cache(cache_manifest: &CacheManifest, catalog: &Catalog) {
+    let mut num_unused = 0;
+    let mut unused_bytesize = 0;
+    
+    for cached_assets in &cache_manifest.images {
+        analyze_image_assets(cached_assets, &mut num_unused, &mut unused_bytesize);
+    }
+    
+    for cached_assets in &cache_manifest.releases {
+        analyze_release_assets(cached_assets, &mut num_unused, &mut unused_bytesize);
+    }
+    
+    for cached_assets in &cache_manifest.tracks {
+        analyze_track_assets(cached_assets, &mut num_unused, &mut unused_bytesize);
+    }
+    
+    for release in &catalog.releases {
+        if let Some(image) = &release.cover {
+            analyze_image_assets(&image.cached_assets, &mut num_unused, &mut unused_bytesize);
+        }
+        
+        for track in &release.tracks {
+            analyze_track_assets(&track.cached_assets, &mut num_unused, &mut unused_bytesize);
+        }
+        
+        analyze_release_assets(&release.cached_assets, &mut num_unused, &mut unused_bytesize);
+    }
+    
+    if num_unused > 0 {
+        message::cache(&format!(
+            "{num_unused} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {unused_bytesize} of disk space.",
+            num_unused=num_unused,
+            unused_bytesize=util::format_bytes(unused_bytesize)
+        ));
+    } else {
+        message::cache(&format!("No cached assets identied as obsolete."));
+    }
+}
+
+pub fn analyze_image_assets(cached_assets: &CachedImageAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
+    if let Some(filesize_bytes) = cached_assets.jpeg
+        .as_ref()
+        .filter(|asset| asset.obsolete(&CacheOptimization::Manual))
+        .map(|asset| asset.filesize_bytes) {
+        *num_unused += 1;
+        *unused_bytesize += filesize_bytes;
+    }
+}
+
+pub fn analyze_release_assets(cached_assets: &CachedReleaseAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
+    for format in AUDIO_FORMATS {
+        let cached_format = cached_assets.get(format);
+        
+        if let Some(filesize_bytes) = cached_format
+            .as_ref()
+            .filter(|asset| asset.obsolete(&CacheOptimization::Manual))
+            .map(|asset| asset.filesize_bytes) {
+            *num_unused += 1;
+            *unused_bytesize += filesize_bytes;
+        }
+    }
+}
+
+pub fn analyze_track_assets(cached_assets: &CachedTrackAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
+    for format in AUDIO_FORMATS {
+        let cached_format = cached_assets.get(format);
+        
+        if let Some(filesize_bytes) = cached_format
+            .as_ref()
+            .filter(|asset| asset.obsolete(&CacheOptimization::Manual))
+            .map(|asset| asset.filesize_bytes) {
+            *num_unused += 1;
+            *unused_bytesize += filesize_bytes;
+        }
+    }
+}
+    
+pub fn optimize_cache(
+    cache_dir: &Path,
+    cache_manifest: &mut CacheManifest,
+    cache_optimization: &CacheOptimization,
+    catalog: &mut Catalog
+) {
     for cached_assets in cache_manifest.images.iter_mut() {
-        if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete(cache_optimization)).is_some() {
-            if let Some(asset) = cached_assets.jpeg.take() {
-                message::cache(&format!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(asset.filename));
-            }
-            
-            util::remove_file(&cached_assets.manifest_path(cache_dir));
-        }    
+        optimize_image_assets(cached_assets, cache_dir, cache_optimization);
     }
     
     for cached_assets in cache_manifest.releases.iter_mut() {
-        let mut keep_container = false;
-        
-        for format in &[
-            AudioFormat::Aac,
-            AudioFormat::Aiff,
-            AudioFormat::Flac,
-            AudioFormat::Mp3Cbr128,
-            AudioFormat::Mp3Cbr320,
-            AudioFormat::Mp3VbrV0,
-            AudioFormat::OggVorbis,
-            AudioFormat::Wav
-        ] {
-            let cached_format = cached_assets.get_mut(&format);
-            
-            match cached_format.as_ref().map(|asset| asset.obsolete(cache_optimization)) {
-                Some(true) => {
-                    util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
-                    message::cache(&format!(
-                        "Removed cached release asset ({}) for archive with {} tracks.",
-                        format,
-                        cached_assets.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
-                                                                    //       Possibly indication that Release + CachedReleaseAssets should be merged together (?) (and same story with Image/Track)
-                    ));
-                }
-                Some(false) => keep_container = true,
-                None => ()
-            }
-        }
-        
-        if keep_container {
-            cached_assets.persist(cache_dir);
-        } else {
-            util::remove_file(&cached_assets.manifest_path(cache_dir));
-        }
+        optimize_release_assets(cached_assets, cache_dir, cache_optimization);
     }
     
     for cached_assets in cache_manifest.tracks.iter_mut() {
-        let mut keep_container = false;
+        optimize_track_assets(cached_assets, cache_dir, cache_optimization);
+    }
+    
+    for release in catalog.releases.iter_mut() {
+        if let Some(image) = &mut release.cover {
+            optimize_image_assets(&mut image.cached_assets, cache_dir, cache_optimization);
+        }
         
-        for format in &[
-            AudioFormat::Aac,
-            AudioFormat::Aiff,
-            AudioFormat::Flac,
-            AudioFormat::Mp3Cbr128,
-            AudioFormat::Mp3Cbr320,
-            AudioFormat::Mp3VbrV0,
-            AudioFormat::OggVorbis,
-            AudioFormat::Wav
-        ] {
-            let cached_format = cached_assets.get_mut(&format);
-            
-            match cached_format.as_ref().map(|asset| asset.obsolete(cache_optimization)) {
-                Some(true) => {
-                    util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
-                    message::cache(&format!(
-                        "Removed cached track asset ({}) for {}.",
-                        format,
-                        cached_assets.source_file_signature.path.display()
-                    ));
-                }
-                Some(false) => keep_container = true,
-                None => ()
+        for track in release.tracks.iter_mut() {
+            optimize_track_assets(&mut track.cached_assets, cache_dir, cache_optimization);
+        }
+        
+        optimize_release_assets(&mut release.cached_assets, cache_dir, cache_optimization);
+    }
+}
+
+pub fn optimize_image_assets(
+    cached_assets: &mut CachedImageAssets,
+    cache_dir: &Path,
+    cache_optimization: &CacheOptimization
+) {
+    if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete(cache_optimization)).is_some() {
+        if let Some(asset) = cached_assets.jpeg.take() {
+            message::cache(&format!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display()));
+            util::remove_file(&cache_dir.join(asset.filename));
+        }
+        
+        util::remove_file(&cached_assets.manifest_path(cache_dir));
+    }   
+}
+
+pub fn optimize_release_assets(
+    cached_assets: &mut CachedReleaseAssets,
+    cache_dir: &Path,
+    cache_optimization: &CacheOptimization
+) {
+    let mut keep_container = false;
+    
+    for format in AUDIO_FORMATS {
+        let cached_format = cached_assets.get_mut(&format);
+        
+        match cached_format.as_ref().map(|asset| asset.obsolete(cache_optimization)) {
+            Some(true) => {
+                util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
+                message::cache(&format!(
+                    "Removed cached release asset ({}) for archive with {} tracks.",
+                    format,
+                    cached_assets.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
+                                                                //       Possibly indication that Release + CachedReleaseAssets should be merged together (?) (and same story with Image/Track)
+                ));
             }
+            Some(false) => keep_container = true,
+            None => ()
         }
+    }
+    
+    if keep_container {
+        cached_assets.persist(cache_dir);
+    } else {
+        util::remove_file(&cached_assets.manifest_path(cache_dir));
+    }
+}
+
+pub fn optimize_track_assets(
+    cached_assets: &mut CachedTrackAssets,
+    cache_dir: &Path,
+    cache_optimization: &CacheOptimization
+) {
+    let mut keep_container = false;
+    
+    for format in AUDIO_FORMATS {
+        let cached_format = cached_assets.get_mut(&format);
         
-        if keep_container {
-            cached_assets.persist(cache_dir);
-        } else {
-            util::remove_file(&cached_assets.manifest_path(cache_dir));
+        match cached_format.as_ref().map(|asset| asset.obsolete(cache_optimization)) {
+            Some(true) => {
+                util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
+                message::cache(&format!(
+                    "Removed cached track asset ({}) for {}.",
+                    format,
+                    cached_assets.source_file_signature.path.display()
+                ));
+            }
+            Some(false) => keep_container = true,
+            None => ()
         }
+    }
+    
+    if keep_container {
+        cached_assets.persist(cache_dir);
+    } else {
+        util::remove_file(&cached_assets.manifest_path(cache_dir));
     }
 }
 
@@ -180,106 +281,62 @@ impl CacheManifest {
         util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR));
     }
     
-    // TODO: This is basically identical with get_track_assets(...) below - unify this via generics or enum or something
-    pub fn get_image_assets(&self, source_path: &Path) -> CachedImageAssets {
+    pub fn get_image_assets(&mut self, source_path: &Path) -> CachedImageAssets {
         let source_file_signature = SourceFileSignature::init(source_path);
         
-        self.images
-            .iter()
-            .find(|cached_assets| cached_assets.source_file_signature == source_file_signature)
-            .map(|cached_assets| cached_assets.clone())
-            .unwrap_or_else(|| CachedImageAssets::new(source_file_signature))
+        match self.images.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
+            Some(index) => self.images.swap_remove(index),
+            None => CachedImageAssets::new(source_file_signature)
+        }
     }
     
-    pub fn get_release_assets(&self, tracks: &Vec<Track>) -> CachedReleaseAssets {
-        self.releases
+    pub fn get_release_assets(&mut self, tracks: &Vec<Track>) -> CachedReleaseAssets {
+        match self.releases
             .iter()
-            .find(|cached_assets| {
+            .position(|cached_assets| {
                 tracks
                     .iter()
                     .zip(cached_assets.source_file_signatures.iter())
                     .all(|(track, source_file_signature)| {
                         &track.cached_assets.source_file_signature == source_file_signature
                     })
-            })
-            .map(|cached_assets| cached_assets.clone())
-            .unwrap_or_else(|| {
+            }) {
+            Some(index) => self.releases.swap_remove(index),
+            None => {
                 CachedReleaseAssets::new(
                     tracks
                         .iter()
                         .map(|track| track.cached_assets.source_file_signature.clone())
                         .collect()
                 )
-            })
+            }
+        }
     }
     
-    pub fn get_track_assets(&self, source_path: &Path, extension: &str) -> CachedTrackAssets {
+    pub fn get_track_assets(&mut self, source_path: &Path, extension: &str) -> CachedTrackAssets {
         let source_file_signature = SourceFileSignature::init(source_path);
         
-        self.tracks
-            .iter()
-            .find(|cached_assets| cached_assets.source_file_signature == source_file_signature)
-            .map(|cached_assets| cached_assets.clone())
-            .unwrap_or_else(|| {
+        match self.tracks.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
+            Some(index) => self.tracks.swap_remove(index),
+            None => {
                 let source_meta = AudioMeta::extract(source_path, extension);
-                
                 CachedTrackAssets::new(source_file_signature, source_meta)
-            })
+            }
+        }
     }
     
-    pub fn report_unused_assets(&self) {
-        let mut num_unused = 0;
-        let mut unused_bytesize = 0;
-        
-        for image in &self.images {
-            if let Some(filesize_bytes) = image.jpeg.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-        }
-        for track in &self.tracks {
-            if let Some(filesize_bytes) = track.aac.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.aiff.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.flac.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.mp3_128.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.mp3_320.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.mp3_v0.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.ogg_vorbis.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
-            if let Some(filesize_bytes) = track.wav.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
-                num_unused += 1;
-                unused_bytesize += filesize_bytes;
-            }
+    // TODO: Mark all stale at the same instant? (= build begin time) - avoids constant DateTime generation and slight date shifts which are irrelevant/confusing for this
+    pub fn mark_all_stale(&mut self) {
+        for cached_assets in self.images.iter_mut() {
+            cached_assets.mark_all_stale();
         }
         
-        if num_unused > 0 {
-            message::cache(&format!(
-                "{num_unused} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {unused_bytesize} of disk space.",
-                num_unused=num_unused,
-                unused_bytesize=util::format_bytes(unused_bytesize)
-            ));
-        } else {
-            message::cache(&format!("No cached assets identied as obsolete."));
+        for cached_assets in self.releases.iter_mut() {
+            cached_assets.mark_all_stale();
+        }
+        
+        for cached_assets in self.tracks.iter_mut() {
+            cached_assets.mark_all_stale();
         }
     }
         

@@ -26,15 +26,10 @@ pub struct Image {
 
 impl CachedImageAssets {
     pub fn deserialize(path: &Path) -> Option<CachedImageAssets> {
-        if let Ok(bytes) = fs::read(path) {
-            if let Ok(mut cached_assets) = bincode::deserialize::<CachedImageAssets>(&bytes) {
-                cached_assets.jpeg.iter_mut().for_each(|asset| asset.mark_stale());
-                
-                return Some(cached_assets);
-            }
+        match fs::read(path) {
+            Ok(bytes) => bincode::deserialize::<CachedImageAssets>(&bytes).ok(),
+            Err(_) => None
         }
-        
-        None
     }
     
     pub fn get(&self, format: &ImageFormat) -> &Option<Asset> {
@@ -52,6 +47,12 @@ impl CachedImageAssets {
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
         cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR).join(filename)
+    }
+    
+    pub fn mark_all_stale(&mut self) {
+        if let Some(asset) = self.jpeg.as_mut() {
+            asset.mark_stale();
+        }
     }
     
     pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
