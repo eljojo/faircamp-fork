@@ -3,6 +3,7 @@ use std::{fs, path::Path};
 use url::Url;
 
 use crate::{
+    asset_cache::CacheOptimization,
     audio_format::AudioFormat,
     download_option::DownloadOption,
     eno::{self, Element, FieldContent},
@@ -14,6 +15,7 @@ use crate::{
 pub struct Globals {
     pub background_image: Option<String>,
     pub base_url: Option<Url>,
+    pub cache_optimization: Option<CacheOptimization>,
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>,
     pub theme: Option<Theme>
@@ -35,6 +37,7 @@ impl Globals {
         Globals {
             background_image: None,
             base_url: None,
+            cache_optimization: None,
             catalog_text: None,
             catalog_title: None,
             theme: None
@@ -134,6 +137,20 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                         err=err
                                     ));
                                 }
+                            }
+                            "cache_optimization" => match CacheOptimization::from_manifest_key(value.as_str()) {
+                                Some(strategy) => {
+                                    if let Some(previous_strategy) = &globals.cache_optimization {
+                                        message::warning(&format!(
+                                            "Global 'cache_optimization' is set more than once ('{previous_strategy}', '{new_strategy}')",
+                                            previous_strategy=previous_strategy,
+                                            new_strategy=strategy
+                                        ));
+                                    }
+                                    
+                                    globals.cache_optimization = Some(strategy);
+                                }
+                                None => message::error(&format!("Ignoring invalid cache_optimization setting '{value}' (available: delayed, immediate, manual, wipe) in {path:?}", path=path, value=value))
                             }
                             "catalog_text" => {
                                 if let Some(previous_text) = &globals.catalog_text {

@@ -51,6 +51,10 @@ impl Catalog {
         build_settings.background_image = globals.background_image;
         build_settings.base_url = globals.base_url;
         
+        if let Some(strategy) = globals.cache_optimization {
+            build_settings.cache_optimization = strategy;
+        }
+        
         if let Some(theme) = globals.theme {
             build_settings.theme = theme;
         }

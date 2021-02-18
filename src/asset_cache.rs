@@ -1,5 +1,6 @@
 use chrono::{DateTime, Duration, Utc};
 use std::{
+    fmt,
     fs,
     path::{Path, PathBuf},
     time::SystemTime
@@ -29,6 +30,13 @@ pub struct CacheManifest {
     pub tracks: Vec<CachedTrackAssets>
 }
 
+pub enum CacheOptimization {
+    Delayed,
+    Immediate,
+    Manual,
+    Wipe
+}
+
 // TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SourceFileSignature {
@@ -38,9 +46,9 @@ pub struct SourceFileSignature {
     pub size: u64
 }
 
-pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest) {
+pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest, cache_optimization: &CacheOptimization) {
     for cached_assets in cache_manifest.images.iter_mut() {
-        if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete()).is_some() {
+        if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete(cache_optimization)).is_some() {
             if let Some(asset) = cached_assets.jpeg.take() {
                 message::cache(&format!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display()));
                 util::remove_file(&cache_dir.join(asset.filename));
@@ -65,7 +73,7 @@ pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest) {
         ] {
             let cached_format = cached_assets.get_mut(&format);
             
-            match cached_format.as_ref().map(|asset| asset.obsolete()) {
+            match cached_format.as_ref().map(|asset| asset.obsolete(cache_optimization)) {
                 Some(true) => {
                     util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
                     message::cache(&format!(
@@ -102,7 +110,7 @@ pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest) {
         ] {
             let cached_format = cached_assets.get_mut(&format);
             
-            match cached_format.as_ref().map(|asset| asset.obsolete()) {
+            match cached_format.as_ref().map(|asset| asset.obsolete(cache_optimization)) {
                 Some(true) => {
                     util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
                     message::cache(&format!(
@@ -141,14 +149,19 @@ impl Asset {
         }
     }
     
-    pub fn obsolete(&self) -> bool {
+    pub fn obsolete(&self, cache_optimization: &CacheOptimization) -> bool {
         match &self.marked_stale {
             Some(datetime_marked_stale) => {
-                match Utc::now().checked_sub_signed(Duration::hours(24)) {
-                    Some(datetime_24hrs_ago) => datetime_marked_stale < &datetime_24hrs_ago,
-                    None => true  // system time probably messed up for good, better to lose usable
-                                  // cache data than to leak disk space at potentially every
-                                  // following build until this resolves (if it ever does)
+                match cache_optimization {
+                    CacheOptimization::Delayed => match Utc::now().checked_sub_signed(Duration::hours(24)) {
+                        Some(datetime_24hrs_ago) => datetime_marked_stale < &datetime_24hrs_ago,
+                        None => true  // system time probably messed up for good, better to lose usable
+                                      // cache data than to leak disk space at potentially every
+                                      // following build until this resolves (if it ever does)
+                    }
+                    CacheOptimization::Immediate |
+                    CacheOptimization::Manual |
+                    CacheOptimization::Wipe => true
                 }
             },
             None => false
@@ -219,41 +232,41 @@ impl CacheManifest {
         let mut unused_bytesize = 0;
         
         for image in &self.images {
-            if let Some(filesize_bytes) = image.jpeg.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = image.jpeg.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
         }
         for track in &self.tracks {
-            if let Some(filesize_bytes) = track.aac.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.aac.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.aiff.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.aiff.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.flac.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.flac.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.mp3_128.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.mp3_128.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.mp3_320.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.mp3_320.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.mp3_v0.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.mp3_v0.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.ogg_vorbis.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.ogg_vorbis.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
-            if let Some(filesize_bytes) = track.wav.as_ref().filter(|asset| asset.obsolete()).map(|asset| asset.filesize_bytes) {
+            if let Some(filesize_bytes) = track.wav.as_ref().filter(|asset| asset.obsolete(&CacheOptimization::Manual)).map(|asset| asset.filesize_bytes) {
                 num_unused += 1;
                 unused_bytesize += filesize_bytes;
             }
@@ -265,6 +278,8 @@ impl CacheManifest {
                 num_unused=num_unused,
                 unused_bytesize=util::format_bytes(unused_bytesize)
             ));
+        } else {
+            message::cache(&format!("No cached assets were identied as obsolete."));
         }
     }
         
@@ -324,6 +339,31 @@ impl CacheManifest {
         }
         
         tracks
+    }
+}
+
+impl CacheOptimization {
+    pub fn from_manifest_key(key: &str) -> Option<CacheOptimization> {        
+        match key {
+            "delayed" => Some(CacheOptimization::Delayed),
+            "immediate" => Some(CacheOptimization::Immediate),
+            "manual" => Some(CacheOptimization::Manual),
+            "wipe" => Some(CacheOptimization::Wipe),
+            _ => None
+        }
+    }
+}
+
+impl fmt::Display for CacheOptimization {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let text = match self {
+            CacheOptimization::Delayed => "Delayed",
+            CacheOptimization::Immediate => "Immediate",
+            CacheOptimization::Manual => "Manual",
+            CacheOptimization::Wipe => "Wipe"
+        };
+        
+        write!(f, "{}", text)
     }
 }
 

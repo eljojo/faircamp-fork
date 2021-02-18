@@ -29,7 +29,7 @@ mod track;
 mod util;
 
 use args::Args;
-use asset_cache::CacheManifest;
+use asset_cache::{CacheManifest, CacheOptimization};
 use ffmpeg::MediaFormat;
 use image_format::ImageFormat;
 use build_settings::{BuildSettings, PostBuildAction};
@@ -44,17 +44,22 @@ fn main() {
     CacheManifest::ensure_dirs(&build_settings.cache_dir);
     let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
     
+    if args.analyze_cache {
+        cache_manifest.report_unused_assets();
+        return;
+    }
+    
     if args.optimize_cache {
-        asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest);
+        asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest, &CacheOptimization::Immediate);
         return;
     }
     
     if args.wipe_all || args.wipe_build || args.wipe_cache {
         if args.wipe_build || args.wipe_all {
-            util::remove_dir(&build_settings.build_dir)
+            util::remove_dir(&build_settings.build_dir);
         }
         if args.wipe_cache || args.wipe_all {
-            util::remove_dir(&build_settings.cache_dir)
+            util::remove_dir(&build_settings.cache_dir);
         }
         return;
     }
@@ -119,8 +124,26 @@ fn main() {
         message::warning(&format!("No base_url specified, skipping RSS feed generation"));
     }
     
-    // TODO: This should probably be dropped (CLI argument to report instead?), or at the very least adapted to integrate the stale-time information and give more context
-    cache_manifest.report_unused_assets();
+    match build_settings.cache_optimization {
+        CacheOptimization::Delayed | CacheOptimization::Immediate => {
+            // TODO: Presently during Catalog::read() we create Cached*Assets that are not 
+            //       added/tracked within the global manifest retrieved on build begin (not
+            //       within that same build run that is), therefore these assets are excluded
+            //       from optimization currently - need to do some architectural changes for
+            //       this.
+            // TODO: Further this means that if assets are read from the manifest and then
+            //       cloned to the Catalog tree they are only marked as non-stale in the
+            //       catalog tree - but not in the original manifest which still lives -
+            //       and thus with CacheOptimization::Immediate they are immediately wiped,
+            //       although they should not.
+            asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest, &build_settings.cache_optimization);
+        }
+        CacheOptimization::Manual => (),
+        CacheOptimization::Wipe => {
+            util::remove_dir(&build_settings.cache_dir);
+            message::cache(&format!("Wiped cache"));
+        }
+    }
     
     build_settings.print_stats();
     

@@ -4,6 +4,10 @@ use std::path::PathBuf;
 #[clap(version = env!("CARGO_PKG_VERSION"))]
 #[derive(Clap, Debug)]
 pub struct Args {
+    /// Reports cached assets that are currently appear obsolete and their consumed disk space (no build is performed)
+    #[clap(long = "analyze-cache")]
+    pub analyze_cache: bool,
+    
     /// Override build directory (default is .faircamp_build/ inside the current working directory)
     #[clap(long = "build-dir")]
     pub build_dir: Option<PathBuf>,

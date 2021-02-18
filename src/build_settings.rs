@@ -7,6 +7,7 @@ use url::Url;
 
 use crate::{
     args::Args,
+    asset_cache::CacheOptimization,
     message,
     styles::{Theme, DARK_THEME},
     util
@@ -20,6 +21,7 @@ pub struct BuildSettings {
     pub build_dir: PathBuf,
     begin_instant: Instant,
     pub cache_dir: PathBuf,
+    pub cache_optimization: CacheOptimization,
     pub catalog_dir: PathBuf,
     pub deploy_destination: Option<String>,
     pub post_build_action: PostBuildAction,
@@ -70,6 +72,7 @@ impl BuildSettings {
             begin_instant: Instant::now(),
             build_dir,
             cache_dir,
+            cache_optimization: CacheOptimization::Delayed,
             catalog_dir,
             deploy_destination: args.deploy_destination.clone(),
             post_build_action,
