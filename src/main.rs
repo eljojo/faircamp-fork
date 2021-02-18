@@ -138,7 +138,7 @@ fn main() {
             //       although they should not.
             asset_cache::optimize_cache(&build_settings.cache_dir, &mut cache_manifest, &build_settings.cache_optimization);
         }
-        CacheOptimization::Manual => (),
+        CacheOptimization::Manual => cache_manifest.report_unused_assets(),
         CacheOptimization::Wipe => {
             util::remove_dir(&build_settings.cache_dir);
             message::cache(&format!("Wiped cache"));

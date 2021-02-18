@@ -279,7 +279,7 @@ impl CacheManifest {
                 unused_bytesize=util::format_bytes(unused_bytesize)
             ));
         } else {
-            message::cache(&format!("No cached assets were identied as obsolete."));
+            message::cache(&format!("No cached assets identied as obsolete."));
         }
     }
         
