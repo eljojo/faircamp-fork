@@ -2,14 +2,14 @@ use slug;
 use std::{
     fs::{self, File},
     io::prelude::*,
-    path::Path,
+    path::{Path, PathBuf},
     rc::Rc
 };
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, SourceFileSignature},
+    asset_cache::{Asset, CacheManifest, SourceFileSignature},
     audio_format::AudioFormat,
     build_settings::BuildSettings,
     catalog::Catalog,
@@ -54,6 +54,25 @@ pub struct Release {
 }
 
 impl CachedReleaseAssets {
+    pub fn deserialize(path: &Path) -> Option<CachedReleaseAssets> {
+        if let Ok(bytes) = fs::read(path) {
+            if let Ok(mut cached_assets) = bincode::deserialize::<CachedReleaseAssets>(&bytes) {
+                cached_assets.aac.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.aiff.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.flac.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.mp3_128.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.mp3_320.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.mp3_v0.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.ogg_vorbis.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.wav.iter_mut().for_each(|asset| asset.mark_stale());
+                
+                return Some(cached_assets);
+            }
+        }
+        
+        None
+    }
+    
     pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
         match format {
             AudioFormat::Aac => &self.aac,
@@ -79,6 +98,11 @@ impl CachedReleaseAssets {
             AudioFormat::Wav => &mut self.wav
         }
     }
+    
+    pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
+        let filename = format!("{}.bincode", self.uid);
+        cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).join(filename)
+    }
 
     pub fn new(source_file_signatures: Vec<SourceFileSignature>) -> CachedReleaseAssets {
         CachedReleaseAssets {
@@ -96,9 +120,8 @@ impl CachedReleaseAssets {
     }
     
     pub fn persist(&self, cache_dir: &Path) {
-        let filename = format!("cached_release_assets_{}.bincode", self.uid); // TODO: Remove verbose prefix after testing (?)
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(cache_dir.join(filename), &serialized).unwrap();
+        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
     }
 }
 

@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, SourceFileSignature},
+    asset_cache::{Asset, CacheManifest, SourceFileSignature},
     audio_format::AudioFormat,
     audio_meta::AudioMeta,
     ffmpeg::{self, MediaFormat},
@@ -41,6 +41,25 @@ pub struct Track {
 }
 
 impl CachedTrackAssets {
+    pub fn deserialize(path: &Path) -> Option<CachedTrackAssets> {
+        if let Ok(bytes) = fs::read(path) {
+            if let Ok(mut cached_assets) = bincode::deserialize::<CachedTrackAssets>(&bytes) {
+                cached_assets.aac.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.aiff.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.flac.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.mp3_128.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.mp3_320.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.mp3_v0.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.ogg_vorbis.iter_mut().for_each(|asset| asset.mark_stale());
+                cached_assets.wav.iter_mut().for_each(|asset| asset.mark_stale());
+                
+                return Some(cached_assets);
+            }
+        }
+        
+        None
+    }
+    
     pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
         match format {
             AudioFormat::Aac => &self.aac,
@@ -66,6 +85,11 @@ impl CachedTrackAssets {
             AudioFormat::Wav => &mut self.wav
         }
     }
+    
+    pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
+        let filename = format!("{}.bincode", self.uid);
+        cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR).join(filename)
+    }
 
     pub fn new(source_file_signature: SourceFileSignature, source_meta: AudioMeta) -> CachedTrackAssets {
         CachedTrackAssets {
@@ -84,9 +108,8 @@ impl CachedTrackAssets {
     }
     
     pub fn persist(&self, cache_dir: &Path) {
-        let filename = format!("cached_track_assets_{}.bincode", self.uid); // TODO: Remove verbose prefix after testing (?)
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(cache_dir.join(filename), &serialized).unwrap();
+        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
     }
 }
 

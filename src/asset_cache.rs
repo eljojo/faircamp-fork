@@ -1,4 +1,3 @@
-use bincode;
 use chrono::{DateTime, Duration, Utc};
 use std::{
     fs,
@@ -7,6 +6,7 @@ use std::{
 };
 
 use crate::{
+    audio_format::AudioFormat,
     audio_meta::AudioMeta,
     image::CachedImageAssets,
     message,
@@ -14,8 +14,6 @@ use crate::{
     track::{CachedTrackAssets, Track},
     util
 };
-
-const CACHE_MANIFEST_FILENAME: &str = "manifest.bincode";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Asset {
@@ -41,101 +39,89 @@ pub struct SourceFileSignature {
 }
 
 pub fn optimize_cache(cache_dir: &Path, cache_manifest: &mut CacheManifest) {
-    // TODO: In 2022 check if drain_filter() is available in stable rust, and if it is, rewrite code below.
-    //       (see https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain_filter)
-    
-    let mut i = 0;
-    while i != cache_manifest.images.len() {
-        if cache_manifest.images[i].jpeg.as_ref().filter(|asset| asset.obsolete()).is_some() {
-            message::cache(&format!("Removing cached image asset (JPEG) for {}.", cache_manifest.images[i].source_file_signature.path.display()));
-            
-            let cached_image_assets = cache_manifest.images.remove(i);
-            
-            if let Some(asset) = cached_image_assets.jpeg {
+    for cached_assets in cache_manifest.images.iter_mut() {
+        if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete()).is_some() {
+            if let Some(asset) = cached_assets.jpeg.take() {
+                message::cache(&format!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display()));
                 util::remove_file(&cache_dir.join(asset.filename));
             }
-        } else {
-            i += 1;
-        }
+            
+            util::remove_file(&cached_assets.manifest_path(cache_dir));
+        }    
     }
     
-    i = 0;
-    while i != cache_manifest.tracks.len() {
+    for cached_assets in cache_manifest.releases.iter_mut() {
         let mut keep_container = false;
         
-        if let Some(asset) = &cache_manifest.tracks[i].aac {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (AAC) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].aiff {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (AIFF) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].flac {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (FLAC) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].mp3_128 {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (MP3 128) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].mp3_320 {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (MP3 320) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].mp3_v0 {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (MP3 V0) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].ogg_vorbis {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (Ogg Vorbis) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
-            }
-        }
-        if let Some(asset) = &cache_manifest.tracks[i].wav {
-            if asset.obsolete() {
-                message::cache(&format!("Removing cached track asset (WAV) for {}.", cache_manifest.tracks[i].source_file_signature.path.display()));
-                util::remove_file(&cache_dir.join(&asset.filename));
-            } else {
-                keep_container = true;
+        for format in &[
+            AudioFormat::Aac,
+            AudioFormat::Aiff,
+            AudioFormat::Flac,
+            AudioFormat::Mp3Cbr128,
+            AudioFormat::Mp3Cbr320,
+            AudioFormat::Mp3VbrV0,
+            AudioFormat::OggVorbis,
+            AudioFormat::Wav
+        ] {
+            let cached_format = cached_assets.get_mut(&format);
+            
+            match cached_format.as_ref().map(|asset| asset.obsolete()) {
+                Some(true) => {
+                    util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
+                    message::cache(&format!(
+                        "Removed cached release asset ({}) for archive with {} tracks.",
+                        format,
+                        cached_assets.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
+                                                                    //       Possibly indication that Release + CachedReleaseAssets should be merged together (?) (and same story with Image/Track)
+                    ));
+                }
+                Some(false) => keep_container = true,
+                None => ()
             }
         }
         
-        if !keep_container {
-            cache_manifest.tracks.remove(i);
+        if keep_container {
+            cached_assets.persist(cache_dir);
         } else {
-            i += 1;
+            util::remove_file(&cached_assets.manifest_path(cache_dir));
         }
     }
     
-    cache_manifest.persist(cache_dir);
+    for cached_assets in cache_manifest.tracks.iter_mut() {
+        let mut keep_container = false;
+        
+        for format in &[
+            AudioFormat::Aac,
+            AudioFormat::Aiff,
+            AudioFormat::Flac,
+            AudioFormat::Mp3Cbr128,
+            AudioFormat::Mp3Cbr320,
+            AudioFormat::Mp3VbrV0,
+            AudioFormat::OggVorbis,
+            AudioFormat::Wav
+        ] {
+            let cached_format = cached_assets.get_mut(&format);
+            
+            match cached_format.as_ref().map(|asset| asset.obsolete()) {
+                Some(true) => {
+                    util::remove_file(&cache_dir.join(cached_format.take().unwrap().filename));
+                    message::cache(&format!(
+                        "Removed cached track asset ({}) for {}.",
+                        format,
+                        cached_assets.source_file_signature.path.display()
+                    ));
+                }
+                Some(false) => keep_container = true,
+                None => ()
+            }
+        }
+        
+        if keep_container {
+            cached_assets.persist(cache_dir);
+        } else {
+            util::remove_file(&cached_assets.manifest_path(cache_dir));
+        }
+    }
 }
 
 impl Asset {
@@ -146,6 +132,12 @@ impl Asset {
             filename,
             filesize_bytes: metadata.len(),
             marked_stale: None
+        }
+    }
+    
+    pub fn mark_stale(&mut self) {
+        if self.marked_stale.is_none() {
+            self.marked_stale = Some(Utc::now());
         }
     }
     
@@ -165,6 +157,16 @@ impl Asset {
 }
 
 impl CacheManifest {
+    pub const MANIFEST_IMAGES_DIR: &'static str = "manifest/images";
+    pub const MANIFEST_RELEASES_DIR: &'static str = "manifest/releases";
+    pub const MANIFEST_TRACKS_DIR: &'static str = "manifest/tracks";
+    
+    pub fn ensure_dirs(cache_dir: &Path) {
+        util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR));
+        util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR));
+        util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR));
+    }
+    
     // TODO: This is basically identical with get_track_assets(...) below - unify this via generics or enum or something
     pub fn get_image_assets(&self, source_path: &Path) -> CachedImageAssets {
         let source_file_signature = SourceFileSignature::init(source_path);
@@ -210,20 +212,6 @@ impl CacheManifest {
                 
                 CachedTrackAssets::new(source_file_signature, source_meta)
             })
-    }
-    
-    pub fn new() -> CacheManifest {
-        CacheManifest {
-            images: Vec::new(),
-            releases: Vec::new(),
-            tracks: Vec::new()
-        }
-    }
-    
-    // TODO: Probably can dispose of this
-    pub fn persist(&self, cache_dir: &Path) {
-        let serialized = bincode::serialize(&self).unwrap();
-        fs::write(cache_dir.join(CACHE_MANIFEST_FILENAME), &serialized).unwrap();
     }
     
     pub fn report_unused_assets(&self) {
@@ -273,41 +261,69 @@ impl CacheManifest {
         
         if num_unused > 0 {
             message::cache(&format!(
-                "{num_unused} cached assets were not used for this build - you can run 'faircamp --optimize-cache' to reclaim {unused_bytesize} of disk space by removing unused cache assets.",
+                "{num_unused} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {unused_bytesize} of disk space.",
                 num_unused=num_unused,
                 unused_bytesize=util::format_bytes(unused_bytesize)
             ));
         }
     }
-    
-    fn reset_used_flags(&mut self) {
-        let now = Utc::now();
-        
-        for image in self.images.iter_mut() {
-            // Note here and below that we only iterate over the single inner value of the option (if present)
-            image.jpeg.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-        }
-        for track in self.tracks.iter_mut() {
-            track.aac.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.aiff.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.flac.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.mp3_128.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.mp3_320.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.mp3_v0.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.ogg_vorbis.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-            track.wav.iter_mut().for_each(|asset| asset.marked_stale = Some(now));
-        }
-    }
         
     pub fn retrieve(cache_dir: &Path) -> CacheManifest {
-        if let Ok(bytes) = fs::read(cache_dir.join(CACHE_MANIFEST_FILENAME)) {
-            if let Ok(mut manifest) = bincode::deserialize::<CacheManifest>(&bytes) {
-                manifest.reset_used_flags();
-                return manifest;
+        CacheManifest {
+            images: CacheManifest::retrieve_images(cache_dir),
+            releases: CacheManifest::retrieve_releases(cache_dir),
+            tracks: CacheManifest::retrieve_tracks(cache_dir)
+        }
+    }
+    
+    // TODO: Should probably not quietly ignore everything that can go wrong here (here and elsewhere)
+    // TODO: Also very boilerplatey (up your generics game here?)
+    pub fn retrieve_images(cache_dir: &Path) -> Vec<CachedImageAssets> {      
+        let mut images = Vec::new();
+          
+        if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR).read_dir() {
+            for dir_entry_result in dir_entries {
+                if let Ok(dir_entry) = dir_entry_result {
+                    if let Some(cached_assets) = CachedImageAssets::deserialize(&dir_entry.path()) {
+                        images.push(cached_assets);
+                    }
+                }
             }
         }
         
-        CacheManifest::new()
+        images
+    }
+    
+    pub fn retrieve_releases(cache_dir: &Path) -> Vec<CachedReleaseAssets> {
+        let mut releases = Vec::new();
+             
+        if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).read_dir() {
+            for dir_entry_result in dir_entries {
+                if let Ok(dir_entry) = dir_entry_result {
+                    if let Some(cached_assets) = CachedReleaseAssets::deserialize(&dir_entry.path()) {
+                        releases.push(cached_assets);
+                    }
+                }
+            }
+        }
+        
+        releases
+    }
+    
+    pub fn retrieve_tracks(cache_dir: &Path) -> Vec<CachedTrackAssets> {  
+        let mut tracks = Vec::new();
+           
+        if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR).read_dir() {
+            for dir_entry_result in dir_entries {
+                if let Ok(dir_entry) = dir_entry_result {
+                    if let Some(cached_assets) = CachedTrackAssets::deserialize(&dir_entry.path()) {
+                        tracks.push(cached_assets);
+                    }
+                }
+            }
+        }
+        
+        tracks
     }
 }
 

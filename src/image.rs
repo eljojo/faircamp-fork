@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    asset_cache::{Asset, SourceFileSignature},
+    asset_cache::{Asset, CacheManifest, SourceFileSignature},
     ffmpeg::{self, MediaFormat},
     image_format::ImageFormat,
     message,
@@ -25,6 +25,18 @@ pub struct Image {
 }
 
 impl CachedImageAssets {
+    pub fn deserialize(path: &Path) -> Option<CachedImageAssets> {
+        if let Ok(bytes) = fs::read(path) {
+            if let Ok(mut cached_assets) = bincode::deserialize::<CachedImageAssets>(&bytes) {
+                cached_assets.jpeg.iter_mut().for_each(|asset| asset.mark_stale());
+                
+                return Some(cached_assets);
+            }
+        }
+        
+        None
+    }
+    
     pub fn get(&self, format: &ImageFormat) -> &Option<Asset> {
         match format {
             ImageFormat::Jpeg => &self.jpeg
@@ -37,6 +49,11 @@ impl CachedImageAssets {
         }
     }
     
+    pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
+        let filename = format!("{}.bincode", self.uid);
+        cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR).join(filename)
+    }
+    
     pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
         CachedImageAssets {
             jpeg: None,
@@ -46,9 +63,8 @@ impl CachedImageAssets {
     }
     
     pub fn persist(&self, cache_dir: &Path) {
-        let filename = format!("cached_image_assets_{}.bincode", self.uid); // TODO: Remove verbose prefix after testing (?)
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(cache_dir.join(filename), &serialized).unwrap();
+        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
     }
 }
 

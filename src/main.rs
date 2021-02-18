@@ -40,6 +40,8 @@ fn main() {
     
     let args: Args = Args::parse();
     let mut build_settings = BuildSettings::init(&args);
+    
+    CacheManifest::ensure_dirs(&build_settings.cache_dir);
     let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
     
     if args.optimize_cache {
@@ -117,8 +119,8 @@ fn main() {
         message::warning(&format!("No base_url specified, skipping RSS feed generation"));
     }
     
+    // TODO: This should probably be dropped (CLI argument to report instead?), or at the very least adapted to integrate the stale-time information and give more context
     cache_manifest.report_unused_assets();
-    cache_manifest.persist(&build_settings.cache_dir);
     
     build_settings.print_stats();
     
