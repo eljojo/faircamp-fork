@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use slug;
 use std::{
     fs::{self, File},
@@ -9,7 +10,7 @@ use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, CacheManifest, SourceFileSignature},
+    asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
     audio_format::{AUDIO_FORMATS, AudioFormat},
     build_settings::BuildSettings,
     catalog::Catalog,
@@ -92,10 +93,10 @@ impl CachedReleaseAssets {
         cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).join(filename)
     }
     
-    pub fn mark_all_stale(&mut self) {
+    pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
         for format in AUDIO_FORMATS {
             if let Some(asset) = self.get_mut(format) {
-                asset.mark_stale();
+                asset.mark_stale(timestamp);
             }
         }
     }
@@ -168,19 +169,11 @@ impl Release {
                     let mut buffer = Vec::new();
                     
                     for (index, track) in self.tracks.iter_mut().enumerate() {
-                        if !track.cached_assets.source_meta.lossless {
-                            match format {
-                                AudioFormat::Aiff |
-                                AudioFormat::Flac |
-                                AudioFormat::Wav => {
-                                    message::discouraged(&format!("Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.", &track.source_file.display()));
-                                }
-                                AudioFormat::Aac |
-                                AudioFormat::Mp3Cbr128 |
-                                AudioFormat::Mp3Cbr320 |
-                                AudioFormat::Mp3VbrV0 |
-                                AudioFormat::OggVorbis => () // we spell out all formats so the compiler catches future modifications/additions that need to be added here
-                            }
+                        if format.lossless() && !track.cached_assets.source_meta.lossless {
+                            message::discouraged(&format!(
+                                "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
+                                &track.source_file.display()
+                            ));
                         }
                         
                         let filename = format!(
@@ -196,8 +189,7 @@ impl Release {
                             title=track.title
                         );
                         
-                        // TODO: Should probably be track.get_cached (...) or such to indicate we're just pre-building an asset in the cache
-                        let download_track_asset = track.get_or_transcode_as(format, &build_settings.cache_dir);
+                        let download_track_asset = track.get_or_transcode_as(format, &build_settings.cache_dir, AssetIntent::Intermediate);
                         
                         zip_writer.start_file(&filename, options).unwrap();
                     
@@ -208,10 +200,12 @@ impl Release {
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
+                        
+                        track.cached_assets.persist(&build_settings.cache_dir);
                     }
                     
                     if let Some(cover) = &mut self.cover {
-                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir);
+                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir, AssetIntent::Intermediate);
                         
                         zip_writer.start_file("cover.jpg", options).unwrap();
                         
@@ -222,17 +216,19 @@ impl Release {
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
+                        
+                        cover.cached_assets.persist(&build_settings.cache_dir);
                     }
                         
                     match zip_writer.finish() {
-                        Ok(_) => cached_format.replace(Asset::init(&build_settings.cache_dir, target_filename)),
+                        Ok(_) => cached_format.replace(Asset::init(&build_settings.cache_dir, target_filename, AssetIntent::Deliverable)),
                         Err(err) => panic!(err)
                     };
                 }
                 
                 let download_archive_asset = cached_format.as_mut().unwrap();
                 
-                download_archive_asset.marked_stale = None; // TODO: Something more linguistically meaningful (custom enum or such) ?
+                download_archive_asset.unmark_stale();
                 
                 fs::copy(
                     build_settings.cache_dir.join(&download_archive_asset.filename),

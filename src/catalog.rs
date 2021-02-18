@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     artist::Artist,
-    asset_cache::CacheManifest,
+    asset_cache::{AssetIntent, CacheManifest},
     build_settings::BuildSettings,
     image::Image,
     image_format::ImageFormat,
@@ -290,9 +290,7 @@ impl Catalog {
     pub fn write_assets(&mut self, build_settings: &mut BuildSettings) {
         for release in self.releases.iter_mut() {            
             if let Some(image) = &mut release.cover {
-                let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir);
-                
-                image_asset.marked_stale = None;
+                let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build_settings.cache_dir.join(&image_asset.filename),
@@ -305,9 +303,7 @@ impl Catalog {
             }
             
             for track in release.tracks.iter_mut() {
-                let streaming_asset = track.get_or_transcode_as(&release.streaming_format, &build_settings.cache_dir);
-                
-                streaming_asset.marked_stale = None;
+                let streaming_asset = track.get_or_transcode_as(&release.streaming_format, &build_settings.cache_dir, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build_settings.cache_dir.join(&streaming_asset.filename),

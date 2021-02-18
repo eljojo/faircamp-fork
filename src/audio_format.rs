@@ -80,6 +80,21 @@ impl AudioFormat {
         }
     }
     
+    pub fn lossless(&self) -> bool {
+        match self {
+            AudioFormat::Aac |
+            AudioFormat::Mp3Cbr128 |
+            AudioFormat::Mp3Cbr320 |
+            AudioFormat::Mp3VbrV0 |
+            AudioFormat::OggVorbis
+                => false,
+            AudioFormat::Aiff |
+            AudioFormat::Flac |
+            AudioFormat::Wav
+                => true
+        }
+    }
+    
     pub fn recommended_download(&self) -> bool {
         match self {
             AudioFormat::Aac |        // non-free technology

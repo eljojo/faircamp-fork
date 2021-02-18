@@ -1,6 +1,7 @@
 #[macro_use] extern crate log;
 #[macro_use] extern crate serde_derive;
 
+use chrono::Utc;
 use clap::Clap;
 use std::fs;
 
@@ -69,7 +70,7 @@ fn main() {
         return;
     }
     
-    cache_manifest.mark_all_stale();
+    cache_manifest.mark_all_stale(&Utc::now());
     
     let mut catalog = Catalog::read(&mut build_settings, &mut cache_manifest);
     

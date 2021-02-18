@@ -24,6 +24,12 @@ pub struct Asset {
     pub marked_stale: Option<DateTime<Utc>>
 }
 
+#[derive(PartialEq)]
+pub enum AssetIntent {
+    Deliverable,
+    Intermediate
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CacheManifest {
     pub images: Vec<CachedImageAssets>,
@@ -233,20 +239,26 @@ pub fn optimize_track_assets(
     }
 }
 
-impl Asset {
-    pub fn init(cache_dir: &Path, filename: String) -> Asset {
+impl Asset {    
+    pub fn init(cache_dir: &Path, filename: String, intent: AssetIntent) -> Asset {
         let metadata = fs::metadata(cache_dir.join(&filename)).expect("Could not access asset");
         
         Asset {
             filename,
             filesize_bytes: metadata.len(),
-            marked_stale: None
+            marked_stale: match intent {
+                AssetIntent::Deliverable => None,
+                AssetIntent::Intermediate => Some(Utc::now()),  // TODO: If we easily can get a handle on build_settings here it would be 
+                                                                //       nice to use a timestamp that is associated globally with the build
+                                                                //       run - minor differences between asset creation time is unnecessary
+                                                                //       and confusing, and possibly incurs tiny overhead too.
+            }
         }
     }
     
-    pub fn mark_stale(&mut self) {
+    pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
-            self.marked_stale = Some(Utc::now());
+            self.marked_stale = Some(timestamp.clone());
         }
     }
     
@@ -267,6 +279,10 @@ impl Asset {
             },
             None => false
         }
+    }
+    
+    pub fn unmark_stale(&mut self) {
+        self.marked_stale = None;
     }
 }
 
@@ -325,18 +341,17 @@ impl CacheManifest {
         }
     }
     
-    // TODO: Mark all stale at the same instant? (= build begin time) - avoids constant DateTime generation and slight date shifts which are irrelevant/confusing for this
-    pub fn mark_all_stale(&mut self) {
+    pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
         for cached_assets in self.images.iter_mut() {
-            cached_assets.mark_all_stale();
+            cached_assets.mark_all_stale(timestamp);
         }
         
         for cached_assets in self.releases.iter_mut() {
-            cached_assets.mark_all_stale();
+            cached_assets.mark_all_stale(timestamp);
         }
         
         for cached_assets in self.tracks.iter_mut() {
-            cached_assets.mark_all_stale();
+            cached_assets.mark_all_stale(timestamp);
         }
     }
         
