@@ -1,10 +1,14 @@
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    rc::Rc
+};
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, CachedTrackAssets},
+    asset_cache::{Asset, SourceFileSignature},
     audio_format::AudioFormat,
+    audio_meta::AudioMeta,
     ffmpeg::{self, MediaFormat},
     message,
     util
@@ -12,12 +16,78 @@ use crate::{
 
 const HOUR_SECONDS: u32 = 60 * 60;
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CachedTrackAssets {
+    pub aac: Option<Asset>,
+    pub aiff: Option<Asset>,
+    pub flac: Option<Asset>,
+    pub mp3_128: Option<Asset>,
+    pub mp3_320: Option<Asset>,
+    pub mp3_v0: Option<Asset>,
+    pub ogg_vorbis: Option<Asset>,
+    // TODO: There is overlap between this and track.source_file - probably implications for model changes that could/should be made
+    pub source_file_signature: SourceFileSignature,
+    pub source_meta: AudioMeta,
+    pub uid: String,
+    pub wav: Option<Asset>
+}
+
 #[derive(Debug)]
 pub struct Track {
     pub artists: Vec<Rc<Artist>>,
     pub cached_assets: CachedTrackAssets,
     pub source_file: PathBuf,
     pub title: String
+}
+
+impl CachedTrackAssets {
+    pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
+        match format {
+            AudioFormat::Aac => &self.aac,
+            AudioFormat::Aiff => &self.aiff,
+            AudioFormat::Flac => &self.flac,
+            AudioFormat::Mp3Cbr128 => &self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &self.mp3_v0,
+            AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Wav => &self.wav
+        }
+    }
+    
+    pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+        match format {
+            AudioFormat::Aac => &mut self.aac,
+            AudioFormat::Aiff => &mut self.aiff,
+            AudioFormat::Flac => &mut self.flac,
+            AudioFormat::Mp3Cbr128 => &mut self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
+            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Wav => &mut self.wav
+        }
+    }
+
+    pub fn new(source_file_signature: SourceFileSignature, source_meta: AudioMeta) -> CachedTrackAssets {
+        CachedTrackAssets {
+            aac: None,
+            aiff: None,
+            flac: None,
+            mp3_128: None,
+            mp3_320: None,
+            mp3_v0: None,
+            ogg_vorbis: None,
+            source_file_signature,
+            source_meta,
+            uid: util::uid(),
+            wav: None
+        }
+    }
+    
+    pub fn persist(&self, cache_dir: &Path) {
+        let filename = format!("cached_track_assets_{}.bincode", self.uid); // TODO: Remove verbose prefix after testing (?)
+        let serialized = bincode::serialize(self).unwrap();
+        fs::write(cache_dir.join(filename), &serialized).unwrap();
+    }
 }
 
 impl Track {
@@ -42,7 +112,7 @@ impl Track {
         let cached_format = self.cached_assets.get_mut(format);
         
         if cached_format.is_none() {
-            let target_filename = format!("{}{}", util::nanoid(), format.extension());
+            let target_filename = format!("{}{}", util::uid(), format.extension());
             
             message::transcoding(&format!("{:?} to {}", self.source_file, format));
             ffmpeg::transcode(

@@ -57,7 +57,7 @@ fn main() {
         return;
     }
     
-    let mut catalog = Catalog::read(&mut build_settings, &cache_manifest);  // TODO: Consider putting cache[_manifest] into the planned "Build" super context
+    let mut catalog = Catalog::read(&mut build_settings, &cache_manifest);
     
     util::ensure_empty_dir(&build_settings.build_dir);
     

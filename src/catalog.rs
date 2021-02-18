@@ -6,16 +6,13 @@ use std::{
 
 use crate::{
     artist::Artist,
-    asset_cache::{
-        CacheManifest,
-        CachedTrackAssets,
-    },
+    asset_cache::CacheManifest,
     build_settings::BuildSettings,
     image::Image,
     image_format::ImageFormat,
     manifest::{Globals, Overrides},
     release::Release,
-    track::Track,
+    track::{CachedTrackAssets, Track},
     manifest,
     util
 };
@@ -291,7 +288,7 @@ impl Catalog {
             if let Some(image) = &mut release.cover {
                 let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir);
                 
-                image_asset.used = true;
+                image_asset.marked_stale = None;
                 
                 fs::copy(
                     build_settings.cache_dir.join(&image_asset.filename),
@@ -299,12 +296,14 @@ impl Catalog {
                 ).unwrap();
                 
                 build_settings.stats.add_image(image_asset.filesize_bytes);
+                
+                image.cached_assets.persist(&build_settings.cache_dir);
             }
             
             for track in release.tracks.iter_mut() {
                 let streaming_asset = track.get_or_transcode_as(&release.streaming_format, &build_settings.cache_dir);
                 
-                streaming_asset.used = true; // TODO: Probably should be used_in_build or such to differentiate from intermediately used (but ultimately discardable) cache assets used for building a zip
+                streaming_asset.marked_stale = None;
                 
                 fs::copy(
                     build_settings.cache_dir.join(&streaming_asset.filename),
@@ -312,6 +311,8 @@ impl Catalog {
                 ).unwrap();
                 
                 build_settings.stats.add_track(streaming_asset.filesize_bytes);
+                
+                track.cached_assets.persist(&build_settings.cache_dir);
             }
             
             release.write_download_archives(build_settings);

@@ -2,13 +2,14 @@ use slug;
 use std::{
     fs::{self, File},
     io::prelude::*,
+    path::Path,
     rc::Rc
 };
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
     artist::Artist,
-    asset_cache::{Asset, CachedReleaseAssets},
+    asset_cache::{Asset, SourceFileSignature},
     audio_format::AudioFormat,
     build_settings::BuildSettings,
     catalog::Catalog,
@@ -23,6 +24,20 @@ use crate::{
     util
 };
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CachedReleaseAssets {
+    pub aac: Option<Asset>,
+    pub aiff: Option<Asset>,
+    pub flac: Option<Asset>,
+    pub mp3_128: Option<Asset>,
+    pub mp3_320: Option<Asset>,
+    pub mp3_v0: Option<Asset>,
+    pub ogg_vorbis: Option<Asset>,
+    pub source_file_signatures: Vec<SourceFileSignature>,
+    pub uid: String,
+    pub wav: Option<Asset>
+}
+
 #[derive(Debug)]
 pub struct Release {
     pub artists: Vec<Rc<Artist>>,
@@ -36,6 +51,55 @@ pub struct Release {
     pub text: Option<String>,
     pub title: String,
     pub tracks: Vec<Track>
+}
+
+impl CachedReleaseAssets {
+    pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
+        match format {
+            AudioFormat::Aac => &self.aac,
+            AudioFormat::Aiff => &self.aiff,
+            AudioFormat::Flac => &self.flac,
+            AudioFormat::Mp3Cbr128 => &self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &self.mp3_v0,
+            AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Wav => &self.wav
+        }
+    }
+    
+    pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+        match format {
+            AudioFormat::Aac => &mut self.aac,
+            AudioFormat::Aiff => &mut self.aiff,
+            AudioFormat::Flac => &mut self.flac,
+            AudioFormat::Mp3Cbr128 => &mut self.mp3_128,
+            AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
+            AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
+            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Wav => &mut self.wav
+        }
+    }
+
+    pub fn new(source_file_signatures: Vec<SourceFileSignature>) -> CachedReleaseAssets {
+        CachedReleaseAssets {
+            aac: None,
+            aiff: None,
+            flac: None,
+            mp3_128: None,
+            mp3_320: None,
+            mp3_v0: None,
+            ogg_vorbis: None,
+            source_file_signatures,
+            uid: util::uid(),
+            wav: None
+        }
+    }
+    
+    pub fn persist(&self, cache_dir: &Path) {
+        let filename = format!("cached_release_assets_{}.bincode", self.uid); // TODO: Remove verbose prefix after testing (?)
+        let serialized = bincode::serialize(self).unwrap();
+        fs::write(cache_dir.join(filename), &serialized).unwrap();
+    }
 }
 
 impl Release {
@@ -72,7 +136,7 @@ impl Release {
                 let cached_format = self.cached_assets.get_mut(format);
                 
                 if cached_format.is_none() {
-                    let target_filename = format!("{}.zip", util::nanoid());
+                    let target_filename = format!("{}.zip", util::uid());
                     
                     let zip_file = File::create(
                         build_settings.cache_dir.join(&target_filename)
@@ -141,24 +205,24 @@ impl Release {
                         buffer.clear();
                     }
                         
-                    return match zip_writer.finish() {
-                        Ok(_) => {
-                            let mut download_archive_asset = Asset::init(&build_settings.cache_dir, target_filename);
-                            
-                            download_archive_asset.used = true;
-                            
-                            fs::copy(
-                                build_settings.cache_dir.join(&download_archive_asset.filename),
-                                build_settings.build_dir.join(&download_archive_asset.filename)
-                            ).unwrap();
-                            
-                            build_settings.stats.add_archive(download_archive_asset.filesize_bytes);
-                            
-                            cached_format.replace(download_archive_asset);
-                        },
+                    match zip_writer.finish() {
+                        Ok(_) => cached_format.replace(Asset::init(&build_settings.cache_dir, target_filename)),
                         Err(err) => panic!(err)
                     };
                 }
+                
+                let download_archive_asset = cached_format.as_mut().unwrap();
+                
+                download_archive_asset.marked_stale = None; // TODO: Something more linguistically meaningful (custom enum or such) ?
+                
+                fs::copy(
+                    build_settings.cache_dir.join(&download_archive_asset.filename),
+                    build_settings.build_dir.join(&download_archive_asset.filename)
+                ).unwrap();
+                
+                build_settings.stats.add_archive(download_archive_asset.filesize_bytes);
+                
+                self.cached_assets.persist(&build_settings.cache_dir);
             }
         }
     }
@@ -166,17 +230,17 @@ impl Release {
     pub fn write_files(&self, build_settings: &BuildSettings, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Disabled => (),
-            DownloadOption::Free { download_page_nanoid }  => {
-                let download_page_dir = build_settings.build_dir.join("download").join(download_page_nanoid);
+            DownloadOption::Free { download_page_uid }  => {
+                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uid);
                 let download_html = render::render_download(build_settings, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
-            DownloadOption::Paid { checkout_page_nanoid, download_page_nanoid, .. } => {
-                let checkout_page_dir = build_settings.build_dir.join("checkout").join(checkout_page_nanoid);
-                let checkout_html = render::render_checkout(build_settings, catalog, self, download_page_nanoid);
+            DownloadOption::Paid { checkout_page_uid, download_page_uid, .. } => {
+                let checkout_page_dir = build_settings.build_dir.join("checkout").join(checkout_page_uid);
+                let checkout_html = render::render_checkout(build_settings, catalog, self, download_page_uid);
                 util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
                 
-                let download_page_dir = build_settings.build_dir.join("download").join(download_page_nanoid);
+                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uid);
                 let download_html = render::render_download(build_settings, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }

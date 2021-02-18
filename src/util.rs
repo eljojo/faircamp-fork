@@ -49,6 +49,14 @@ pub fn remove_dir(dir: &Path) {
     };
 }
 
-pub fn nanoid() -> String {
+pub fn remove_file(path: &Path) {
+    match fs::remove_file(path) {
+        Ok(()) => (),
+        Err(ref err) if err.kind() == io::ErrorKind::NotFound => (), // just what we want anyway \o/
+        Err(err) => panic!(err)
+    }
+}
+
+pub fn uid() -> String {
     nanoid!(8)
 }

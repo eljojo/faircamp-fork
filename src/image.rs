@@ -1,17 +1,55 @@
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf}
+};
 
 use crate::{
-    asset_cache::{Asset, CachedImageAssets},
+    asset_cache::{Asset, SourceFileSignature},
     ffmpeg::{self, MediaFormat},
     image_format::ImageFormat,
     message,
     util
 };
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CachedImageAssets {
+    pub jpeg: Option<Asset>,
+    pub source_file_signature: SourceFileSignature,
+    pub uid: String
+}
+
 #[derive(Debug)]
 pub struct Image {
     pub cached_assets: CachedImageAssets,
     pub source_file: PathBuf
+}
+
+impl CachedImageAssets {
+    pub fn get(&self, format: &ImageFormat) -> &Option<Asset> {
+        match format {
+            ImageFormat::Jpeg => &self.jpeg
+        }
+    }
+    
+    pub fn get_mut(&mut self, format: &ImageFormat) -> &mut Option<Asset> {
+        match format {
+            ImageFormat::Jpeg => &mut self.jpeg
+        }
+    }
+    
+    pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
+        CachedImageAssets {
+            jpeg: None,
+            source_file_signature,
+            uid: util::uid()
+        }
+    }
+    
+    pub fn persist(&self, cache_dir: &Path) {
+        let filename = format!("cached_image_assets_{}.bincode", self.uid); // TODO: Remove verbose prefix after testing (?)
+        let serialized = bincode::serialize(self).unwrap();
+        fs::write(cache_dir.join(filename), &serialized).unwrap();
+    }
 }
 
 impl Image {
@@ -23,7 +61,7 @@ impl Image {
         let cached_format = self.cached_assets.get_mut(format);
         
         if cached_format.is_none() {
-            let target_filename = format!("{}{}", util::nanoid(), format.extension());
+            let target_filename = format!("{}{}", util::uid(), format.extension());
         
             message::transcoding(&format!("{:?} to {}", self.source_file, format));
             ffmpeg::transcode(
