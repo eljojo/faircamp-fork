@@ -25,14 +25,44 @@ pub enum FieldContent {
 
 pub fn parse(input: &str) -> Result<Vec<Element>, String> {
     let mut elements = Vec::new();
+    let mut lines = input.lines();
     
-    for line in input.lines() {
+    'main: while let Some(line) = lines.next() {
         let trimmed = line.trim();
         
         if trimmed.is_empty() || trimmed.starts_with(">") { continue }
         
         if trimmed.starts_with("--") {
-            return Err(format!("Multiline fields are not (yet) supported in faircamp's manifest files. ('{}')", trimmed))
+            match trimmed.find(|c| c != '-') {
+                Some(begin_operator_len) => {
+                    let key = trimmed[begin_operator_len..].trim();
+                    let mut value = None;
+                    
+                    while let Some(line) = lines.next() {
+                        let trimmed = line.trim();
+                        
+                        if trimmed.starts_with("--") {
+                            if let Some(end_operator_len) = trimmed.find(|c| c != '-') {
+                                if begin_operator_len == end_operator_len && key == trimmed[end_operator_len..].trim() {
+                                    elements.push(Element::Field {
+                                        content: FieldContent::Value(value.unwrap_or(String::new())),
+                                        key: key.to_string()
+                                    });
+                                    continue 'main;
+                                }
+                            }
+                        }
+                        
+                        match &mut value {
+                            Some(value) => value.push_str(&format!("\n{}", line)),
+                            None => value = Some(String::from(line))
+                        }
+                    }
+                    
+                    return Err(format!("Multiline field with key '{}' is never terminated in manifest.", key));
+                },
+                None => return Err(format!("Multiline field without key in manifest. ('{}')", trimmed))
+            }
         } else if trimmed.starts_with("`") {
             return Err(format!("Escaped keys are not (yet) supported in faircamp's manifest files. ('{}')", trimmed))
         } else if trimmed.starts_with("-") {
