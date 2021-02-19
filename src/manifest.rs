@@ -7,6 +7,7 @@ use crate::{
     audio_format::AudioFormat,
     download_option::DownloadOption,
     eno::{self, Element, FieldContent},
+    localization::{Localization, WritingDirection},
     message,
     payment_option::PaymentOption,
     styles::{Theme, ThemeBase},
@@ -19,6 +20,7 @@ pub struct Globals {
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>,
     pub feed_image: Option<String>,
+    pub localization: Localization,
     pub theme: Option<Theme>
 }
 
@@ -42,6 +44,7 @@ impl Globals {
             catalog_text: None,
             catalog_title: None,
             feed_image: None,
+            localization: Localization::defaults(),
             theme: None
         }
     }
@@ -74,6 +77,19 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
                         Element::Field { content: FieldContent::Entries(entries), key } => match key.as_str() {
+                            "localization" => {
+                                for entry in &entries {
+                                    match entry.key.as_str() {
+                                        "language" => globals.localization.language = entry.value.clone(),
+                                        "writing_direction" => match entry.value.as_str() {
+                                            "ltr" => globals.localization.writing_direction = WritingDirection::Ltr,
+                                            "rtl" => globals.localization.writing_direction = WritingDirection::Rtl,
+                                            value => message::error(&format!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in manifest '{path:?}'", value=value, path=path))
+                                        }
+                                        key => message::error(&format!("Ignoring unsupported global 'localization.{key}' in manifest '{path:?}'", key=key, path=path))
+                                    }
+                                }
+                            }
                             "payment_options" => {
                                 overrides.payment_options = entries
                                     .iter()

@@ -5,6 +5,7 @@ use url::Url;
 use crate::{
     args::Args,
     asset_cache::CacheOptimization,
+    localization::Localization,
     message,
     styles::Theme,
     util
@@ -18,6 +19,7 @@ pub struct Build {
     pub cache_optimization: CacheOptimization,
     pub catalog_dir: PathBuf,
     pub deploy_destination: Option<String>,
+    pub localization: Localization,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
     pub theme: Theme
@@ -68,6 +70,7 @@ impl Build {
             cache_optimization: CacheOptimization::Delayed,
             catalog_dir,
             deploy_destination: args.deploy_destination.clone(),
+            localization: Localization::defaults(),
             post_build_action,
             stats: Stats::empty(),
             theme: Theme::defaults()

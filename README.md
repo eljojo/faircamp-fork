@@ -123,6 +123,12 @@ disable_download
 > (This overrides download_price & disable_download and in practice would not be used along side these in the same manifest)
 free_download
 
+> This allows you to configure a language code (used e.g. for the RSS feed metadata) and more importantly
+> to switch from left-to-right to right-to-left presentation for e.g. arabic and hebrew scripts.
+localization:
+language = he
+writing_direction = rtl
+
 > This sets payment options that are shown when someone wants to buy one of your releases (for liberapay just provide your account name)
 payment_options:
 custom = I'm playing a show at *Substage Indenhoven* on Dec 19th - you can get the digital album now and meet me at the merch stand in december in person to give me the money yourself!

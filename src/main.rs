@@ -18,6 +18,7 @@ mod feed;
 mod ffmpeg;
 mod image;
 mod image_format;
+mod localization;
 mod manifest;
 mod message;
 mod payment_option;

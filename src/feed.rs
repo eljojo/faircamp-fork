@@ -68,7 +68,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
             feed_url=base_url.join("feed.rss").unwrap(),
             image=channel_image,
             items=channel_items,
-            language="en",  // TODO: Make configurable (or remove)
+            language=build.localization.language,
             title=channel_title
         );
         

@@ -51,7 +51,7 @@ impl Catalog {
         catalog.read_dir(&build.catalog_dir, cache_manifest, &mut globals, &Overrides::default()).unwrap();
         
         build.base_url = globals.base_url;
-        
+        build.localization = globals.localization;
         
         if let Some(strategy) = globals.cache_optimization {
             build.cache_optimization = strategy;

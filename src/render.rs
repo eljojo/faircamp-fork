@@ -8,6 +8,7 @@ use crate::{
     catalog::Catalog,
     download_option::DownloadOption,
     image_format::ImageFormat,
+    localization::WritingDirection,
     payment_option::PaymentOption,
     release::Release
 };
@@ -16,6 +17,7 @@ const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
 fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
     let root_prefix = "../".repeat(page_depth);
+    
     let (feed_meta_link, feed_user_link) = match &build.base_url.is_some() {
         true => (
             format!(
@@ -30,10 +32,16 @@ fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title
         false => (String::new(), String::new())
     };
     
+    let dir_attribute = match build.localization.writing_direction {
+        WritingDirection::Ltr => "",
+        WritingDirection::Rtl => "dir=\"rtl\""
+    };
+    
     format!(
         include_str!("templates/layout.html"),
         body=body,
         catalog_title=catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("About"),
+        dir_attribute=dir_attribute,
         feed_meta_link=feed_meta_link,
         feed_user_link=feed_user_link,
         root_prefix=root_prefix,
