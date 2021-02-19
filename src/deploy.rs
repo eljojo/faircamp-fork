@@ -1,10 +1,10 @@
-use crate::build_settings::BuildSettings;
+use crate::build::Build;
 use crate::rsync;
 
-pub fn deploy(build_settings: &BuildSettings) {
-    if let Some(destination) = &build_settings.deploy_destination {
+pub fn deploy(build: &Build) {
+    if let Some(destination) = &build.deploy_destination {
         info!("Deployment started");
-        rsync::sync(&build_settings.build_dir, destination).unwrap();
+        rsync::sync(&build.build_dir, destination).unwrap();
         info!("Deployment finished");
     } else {
         error!("No deployment destination specified, provide one with --deploy-destination")

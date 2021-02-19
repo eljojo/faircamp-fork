@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::{
     artist::Artist,
     audio_format,
-    build_settings::BuildSettings,
+    build::Build,
     catalog::Catalog,
     download_option::DownloadOption,
     image_format::ImageFormat,
@@ -14,9 +14,9 @@ use crate::{
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
-fn layout(page_depth: usize, body: &str, build_settings: &BuildSettings, catalog: &Catalog, title: &str) -> String {
+fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
     let root_prefix = "../".repeat(page_depth);
-    let (feed_meta_link, feed_user_link) = match &build_settings.base_url.is_some() {
+    let (feed_meta_link, feed_user_link) = match &build.base_url.is_some() {
         true => (
             format!(
                 r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#,
@@ -57,7 +57,7 @@ fn list_artists(page_depth: usize, artists: &Vec<Rc<Artist>>) -> String {
         .join(", ") // TODO: Consider "Alice, Bob and Carol" as polish over "Alice, Bob, Carol" (something for later)
 }
 
-pub fn render_about(build_settings: &BuildSettings, catalog: &Catalog) -> String {
+pub fn render_about(build: &Build, catalog: &Catalog) -> String {
     let text = catalog.text
         .as_ref()
         .map(|title| title.as_str())
@@ -87,10 +87,10 @@ pub fn render_about(build_settings: &BuildSettings, catalog: &Catalog) -> String
         title=title
     );
     
-    layout(1, &body, build_settings, catalog, title)
+    layout(1, &body, build, catalog, title)
 }
 
-pub fn render_artist(build_settings: &BuildSettings, artist: &Rc<Artist>, catalog: &Catalog) -> String {
+pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> String {
     let releases_rendered = catalog.releases
         .iter()
         .filter_map(|release| {
@@ -149,10 +149,10 @@ pub fn render_artist(build_settings: &BuildSettings, artist: &Rc<Artist>, catalo
         share_widget=SHARE_WIDGET
     );
     
-    layout(1, &body, build_settings, catalog, &artist.name)
+    layout(1, &body, build, catalog, &artist.name)
 }
 
-pub fn render_artists(build_settings: &BuildSettings, catalog: &Catalog) -> String {
+pub fn render_artists(build: &Build, catalog: &Catalog) -> String {
     let artists_rendered = catalog.artists
         .iter()
         .map(|artist| {
@@ -214,10 +214,10 @@ pub fn render_artists(build_settings: &BuildSettings, catalog: &Catalog) -> Stri
         artists_rendered=artists_rendered
     );
     
-    layout(1, &body, build_settings, catalog, "Artists")
+    layout(1, &body, build, catalog, "Artists")
 }
 
-pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
+pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
@@ -280,10 +280,10 @@ pub fn render_checkout(build_settings: &BuildSettings, catalog: &Catalog, releas
         release_title=release.title
     );
     
-    layout(2, &body, build_settings, catalog, &release.title)
+    layout(2, &body, build, catalog, &release.title)
 }
 
-pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
+pub fn render_download(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(2, &release.artists);
     
     let release_cover_rendered = match &release.cover {
@@ -326,10 +326,10 @@ pub fn render_download(build_settings: &BuildSettings, catalog: &Catalog, releas
         release_title=release.title
     );
     
-    layout(2, &body, build_settings, catalog, &release.title)
+    layout(2, &body, build, catalog, &release.title)
 }
 
-pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release: &Release) -> String {
+pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let artists_rendered = list_artists(1, &release.artists);
     
     let formats_list = release.download_formats
@@ -489,10 +489,10 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
         tracks_rendered=tracks_rendered
     );
     
-    layout(1, &body, build_settings, catalog, &release.title)
+    layout(1, &body, build, catalog, &release.title)
 }
 
-pub fn render_releases(build_settings: &BuildSettings, catalog: &Catalog) -> String {
+pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
     let releases_rendered = catalog.releases
         .iter()
         .map(|release| {
@@ -536,5 +536,5 @@ pub fn render_releases(build_settings: &BuildSettings, catalog: &Catalog) -> Str
         releases=releases_rendered
     );
     
-    layout(0, &body, build_settings, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
+    layout(0, &body, build, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
 }

@@ -7,7 +7,7 @@ use std::{
 use crate::{
     artist::Artist,
     asset_cache::{AssetIntent, CacheManifest},
-    build_settings::BuildSettings,
+    build::Build,
     image::Image,
     image_format::ImageFormat,
     manifest::{Globals, Overrides},
@@ -42,20 +42,20 @@ impl Catalog {
         }
     }
     
-    pub fn read(build_settings: &mut BuildSettings, cache_manifest: &mut CacheManifest) -> Catalog {
+    pub fn read(build: &mut Build, cache_manifest: &mut CacheManifest) -> Catalog {
         let mut catalog = Catalog::init_empty();
         let mut globals = Globals::empty();
         
-        catalog.read_dir(&build_settings.catalog_dir, cache_manifest, &mut globals, &Overrides::default()).unwrap();
+        catalog.read_dir(&build.catalog_dir, cache_manifest, &mut globals, &Overrides::default()).unwrap();
         
-        build_settings.base_url = globals.base_url;
+        build.base_url = globals.base_url;
         
         if let Some(strategy) = globals.cache_optimization {
-            build_settings.cache_optimization = strategy;
+            build.cache_optimization = strategy;
         }
         
         if let Some(theme) = globals.theme {
-            build_settings.theme = theme;
+            build.theme = theme;
         }
         
         catalog.text = globals.catalog_text.map(|markdown| util::markdown_to_html(&markdown));
@@ -303,35 +303,35 @@ impl Catalog {
         }
     }
     
-    pub fn write_assets(&mut self, build_settings: &mut BuildSettings) {
+    pub fn write_assets(&mut self, build: &mut Build) {
         for release in self.releases.iter_mut() {            
             if let Some(image) = &mut release.cover {
-                let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, build_settings, AssetIntent::Deliverable);
+                let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Deliverable);
                 
                 fs::copy(
-                    build_settings.cache_dir.join(&image_asset.filename),
-                    build_settings.build_dir.join(&image_asset.filename)
+                    build.cache_dir.join(&image_asset.filename),
+                    build.build_dir.join(&image_asset.filename)
                 ).unwrap();
                 
-                build_settings.stats.add_image(image_asset.filesize_bytes);
+                build.stats.add_image(image_asset.filesize_bytes);
                 
-                image.cached_assets.persist(&build_settings.cache_dir);
+                image.cached_assets.persist(&build.cache_dir);
             }
             
             for track in release.tracks.iter_mut() {
-                let streaming_asset = track.get_or_transcode_as(&release.streaming_format, build_settings, AssetIntent::Deliverable);
+                let streaming_asset = track.get_or_transcode_as(&release.streaming_format, build, AssetIntent::Deliverable);
                 
                 fs::copy(
-                    build_settings.cache_dir.join(&streaming_asset.filename),
-                    build_settings.build_dir.join(&streaming_asset.filename)
+                    build.cache_dir.join(&streaming_asset.filename),
+                    build.build_dir.join(&streaming_asset.filename)
                 ).unwrap();
                 
-                build_settings.stats.add_track(streaming_asset.filesize_bytes);
+                build.stats.add_track(streaming_asset.filesize_bytes);
                 
-                track.cached_assets.persist(&build_settings.cache_dir);
+                track.cached_assets.persist(&build.cache_dir);
             }
             
-            release.write_download_archives(build_settings);
+            release.write_download_archives(build);
         }
     }
 }

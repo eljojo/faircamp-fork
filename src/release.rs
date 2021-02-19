@@ -12,7 +12,7 @@ use crate::{
     artist::Artist,
     asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
     audio_format::{AUDIO_FORMATS, AudioFormat},
-    build_settings::BuildSettings,
+    build::Build,
     catalog::Catalog,
     download_option::DownloadOption,
     image::Image,
@@ -150,7 +150,7 @@ impl Release {
         }
     }
     
-    pub fn write_download_archives(&mut self, build_settings: &mut BuildSettings) {
+    pub fn write_download_archives(&mut self, build: &mut Build) {
         if self.download_option != DownloadOption::Disabled {
             for format in &self.download_formats {
                 let cached_format = self.cached_assets.get_mut(format);
@@ -159,7 +159,7 @@ impl Release {
                     let target_filename = format!("{}.zip", util::uid());
                     
                     let zip_file = File::create(
-                        build_settings.cache_dir.join(&target_filename)
+                        build.cache_dir.join(&target_filename)
                     ).unwrap();
                     let mut zip_writer = ZipWriter::new(zip_file);
                     let options = FileOptions::default()
@@ -189,39 +189,39 @@ impl Release {
                             title=track.title
                         );
                         
-                        let download_track_asset = track.get_or_transcode_as(format, build_settings, AssetIntent::Intermediate);
+                        let download_track_asset = track.get_or_transcode_as(format, build, AssetIntent::Intermediate);
                         
                         zip_writer.start_file(&filename, options).unwrap();
                     
                         let mut zip_inner_file = File::open(
-                            &build_settings.cache_dir.join(&download_track_asset.filename)
+                            &build.cache_dir.join(&download_track_asset.filename)
                         ).unwrap();
                             
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
                         
-                        track.cached_assets.persist(&build_settings.cache_dir);
+                        track.cached_assets.persist(&build.cache_dir);
                     }
                     
                     if let Some(cover) = &mut self.cover {
-                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, build_settings, AssetIntent::Intermediate);
+                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Intermediate);
                         
                         zip_writer.start_file("cover.jpg", options).unwrap();
                         
                         let mut zip_inner_file = File::open(
-                            &build_settings.cache_dir.join(&cover_asset.filename)
+                            &build.cache_dir.join(&cover_asset.filename)
                         ).unwrap();
                         
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
                         
-                        cover.cached_assets.persist(&build_settings.cache_dir);
+                        cover.cached_assets.persist(&build.cache_dir);
                     }
                         
                     match zip_writer.finish() {
-                        Ok(_) => cached_format.replace(Asset::init(build_settings, target_filename, AssetIntent::Deliverable)),
+                        Ok(_) => cached_format.replace(Asset::init(build, target_filename, AssetIntent::Deliverable)),
                         Err(err) => panic!(err)
                     };
                 }
@@ -231,38 +231,38 @@ impl Release {
                 download_archive_asset.unmark_stale();
                 
                 fs::copy(
-                    build_settings.cache_dir.join(&download_archive_asset.filename),
-                    build_settings.build_dir.join(&download_archive_asset.filename)
+                    build.cache_dir.join(&download_archive_asset.filename),
+                    build.build_dir.join(&download_archive_asset.filename)
                 ).unwrap();
                 
-                build_settings.stats.add_archive(download_archive_asset.filesize_bytes);
+                build.stats.add_archive(download_archive_asset.filesize_bytes);
                 
-                self.cached_assets.persist(&build_settings.cache_dir);
+                self.cached_assets.persist(&build.cache_dir);
             }
         }
     }
     
-    pub fn write_files(&self, build_settings: &BuildSettings, catalog: &Catalog) {
+    pub fn write_files(&self, build: &Build, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Disabled => (),
             DownloadOption::Free { download_page_uid }  => {
-                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uid);
-                let download_html = render::render_download(build_settings, catalog, self);
+                let download_page_dir = build.build_dir.join("download").join(download_page_uid);
+                let download_html = render::render_download(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
             DownloadOption::Paid { checkout_page_uid, download_page_uid, .. } => {
-                let checkout_page_dir = build_settings.build_dir.join("checkout").join(checkout_page_uid);
-                let checkout_html = render::render_checkout(build_settings, catalog, self, download_page_uid);
+                let checkout_page_dir = build.build_dir.join("checkout").join(checkout_page_uid);
+                let checkout_html = render::render_checkout(build, catalog, self, download_page_uid);
                 util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
                 
-                let download_page_dir = build_settings.build_dir.join("download").join(download_page_uid);
-                let download_html = render::render_download(build_settings, catalog, self);
+                let download_page_dir = build.build_dir.join("download").join(download_page_uid);
+                let download_html = render::render_download(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
         }
         
-        let release_dir = build_settings.build_dir.join(&self.slug);
-        let release_html = render::render_release(build_settings, catalog, self);
+        let release_dir = build.build_dir.join(&self.slug);
+        let release_html = render::render_release(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
     }
 }

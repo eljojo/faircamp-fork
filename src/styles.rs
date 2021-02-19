@@ -1,7 +1,7 @@
 use indoc::formatdoc;
 use std::fs;
 
-use crate::build_settings::BuildSettings;
+use crate::build::Build;
 
 // hue         0-360 degrees
 // hue_spread  0+ degrees
@@ -31,8 +31,8 @@ pub struct ThemeBase {
     pub text_l: u8
 }
 
-pub fn generate(build_settings: &BuildSettings) {
-    let theme = &build_settings.theme;
+pub fn generate(build: &Build) {
+    let theme = &build.theme;
     
     let background_override = match theme.background_image {
         Some(_) => formatdoc!(r#"
@@ -98,7 +98,7 @@ pub fn generate(build_settings: &BuildSettings) {
         background_override=background_override
     );
     
-    fs::write(build_settings.build_dir.join("styles.css"), css).unwrap();
+    fs::write(build.build_dir.join("styles.css"), css).unwrap();
 }
     
 impl Theme {

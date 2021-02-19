@@ -10,9 +10,7 @@ use crate::{
     util
 };
 
-// TODO: Now that this holds stats as well it should be just "Build"
-//       or something like that, as it is more than just settings.
-pub struct BuildSettings {
+pub struct Build {
     pub base_url: Option<Url>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
@@ -40,8 +38,8 @@ pub struct Stats {
     num_tracks: u32
 }
 
-impl BuildSettings {
-    pub fn init(args: &Args) -> BuildSettings {
+impl Build {
+    pub fn init(args: &Args) -> Build {
         let catalog_dir = args.catalog_dir
             .as_ref()
             .map(|path| path.to_path_buf())
@@ -62,7 +60,7 @@ impl BuildSettings {
         
         let post_build_action = PostBuildAction::init(args);
         
-        BuildSettings {
+        Build {
             base_url: None,
             build_begin: Utc::now(),
             build_dir,

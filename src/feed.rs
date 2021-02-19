@@ -1,13 +1,13 @@
 use std::fs;
 
 use crate::{
-    build_settings::BuildSettings,
+    build::Build,
     catalog::Catalog,
     message
 };
 
-pub fn generate(build_settings: &BuildSettings, catalog: &Catalog) {
-    if let Some(base_url) = &build_settings.base_url {        
+pub fn generate(build: &Build, catalog: &Catalog) {
+    if let Some(base_url) = &build.base_url {        
         let items = catalog.releases
             .iter()
             .map(|release| {
@@ -42,7 +42,7 @@ pub fn generate(build_settings: &BuildSettings, catalog: &Catalog) {
         let xml = format!(
             include_str!("templates/feed/channel.xml"),
             base_url=base_url,
-            build_date=build_settings.build_begin.to_rfc2822(),
+            build_date=build.build_begin.to_rfc2822(),
             channel_description=channel_description,
             channel_title=channel_title,
             feed_image="TODO.png",
@@ -52,7 +52,7 @@ pub fn generate(build_settings: &BuildSettings, catalog: &Catalog) {
             language="en"
         );
         
-        fs::write(build_settings.build_dir.join("feed.rss"), xml).unwrap();
+        fs::write(build.build_dir.join("feed.rss"), xml).unwrap();
     } else {
         message::warning(&format!("No base_url specified, skipping RSS feed generation"));
     }
