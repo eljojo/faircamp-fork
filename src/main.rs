@@ -111,7 +111,8 @@ fn main() {
         release.write_files(&build_settings, &catalog);
     }
     
-    if let Some(background_image) = &build_settings.background_image {
+    // TODO: Go through asset cache with this
+    if let Some(background_image) = &build_settings.theme.background_image {
         ffmpeg::transcode(
             &build_settings.catalog_dir.join(background_image),
             &build_settings.build_dir.join("background.jpg"),

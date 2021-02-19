@@ -48,9 +48,7 @@ impl Catalog {
         
         catalog.read_dir(&build_settings.catalog_dir, cache_manifest, &mut globals, &Overrides::default()).unwrap();
         
-        build_settings.background_image = globals.background_image;
         build_settings.base_url = globals.base_url;
-        build_settings.theme_hue = globals.theme_hue;
         
         if let Some(strategy) = globals.cache_optimization {
             build_settings.cache_optimization = strategy;

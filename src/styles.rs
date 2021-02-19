@@ -3,26 +3,44 @@ use std::fs;
 
 use crate::build_settings::BuildSettings;
 
+// hue         0-360 degrees
+// hue_spread  0+ degrees
+// tint_back   0-100 percent
+// tint_front  0-100 percent
 pub struct Theme {
-    pub background_lightness_percent: u32,
-    pub cover_lightness_percent: u32,
-    pub link_hover_lightness_percent: u32,
-    pub link_hue_degrees: u32,
-    pub link_lightness_percent: u32,
-    pub link_saturation_percent: u32,
-    pub muted_lightness_percent: u32,
-    pub overlay_alpha_factor: f32,
-    pub text_lightness_percent: u32
+    pub background_image: Option<String>,
+    pub base: ThemeBase,
+    pub hue: u16,
+    pub hue_spread: i16,
+    pub tint_back: u8,
+    pub tint_front: u8
+}
+
+// h(ue)         0-360 degrees
+// s(aturation)  0-100 percent
+// l(ightness)   0-100 percent
+// a(lpha)       0-100 percent (gets converted to 0.0-1.0 in css)
+pub struct ThemeBase {
+    pub background_l: u8,
+    pub cover_l: u8,
+    pub link_l: u8,
+    pub link_s: u8,
+    pub link_hover_l: u8,
+    pub muted_l: u8,
+    pub overlay_a: u8,
+    pub text_l: u8
 }
 
 pub fn generate(build_settings: &BuildSettings) {
-    let background_override = match build_settings.background_image {
+    let theme = &build_settings.theme;
+    
+    let background_override = match theme.background_image {
         Some(_) => formatdoc!(r#"
             body {{
                 background:
                     linear-gradient(
-                        hsla(0deg, 0%, var(--background-lightness), var(--overlay-alpha)),
-                        hsla(0deg, 0%, var(--background-lightness), var(--overlay-alpha))
+                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
+                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
                     ),
                     url(background.jpg) center / cover;
             }}
@@ -33,64 +51,96 @@ pub fn generate(build_settings: &BuildSettings) {
     let css = formatdoc!(
         r#"
             :root {{
-                --background-lightness: {background_lightness_percent}%;
-                --cover-lightness: {cover_lightness_percent}%;
-                --link-hover-lightness: {link_hover_lightness_percent}%;
-                --link-hue: {link_hue_degrees}deg;
-                --link-lightness: {link_lightness_percent}%;
-                --link-saturation: {link_saturation_percent}%;
-                --muted-lightness: {muted_lightness_percent}%;
-                --overlay-alpha: {overlay_alpha_factor};
-                --text-lightness: {text_lightness_percent}%;
+                --hue: {hue}deg;
+                --hue-spread: {hue_spread}deg;
+                --tint-back: {tint_back};
+                --tint-front: {tint_front};
+                
+                --background-h: calc(var(--hue) + 3 * var(--hue-spread));
+                --background-l: {background_l}%;
+                --background-s: calc({background_s}% * (var(--tint-back) / 100));
+                --cover-h: calc(var(--hue) + 2 * var(--hue-spread));
+                --cover-l: {cover_l}%;
+                --cover-s: calc({cover_s}% * (var(--tint-front) / 100));
+                --link-l: {link_l}%;
+                --link-s: {link_s}%;
+                --link-hover-l: {link_hover_l}%;
+                --muted-h: calc(var(--hue) + 2 * var(--hue-spread));
+                --muted-l: {muted_l}%;
+                --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
+                --nav-s: calc({nav_s}% * (var(--tint-front) / 100));
+                --overlay-a: {overlay_a};
+                --text-h: calc(var(--hue) + 1 * var(--hue-spread));
+                --text-l: {text_l}%;
+                --text-s: calc({text_s}% * (var(--tint-front) / 100));
             }}
             {included_static_css}
             {background_override}
         "#,
-        background_lightness_percent=build_settings.theme.background_lightness_percent,
-        cover_lightness_percent=build_settings.theme.cover_lightness_percent,
-        link_hover_lightness_percent=build_settings.theme.link_hover_lightness_percent,
-        link_hue_degrees=build_settings.theme_hue.unwrap_or_else(|| build_settings.theme.link_hue_degrees),
-        link_lightness_percent=build_settings.theme.link_lightness_percent,
-        link_saturation_percent=build_settings.theme.link_saturation_percent,
-        muted_lightness_percent=build_settings.theme.muted_lightness_percent,
-        overlay_alpha_factor=build_settings.theme.overlay_alpha_factor,
-        text_lightness_percent=build_settings.theme.text_lightness_percent,
+        hue=theme.hue,
+        hue_spread=theme.hue_spread,
+        tint_back=theme.tint_back,
+        tint_front=theme.tint_front,
+        background_l=theme.base.background_l,
+        background_s=41,
+        cover_l=theme.base.cover_l,
+        cover_s=35,
+        link_l=theme.base.link_l,
+        link_s=theme.base.link_s,
+        link_hover_l=theme.base.link_hover_l,
+        muted_l=theme.base.muted_l,
+        muted_s=35,
+        nav_s=17,
+        overlay_a=theme.base.overlay_a,
+        text_l=theme.base.text_l,
+        text_s=94,
         included_static_css=include_str!("assets/styles.css"),
         background_override=background_override
     );
     
     fs::write(build_settings.build_dir.join("styles.css"), css).unwrap();
 }
-
+    
 impl Theme {
-    pub const DARK: Theme = Theme {
-        background_lightness_percent: 10,
-        cover_lightness_percent: 13,
-        link_hover_lightness_percent: 82,
-        link_hue_degrees: 198,
-        link_lightness_percent: 68,
-        link_saturation_percent: 62,
-        muted_lightness_percent: 23,
-        overlay_alpha_factor: 0.5,
-        text_lightness_percent: 86
+    pub fn defaults() -> Theme {
+        Theme {
+            background_image: None,
+            base: ThemeBase::DARK,
+            hue: 0,
+            hue_spread: 0,
+            tint_back: 0,
+            tint_front: 0
+        }
+    }
+}
+
+impl ThemeBase {
+    pub const DARK: ThemeBase = ThemeBase {
+        background_l: 10,
+        cover_l: 13,
+        link_hover_l: 82,
+        link_l: 68,
+        link_s: 62,
+        muted_l: 23,
+        overlay_a: 90,
+        text_l: 86
     };
 
-    pub const LIGHT: Theme = Theme {
-        background_lightness_percent: 90,
-        cover_lightness_percent: 87,
-        link_hover_lightness_percent: 48,
-        link_hue_degrees: 198,
-        link_lightness_percent: 42,
-        link_saturation_percent: 100,
-        muted_lightness_percent: 68,
-        overlay_alpha_factor: 0.5,
-        text_lightness_percent: 14
+    pub const LIGHT: ThemeBase = ThemeBase {
+        background_l: 90,
+        cover_l: 87,
+        link_hover_l: 48,
+        link_l: 42,
+        link_s: 100,
+        muted_l: 68,
+        overlay_a: 90,
+        text_l: 14
     };
     
-    pub fn from_manifest_key(key: &str) -> Option<Theme> {
+    pub fn from_manifest_key(key: &str) -> Option<ThemeBase> {
         match key {
-            "dark" => Some(Theme::DARK),
-            "light" => Some(Theme::LIGHT),
+            "dark" => Some(ThemeBase::DARK),
+            "light" => Some(ThemeBase::LIGHT),
             _ => None
         }
     }

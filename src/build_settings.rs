@@ -16,7 +16,6 @@ use crate::{
 // TODO: Now that this holds stats as well it should be just "Build"
 //       or something like that, as it is more than just settings.
 pub struct BuildSettings {
-    pub background_image: Option<String>,
     pub base_url: Option<Url>,
     pub build_dir: PathBuf,
     begin_instant: Instant,
@@ -26,8 +25,7 @@ pub struct BuildSettings {
     pub deploy_destination: Option<String>,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
-    pub theme: Theme,
-    pub theme_hue: Option<u32>
+    pub theme: Theme
 }
 
 pub enum PostBuildAction {
@@ -68,7 +66,6 @@ impl BuildSettings {
         let post_build_action = PostBuildAction::init(args);
         
         BuildSettings {
-            background_image: None,
             base_url: None,
             begin_instant: Instant::now(),
             build_dir,
@@ -78,8 +75,7 @@ impl BuildSettings {
             deploy_destination: args.deploy_destination.clone(),
             post_build_action,
             stats: Stats::empty(),
-            theme: Theme::DARK,
-            theme_hue: None
+            theme: Theme::defaults()
         }
     }
     

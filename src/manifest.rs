@@ -9,18 +9,16 @@ use crate::{
     eno::{self, Element, FieldContent},
     message,
     payment_option::PaymentOption,
-    styles::Theme,
+    styles::{Theme, ThemeBase},
     util
 };
 
 pub struct Globals {
-    pub background_image: Option<String>,
     pub base_url: Option<Url>,
     pub cache_optimization: Option<CacheOptimization>,
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>,
-    pub theme: Option<Theme>,
-    pub theme_hue: Option<u32>
+    pub theme: Option<Theme>
 }
 
 #[derive(Clone)]
@@ -38,13 +36,11 @@ pub struct Overrides {
 impl Globals {
     pub fn empty() -> Globals {
         Globals {
-            background_image: None,
             base_url: None,
             cache_optimization: None,
             catalog_text: None,
             catalog_title: None,
-            theme: None,
-            theme_hue: None
+            theme: None
         }
     }
 }
@@ -91,6 +87,42 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                     )
                                     .collect();
                             }
+                            "theme" => {
+                                let mut theme = Theme::defaults();
+                                
+                                for entry in &entries {
+                                    match entry.key.as_str() {
+                                        "background_image" => theme.background_image = Some(entry.value.clone()),  // TODO: Verify file exists at provided location
+                                        "base" => match ThemeBase::from_manifest_key(entry.value.as_str()) {
+                                            Some(variant) => theme.base = variant,
+                                            None => message::error(&format!("Ignoring unsupported value '{value}' for global 'theme.base' (supported values are 'dark' and 'light') in manifest '{path:?}'", value=entry.value, path=path))
+                                        }
+                                        "hue" => match entry.value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
+                                            Some(degrees) => theme.hue = degrees,
+                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in manifest '{path:?}'", value=entry.value, path=path))
+                                        }
+                                        "hue_spread" => match entry.value.parse::<i16>().ok() {
+                                            Some(degree_offset) => theme.hue_spread = degree_offset,
+                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in manifest '{path:?}'", value=entry.value, path=path))
+                                        }
+                                        "tint_back" => match entry.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
+                                            Some(percentage) => theme.tint_back = percentage,
+                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in manifest '{path:?}'", value=entry.value, path=path))
+                                        }
+                                        "tint_front" => match entry.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
+                                            Some(percentage) => theme.tint_front = percentage,
+                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in manifest '{path:?}'", value=entry.value, path=path))
+                                        }
+                                        key => message::error(&format!("Ignoring unsupported global 'theme.{key}' in manifest '{path:?}'", key=key, path=path))
+                                    }
+                                }
+                                
+                                if globals.theme.is_some() {
+                                    message::warning(&format!("Global 'theme' is set more than once"));
+                                }
+                                    
+                                globals.theme = Some(theme);
+                            }
                             key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
                         Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
@@ -113,17 +145,6 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
                         Element::Field { content: FieldContent::Value(value), key } => match key.as_str() {
-                            "background_image" => {
-                                if let Some(previous_image) = &globals.background_image {
-                                    message::warning(&format!(
-                                        "Global 'background_image' is set more than once ('{previous_image}', '{new_image}')",
-                                        previous_image=previous_image,
-                                        new_image=value
-                                    ));
-                                }
-                                
-                                globals.background_image = Some(value); 
-                            }
                             "base_url" => match Url::parse(&value) {
                                 Ok(url) => {
                                     if let Some(previous_url) = &globals.base_url {
@@ -258,26 +279,6 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                 "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
                                 "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
                                 value => message::error(&format!("Ignoring invalid streaming_quality setting value '{value}' (available: standard, transparent) in {path:?}", path=path, value=value))
-                            }
-                            "theme" => {
-                                if globals.theme.is_some() {
-                                    message::warning(&format!("Global 'theme' is set more than once"));
-                                }
-                                
-                                match Theme::from_manifest_key(value.as_str()) {
-                                    None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme' (supported values are 'dark' and 'light')", value)),
-                                    some_theme => globals.theme = some_theme,
-                                }
-                            }
-                            "theme_hue" => {
-                                if globals.theme_hue.is_some() {
-                                    message::warning(&format!("Global 'theme_hue' is set more than once"));
-                                }
-                                
-                                match value.parse::<u32>() {
-                                    Ok(degrees) => globals.theme_hue = Some(degrees),
-                                    Err(_) => message::error(&format!("Ignoring unsupported value '{}' for global 'theme_hue' (accepts an amount of degrees as an integer)", value))
-                                }
                             }
                             "track_artist" => overrides.track_artists = Some(vec![value]),
                             key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))

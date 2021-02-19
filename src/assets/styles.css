@@ -1,5 +1,5 @@
 :root {
-  --color-muted: hsl(0, 0%, var(--muted-lightness));
+  --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
 }
 @font-face {
     font-family: 'Barlow';
@@ -8,14 +8,14 @@
     src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
 }
 a {
-    color:hsl(var(--link-hue), var(--link-saturation), var(--link-lightness));
+    color:hsl(var(--hue), var(--link-s), var(--link-l));
     cursor: pointer;
     text-decoration: none;
 }
-a:hover { color: hsl(var(--link-hue), var(--link-saturation), var(--link-hover-lightness)); }
+a:hover { color: hsl(var(--hue), var(--link-s), var(--link-hover-l)); }
 body {
-    background-color: hsl(0, 0%, var(--background-lightness));
-    color: hsl(0, 0%, var(--text-lightness));
+    background-color: hsl(var(--background-h), var(--background-s), var(--background-l));
+    color: hsl(var(--text-h), var(--text-s), var(--text-l));
     font-family: 'Barlow';
     font-size: 18px;
     margin: 0;
@@ -41,10 +41,10 @@ nav {
     writing-mode: vertical-rl;
 }
 nav > a {
-    color: hsl(0, 0%, var(--link-lightness));
+    color: hsl(var(--text-h), var(--nav-s), var(--link-l));
     text-transform: uppercase;
 }
-nav > a:hover { color: hsl(0, 0%, var(--link-hover-lightness)); }
+nav > a:hover { color: hsl(var(--text-h), var(--nav-s), var(--link-hover-l)); }
 nav > *:not(:first-child) { margin-top: .3em; }
 img {
     display: block;
@@ -61,7 +61,7 @@ main {
     max-width: 40em;
 }
 .cover {
-    background-color: hsl(0, 0%, var(--cover-lightness));
+    background-color: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
     display: block;
     height: 20em;
     width: 20em;
@@ -132,6 +132,6 @@ main {
     position: relative;
     width: 1.2em;
 }
-.track_number:hover { border-color: hsl(0, 0%, var(--link-hover-lightness)); }
+.track_number:hover { border-color: hsl(var(--muted-h), var(--muted-s), var(--link-hover-l)); }
 .track_title { position: relative; }
 .vpad { margin: 1em 0; }
