@@ -9,7 +9,8 @@ use crate::{
     eno::{self, Element, FieldContent},
     message,
     payment_option::PaymentOption,
-    styles::{Theme, DARK_THEME, LIGHT_THEME}
+    styles::{Theme, DARK_THEME, LIGHT_THEME},
+    util
 };
 
 pub struct Globals {
@@ -28,6 +29,7 @@ pub struct Overrides {
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_text: Option<String>,
+    pub release_title: Option<String>,
     pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>
 }
@@ -53,6 +55,7 @@ impl Overrides {
             payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
             release_artists: None,
             release_text: None,
+            release_title: None,
             streaming_format: AudioFormat::Mp3Cbr128,
             track_artists: None
         }
@@ -247,7 +250,8 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                 }
                             }
                             "release_artist" => overrides.release_artists = Some(vec![value]),
-                            "release_text" => overrides.release_text = Some(value),
+                            "release_text" => overrides.release_text = Some(util::markdown_to_html(&value)),
+                            "release_title" => overrides.release_title = Some(value),
                             "streaming_quality" => match value.as_str() {
                                 "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
                                 "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,

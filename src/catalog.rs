@@ -207,15 +207,32 @@ impl Catalog {
                 }
             }
             
+            let title = &local_overrides
+                .as_ref()
+                .unwrap_or(parent_overrides)
+                .release_title
+                .as_ref()
+                .map(|title| title.clone())
+                .unwrap_or_else(||
+                    release_title_metrics
+                        .pop()
+                        .map(|(_count, title)| title) 
+                        .unwrap_or_else(||
+                            dir
+                            .file_name()
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .to_string()
+                        )
+                );
+            
             let release = Release::init(
                 release_artists,
                 cached_assets,
                 images,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
-                release_title_metrics
-                    .pop()
-                    .map(|(_count, title)| title) 
-                    .unwrap_or_else(|| dir.file_name().unwrap().to_str().unwrap().to_string()),
+                title.to_string(),
                 release_tracks
             );
 

@@ -412,6 +412,11 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
         None => String::from(r#"<div class="cover vpad"></div>"#)
     };
     
+    let release_text = match &release.text {
+        Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
+        None => String::new()
+    };
+    
     let longest_track_duration = release.tracks
         .iter()
         .map(|track| track.cached_assets.source_meta.duration_seconds.unwrap_or(0))
@@ -473,13 +478,13 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
                 
                 {share_widget}
                 
-                <div>{release_text}</div>
+                {release_text}
             </div>
         "##,
         artists_rendered=artists_rendered,
         download_option_rendered=download_option_rendered,
         release_cover_rendered=release_cover_rendered,
-        release_text=release.text.as_ref().unwrap_or(&String::new()),
+        release_text=release_text,
         release_title=release.title,
         share_widget=SHARE_WIDGET,
         tracks_rendered=tracks_rendered
