@@ -83,6 +83,9 @@ Note that this demonstrates only a subset of available options, and because it i
 > Sets the URL under which you intend to host faircamp, only used for RSS feed generation
 base_url: https://myawesomemusic.site/
 
+> Sets an image for the generated RSS feed
+feed_image: exported_logo_v3.jpg
+
 > Sets the global about page text for your site
 catalog_text: My self hosted faircamp site, which presents some of my awesome music. Nice of you to stop by!
 

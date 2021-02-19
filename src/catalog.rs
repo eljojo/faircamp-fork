@@ -25,6 +25,7 @@ const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 #[derive(Debug)]
 pub struct Catalog {
     pub artists: Vec<Rc<Artist>>,
+    pub feed_image: Option<String>,
     pub images: Vec<Image>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
     pub releases: Vec<Release>,
     pub text: Option<String>,
@@ -35,6 +36,7 @@ impl Catalog {
     pub fn init_empty() -> Catalog {
         Catalog {
             artists: Vec::new(),
+            feed_image: None,
             images: Vec::new(),
             releases: Vec::new(),
             text: None,
@@ -50,6 +52,7 @@ impl Catalog {
         
         build.base_url = globals.base_url;
         
+        
         if let Some(strategy) = globals.cache_optimization {
             build.cache_optimization = strategy;
         }
@@ -58,6 +61,10 @@ impl Catalog {
             build.theme = theme;
         }
         
+        // TODO: This whole pattern with things being put on Globals, just so they
+        //       can then be copied onto Catalog/Build/... here, probably indicates
+        //       we want to change something fundamental about this. 
+        catalog.feed_image = globals.feed_image;
         catalog.text = globals.catalog_text.map(|markdown| util::markdown_to_html(&markdown));
         catalog.title = globals.catalog_title;
         

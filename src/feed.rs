@@ -3,12 +3,14 @@ use std::fs;
 use crate::{
     build::Build,
     catalog::Catalog,
+    ffmpeg::{self, MediaFormat},
+    image_format::ImageFormat,
     message
 };
 
 pub fn generate(build: &Build, catalog: &Catalog) {
     if let Some(base_url) = &build.base_url {        
-        let items = catalog.releases
+        let channel_items = catalog.releases
             .iter()
             .map(|release| {
                 let artists_list = release.artists
@@ -32,24 +34,42 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         let channel_description = catalog.text
             .as_ref()
             .map(|string| string.as_str())
-            .unwrap_or("A faircamp-based music catalog");
+            .unwrap_or("A faircamp-based music catalog"); 
         
         let channel_title = catalog.title
             .as_ref()
             .map(|string| string.as_str())
             .unwrap_or("Catalog");
         
+        let channel_image = match &catalog.feed_image {
+            Some(feed_image) => {
+                // TODO: Go through asset cache with this
+                ffmpeg::transcode(
+                    &build.catalog_dir.join(feed_image),
+                    &build.build_dir.join("feed.jpg"),
+                    MediaFormat::Image(&ImageFormat::Jpeg)
+                ).unwrap();
+                
+                format!(
+                    include_str!("templates/feed/image.xml"),
+                    base_url=base_url,
+                    image_url=base_url.join("feed.jpg").unwrap(),
+                    title=channel_title
+                )
+            },
+            None => String::new()
+        };
+        
         let xml = format!(
             include_str!("templates/feed/channel.xml"),
             base_url=base_url,
             build_date=build.build_begin.to_rfc2822(),
-            channel_description=channel_description,
-            channel_title=channel_title,
-            feed_image="TODO.png",
-            feed_image_title="TODO",
+            description=channel_description,
             feed_url=base_url.join("feed.rss").unwrap(),
-            items=items,
-            language="en"
+            image=channel_image,
+            items=channel_items,
+            language="en",  // TODO: Make configurable (or remove)
+            title=channel_title
         );
         
         fs::write(build.build_dir.join("feed.rss"), xml).unwrap();

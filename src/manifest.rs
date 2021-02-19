@@ -18,6 +18,7 @@ pub struct Globals {
     pub cache_optimization: Option<CacheOptimization>,
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>,
+    pub feed_image: Option<String>,
     pub theme: Option<Theme>
 }
 
@@ -40,6 +41,7 @@ impl Globals {
             cache_optimization: None,
             catalog_text: None,
             catalog_title: None,
+            feed_image: None,
             theme: None
         }
     }
@@ -204,6 +206,17 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                 Some(format) => overrides.download_formats = vec![format],
                                 None => message::error(&format!("Ignoring invalid download_format setting value '{value}' in {path:?}", path=path, value=value))
                             }
+                            "feed_image" => {
+                                if let Some(previous_image) = &globals.feed_image {
+                                    message::warning(&format!(
+                                        "Global 'feed_image' is set more than once ('{previous_image}', '{new_image}')",
+                                        previous_image=previous_image,
+                                        new_image=value
+                                    ));
+                                }
+                                
+                                globals.feed_image = Some(value); // TODO: Verify file exists at provided location
+                            },
                             "paid_download" =>  {
                                 let mut split_by_whitespace = value.split_ascii_whitespace();
                                 
