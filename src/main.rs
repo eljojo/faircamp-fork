@@ -1,7 +1,6 @@
 #[macro_use] extern crate log;
 #[macro_use] extern crate serde_derive;
 
-use chrono::Utc;
 use clap::Clap;
 use std::fs;
 
@@ -46,17 +45,14 @@ fn main() {
     let mut cache_manifest = CacheManifest::retrieve(&build_settings.cache_dir);
     
     if args.analyze_cache {
-        asset_cache::analyze_cache(&cache_manifest, &Catalog::init_empty());
+        build_settings.cache_optimization = CacheOptimization::Immediate;
+        asset_cache::report_stale(&cache_manifest, &Catalog::init_empty());
         return;
     }
     
     if args.optimize_cache {
-        asset_cache::optimize_cache(
-            &build_settings.cache_dir,
-            &mut cache_manifest,
-            &CacheOptimization::Immediate,
-            &mut Catalog::init_empty()
-        );
+        build_settings.cache_optimization = CacheOptimization::Immediate;
+        asset_cache::optimize_cache(&build_settings, &mut cache_manifest, &mut Catalog::init_empty());
         return;
     }
     
@@ -70,7 +66,7 @@ fn main() {
         return;
     }
     
-    cache_manifest.mark_all_stale(&Utc::now());
+    cache_manifest.mark_all_stale(&build_settings.build_begin);
     
     let mut catalog = Catalog::read(&mut build_settings, &mut cache_manifest);
     
@@ -124,24 +120,14 @@ fn main() {
     fs::write(build_settings.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
     styles::generate(&build_settings);
-    
-    if let Some(base_url) = &build_settings.base_url {
-        let feed_xml = feed::generate(base_url, &catalog);
-        fs::write(build_settings.build_dir.join("feed.rss"), feed_xml).unwrap();
-    } else {
-        message::warning(&format!("No base_url specified, skipping RSS feed generation"));
-    }
+    feed::generate(&build_settings, &catalog);
     
     match build_settings.cache_optimization {
-        CacheOptimization::Delayed | CacheOptimization::Immediate => {
-            asset_cache::optimize_cache(
-                &build_settings.cache_dir,
-                &mut cache_manifest,
-                &build_settings.cache_optimization,
-                &mut catalog
-            );
-        }
-        CacheOptimization::Manual => asset_cache::analyze_cache(&cache_manifest, &catalog),
+        CacheOptimization::Delayed |
+        CacheOptimization::Immediate =>
+            asset_cache::optimize_cache(&build_settings, &mut cache_manifest, &mut catalog),
+        CacheOptimization::Manual =>
+            asset_cache::report_stale(&cache_manifest, &catalog),
         CacheOptimization::Wipe => {
             util::remove_dir(&build_settings.cache_dir);
             message::cache(&format!("Wiped cache"));

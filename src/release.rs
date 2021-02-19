@@ -189,7 +189,7 @@ impl Release {
                             title=track.title
                         );
                         
-                        let download_track_asset = track.get_or_transcode_as(format, &build_settings.cache_dir, AssetIntent::Intermediate);
+                        let download_track_asset = track.get_or_transcode_as(format, build_settings, AssetIntent::Intermediate);
                         
                         zip_writer.start_file(&filename, options).unwrap();
                     
@@ -205,7 +205,7 @@ impl Release {
                     }
                     
                     if let Some(cover) = &mut self.cover {
-                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, &build_settings.cache_dir, AssetIntent::Intermediate);
+                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, build_settings, AssetIntent::Intermediate);
                         
                         zip_writer.start_file("cover.jpg", options).unwrap();
                         
@@ -221,7 +221,7 @@ impl Release {
                     }
                         
                     match zip_writer.finish() {
-                        Ok(_) => cached_format.replace(Asset::init(&build_settings.cache_dir, target_filename, AssetIntent::Deliverable)),
+                        Ok(_) => cached_format.replace(Asset::init(build_settings, target_filename, AssetIntent::Deliverable)),
                         Err(err) => panic!(err)
                     };
                 }

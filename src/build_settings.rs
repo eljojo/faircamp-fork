@@ -1,8 +1,5 @@
-use std::{
-    env,
-    path::PathBuf,
-    time::Instant
-};
+use chrono::{DateTime, Utc};
+use std::{env, path::PathBuf};
 use url::Url;
 
 use crate::{
@@ -17,8 +14,8 @@ use crate::{
 //       or something like that, as it is more than just settings.
 pub struct BuildSettings {
     pub base_url: Option<Url>,
+    pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
-    begin_instant: Instant,
     pub cache_dir: PathBuf,
     pub cache_optimization: CacheOptimization,
     pub catalog_dir: PathBuf,
@@ -67,7 +64,7 @@ impl BuildSettings {
         
         BuildSettings {
             base_url: None,
-            begin_instant: Instant::now(),
+            build_begin: Utc::now(),
             build_dir,
             cache_dir,
             cache_optimization: CacheOptimization::Delayed,
@@ -80,9 +77,11 @@ impl BuildSettings {
     }
     
     pub fn print_stats(&self) {
+        let elapsed = Utc::now().signed_duration_since(self.build_begin).num_seconds();
+        
         message::stats(&self.stats.to_string());
         message::stats(
-            &format!("Build finished in {:.2} seconds", self.begin_instant.elapsed().as_secs_f32())
+            &format!("Build finished in {:.2} seconds", elapsed)
         );
     }
 }

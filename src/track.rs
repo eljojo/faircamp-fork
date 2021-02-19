@@ -10,6 +10,7 @@ use crate::{
     asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
     audio_format::{AUDIO_FORMATS, AudioFormat},
     audio_meta::AudioMeta,
+    build_settings::BuildSettings,
     ffmpeg::{self, MediaFormat},
     message,
     util
@@ -128,7 +129,7 @@ impl Track {
         self.cached_assets.get(format)
     }
     
-    pub fn get_or_transcode_as(&mut self, format: &AudioFormat, cache_dir: &Path, asset_intent: AssetIntent) -> &mut Asset {
+    pub fn get_or_transcode_as(&mut self, format: &AudioFormat, build_settings: &BuildSettings, asset_intent: AssetIntent) -> &mut Asset {
         let cached_format = self.cached_assets.get_mut(format);
     
         match cached_format {
@@ -139,11 +140,11 @@ impl Track {
                 message::transcoding(&format!("{:?} to {}", self.source_file, format));
                 ffmpeg::transcode(
                     &self.source_file,
-                    &cache_dir.join(&target_filename),
+                    &build_settings.cache_dir.join(&target_filename),
                     MediaFormat::Audio(format)
                 ).unwrap();
             
-                cached_format.replace(Asset::init(cache_dir, target_filename, asset_intent));
+                cached_format.replace(Asset::init(build_settings, target_filename, asset_intent));
             }
         }
         

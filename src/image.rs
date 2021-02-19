@@ -6,6 +6,7 @@ use std::{
 
 use crate::{
     asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
+    build_settings::BuildSettings,
     ffmpeg::{self, MediaFormat},
     image_format::ImageFormat,
     message,
@@ -75,7 +76,7 @@ impl Image {
         self.cached_assets.get(format)
     }
     
-    pub fn get_or_transcode_as(&mut self, format: &ImageFormat, cache_dir: &Path, asset_intent: AssetIntent) -> &mut Asset {
+    pub fn get_or_transcode_as(&mut self, format: &ImageFormat, build_settings: &BuildSettings, asset_intent: AssetIntent) -> &mut Asset {
         let cached_format = self.cached_assets.get_mut(format);
         
         match cached_format {
@@ -86,11 +87,11 @@ impl Image {
                 message::transcoding(&format!("{:?} to {}", self.source_file, format));
                 ffmpeg::transcode(
                     &self.source_file,
-                    &cache_dir.join(&target_filename),
+                    &build_settings.cache_dir.join(&target_filename),
                     MediaFormat::Image(format)
                 ).unwrap();
             
-                cached_format.replace(Asset::init(cache_dir, target_filename, asset_intent));
+                cached_format.replace(Asset::init(build_settings, target_filename, asset_intent));
             }
         }
         

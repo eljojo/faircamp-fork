@@ -340,7 +340,6 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
         
     let includes_text = format!("Available Formats: {}", formats_list);
     
-    // TODO: Probably outsource that into impl DownloadOption (give it its own file I guess then)
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free { download_page_uid } => formatdoc!(
