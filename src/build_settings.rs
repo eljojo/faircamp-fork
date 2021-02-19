@@ -9,7 +9,7 @@ use crate::{
     args::Args,
     asset_cache::CacheOptimization,
     message,
-    styles::{Theme, DARK_THEME},
+    styles::Theme,
     util
 };
 
@@ -26,7 +26,8 @@ pub struct BuildSettings {
     pub deploy_destination: Option<String>,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
-    pub theme: Theme
+    pub theme: Theme,
+    pub theme_hue: Option<u32>
 }
 
 pub enum PostBuildAction {
@@ -77,7 +78,8 @@ impl BuildSettings {
             deploy_destination: args.deploy_destination.clone(),
             post_build_action,
             stats: Stats::empty(),
-            theme: DARK_THEME
+            theme: Theme::DARK,
+            theme_hue: None
         }
     }
     

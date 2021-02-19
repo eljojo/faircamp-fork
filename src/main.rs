@@ -122,8 +122,7 @@ fn main() {
     fs::write(build_settings.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
     fs::write(build_settings.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
-    let css = styles::generate(&build_settings.theme, build_settings.background_image.is_some());
-    fs::write(build_settings.build_dir.join("styles.css"), css).unwrap();
+    styles::generate(&build_settings);
     
     if let Some(base_url) = &build_settings.base_url {
         let feed_xml = feed::generate(base_url, &catalog);

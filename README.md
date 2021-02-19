@@ -131,6 +131,9 @@ streaming_quality: standard
 
 > You can choose between a dark and light visual theme
 theme: light
+
+> You can customize the hue of the accent color in the theme (mostly used for links), a range of 0-360 is available
+theme_hue: 24
 ```
 
 ### Advanced control over caching strategy

@@ -476,9 +476,9 @@ pub fn render_release(build_settings: &BuildSettings, catalog: &Catalog, release
                 
                 {download_option_rendered}
                 
-                {share_widget}
-                
                 {release_text}
+                
+                {share_widget}
             </div>
         "##,
         artists_rendered=artists_rendered,

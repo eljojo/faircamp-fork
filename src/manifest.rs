@@ -9,7 +9,7 @@ use crate::{
     eno::{self, Element, FieldContent},
     message,
     payment_option::PaymentOption,
-    styles::{Theme, DARK_THEME, LIGHT_THEME},
+    styles::Theme,
     util
 };
 
@@ -19,7 +19,8 @@ pub struct Globals {
     pub cache_optimization: Option<CacheOptimization>,
     pub catalog_text: Option<String>,
     pub catalog_title: Option<String>,
-    pub theme: Option<Theme>
+    pub theme: Option<Theme>,
+    pub theme_hue: Option<u32>
 }
 
 #[derive(Clone)]
@@ -42,7 +43,8 @@ impl Globals {
             cache_optimization: None,
             catalog_text: None,
             catalog_title: None,
-            theme: None
+            theme: None,
+            theme_hue: None
         }
     }
 }
@@ -262,10 +264,19 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                     message::warning(&format!("Global 'theme' is set more than once"));
                                 }
                                 
-                                match value.as_str() {
-                                    "dark" => globals.theme = Some(DARK_THEME),
-                                    "light" => globals.theme = Some(LIGHT_THEME),
-                                    unsupported => message::error(&format!("Ignoring unsupported value '{}' for global 'theme' (supported values are 'dark' and 'light')", unsupported))
+                                match Theme::from_manifest_key(value.as_str()) {
+                                    None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme' (supported values are 'dark' and 'light')", value)),
+                                    some_theme => globals.theme = some_theme,
+                                }
+                            }
+                            "theme_hue" => {
+                                if globals.theme_hue.is_some() {
+                                    message::warning(&format!("Global 'theme_hue' is set more than once"));
+                                }
+                                
+                                match value.parse::<u32>() {
+                                    Ok(degrees) => globals.theme_hue = Some(degrees),
+                                    Err(_) => message::error(&format!("Ignoring unsupported value '{}' for global 'theme_hue' (accepts an amount of degrees as an integer)", value))
                                 }
                             }
                             "track_artist" => overrides.track_artists = Some(vec![value]),
