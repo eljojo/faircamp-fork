@@ -5,24 +5,16 @@ use url::Url;
 use crate::{
     asset_cache::CacheOptimization,
     audio_format::AudioFormat,
+    build::Build,
+    catalog::Catalog,
     download_option::DownloadOption,
     eno::{self, Element, FieldContent},
-    localization::{Localization, WritingDirection},
+    localization::WritingDirection,
     message,
     payment_option::PaymentOption,
     styles::{Theme, ThemeBase},
     util
 };
-
-pub struct Globals {
-    pub base_url: Option<Url>,
-    pub cache_optimization: Option<CacheOptimization>,
-    pub catalog_text: Option<String>,
-    pub catalog_title: Option<String>,
-    pub feed_image: Option<String>,
-    pub localization: Localization,
-    pub theme: Option<Theme>
-}
 
 #[derive(Clone)]
 pub struct Overrides {
@@ -34,20 +26,6 @@ pub struct Overrides {
     pub release_title: Option<String>,
     pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>
-}
-
-impl Globals {
-    pub fn empty() -> Globals {
-        Globals {
-            base_url: None,
-            cache_optimization: None,
-            catalog_text: None,
-            catalog_title: None,
-            feed_image: None,
-            localization: Localization::defaults(),
-            theme: None
-        }
-    }
 }
 
 impl Overrides {
@@ -65,7 +43,7 @@ impl Overrides {
     }
 }
 
-pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides: &mut Overrides) {
+pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut Catalog, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => {
             match eno::parse(&content) {
@@ -80,10 +58,10 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             "localization" => {
                                 for entry in &entries {
                                     match entry.key.as_str() {
-                                        "language" => globals.localization.language = entry.value.clone(),
+                                        "language" => build.localization.language = entry.value.clone(),
                                         "writing_direction" => match entry.value.as_str() {
-                                            "ltr" => globals.localization.writing_direction = WritingDirection::Ltr,
-                                            "rtl" => globals.localization.writing_direction = WritingDirection::Rtl,
+                                            "ltr" => build.localization.writing_direction = WritingDirection::Ltr,
+                                            "rtl" => build.localization.writing_direction = WritingDirection::Rtl,
                                             value => message::error(&format!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in manifest '{path:?}'", value=value, path=path))
                                         }
                                         key => message::error(&format!("Ignoring unsupported global 'localization.{key}' in manifest '{path:?}'", key=key, path=path))
@@ -106,6 +84,10 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                     .collect();
                             }
                             "theme" => {
+                                if build.theme.is_some() {
+                                    message::warning(&format!("Global 'theme' is set more than once"));
+                                }
+                                
                                 let mut theme = Theme::defaults();
                                 
                                 for entry in &entries {
@@ -135,11 +117,7 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                     }
                                 }
                                 
-                                if globals.theme.is_some() {
-                                    message::warning(&format!("Global 'theme' is set more than once"));
-                                }
-                                    
-                                globals.theme = Some(theme);
+                                build.theme = Some(theme);
                             }
                             key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
                         }
@@ -165,7 +143,7 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                         Element::Field { content: FieldContent::Value(value), key } => match key.as_str() {
                             "base_url" => match Url::parse(&value) {
                                 Ok(url) => {
-                                    if let Some(previous_url) = &globals.base_url {
+                                    if let Some(previous_url) = &build.base_url {
                                         message::warning(&format!(
                                             "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
                                             previous_url=previous_url,
@@ -173,7 +151,7 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                                         ));
                                     }
                                     
-                                    globals.base_url = Some(url);
+                                    build.base_url = Some(url);
                                 }
                                 Err(err) => {
                                     message::error(&format!(
@@ -184,54 +162,51 @@ pub fn apply_globals_and_overrides(path: &Path, globals: &mut Globals, overrides
                             }
                             "cache_optimization" => match CacheOptimization::from_manifest_key(value.as_str()) {
                                 Some(strategy) => {
-                                    if let Some(previous_strategy) = &globals.cache_optimization {
+                                    if build.cache_optimization != CacheOptimization::Default {
                                         message::warning(&format!(
-                                            "Global 'cache_optimization' is set more than once ('{previous_strategy}', '{new_strategy}')",
-                                            previous_strategy=previous_strategy,
-                                            new_strategy=strategy
-                                        ));
+                                            "Global 'cache_optimization' is set more than once ('{previous}', '{new}')",
+                                            previous=build.cache_optimization,
+                                            new=strategy
+                                        ))
                                     }
                                     
-                                    globals.cache_optimization = Some(strategy);
+                                    build.cache_optimization = strategy;
                                 }
                                 None => message::error(&format!("Ignoring invalid cache_optimization setting '{value}' (available: delayed, immediate, manual, wipe) in {path:?}", path=path, value=value))
                             }
                             "catalog_text" => {
-                                if let Some(previous_text) = &globals.catalog_text {
+                                if let Some(previous) = &catalog.text {
                                     message::warning(&format!(
-                                        "Global 'catalog_text' is set more than once ('{previous_text}', '{new_text}')",
-                                        previous_text=previous_text,
-                                        new_text=value
+                                        "Global 'catalog_text' is set more than once - overriding previous value '{previous}' with '{new}'",
+                                        previous=previous,
+                                        new=value
                                     ));
                                 }
                                 
-                                globals.catalog_text = Some(value);      
+                                catalog.text = Some(value);      
                             }
                             "catalog_title" => {
-                                if let Some(previous_title) = &globals.catalog_title {
+                                if let Some(previous) = &catalog.title {
                                     message::warning(&format!(
-                                        "Global 'catalog_title' is set more than once ('{previous_title}', '{new_title}')",
-                                        previous_title=previous_title,
-                                        new_title=value
+                                        "Global 'catalog_title' is set more than once - overriding previous value '{previous}' with '{new}'",
+                                        previous=previous,
+                                        new=value
                                     ));
                                 }
                                 
-                                globals.catalog_title = Some(value);      
+                                catalog.title = Some(value);      
                             }
                             "download_format" => match AudioFormat::from_manifest_key(value.as_str()) {
                                 Some(format) => overrides.download_formats = vec![format],
                                 None => message::error(&format!("Ignoring invalid download_format setting value '{value}' in {path:?}", path=path, value=value))
                             }
                             "feed_image" => {
-                                if let Some(previous_image) = &globals.feed_image {
-                                    message::warning(&format!(
-                                        "Global 'feed_image' is set more than once ('{previous_image}', '{new_image}')",
-                                        previous_image=previous_image,
-                                        new_image=value
-                                    ));
-                                }
+                                // if let Some(previous) = &catalog.feed_image {
+                                //     global_set_repeatedly!("feed_image", previous, value);
+                                //     message::global_override()
+                                // }
                                 
-                                globals.feed_image = Some(value); // TODO: Verify file exists at provided location
+                                catalog.feed_image = Some(value); // TODO: Verify file exists at provided location
                             },
                             "paid_download" =>  {
                                 let mut split_by_whitespace = value.split_ascii_whitespace();

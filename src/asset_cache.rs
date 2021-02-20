@@ -39,7 +39,9 @@ pub struct CacheManifest {
     pub tracks: Vec<CachedTrackAssets>
 }
 
+#[derive(PartialEq)]
 pub enum CacheOptimization {
+    Default,
     Delayed,
     Immediate,
     Manual,
@@ -250,6 +252,7 @@ impl Asset {
         match &self.marked_stale {
             Some(marked_stale) => {
                 match &build.cache_optimization {
+                    CacheOptimization::Default | 
                     CacheOptimization::Delayed => 
                         build.build_begin.signed_duration_since(marked_stale.clone()) > Duration::hours(24),
                     CacheOptimization::Immediate |
@@ -409,6 +412,7 @@ impl CacheOptimization {
 impl fmt::Display for CacheOptimization {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let text = match self {
+            CacheOptimization::Default => "Default",
             CacheOptimization::Delayed => "Delayed",
             CacheOptimization::Immediate => "Immediate",
             CacheOptimization::Manual => "Manual",

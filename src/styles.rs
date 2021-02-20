@@ -1,7 +1,14 @@
 use indoc::formatdoc;
 use std::fs;
 
-use crate::build::Build;
+use crate::{
+    build::Build,
+    ffmpeg::{self, MediaFormat},
+    image_format::ImageFormat
+};
+
+// TODO: Turn Theme into enum (like with CacheOptimization) so we can model the global
+//       as Theme::Default on Build and thereby differentiate repeated global setting of theme
 
 // hue         0-360 degrees
 // hue_spread  0+ degrees
@@ -31,20 +38,29 @@ pub struct ThemeBase {
     pub text_l: u8
 }
 
-pub fn generate(build: &Build) {
-    let theme = &build.theme;
+pub fn generate(build: &mut Build) {
+    let theme = &build.theme.take().unwrap_or_else(|| Theme::defaults());    
     
-    let background_override = match theme.background_image {
-        Some(_) => formatdoc!(r#"
-            body {{
-                background:
-                    linear-gradient(
-                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
-                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
-                    ),
-                    url(background.jpg) center / cover;
-            }}
-        "#),
+    let background_override = match &theme.background_image {
+        Some(background_image) => {
+            // TODO: Go through asset cache with this
+            ffmpeg::transcode(
+                &build.catalog_dir.join(background_image),
+                &build.build_dir.join("background.jpg"),
+                MediaFormat::Image(&ImageFormat::Jpeg)
+            ).unwrap();
+            
+            formatdoc!(r#"
+                body {{
+                    background:
+                        linear-gradient(
+                            hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
+                            hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
+                        ),
+                        url(background.jpg) center / cover;
+                }}
+            "#)
+        }
         None => String::new()
     };
     

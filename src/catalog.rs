@@ -11,7 +11,8 @@ use crate::{
     build::Build,
     image::Image,
     image_format::ImageFormat,
-    manifest::{Globals, Overrides},
+    manifest::Overrides,
+    message,
     release::Release,
     track::{CachedTrackAssets, Track},
     manifest,
@@ -47,27 +48,12 @@ impl Catalog {
     
     pub fn read(build: &mut Build, cache_manifest: &mut CacheManifest) -> Catalog {
         let mut catalog = Catalog::init_empty();
-        let mut globals = Globals::empty();
         
-        catalog.read_dir(&build.catalog_dir, cache_manifest, &mut globals, &Overrides::default()).unwrap();
+        catalog.read_dir(&build.catalog_dir.clone(), build, cache_manifest, &Overrides::default()).unwrap();
         
-        build.base_url = globals.base_url;
-        build.localization = globals.localization;
-        
-        if let Some(strategy) = globals.cache_optimization {
-            build.cache_optimization = strategy;
+        if let Some(markdown) = catalog.text.take() {
+            catalog.text = Some(util::markdown_to_html(&markdown));
         }
-        
-        if let Some(theme) = globals.theme {
-            build.theme = theme;
-        }
-        
-        // TODO: This whole pattern with things being put on Globals, just so they
-        //       can then be copied onto Catalog/Build/... here, probably indicates
-        //       we want to change something fundamental about this. 
-        catalog.feed_image = globals.feed_image;
-        catalog.text = globals.catalog_text.map(|markdown| util::markdown_to_html(&markdown));
-        catalog.title = globals.catalog_title;
         
         catalog
     }
@@ -75,8 +61,8 @@ impl Catalog {
     fn read_dir(
         &mut self,
         dir: &Path,
+        build: &mut Build,
         cache_manifest: &mut CacheManifest,
-        globals: &mut Globals,
         parent_overrides: &Overrides
     ) -> Result<(), String> {
         let mut local_overrides = None;
@@ -126,15 +112,15 @@ impl Catalog {
                                     } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
                                         image_paths.push(path);
                                     } else {
-                                        warn!("Ignoring unsupported file '{}'", path.display());
+                                        message::warning(&format!("Ignoring unsupported file '{}'", path.display()));
                                     }
                                 } else {
-                                    warn!("Ignoring unsupported file '{}'", path.display());
+                                    message::warning(&format!("Ignoring unsupported file '{}'", path.display()));
                                 }
                             } else if file_type.is_symlink() {
-                                warn!("Ignoring symlink '{}'", path.display());
+                                message::warning(&format!("Ignoring symlink '{}'", path.display()));
                             } else {
-                                warn!("Ignoring unsupported file '{}'", path.display());
+                                message::warning(&format!("Ignoring unsupported file '{}'", path.display()));
                             }
                         }
                     }
@@ -148,7 +134,8 @@ impl Catalog {
             
             manifest::apply_globals_and_overrides(
                 meta_path,
-                globals,
+                build,
+                self,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
             );
         }
@@ -251,7 +238,7 @@ impl Catalog {
         
         for dir_path in &dir_paths {
             info!("Reading directory {}", dir_path.display());
-            self.read_dir(dir_path, cache_manifest, globals, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
+            self.read_dir(dir_path, build, cache_manifest, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
 
         Ok(())

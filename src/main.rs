@@ -28,8 +28,6 @@ mod util;
 
 use args::Args;
 use asset_cache::{CacheManifest, CacheOptimization};
-use ffmpeg::MediaFormat;
-use image_format::ImageFormat;
 use build::{Build, PostBuildAction};
 use catalog::Catalog;
 
@@ -98,23 +96,15 @@ fn main() {
     for release in &catalog.releases {
         release.write_files(&build, &catalog);
     }
-    
-    // TODO: Go through asset cache with this
-    if let Some(background_image) = &build.theme.background_image {
-        ffmpeg::transcode(
-            &build.catalog_dir.join(background_image),
-            &build.build_dir.join("background.jpg"),
-            MediaFormat::Image(&ImageFormat::Jpeg)
-        ).unwrap();
-    }
 
     fs::write(build.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
-    styles::generate(&build);
+    styles::generate(&mut build);
     feed::generate(&build, &catalog);
     
     match build.cache_optimization {
+        CacheOptimization::Default |
         CacheOptimization::Delayed |
         CacheOptimization::Immediate =>
             asset_cache::optimize_cache(&build, &mut cache_manifest, &mut catalog),

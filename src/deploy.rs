@@ -9,6 +9,6 @@ pub fn deploy(build: &Build) {
         rsync::sync(&build.build_dir, destination).unwrap();
         info!("Deployment finished");
     } else {
-        error!("No deployment destination specified, provide one with --deploy-destination")
+        error!("No deployment destination specified, provide one with --deploy-destination");
     }
 }

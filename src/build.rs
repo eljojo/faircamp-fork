@@ -22,7 +22,7 @@ pub struct Build {
     pub localization: Localization,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
-    pub theme: Theme
+    pub theme: Option<Theme>
 }
 
 pub enum PostBuildAction {
@@ -67,13 +67,13 @@ impl Build {
             build_begin: Utc::now(),
             build_dir,
             cache_dir,
-            cache_optimization: CacheOptimization::Delayed,
+            cache_optimization: CacheOptimization::Default,
             catalog_dir,
             deploy_destination: args.deploy_destination.clone(),
             localization: Localization::defaults(),
             post_build_action,
             stats: Stats::empty(),
-            theme: Theme::defaults()
+            theme: None
         }
     }
     
