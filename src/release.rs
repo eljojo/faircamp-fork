@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde_derive::{Serialize, Deserialize};
 use slug;
 use std::{
     fs::{self, File},

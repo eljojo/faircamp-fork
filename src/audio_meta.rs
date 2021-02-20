@@ -1,6 +1,7 @@
 use id3;
 use metaflac;
 use rmp3::{Decoder, Frame};
+use serde_derive::{Serialize, Deserialize};
 use std::fs;
 use std::path::Path;
 

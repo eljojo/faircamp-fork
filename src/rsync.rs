@@ -1,3 +1,4 @@
+use log::info;
 use std::path::Path;
 use std::process::{Command, Output};
 
