@@ -37,6 +37,11 @@ fn main() {
     let args: Args = Args::parse();
     let mut build = Build::init(&args);
     
+    if !build.catalog_dir.is_dir() {
+        error!("Configured catalog directory does not exist - aborting build");
+        return;
+    }
+    
     CacheManifest::ensure_dirs(&build.cache_dir);
     let mut cache_manifest = CacheManifest::retrieve(&build.cache_dir);
     
