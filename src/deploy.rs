@@ -1,5 +1,3 @@
-use log::{error, info};
-
 use crate::build::Build;
 use crate::rsync;
 

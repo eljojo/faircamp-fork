@@ -10,7 +10,6 @@ use crate::{
     download_option::DownloadOption,
     eno::{self, Element, FieldContent},
     localization::WritingDirection,
-    message,
     payment_option::PaymentOption,
     styles::{Theme, ThemeBase},
     util
@@ -52,7 +51,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                         Element::Empty { key } => match key.as_str() {
                             "disable_download" => overrides.download_option = DownloadOption::Disabled,
                             "free_download" => overrides.download_option = DownloadOption::init_free(),
-                            key => message::error(&format!("Ignoring unsupported Empty with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                            key => error!("Ignoring unsupported Empty with key '{}' in manifest '{:?}'", key, path)
                         }
                         Element::Field { content: FieldContent::Entries(entries), key } => match key.as_str() {
                             "localization" => {
@@ -62,9 +61,9 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                         "writing_direction" => match entry.value.as_str() {
                                             "ltr" => build.localization.writing_direction = WritingDirection::Ltr,
                                             "rtl" => build.localization.writing_direction = WritingDirection::Rtl,
-                                            value => message::error(&format!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in manifest '{path:?}'", value=value, path=path))
+                                            value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in manifest '{:?}'", value, path)
                                         }
-                                        key => message::error(&format!("Ignoring unsupported global 'localization.{key}' in manifest '{path:?}'", key=key, path=path))
+                                        key => error!("Ignoring unsupported global 'localization.{}' in manifest '{:?}'", key, path)
                                     }
                                 }
                             }
@@ -76,7 +75,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                             "custom" => Some(PaymentOption::init_custom(&entry.value)),
                                             "liberapay" => Some(PaymentOption::init_liberapay(&entry.value)),
                                             key => {
-                                                message::error(&format!("Ignoring unsupported payment_options entry '{key}' in manifest '{path:?}'", key=key, path=path));
+                                                error!("Ignoring unsupported payment_options entry '{}' in manifest '{:?}'", key, path);
                                                 None
                                             }
                                         }
@@ -85,7 +84,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                             }
                             "theme" => {
                                 if build.theme.is_some() {
-                                    message::warning(&format!("Global 'theme' is set more than once"));
+                                    warn_global_set_repeatedly!("theme");
                                 }
                                 
                                 let mut theme = Theme::defaults();
@@ -95,31 +94,31 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                         "background_image" => theme.background_image = Some(entry.value.clone()),  // TODO: Verify file exists at provided location
                                         "base" => match ThemeBase::from_manifest_key(entry.value.as_str()) {
                                             Some(variant) => theme.base = variant,
-                                            None => message::error(&format!("Ignoring unsupported value '{value}' for global 'theme.base' (supported values are 'dark' and 'light') in manifest '{path:?}'", value=entry.value, path=path))
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in manifest '{:?}'", entry.value, path)
                                         }
                                         "hue" => match entry.value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
                                             Some(degrees) => theme.hue = degrees,
-                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in manifest '{path:?}'", value=entry.value, path=path))
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in manifest '{:?}'", entry.value, path)
                                         }
                                         "hue_spread" => match entry.value.parse::<i16>().ok() {
                                             Some(degree_offset) => theme.hue_spread = degree_offset,
-                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in manifest '{path:?}'", value=entry.value, path=path))
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in manifest '{:?}'", entry.value, path)
                                         }
                                         "tint_back" => match entry.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
                                             Some(percentage) => theme.tint_back = percentage,
-                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in manifest '{path:?}'", value=entry.value, path=path))
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in manifest '{:?}'", entry.value, path)
                                         }
                                         "tint_front" => match entry.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
                                             Some(percentage) => theme.tint_front = percentage,
-                                            None => message::error(&format!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in manifest '{path:?}'", value=entry.value, path=path))
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in manifest '{:?}'", entry.value, path)
                                         }
-                                        key => message::error(&format!("Ignoring unsupported global 'theme.{key}' in manifest '{path:?}'", key=key, path=path))
+                                        key => error!("Ignoring unsupported global 'theme.{}' in manifest '{:?}'", key, path)
                                     }
                                 }
                                 
                                 build.theme = Some(theme);
                             }
-                            key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                            key => error!("Ignoring unsupported Field with key '{}' in manifest '{:?}'", key, path)
                         }
                         Element::Field { content: FieldContent::Items(items), key } => match key.as_str() {
                             "download_formats" => {
@@ -128,7 +127,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                     .filter_map(|key|
                                         match AudioFormat::from_manifest_key(key.as_str()) {
                                             None => {
-                                                message::error(&format!("Ignoring invalid download_formats setting value '{key}' in {path:?}", key=key, path=path));
+                                                error!("Ignoring invalid download_formats setting value '{}' in {:?}", key, path);
                                                 None
                                             }
                                             some_format => some_format
@@ -138,73 +137,51 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                             }
                             "release_artists" => overrides.release_artists = Some(items),
                             "track_artists" => overrides.release_artists = Some(items),
-                            key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                            key => error!("Ignoring unsupported Field with key '{}' in manifest '{:?}'", key, path)
                         }
                         Element::Field { content: FieldContent::Value(value), key } => match key.as_str() {
                             "base_url" => match Url::parse(&value) {
                                 Ok(url) => {
                                     if let Some(previous_url) = &build.base_url {
-                                        message::warning(&format!(
-                                            "Global 'base_url' is set more than once ('{previous_url}', '{new_url}')",
-                                            previous_url=previous_url,
-                                            new_url=url
-                                        ));
+                                        warn_global_set_repeatedly!("base_url", previous_url, url);
                                     }
                                     
                                     build.base_url = Some(url);
                                 }
-                                Err(err) => {
-                                    message::error(&format!(
-                                        "Global 'base_url' supplied with invalid value ({err})",
-                                        err=err
-                                    ));
-                                }
+                                Err(err) => error!("Ignoring invalid base_url setting value '{}' in manifest '{:?}' ({})", value, path, err)
                             }
                             "cache_optimization" => match CacheOptimization::from_manifest_key(value.as_str()) {
                                 Some(strategy) => {
                                     if build.cache_optimization != CacheOptimization::Default {
-                                        message::warning(&format!(
-                                            "Global 'cache_optimization' is set more than once ('{previous}', '{new}')",
-                                            previous=build.cache_optimization,
-                                            new=strategy
-                                        ))
+                                        warn_global_set_repeatedly!("cache_optimization", build.cache_optimization, strategy);
                                     }
                                     
                                     build.cache_optimization = strategy;
                                 }
-                                None => message::error(&format!("Ignoring invalid cache_optimization setting '{value}' (available: delayed, immediate, manual, wipe) in {path:?}", path=path, value=value))
+                                None => error!("Ignoring invalid cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {:?}", value, path)
                             }
                             "catalog_text" => {
                                 if let Some(previous) = &catalog.text {
-                                    message::warning(&format!(
-                                        "Global 'catalog_text' is set more than once - overriding previous value '{previous}' with '{new}'",
-                                        previous=previous,
-                                        new=value
-                                    ));
+                                    warn_global_set_repeatedly!("catalog_text", previous, value);
                                 }
                                 
                                 catalog.text = Some(value);      
                             }
                             "catalog_title" => {
                                 if let Some(previous) = &catalog.title {
-                                    message::warning(&format!(
-                                        "Global 'catalog_title' is set more than once - overriding previous value '{previous}' with '{new}'",
-                                        previous=previous,
-                                        new=value
-                                    ));
+                                    warn_global_set_repeatedly!("catalog_title", previous, value);
                                 }
                                 
                                 catalog.title = Some(value);      
                             }
                             "download_format" => match AudioFormat::from_manifest_key(value.as_str()) {
                                 Some(format) => overrides.download_formats = vec![format],
-                                None => message::error(&format!("Ignoring invalid download_format setting value '{value}' in {path:?}", path=path, value=value))
+                                None => error!("Ignoring invalid download_format setting value '{}' in {:?}", value, path)
                             }
                             "feed_image" => {
-                                // if let Some(previous) = &catalog.feed_image {
-                                //     global_set_repeatedly!("feed_image", previous, value);
-                                //     message::global_override()
-                                // }
+                                if let Some(previous) = &catalog.feed_image {
+                                    warn_global_set_repeatedly!("feed_image", previous, value);
+                                }
                                 
                                 catalog.feed_image = Some(value); // TODO: Verify file exists at provided location
                             },
@@ -219,7 +196,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                             if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
                                                 overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
                                             } else {
-                                                message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
                                             }
                                         } else {
                                             let mut split_by_dash = recombined.split("-");
@@ -229,13 +206,13 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                                     if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
                                                         overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
                                                     } else {
-                                                        message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                        error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
                                                     }
                                                 } else {
                                                     overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
                                                 }
                                             } else {
-                                                message::error(&format!("Ignoring paid_download option '{value}' with malformed price in {path:?}", path=path, value=value));
+                                                error!("Ignoring paid_download option '{}' with malformed price in {:?}", value, path);
                                             }
                                         }
                                     } else if let Some(last_token) = split_by_whitespace.last() {
@@ -247,7 +224,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                                 if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
                                                     overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
                                                 } else {
-                                                    message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                    error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
                                                 }
                                             } else {
                                                 let mut split_by_dash = recombined.split("-");
@@ -257,23 +234,23 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                                         if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
                                                             overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
                                                         } else {
-                                                            message::error(&format!("Ignoring paid_download option '{value}' with malformed minimum price in {path:?}", path=path, value=value));
+                                                            error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
                                                         }
                                                     } else {
                                                         overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
                                                     }
                                                 } else {
-                                                    message::error(&format!("Ignoring paid_download option '{value}' with malformed price in {path:?}", path=path, value=value));
+                                                    error!("Ignoring paid_download option '{}' with malformed price in {:?}", value, path);
                                                 }
                                             }
                                         } else {
-                                            message::error(&format!("Ignoring paid_download option '{value}' without recognizable currency code in {path:?}", path=path, value=value))
+                                            error!("Ignoring paid_download option '{}' without recognizable currency code in {:?}", value, path);
                                         }
                                     } else {
-                                        message::error(&format!("Ignoring unrecognized paid_download option '{value}' in {path:?}", path=path, value=value))
+                                        error!("Ignoring unrecognized paid_download option '{}' in {:?}", value, path);
                                     }
                                 } else {
-                                    message::error(&format!("Ignoring unrecognized paid_download option '{value}' in {path:?}", path=path, value=value))
+                                    error!("Ignoring unrecognized paid_download option '{}' in {:?}", value, path);
                                 }
                             }
                             "release_artist" => overrides.release_artists = Some(vec![value]),
@@ -282,17 +259,17 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                             "streaming_quality" => match value.as_str() {
                                 "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
                                 "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
-                                value => message::error(&format!("Ignoring invalid streaming_quality setting value '{value}' (available: standard, transparent) in {path:?}", path=path, value=value))
+                                value => error!("Ignoring invalid streaming_quality setting value '{}' (available: standard, transparent) in {:?}", value, path)
                             }
                             "track_artist" => overrides.track_artists = Some(vec![value]),
-                            key => message::error(&format!("Ignoring unsupported Field with key '{key}' in manifest '{path:?}'", key=key, path=path))
+                            key => error!("Ignoring unsupported Field with key '{}' in manifest '{:?}'", key, path)
                         }
-                        element => message::error(&format!("Ignoring unsupported element '{element:?}' in manifest '{path:?}'", element=element, path=path))
+                        element => error!("Ignoring unsupported element '{:?}' in manifest '{:?}'", element, path)
                     }
                 }
-                Err(err) => message::error(&format!("Syntax error in manifest {path:?} ({err})", path=path, err=err))
+                Err(err) => error!("Syntax error in manifest {:?} ({})", path, err)
             }
         }
-        Err(err) => message::error(&format!("Could not read manifest {path:?} ({err})", path=path, err=err))
+        Err(err) => error!("Could not read manifest {:?} ({})", path, err)
     } 
 }

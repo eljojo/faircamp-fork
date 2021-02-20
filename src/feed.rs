@@ -4,8 +4,7 @@ use crate::{
     build::Build,
     catalog::Catalog,
     ffmpeg::{self, MediaFormat},
-    image_format::ImageFormat,
-    message
+    image_format::ImageFormat
 };
 
 pub fn generate(build: &Build, catalog: &Catalog) {
@@ -74,6 +73,6 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         
         fs::write(build.build_dir.join("feed.rss"), xml).unwrap();
     } else {
-        message::warning(&format!("No base_url specified, skipping RSS feed generation"));
+        warn!("No base_url specified, skipping RSS feed generation");
     }
 }

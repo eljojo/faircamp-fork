@@ -1,33 +1,88 @@
-// TODO: These would probably be more elegant as macros?
-
-const BLUE: &str = "\x1b[34m";
-const CYAN: &str = "\x1b[36m";
-const MAGENTA: &str = "\x1b[35m";
-const RED: &str = "\x1b[31m";
-const YELLOW: &str = "\x1b[33m";
-
-const RESET: &str = "\x1b[0m";
-
-pub fn cache(text: &str) {
-    println!("{}[CACHE] {}{}", MAGENTA, text, RESET)
+macro_rules! color {
+    (blue) => ("\x1b[34m");
+    (cyan) => ("\x1b[36m");
+    (magenta) => ("\x1b[35m");
+    (red) => ("\x1b[31m");
+    (reset) => ("\x1b[0m");
+    (yellow) => ("\x1b[33m");
 }
 
-pub fn discouraged(text: &str) {
-    println!("{}[DISCOURAGED] {}{}", YELLOW, text, RESET)
+macro_rules! error {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(red), "[ERROR] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
 }
 
-pub fn error(text: &str) {
-    println!("{}[ERROR] {}{}", RED, text, RESET)
+macro_rules! info {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(blue), "[INFO] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
 }
 
-pub fn stats(text: &str) {
-    println!("{}[STATS] {}{}", CYAN, text, RESET)
+macro_rules! info_cache {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(magenta), "[CACHE] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
 }
 
-pub fn transcoding(text: &str) {
-    println!("{}[TRANSCODING] {}{}", BLUE, text, RESET)
+macro_rules! info_stats {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(cyan), "[STATS] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
 }
 
-pub fn warning(text: &str) {
-    println!("{}[WARNING] {}{}", YELLOW, text, RESET)
+macro_rules! info_transcoding {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(blue), "[TRANSCODING] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
+}
+
+macro_rules! warn {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(yellow), "[WARNING] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
+}
+
+macro_rules! warn_discouraged {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(yellow), "[DISCOURAGED] ", $format_str, color!(reset))
+            $(,$args)*
+        );
+    };
+}
+
+macro_rules! warn_global_set_repeatedly {
+    ($key:expr) => {
+        warn!(
+            "Global {} is set more than once - overriding previous value",
+            $key
+        );
+    };
+    ($key:expr, $previous:expr, $new:expr) => {
+        warn!(
+            "Global {} is set more than once - overriding previous value '{}' with '{}'",
+            $key,
+            $previous,
+            $new
+        );
+    };
 }

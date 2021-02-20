@@ -13,7 +13,6 @@ use crate::{
     build::Build,
     catalog::Catalog,
     image::CachedImageAssets,
-    message,
     release::{CachedReleaseAssets},
     track::{CachedTrackAssets, Track},
     util
@@ -90,7 +89,7 @@ pub fn optimize_cache(
 pub fn optimize_image_assets(cached_assets: &mut CachedImageAssets, build: &Build) {
     if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete(build)).is_some() {
         if let Some(asset) = cached_assets.jpeg.take() {
-            message::cache(&format!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display()));
+            info_cache!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display());
             util::remove_file(&build.cache_dir.join(asset.filename));
         }
         
@@ -107,12 +106,12 @@ pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
                 util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
-                message::cache(&format!(
+                info_cache!(
                     "Removed cached release asset ({}) for archive with {} tracks.",
                     format,
                     cached_assets.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
                                                                 //       Possibly indication that Release + CachedReleaseAssets should be merged together (?) (and same story with Image/Track)
-                ));
+                );
             }
             Some(false) => keep_container = true,
             None => ()
@@ -135,11 +134,11 @@ pub fn optimize_track_assets(cached_assets: &mut CachedTrackAssets, build: &Buil
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
                 util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
-                message::cache(&format!(
+                info_cache!(
                     "Removed cached track asset ({}) for {}.",
                     format,
                     cached_assets.source_file_signature.path.display()
-                ));
+                );
             }
             Some(false) => keep_container = true,
             None => ()
@@ -182,13 +181,13 @@ pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
     }
     
     if num_unused > 0 {
-        message::cache(&format!(
-            "{num_unused} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {unused_bytesize} of disk space.",
-            num_unused=num_unused,
-            unused_bytesize=util::format_bytes(unused_bytesize)
-        ));
+        info_cache!(
+            "{} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {} of disk space.",
+            num_unused,
+            util::format_bytes(unused_bytesize)
+        );
     } else {
-        message::cache(&format!("No cached assets identied as obsolete."));
+        info_cache!("No cached assets identied as obsolete.");
     }
 }
 

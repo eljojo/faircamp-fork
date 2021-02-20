@@ -6,7 +6,6 @@ use crate::{
     args::Args,
     asset_cache::CacheOptimization,
     localization::Localization,
-    message,
     styles::Theme,
     util
 };
@@ -80,10 +79,8 @@ impl Build {
     pub fn print_stats(&self) {
         let elapsed = Utc::now().signed_duration_since(self.build_begin).num_seconds();
         
-        message::stats(&self.stats.to_string());
-        message::stats(
-            &format!("Build finished in {:.2} seconds", elapsed)
-        );
+        info_stats!("{}", &self.stats.to_string());
+        info_stats!("Build finished in {:.2} seconds", elapsed);
     }
 }
 

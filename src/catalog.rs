@@ -1,4 +1,3 @@
-use log::{error, info};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -12,7 +11,6 @@ use crate::{
     image::Image,
     image_format::ImageFormat,
     manifest::Overrides,
-    message,
     release::Release,
     track::{CachedTrackAssets, Track},
     manifest,
@@ -112,15 +110,15 @@ impl Catalog {
                                     } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
                                         image_paths.push(path);
                                     } else {
-                                        message::warning(&format!("Ignoring unsupported file '{}'", path.display()));
+                                        warn!("Ignoring unsupported file '{}'", path.display());
                                     }
                                 } else {
-                                    message::warning(&format!("Ignoring unsupported file '{}'", path.display()));
+                                    warn!("Ignoring unsupported file '{}'", path.display());
                                 }
                             } else if file_type.is_symlink() {
-                                message::warning(&format!("Ignoring symlink '{}'", path.display()));
+                                warn!("Ignoring symlink '{}'", path.display());
                             } else {
-                                message::warning(&format!("Ignoring unsupported file '{}'", path.display()));
+                                warn!("Ignoring unsupported file '{}'", path.display());
                             }
                         }
                     }

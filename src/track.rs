@@ -13,7 +13,6 @@ use crate::{
     audio_meta::AudioMeta,
     build::Build,
     ffmpeg::{self, MediaFormat},
-    message,
     util
 };
 
@@ -138,7 +137,7 @@ impl Track {
             None => {
                 let target_filename = format!("{}{}", util::uid(), format.extension());
             
-                message::transcoding(&format!("{:?} to {}", self.source_file, format));
+                info_transcoding!("{:?} to {}", self.source_file, format);
                 ffmpeg::transcode(
                     &self.source_file,
                     &build.cache_dir.join(&target_filename),

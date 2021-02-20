@@ -1,6 +1,9 @@
 use clap::Clap;
 use std::fs;
 
+#[macro_use]
+mod message;
+
 mod args;
 mod artist;
 mod asset_cache;
@@ -17,7 +20,6 @@ mod image;
 mod image_format;
 mod localization;
 mod manifest;
-mod message;
 mod payment_option;
 mod release;
 mod render;
@@ -32,8 +34,6 @@ use build::{Build, PostBuildAction};
 use catalog::Catalog;
 
 fn main() {
-    env_logger::init();
-    
     let args: Args = Args::parse();
     let mut build = Build::init(&args);
     
@@ -112,7 +112,7 @@ fn main() {
             asset_cache::report_stale(&cache_manifest, &catalog),
         CacheOptimization::Wipe => {
             util::remove_dir(&build.cache_dir);
-            message::cache(&format!("Wiped cache"));
+            info_cache!("Wiped cache");
         }
     }
     

@@ -19,7 +19,6 @@ use crate::{
     image::Image,
     image_format::ImageFormat,
     manifest::Overrides,
-    message,
     payment_option::PaymentOption,
     render,
     track::Track,
@@ -171,10 +170,10 @@ impl Release {
                     
                     for (index, track) in self.tracks.iter_mut().enumerate() {
                         if format.lossless() && !track.cached_assets.source_meta.lossless {
-                            message::discouraged(&format!(
+                            warn_discouraged!(
                                 "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
                                 &track.source_file.display()
-                            ));
+                            );
                         }
                         
                         let filename = format!(
