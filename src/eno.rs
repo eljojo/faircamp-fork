@@ -4,25 +4,28 @@ use std::{
 };
 
 #[derive(Debug)]
-pub enum Element {
-    Empty {
-        key: String
-    },
-    Field {
-        content: FieldContent,
-        key: String
-    }
-}
-
-#[derive(Debug)]
-pub struct Entry {
+pub struct Attribute {
     pub key: String,
     pub value: String
 }
 
 #[derive(Debug)]
+pub struct Element {
+    pub key: String,
+    pub kind: Kind
+}
+
+#[derive(Debug)]
+pub enum Kind {
+    Embed(Option<String>),
+    Empty,
+    Field(FieldContent),
+    Section
+}
+
+#[derive(Debug)]
 pub enum FieldContent {
-    Entries(Vec<Entry>),
+    Attributes(Vec<Attribute>),
     Items(Vec<String>),
     None,
     Value(String)
@@ -88,11 +91,63 @@ pub fn parse(input: &str) -> Result<Vec<Element>, Error> {
         } else if trimmed.starts_with("#") {
             read_section(&mut context, trimmed)?;
         } else {
-            read_empty_entry_field(&mut context, trimmed)?;
+            read_attribute_empty_field(&mut context, trimmed)?;
         }
     }
     
     Ok(context.elements)
+}
+
+fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
+    if let Some(index) = trimmed.find(|c| c == ':' || c == '=' || c == '<') {
+        if trimmed[index..].starts_with(":") {
+            let element = Element {
+                key: trimmed[..index].trim().to_string(),
+                kind: Kind::Field(
+                    if trimmed[(index + 1)..].trim().is_empty() {
+                        FieldContent::None
+                    } else {
+                        FieldContent::Value(trimmed[(index + 1)..].trim().to_string())
+                    }
+                )
+            };
+            
+            context.elements.push(element);
+            context.next_continuation_direct = true;
+        } else if trimmed[index..].starts_with("=") {
+            let attribute = Attribute {
+                key: trimmed[..index].trim().to_string(),
+                value: trimmed[(index + 1)..].trim().to_string()
+            };
+            
+            match context.elements.last_mut() {
+                Some(Element { kind: Kind::Field(content), .. }) => match content {
+                    FieldContent::Attributes(attributes) => attributes.push(attribute),
+                    FieldContent::None => *content = FieldContent::Attributes(vec![attribute]),
+                    _ => return Err(Error::new(format!("Attribute without field encountered. ('{}')", trimmed), context.line_number))
+                }
+                _ => return Err(Error::new(format!("Attribute without field encountered. ('{}')", trimmed), context.line_number))
+            }
+            
+            context.next_continuation_direct = true;
+        } else if trimmed[index..].starts_with("<") {
+            // TODO: Implement
+            // let element = Element {
+            //     key: trimmed[..index].trim().to_string(),
+            //     kind: Kind::Field(FieldContent::None)
+            // };
+            // context.elements.push(element);
+            
+            return Err(Error::new(format!("Copies are not (yet) supported. ('{}')", trimmed), context.line_number));
+        }
+    } else {
+        context.elements.push(Element {
+            key: trimmed.to_string(),
+            kind: Kind::Empty
+        })
+    }
+    
+    Ok(())
 }
 
 fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
@@ -100,9 +155,9 @@ fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Er
     
     if !value.is_empty() {
         match context.elements.last_mut() {
-            Some(Element::Field { content, .. }) => match content {
-                FieldContent::Entries(entries) => {
-                    let existing = &mut entries.last_mut().unwrap().value;
+            Some(Element { kind: Kind::Field(content), .. }) => match content {
+                FieldContent::Attributes(attributes) => {
+                    let existing = &mut attributes.last_mut().unwrap().value;
                     
                     if existing.is_empty() || context.next_continuation_direct {
                         existing.push_str(value)
@@ -139,7 +194,7 @@ fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Er
     
     Ok(())
 }
-    
+
 fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     match trimmed.find(|c| c != '-') {
         Some(begin_operator_len) => {
@@ -154,9 +209,9 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
                 if trimmed.starts_with("--") {
                     if let Some(end_operator_len) = trimmed.find(|c| c != '-') {
                         if begin_operator_len == end_operator_len && key == trimmed[end_operator_len..].trim() {
-                            context.elements.push(Element::Field {
-                                content: FieldContent::Value(value.unwrap_or(String::new())),
-                                key: key.to_string()
+                            context.elements.push(Element {
+                                key: key.to_string(),
+                                kind: Kind::Embed(value)
                             });
                             
                             return Ok(());
@@ -176,51 +231,11 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     }
 }
 
-fn read_empty_entry_field(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
-    if let Some(index) = trimmed.find(|c| c == ':' || c == '=' || c == '<') {
-        if trimmed[index..].starts_with(":") {
-            let field = Element::Field {
-                content: if trimmed[(index + 1)..].trim().is_empty() {
-                    FieldContent::None
-                } else {
-                    FieldContent::Value(trimmed[(index + 1)..].trim().to_string())
-                },
-                key: trimmed[..index].trim().to_string()
-            };
-            
-            context.elements.push(field);
-            context.next_continuation_direct = true;
-        } else if trimmed[index..].starts_with("=") {
-            let entry = Entry {
-                key: trimmed[..index].trim().to_string(),
-                value: trimmed[(index + 1)..].trim().to_string()
-            };
-            
-            match context.elements.last_mut() {
-                Some(Element::Field { content, .. }) => match content {
-                    FieldContent::Entries(entries) => entries.push(entry),
-                    FieldContent::None => *content = FieldContent::Entries(vec![entry]),
-                    _ => return Err(Error::new(format!("Entry without field encountered. ('{}')", trimmed), context.line_number))
-                }
-                _ => return Err(Error::new(format!("Entry without field encountered. ('{}')", trimmed), context.line_number))
-            }
-            
-            context.next_continuation_direct = true;
-        } else if trimmed[index..].starts_with("<") {
-            return Err(Error::new(format!("Copies are not (yet) supported. ('{}')", trimmed), context.line_number));
-        }
-    } else {
-        context.elements.push(Element::Empty { key: trimmed.to_string() })
-    }
-    
-    Ok(())
-}
-
 fn read_item(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     let item = trimmed[1..].trim().to_string();
     
     match context.elements.last_mut() {
-        Some(Element::Field { content, .. }) => match content {
+        Some(Element { kind: Kind::Field(content), .. }) => match content {
             FieldContent::Items(items) => items.push(item),
             FieldContent::None => *content = FieldContent::Items(vec![item]),
             _ => return Err(Error::new(format!("Item without field encountered ('{}')", trimmed), context.line_number))
