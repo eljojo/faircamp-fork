@@ -1,3 +1,4 @@
+use enolib::{FieldContent, Kind};
 use iso_currency::Currency;
 use std::{fs, path::Path};
 use url::Url;
@@ -8,7 +9,6 @@ use crate::{
     build::Build,
     catalog::Catalog,
     download_option::DownloadOption,
-    eno::{self, FieldContent, Kind},
     localization::WritingDirection,
     payment_option::PaymentOption,
     styles::{Theme, ThemeBase},
@@ -45,7 +45,7 @@ impl Overrides {
 pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut Catalog, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => {
-            match eno::parse(&content) {
+            match enolib::parse(&content) {
                 Ok(elements) => for element in elements {
                     match element.key.as_ref() {
                         "disable_download" => match element.kind {

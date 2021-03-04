@@ -5,9 +5,10 @@ name = "faircamp"
 version = "0.1.0"
 
 [dependencies]
-bincode = "1.3.1"
+bincode = "1.3.2"
 chrono = { features = ["serde"], version = "0.4.19" }
 clap = { features = ["std"], git = "https://github.com/clap-rs/clap/" }
+enolib = { path = "enolib" }
 id3 = "0.6.1"
 indoc = "1.0.3"
 iso_currency = "0.4.0"
@@ -19,4 +20,4 @@ serde = "1.0.123"
 serde_derive = "1.0.123"
 slug = "0.1.4"
 url = "2.2.1"
-zip = { features = ["deflate"], version = "0.5.10" }
+zip = { features = ["deflate"], version = "0.5.11" }

@@ -3,6 +3,9 @@ use std::{
     str::Lines
 };
 
+#[cfg(test)]
+mod test;
+
 #[derive(Debug)]
 pub struct Attribute {
     pub key: String,
@@ -32,6 +35,7 @@ pub enum FieldContent {
 }
 
 /// `line` is 1-indexed (i.e. the first line is line 1, not 0)
+#[derive(Debug)]
 pub struct Error {
     pub line: u32,
     pub message: String
