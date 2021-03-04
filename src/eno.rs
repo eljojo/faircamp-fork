@@ -80,7 +80,7 @@ pub fn parse(input: &str) -> Result<Vec<Element>, Error> {
         if trimmed.starts_with("--") {
             read_embed(&mut context, trimmed)?;
         } else if trimmed.starts_with("`") {
-            return Err(Error::new(format!("Escaped keys are not (yet) supported in faircamp's manifest files. ('{}')", trimmed), context.line_number))
+            read_attribute_empty_field_escaped_key(&mut context, trimmed)?;
         } else if trimmed.starts_with("-") {
             read_item(&mut context, trimmed)?;
         } else if trimmed.starts_with("|") {
@@ -98,6 +98,89 @@ pub fn parse(input: &str) -> Result<Vec<Element>, Error> {
     Ok(context.elements)
 }
 
+fn read_attribute_empty_field_escaped_key(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
+    if let Some(escape_operator_len) = trimmed.find(|c| c != '`') {
+        let remainder = trimmed[escape_operator_len..].trim();
+        
+        let mut chars = remainder.chars().enumerate();
+        
+        'search_terminator: while let Some((index, c)) = chars.next() {
+            if c == '`' {
+                for _ in 1..escape_operator_len {
+                    match chars.next() {
+                        Some((_index, '`')) => (),
+                        Some(_) => continue 'search_terminator,
+                        None => break 'search_terminator
+                    }
+                }
+                
+                let key = remainder[..index].trim().to_string();
+                if key.is_empty() {
+                    return Err(Error::new(format!("Escaped key is empty ('{}')", trimmed), context.line_number))
+                }
+                
+                let remainder = remainder[index + escape_operator_len..].trim();
+                
+                return read_attribute_empty_field_remainder(context, key, remainder);
+            }
+        }
+    }
+    
+    Err(Error::new(format!("Escaped key is never terminated ('{}')", trimmed), context.line_number))
+}
+    
+fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String, remainder: &str) -> Result<(), Error> {
+    if remainder.is_empty() {
+        context.elements.push(Element {
+            key,
+            kind: Kind::Empty
+        });
+    } else if remainder.starts_with(":") {
+        let element = Element {
+            key,
+            kind: Kind::Field(
+                if remainder[1..].trim().is_empty() {
+                    FieldContent::None
+                } else {
+                    FieldContent::Value(remainder[1..].trim().to_string())
+                }
+            )
+        };
+        
+        context.elements.push(element);
+        context.next_continuation_direct = true;
+    } else if remainder.starts_with("=") {
+        let attribute = Attribute {
+            key,
+            value: remainder[1..].trim().to_string()
+        };
+        
+        match context.elements.last_mut() {
+            Some(Element { kind: Kind::Field(content), .. }) => match content {
+                FieldContent::Attributes(attributes) => attributes.push(attribute),
+                FieldContent::None => *content = FieldContent::Attributes(vec![attribute]),
+                _ => return Err(Error::new(format!("Attribute without field encountered. ('{}')", remainder), context.line_number)) // TODO: Here and elsewhere we are printing remainder/trimmed, but in reality we need to be printing the line, verbatim
+            }
+            _ => return Err(Error::new(format!("Attribute without field encountered. ('{}')", remainder), context.line_number))
+        }
+        
+        context.next_continuation_direct = true;
+    } else if remainder.starts_with("<") {
+        // TODO: Implement
+        // let element = Element {
+        //     key,
+        //     kind: Kind::Field(FieldContent::None)
+        // };
+        // context.elements.push(element);
+        
+        return Err(Error::new(format!("Copies are not (yet) supported. ('{}')", remainder), context.line_number));
+    } else {
+        return Err(Error::new(format!("Invalid syntax following a valid escaped key. ('{}')", remainder), context.line_number));
+    }
+    
+    Ok(())
+}
+    
 fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     if let Some(index) = trimmed.find(|c| c == ':' || c == '=' || c == '<') {
         if trimmed[index..].starts_with(":") {
