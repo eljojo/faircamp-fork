@@ -13,6 +13,12 @@ pub struct Attribute {
 }
 
 #[derive(Debug)]
+pub struct Document {
+    pub comment: Option<String>,
+    pub elements: Vec<Element>
+}
+
+#[derive(Debug)]
 pub struct Element {
     pub key: String,
     pub kind: Kind
@@ -42,11 +48,21 @@ pub struct Error {
 }
 
 pub struct ParseContext<'a> {
-    elements: Vec<Element>,
+    comment: Vec<(u32, String)>, // (line_number, value)
+    document: Document,
     line_number: u32,
     lines: Lines<'a>,
     /// memorizes direct/spaced continuation state while reading values that can be continued
     next_continuation_direct: bool
+}
+
+impl Document {
+    fn new() -> Document {
+        Document {
+            comment: None,
+            elements: Vec::new()
+        }
+    }
 }
 
 impl Error {
@@ -66,9 +82,44 @@ impl fmt::Display for Error {
 
 // TODO: Collect column for error (and for inspection of document via API)
 
-pub fn parse(input: &str) -> Result<Vec<Element>, Error> {
+fn associate_comment_with_document(context: &mut ParseContext) {
+    let (mut shared_indentation_bytes, shared_indentation_string) = match context.comment.first() {
+        Some((1, value)) =>  match value.find(|c: char| !c.is_whitespace()) {
+            Some(index) => (index, value[..index].to_string()),
+            None => (0, String::new())
+        }
+        _ => return
+    };
+        
+    for (_line_number, value) in &context.comment[1..] {
+        for (index, (shared_c, c)) in shared_indentation_string
+            .chars()
+            .zip(value.chars())
+            .enumerate() {
+            if index < shared_indentation_bytes {
+                if c != shared_c {
+                    shared_indentation_bytes = index;
+                    break;
+                }    
+            } else {
+                break;
+            }
+        }
+    }
+    
+    let comment = context.comment
+        .drain(..)
+        .map(|(_line_number, value)| value[shared_indentation_bytes..].to_string())
+        .collect::<Vec<String>>()
+        .join("\n");
+    
+    context.document.comment = Some(comment);
+}
+
+pub fn parse(input: &str) -> Result<Document, Error> {
     let mut context = ParseContext {
-        elements: Vec::new(),
+        comment: Vec::new(),
+        document: Document::new(),
         line_number: 0,
         lines: input.lines(),
         next_continuation_direct: true
@@ -79,9 +130,13 @@ pub fn parse(input: &str) -> Result<Vec<Element>, Error> {
         
         context.line_number += 1;
         
-        if trimmed.is_empty() || trimmed.starts_with(">") { continue }
-        
-        if trimmed.starts_with("--") {
+        if trimmed.is_empty() {
+            associate_comment_with_document(&mut context);
+            context.comment.clear();
+            continue
+        } else if trimmed.starts_with(">") {
+            read_comment(&mut context, trimmed);
+        } if trimmed.starts_with("--") {
             read_embed(&mut context, trimmed)?;
         } else if trimmed.starts_with("`") {
             read_attribute_empty_field_escaped_key(&mut context, trimmed)?;
@@ -99,7 +154,7 @@ pub fn parse(input: &str) -> Result<Vec<Element>, Error> {
         }
     }
     
-    Ok(context.elements)
+    Ok(context.document)
 }
 
 fn read_attribute_empty_field_escaped_key(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
@@ -135,7 +190,7 @@ fn read_attribute_empty_field_escaped_key(context: &mut ParseContext, trimmed: &
     
 fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String, remainder: &str) -> Result<(), Error> {
     if remainder.is_empty() {
-        context.elements.push(Element {
+        context.document.elements.push(Element {
             key,
             kind: Kind::Empty
         });
@@ -151,7 +206,7 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
             )
         };
         
-        context.elements.push(element);
+        context.document.elements.push(element);
         context.next_continuation_direct = true;
     } else if remainder.starts_with("=") {
         let attribute = Attribute {
@@ -159,7 +214,7 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
             value: remainder[1..].trim().to_string()
         };
         
-        match context.elements.last_mut() {
+        match context.document.elements.last_mut() {
             Some(Element { kind: Kind::Field(content), .. }) => match content {
                 FieldContent::Attributes(attributes) => attributes.push(attribute),
                 FieldContent::None => *content = FieldContent::Attributes(vec![attribute]),
@@ -175,7 +230,7 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
         //     key,
         //     kind: Kind::Field(FieldContent::None)
         // };
-        // context.elements.push(element);
+        // context.document.elements.push(element);
         
         return Err(Error::new(format!("Copies are not (yet) supported. ('{}')", remainder), context.line_number));
     } else {
@@ -199,7 +254,7 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
                 )
             };
             
-            context.elements.push(element);
+            context.document.elements.push(element);
             context.next_continuation_direct = true;
         } else if trimmed[index..].starts_with("=") {
             let attribute = Attribute {
@@ -207,7 +262,7 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
                 value: trimmed[(index + 1)..].trim().to_string()
             };
             
-            match context.elements.last_mut() {
+            match context.document.elements.last_mut() {
                 Some(Element { kind: Kind::Field(content), .. }) => match content {
                     FieldContent::Attributes(attributes) => attributes.push(attribute),
                     FieldContent::None => *content = FieldContent::Attributes(vec![attribute]),
@@ -223,12 +278,12 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
             //     key: trimmed[..index].trim().to_string(),
             //     kind: Kind::Field(FieldContent::None)
             // };
-            // context.elements.push(element);
+            // context.document.elements.push(element);
             
             return Err(Error::new(format!("Copies are not (yet) supported. ('{}')", trimmed), context.line_number));
         }
     } else {
-        context.elements.push(Element {
+        context.document.elements.push(Element {
             key: trimmed.to_string(),
             kind: Kind::Empty
         })
@@ -237,11 +292,15 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
     Ok(())
 }
 
+fn read_comment(context: &mut ParseContext, trimmed: &str) {
+    context.comment.push((context.line_number, trimmed[1..].to_string()));
+}
+
 fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     let value = trimmed[1..].trim();
     
     if !value.is_empty() {
-        match context.elements.last_mut() {
+        match context.document.elements.last_mut() {
             Some(Element { kind: Kind::Field(content), .. }) => match content {
                 FieldContent::Attributes(attributes) => {
                     let existing = &mut attributes.last_mut().unwrap().value;
@@ -296,7 +355,7 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
                 if trimmed.starts_with("--") {
                     if let Some(end_operator_len) = trimmed.find(|c| c != '-') {
                         if begin_operator_len == end_operator_len && key == trimmed[end_operator_len..].trim() {
-                            context.elements.push(Element {
+                            context.document.elements.push(Element {
                                 key: key.to_string(),
                                 kind: Kind::Embed(value)
                             });
@@ -321,7 +380,7 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
 fn read_item(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     let item = trimmed[1..].trim().to_string();
     
-    match context.elements.last_mut() {
+    match context.document.elements.last_mut() {
         Some(Element { kind: Kind::Field(content), .. }) => match content {
             FieldContent::Items(items) => items.push(item),
             FieldContent::None => *content = FieldContent::Items(vec![item]),

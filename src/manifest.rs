@@ -46,7 +46,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
     match fs::read_to_string(path) {
         Ok(content) => {
             match enolib::parse(&content) {
-                Ok(elements) => for element in elements {
+                Ok(document) => for element in document.elements {
                     match element.key.as_ref() {
                         "disable_download" => match element.kind {
                             Kind::Empty  => overrides.download_option = DownloadOption::Disabled,
