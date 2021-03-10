@@ -136,7 +136,7 @@ pub fn parse(input: &str) -> Result<Document, Error> {
             continue
         } else if trimmed.starts_with(">") {
             read_comment(&mut context, trimmed);
-        } if trimmed.starts_with("--") {
+        } else if trimmed.starts_with("--") {
             read_embed(&mut context, trimmed)?;
         } else if trimmed.starts_with("`") {
             read_attribute_empty_field_escaped_key(&mut context, trimmed)?;
