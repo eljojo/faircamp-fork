@@ -141,7 +141,7 @@ impl Catalog {
         for (track_path, extension) in &track_paths {
             info!("Reading track {}", track_path.display());
             
-            let cached_assets = cache_manifest.get_track_assets(track_path, extension);
+            let cached_assets = cache_manifest.take_or_create_track_assets(track_path, extension);
             
             if let Some(release_title) = &cached_assets.source_meta.album {
                 if let Some(metric) = &mut release_title_metrics
@@ -165,13 +165,13 @@ impl Catalog {
         for image_path in &image_paths {
             info!("Reading image {}", image_path.display());
             
-            let cached_assets = cache_manifest.get_image_assets(image_path);
+            let cached_assets = cache_manifest.take_or_create_image_assets(image_path);
             
             images.push(Image::init(cached_assets, image_path));
         }
         
         if !release_tracks.is_empty() {
-            let cached_assets = cache_manifest.get_release_assets(&release_tracks);
+            let cached_assets = cache_manifest.take_or_create_release_assets(&release_tracks);
             
             release_tracks.sort_by(|a, b|
                 a.cached_assets.source_meta.track_number.cmp(

@@ -279,50 +279,6 @@ impl CacheManifest {
         util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR));
     }
     
-    pub fn get_image_assets(&mut self, source_path: &Path) -> CachedImageAssets {
-        let source_file_signature = SourceFileSignature::init(source_path);
-        
-        match self.images.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
-            Some(index) => self.images.swap_remove(index),
-            None => CachedImageAssets::new(source_file_signature)
-        }
-    }
-    
-    pub fn get_release_assets(&mut self, tracks: &Vec<Track>) -> CachedReleaseAssets {
-        match self.releases
-            .iter()
-            .position(|cached_assets| {
-                tracks
-                    .iter()
-                    .zip(cached_assets.source_file_signatures.iter())
-                    .all(|(track, source_file_signature)| {
-                        &track.cached_assets.source_file_signature == source_file_signature
-                    })
-            }) {
-            Some(index) => self.releases.swap_remove(index),
-            None => {
-                CachedReleaseAssets::new(
-                    tracks
-                        .iter()
-                        .map(|track| track.cached_assets.source_file_signature.clone())
-                        .collect()
-                )
-            }
-        }
-    }
-    
-    pub fn get_track_assets(&mut self, source_path: &Path, extension: &str) -> CachedTrackAssets {
-        let source_file_signature = SourceFileSignature::init(source_path);
-        
-        match self.tracks.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
-            Some(index) => self.tracks.swap_remove(index),
-            None => {
-                let source_meta = AudioMeta::extract(source_path, extension);
-                CachedTrackAssets::new(source_file_signature, source_meta)
-            }
-        }
-    }
-    
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
         for cached_assets in self.images.iter_mut() {
             cached_assets.mark_all_stale(timestamp);
@@ -393,6 +349,50 @@ impl CacheManifest {
         }
         
         tracks
+    }
+    
+    pub fn take_or_create_image_assets(&mut self, source_path: &Path) -> CachedImageAssets {
+        let source_file_signature = SourceFileSignature::init(source_path);
+        
+        match self.images.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
+            Some(index) => self.images.swap_remove(index),
+            None => CachedImageAssets::new(source_file_signature)
+        }
+    }
+    
+    pub fn take_or_create_release_assets(&mut self, tracks: &Vec<Track>) -> CachedReleaseAssets {
+        match self.releases
+            .iter()
+            .position(|cached_assets| {
+                tracks
+                    .iter()
+                    .zip(cached_assets.source_file_signatures.iter())
+                    .all(|(track, source_file_signature)| {
+                        &track.cached_assets.source_file_signature == source_file_signature
+                    })
+            }) {
+            Some(index) => self.releases.swap_remove(index),
+            None => {
+                CachedReleaseAssets::new(
+                    tracks
+                        .iter()
+                        .map(|track| track.cached_assets.source_file_signature.clone())
+                        .collect()
+                )
+            }
+        }
+    }
+    
+    pub fn take_or_create_track_assets(&mut self, source_path: &Path, extension: &str) -> CachedTrackAssets {
+        let source_file_signature = SourceFileSignature::init(source_path);
+        
+        match self.tracks.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
+            Some(index) => self.tracks.swap_remove(index),
+            None => {
+                let source_meta = AudioMeta::extract(source_path, extension);
+                CachedTrackAssets::new(source_file_signature, source_meta)
+            }
+        }
     }
 }
 
