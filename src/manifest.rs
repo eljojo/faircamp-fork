@@ -191,6 +191,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                             _ => error!("Ignoring invalid cache_optimization option (can only be a field containing a value) in manifest '{:?}'", path)
                         }
                         "catalog_text" => match element.kind {
+                            Kind::Embed(Some(value)) |
                             Kind::Field(FieldContent::Value(value)) => {
                                 if let Some(previous) = &catalog.text {
                                     warn_global_set_repeatedly!("catalog_text", previous, value);
@@ -198,7 +199,7 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                                 
                                 catalog.text = Some(value);      
                             }
-                            _ => error!("Ignoring invalid catalog_text option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid catalog_text option (can only be an embed or field containing a value) in manifest '{:?}'", path)
                         }
                         "catalog_title" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -306,8 +307,9 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                             _ => error!("Ignoring invalid release_artist option (can only be a field containing a value) in manifest '{:?}'", path)
                         }
                         "release_text" => match element.kind {
+                            Kind::Embed(Some(value)) |
                             Kind::Field(FieldContent::Value(value)) => overrides.release_text = Some(util::markdown_to_html(&value)),
-                            _ => error!("Ignoring invalid release_text option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid release_text option (can only be an embed or field containing a value) in manifest '{:?}'", path)
                         }
                         "release_title" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => overrides.release_title = Some(value),
