@@ -11,7 +11,7 @@ pub struct AudioMeta {
     pub artist: Option<String>,
     pub duration_seconds: Option<u32>,
     pub lossless: bool,
-    pub peaks: Option<Vec<PeakNegPos>>,
+    pub peaks: Option<Vec<f32>>,
     pub title: Option<String>,
     pub track_number: Option<u32>
 }
@@ -23,12 +23,6 @@ struct DecodeResult {
     pub sample_count: u32,
     pub sample_rate: u32,
     pub samples: Vec<f32>
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct PeakNegPos {
-    pub pos: f32,
-    pub neg: f32
 }
 
 impl AudioMeta {
@@ -93,14 +87,13 @@ impl AudioMeta {
 /// - Determine the largest absolute average amplitude among all calculated windows
 /// - For all windows the averaged amplitudes are now upscaled again so that the maximum absolute window amplitude
 ///   is identical to the largest absolute amplitude found in all discrete samples
-fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<PeakNegPos> {
+fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<f32> {
     let window_size = (decode_result.channels as u32 * decode_result.sample_count) / points;
 
-    let mut peaks: Vec<PeakNegPos> = Vec::with_capacity(points as usize);
+    let mut peaks = Vec::with_capacity(points as usize);
 
     let mut window_samples = 0;
-    let mut window_accumulated_neg = 0.0;
-    let mut window_accumulated_pos = 0.0;
+    let mut window_accumulated = 0.0;
 
     let mut sample_abs_max: f32 = 0.0;
     let mut window_abs_max: f32 = 0.0;
@@ -109,24 +102,20 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<PeakNegPos> {
         sample_abs_max = sample_abs_max.max(amplitude.abs());
 
         if window_samples > window_size {
-            let peak = PeakNegPos {
-                neg: window_accumulated_neg / window_samples as f32,
-                pos: window_accumulated_pos / window_samples as f32,
-            };
+            let peak = window_accumulated / window_samples as f32;
 
-            window_abs_max = window_abs_max.max(peak.pos).max(peak.neg);
+            window_abs_max = window_abs_max.max(peak);
 
             peaks.push(peak);
 
             window_samples = 0;
-            window_accumulated_neg = 0.0;
-            window_accumulated_pos = 0.0;
+            window_accumulated = 0.0;
         }
 
-        if amplitude >= 0.0 {
-            window_accumulated_pos += amplitude;
+        if amplitude.is_sign_positive() {
+            window_accumulated += amplitude;
         } else {
-            window_accumulated_neg -= amplitude;
+            window_accumulated -= amplitude;
         }
 
         window_samples += 1;
@@ -136,20 +125,11 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<PeakNegPos> {
     
     peaks
         .iter()
-        .map(|pair| {
+        .map(|peak| {
             match "verbatim" {
-               "verbatim" => PeakNegPos {
-                   neg: pair.neg * upscale,
-                   pos: pair.pos * upscale,
-               },
-               "log2" => PeakNegPos {
-                   neg: (pair.neg * 2.0 + 1.0).log2() * upscale,
-                   pos: (pair.pos * 2.0 + 1.0).log2() * upscale,
-               },
-               "log10" => PeakNegPos {
-                   neg: (pair.neg * 10.0 + 1.0).log10() * upscale,
-                   pos: (pair.pos * 10.0 + 1.0).log10() * upscale,
-               },
+               "verbatim" => peak * upscale,
+               "log2" => (peak * 2.0 + 1.0).log2() * upscale,
+               "log10" => (peak * 10.0 + 1.0).log10() * upscale,
                _ => unreachable!()
            }
     

@@ -170,29 +170,19 @@ impl Track {
         if let Some(peaks) = &self.cached_assets.source_meta.peaks {
             let height = 100;
             let width = peaks.len();
-            let center_y = height as f32 / 2.0;
             
-            let mut body = String::new();
+            let mut enumerate_peaks = peaks.iter().enumerate(); 
             
-            for (index, peak) in peaks.iter().enumerate() {
-                let neg = format!(
-                    r#"<rect height="{height}" width="{width}" x="{x}" y="{y}" />"#,
-                    height = peak.pos * center_y,
-                    width = 1,
+            let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
+            
+            while let Some((index, peak)) = enumerate_peaks.next() {
+                let command = format!(
+                    " L {x},{y} h 1",
                     x = index,
-                    y = center_y
+                    y = (1.0 - peak) * height as f32
                 );
                 
-                let pos = format!(
-                    r#"<rect height="{height}" width="{width}" x="{x}" y="{y}" />"#,
-                    height = peak.pos * center_y,
-                    width = 1,
-                    x = index,
-                    y = (1.0 - peak.pos) * center_y
-                );
-                
-                body.push_str(&neg);
-                body.push_str(&pos);
+                d.push_str(&command);
             }
             
             let svg = formatdoc!(
@@ -200,15 +190,16 @@ impl Track {
                     <?xml version="1.0" standalone="no"?>
                     <svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
                         <style>
-                            circle, rect {{
-                                stroke: #3b3b3b;
-                                stroke-width: 1;
+                            path {{
+                                fill: none;
+                                stroke: #ffffff;
+                                stroke-width: 2;
                             }}
                         </style>
-                        {body}
+                        <path d="{d}" />
                     </svg>
                 "##,
-                body=body,
+                d=d,
                 height=height,
                 width=width
             );
