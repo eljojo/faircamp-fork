@@ -58,7 +58,7 @@ impl AudioMeta {
             }
         } else if extension == "mp3" {
             let peaks = match read_mp3_experimental(path) {
-                Some(decode_result) => Some(compute_peaks(decode_result, 256)),
+                Some(decode_result) => Some(compute_peaks(decode_result, 2560)),
                 None => None
             };
             
@@ -137,7 +137,11 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<PeakNegPos> {
     peaks
         .iter()
         .map(|pair| {
-            match "log2" {
+            match "verbatim" {
+               "verbatim" => PeakNegPos {
+                   neg: pair.neg * upscale,
+                   pos: pair.pos * upscale,
+               },
                "log2" => PeakNegPos {
                    neg: (pair.neg * 2.0 + 1.0).log2() * upscale,
                    pos: (pair.pos * 2.0 + 1.0).log2() * upscale,
@@ -200,7 +204,10 @@ fn read_mp3_experimental(path: &Path) -> Option<DecodeResult> {
             
             result_unpacked.sample_count += sample_count as u32;
             result_unpacked.samples.reserve(result_unpacked.channels as usize * sample_count);
-            result_unpacked.samples.extend_from_slice(audio.samples());
+            
+            for sample in audio.samples() {
+                result_unpacked.samples.push(*sample as f32 / std::i16::MAX as f32);
+            }
             
             if sample_count > 0 {
                 result_unpacked.duration = result_unpacked.sample_count as f32 / result_unpacked.sample_rate as f32;

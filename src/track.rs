@@ -183,7 +183,6 @@ impl Track {
                     y = center_y
                 );
                 
-                
                 let pos = format!(
                     r#"<rect height="{height}" width="{width}" x="{x}" y="{y}" />"#,
                     height = peak.pos * center_y,
