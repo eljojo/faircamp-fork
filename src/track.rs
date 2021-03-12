@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use indoc::formatdoc;
 use serde_derive::{Serialize, Deserialize};
 use std::{
     fs,
@@ -162,6 +163,58 @@ impl Track {
             cached_assets,
             source_file,
             title
+        }
+    }
+    
+    pub fn write_peaks(&self, build_dir: &Path) {
+        if let Some(peaks) = &self.cached_assets.source_meta.peaks {
+            let height = 100;
+            let width = peaks.len();
+            let center_y = height as f32 / 2.0;
+            
+            let mut body = String::new();
+            
+            for (index, peak) in peaks.iter().enumerate() {
+                let neg = format!(
+                    r#"<rect height="{height}" width="{width}" x="{x}" y="{y}" />"#,
+                    height = peak.pos * center_y,
+                    width = 1,
+                    x = index,
+                    y = center_y
+                );
+                
+                
+                let pos = format!(
+                    r#"<rect height="{height}" width="{width}" x="{x}" y="{y}" />"#,
+                    height = peak.pos * center_y,
+                    width = 1,
+                    x = index,
+                    y = (1.0 - peak.pos) * center_y
+                );
+                
+                body.push_str(&neg);
+                body.push_str(&pos);
+            }
+            
+            let svg = formatdoc!(
+                r##"
+                    <?xml version="1.0" standalone="no"?>
+                    <svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            circle, rect {{
+                                stroke: #3b3b3b;
+                                stroke-width: 1;
+                            }}
+                        </style>
+                        {body}
+                    </svg>
+                "##,
+                body=body,
+                height=height,
+                width=width
+            );
+            
+            fs::write(build_dir.join(format!("peaks_{}.svg", self.cached_assets.uid)), svg).unwrap();
         }
     }
 }

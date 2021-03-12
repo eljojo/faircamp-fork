@@ -449,12 +449,14 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                         </span>
                         <audio controls src="../{track_src}"></audio>
                     </div>
+                    <img src="../peaks_{track_uid}.svg">
                 "#,
                 track_duration=track.duration_formatted(),
                 track_duration_width_em=track_duration_width_em,
                 track_number=index + 1,
                 track_src=track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
-                track_title=track.title
+                track_title=track.title,
+                track_uid=track.cached_assets.uid
             )
         })
         .collect::<Vec<String>>()
