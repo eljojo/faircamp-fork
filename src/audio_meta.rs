@@ -52,7 +52,7 @@ impl AudioMeta {
             }
         } else if extension == "mp3" {
             let peaks = match read_mp3_experimental(path) {
-                Some(decode_result) => Some(compute_peaks(decode_result, 2560)),
+                Some(decode_result) => Some(compute_peaks(decode_result, 320)),
                 None => None
             };
             

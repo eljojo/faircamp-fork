@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use indoc::formatdoc;
 use serde_derive::{Serialize, Deserialize};
 use std::{
     fs,
@@ -163,48 +162,6 @@ impl Track {
             cached_assets,
             source_file,
             title
-        }
-    }
-    
-    pub fn write_peaks(&self, build_dir: &Path) {
-        if let Some(peaks) = &self.cached_assets.source_meta.peaks {
-            let height = 100;
-            let width = peaks.len();
-            
-            let mut enumerate_peaks = peaks.iter().enumerate(); 
-            
-            let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
-            
-            while let Some((index, peak)) = enumerate_peaks.next() {
-                let command = format!(
-                    " L {x},{y} h 1",
-                    x = index,
-                    y = (1.0 - peak) * height as f32
-                );
-                
-                d.push_str(&command);
-            }
-            
-            let svg = formatdoc!(
-                r##"
-                    <?xml version="1.0" standalone="no"?>
-                    <svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
-                        <style>
-                            path {{
-                                fill: none;
-                                stroke: #ffffff;
-                                stroke-width: 2;
-                            }}
-                        </style>
-                        <path d="{d}" />
-                    </svg>
-                "##,
-                d=d,
-                height=height,
-                width=width
-            );
-            
-            fs::write(build_dir.join(format!("peaks_{}.svg", self.cached_assets.uid)), svg).unwrap();
         }
     }
 }

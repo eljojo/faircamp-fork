@@ -312,9 +312,6 @@ impl Catalog {
             }
             
             for track in release.tracks.iter_mut() {
-                // TODO: Get (or create) a svg in the cache here, then copy it to build_dir
-                track.write_peaks(&build.build_dir);
-                
                 let streaming_asset = track.get_or_transcode_as(&release.streaming_format, build, AssetIntent::Deliverable);
                 
                 fs::copy(

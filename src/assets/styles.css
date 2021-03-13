@@ -13,6 +13,7 @@ a {
     text-decoration: none;
 }
 a:hover { color: hsl(var(--hue), var(--link-s), var(--link-hover-l)); }
+a * { pointer-events: none; }
 body {
     background-color: hsl(var(--background-h), var(--background-s), var(--background-l));
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
@@ -55,10 +56,15 @@ main {
     height: 100vh;
     padding: .6em;
 }
+svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .center {
     margin: 0 auto;
     margin-top: 8em;
     max-width: 40em;
+}
+.center_unconstrained {
+    margin: 0 auto;
+    margin-top: 8em;
 }
 .cover {
     background-color: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
@@ -80,6 +86,11 @@ main {
     overflow-y: auto;
 }
 .muted { color: var(--color-muted); }
+.release_grid {
+    display: grid;
+    grid-gap: .5em;
+    grid-template-columns: 20em auto;
+}
 .releases {
     align-content: center;
     display: grid;
@@ -105,33 +116,48 @@ main {
 .track {
     display: flex;
     margin-bottom: .2em;
+    position: relative;
 }
 .track > *:not(:first-child) {
     margin-left: .4em;
 }
-.track_duration_bar {
-    background-color: var(--color-muted);
-    bottom: .3em;
-    height: 1px;
-    position: absolute;
+.track_duration_text { display: none; }
+.track_number { opacity: .4 }
+.track_play_mock {
+	background-color: hsl(var(--text-h), var(--text-s), var(--text-l));
+	color: var(--color-muted);
+	height: 1.4em;
+	width: 1.4em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 2em;
+	position: relative;
+	bottom: 2px;
 }
-.track_duration_text {
-    text-align: right;
-    position: absolute;
-    transform: translateX(-100%);
-}
-.track_number {
-    align-items: center;
-    border: 1px solid var(--color-muted);
-    border-radius: 50%;
-    bottom: .1em;
-    display: flex;
-    height: 1.2em;
-    justify-content: center;
-    padding: .2em;
+.track_title {
+    color: hsl(var(--text-h), var(--text-s), var(--text-l));
     position: relative;
-    width: 1.2em;
 }
-.track_number:hover { border-color: hsl(var(--muted-h), var(--muted-s), var(--link-hover-l)); }
-.track_title { position: relative; }
+.track_title.playing {
+    animation: 3s linear infinite pulse;
+}
+@keyframes pulse {
+  0% { opacity: .8; }
+  50% { opacity: .4; }
+  100% { opacity: .8; }
+}
+.track_title_wrapper {
+    justify-self: end;
+}
 .vpad { margin: 1em 0; }
+.waveform {
+    bottom: .3em;
+    cursor: pointer;
+    height: .8em;
+    /* position: absolute; */
+}
+.waveform path {
+    fill: none;
+    stroke-width: 1px;
+}
