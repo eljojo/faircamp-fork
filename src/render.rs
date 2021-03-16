@@ -442,13 +442,14 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
             formatdoc!(
                 r#"
                     <div class="track_title_wrapper">
+                        <span class="track_number">{track_number:02}</span>
                         <a class="track_title">
-                            {track_title} <span class="muted track_duration_text">{track_duration}</span> <span class="pause"></span> <span class="track_number">{track_number:02}</span>
+                            {track_title} <span class="pause"></span>
                         </a>
                     </div>
                     <div class="track_waveform">
                         <audio controls preload="metadata" src="../{track_src}"></audio>
-                        {waveform}
+                        {waveform} <span class="track_duration">{track_duration}</span>
                     </div>
                 "#,
                 track_duration = track.duration_formatted(),
@@ -476,9 +477,9 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                     </div>
                     
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                        <div class="track_play_mock">
+                        <a class="track_play">
                             <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
-                        </div>
+                        </a>
                     </div>
                     <div style="margin: 0.4em 0 1em 0;">
                         <h1>{release_title}</h1>

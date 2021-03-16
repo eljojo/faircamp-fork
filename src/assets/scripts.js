@@ -19,7 +19,6 @@ const share = a => {
 
 const updatePlayhead = (audio, svg) => {
     const factor = audio.currentTime / audio.duration;
-    
     svg.querySelector('stop:nth-child(1)').setAttribute('offset', `${factor * 100}%`);
     svg.querySelector('stop:nth-child(2)').setAttribute('offset', `${(factor + 0.0001) * 100}%`);
 };
@@ -70,8 +69,29 @@ window.addEventListener('DOMContentLoaded', event => {
     }
 });
 
+// TODO: Clean/DRY up logic globally
 document.body.addEventListener('click', event => {
-    if (event.target.classList.contains('track_title')) {
+    if (event.target.classList.contains('track_play')) {
+        if (window.playing) {
+            if (window.playing.audio.paused) {
+                window.playing.a.classList.add('playing');
+                window.playing.audio.play();
+                window.playing.interval = setInterval(() => updatePlayhead(window.playing.audio, window.playing.svg), 200);
+            } else {
+                window.playing.audio.pause();
+                updatePlayhead(window.playing.audio, window.playing.svg);
+                clearInterval(window.playing.interval);
+                window.playing.a.classList.remove('playing');
+            }
+        } else {
+            const firstTrack = event.target.parentElement.nextElementSibling.nextElementSibling;
+            const firstA = firstTrack.querySelector('a');
+            const firstAudio = firstTrack.nextElementSibling.querySelector('audio');
+            const firstSvg = firstTrack.nextElementSibling.querySelector('svg');
+            
+            beginPlayback(firstA, firstAudio, firstSvg);
+        }
+    } else if (event.target.classList.contains('track_title')) {
         event.preventDefault();
         
         const a = event.target;

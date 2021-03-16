@@ -88,7 +88,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .muted { color: var(--color-muted); }
 .release_grid {
     display: grid;
-    grid-gap: .5em;
+    grid-gap: 0.5em 1.4em;
     grid-template-columns: 20em auto;
 }
 .releases {
@@ -118,23 +118,36 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-bottom: .2em;
     position: relative;
 }
-.track > *:not(:first-child) {
-    margin-left: .4em;
-}
-.track_duration_text { display: none; }
-.track_number { opacity: .4 }
-.track_play_mock {
-	background-color: hsl(var(--text-h), var(--text-s), var(--text-l));
-	color: var(--color-muted);
-	height: 1.4em;
-	width: 1.4em;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	font-size: 2em;
+.track > *:not(:first-child) { margin-left: .4em; }
+.track_duration,
+.track_number {
+    bottom: .2em;
+	font-size: .6em;
+    opacity: .4;
 	position: relative;
-	bottom: 2px;
 }
+.track_duration {
+	margin-left: .1em;
+	bottom: -0.3em;
+}
+.track_number { margin-right: .4em; }
+.track_play,
+.track_play:hover {
+    align-items: center;
+	background-color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    bottom: 2px;
+    color: var(--color-muted);
+    display: none;
+    font-size: 2em;
+	height: 1.4em;
+    justify-content: center;
+	position: relative;
+    width: 1.4em;
+}
+.track_play:hover {
+    opacity: .8;
+}
+.js_enabled .track_play { display: flex; }
 .track_title {
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
     position: relative;
