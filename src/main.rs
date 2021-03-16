@@ -80,11 +80,6 @@ fn main() {
     fs::create_dir(build.build_dir.join("about")).unwrap();
     fs::write(build.build_dir.join("about/index.html"), about_html).unwrap();
     
-    // Render page for all artists
-    let artists_html = render::render_artists(&build, &catalog);
-    fs::create_dir(build.build_dir.join("artists")).unwrap();
-    fs::write(build.build_dir.join("artists/index.html"), artists_html).unwrap();
-    
     // Render page for all releases
     let releases_html = render::render_releases(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), releases_html).unwrap();
