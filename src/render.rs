@@ -46,8 +46,7 @@ fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title
         feed_meta_link=feed_meta_link,
         feed_user_link=feed_user_link,
         root_prefix=root_prefix,
-        title=title,
-        version=env!("CARGO_PKG_VERSION")
+        title=title
     )
 }
 
