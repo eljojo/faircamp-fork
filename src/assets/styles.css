@@ -21,16 +21,17 @@ body {
     font-size: 18px;
     margin: 0;
 }
-footer {
+/* TODO: Reactivate or remove */
+/* footer {
     bottom: 0;
     color: var(--color-muted);
     display: flex;
     justify-content: space-between;
     left: 0;
     position: absolute;
-    width: 100%
+    width: 100%;
 }
-footer > * { padding: .6em; }
+footer > * { padding: .6em; } */
 h1 {
     font-size: 1.8em;
     font-weight: 400;

@@ -26,7 +26,7 @@ fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title
                 root_prefix=root_prefix
             ),
             format!(
-                r#"<a href="{root_prefix}feed.rss">RSS</a>"#,
+                r#"<a href="{root_prefix}feed.rss">■ RSS</a>"#,
                 root_prefix=root_prefix
             ),
         ),
