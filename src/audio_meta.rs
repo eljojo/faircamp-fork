@@ -57,20 +57,33 @@ impl AudioMeta {
                 };
             }
         } else if extension == "mp3" {
-            let peaks = match read_mp3_experimental(path) {
-                Some(decode_result) => Some(compute_peaks(decode_result, 320)),
-                None => None
+            let (duration_seconds, peaks) = match decode_mp3(path) {
+                Some(decode_result) => (
+                    decode_result.duration as u32,
+                    Some(compute_peaks(decode_result, 320))
+                ),
+                None => (0, None)
             };
             
             if let Ok(tag) = id3::Tag::read_from_path(path) {
                 return AudioMeta {
                     album: tag.album().map(|str| str.to_string()),
                     artist: tag.artist().map(|str| str.to_string()),
-                    duration_seconds: mp3_duration_from_frame_info(path).unwrap_or(0),
+                    duration_seconds,
                     lossless,
                     peaks,
                     title: tag.title().map(|str| str.to_string()),
                     track_number: tag.track()
+                };
+            } else {
+                return AudioMeta {
+                    album: None,
+                    artist: None,
+                    duration_seconds,
+                    lossless,
+                    peaks,
+                    title: None,
+                    track_number: None
                 };
             }
         }
@@ -87,8 +100,8 @@ impl AudioMeta {
     }
 }
 
-/// Takes the samples of a channel and applies the following processing:
-/// - Determine the largest absolute amplitude among all the sample values
+/// Takes interleaved samples and applies the following processing:
+/// - Determine the largest absolute amplitude among all samples, throughout all channels
 /// - Group every [n] samples into a window, for which the average positive and negative amplitude is stored
 /// - Determine the largest absolute average amplitude among all calculated windows
 /// - For all windows the averaged amplitudes are now upscaled again so that the maximum absolute window amplitude
@@ -143,29 +156,7 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<f32> {
         .collect()
 }
 
-fn mp3_duration_from_frame_info(path: &Path) -> Option<u32> {
-    let buffer = match fs::read(path) {
-        Ok(buffer) => buffer,
-        Err(_) => return None
-    };
-    
-    let mut decoder = Decoder::new(&buffer);
-    let mut duration_seconds: f32 = 0.0;
-    
-    while let Some(Frame::Audio(audio)) = decoder.peek() {
-        let sample_count = audio.sample_count();
-        
-        if sample_count > 0 {
-            duration_seconds += sample_count as f32 / audio.sample_rate() as f32;
-        }
-        
-        decoder.skip();
-    }
-    
-    Some(duration_seconds as u32)
-}
-
-fn read_mp3_experimental(path: &Path) -> Option<DecodeResult> {
+fn decode_mp3(path: &Path) -> Option<DecodeResult> {
     let buffer = match fs::read(path) {
         Ok(buffer) => buffer,
         Err(_) => return None
