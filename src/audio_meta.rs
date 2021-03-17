@@ -9,7 +9,7 @@ use std::path::Path;
 pub struct AudioMeta {
     pub album: Option<String>,
     pub artist: Option<String>,
-    pub duration_seconds: Option<u32>,
+    pub duration_seconds: u32,
     pub lossless: bool,
     pub peaks: Option<Vec<f32>>,
     pub title: Option<String>,
@@ -35,19 +35,25 @@ impl AudioMeta {
         
         if extension == "flac" {
             if let Ok(tag) = metaflac::Tag::read_from_path(path) {
+                let duration_seconds = tag
+                    .get_streaminfo()
+                    .map(|streaminfo| (streaminfo.total_samples / streaminfo.sample_rate as u64) as u32)
+                    .unwrap_or(0);
+                    
+                let track_number = tag
+                    .get_vorbis("track") // TODO: Unconfirmed if that key is correct/available ("guessed it" for now :))
+                    .map(|iter| iter.collect())
+                    .filter(|str: &String| str.parse::<u32>().is_ok())
+                    .map(|str: String| str.parse::<u32>().unwrap());
+                
                 return AudioMeta {
                     album: tag.get_vorbis("album").map(|iter| iter.collect()),
                     artist: tag.get_vorbis("artist").map(|iter| iter.collect()),
-                    duration_seconds: tag.get_streaminfo().map(|streaminfo|
-                        (streaminfo.total_samples / streaminfo.sample_rate as u64) as u32
-                    ),
+                    duration_seconds,
                     lossless,
                     peaks: None,
                     title: tag.get_vorbis("title").map(|iter| iter.collect()),
-                    track_number: tag.get_vorbis("track") // TODO: Unconfirmed if that key is correct/available ("guessed it" for now :))
-                        .map(|iter| iter.collect())
-                        .filter(|str: &String| str.parse::<u32>().is_ok())
-                        .map(|str: String| str.parse::<u32>().unwrap()) 
+                    track_number
                 };
             }
         } else if extension == "mp3" {
@@ -60,7 +66,7 @@ impl AudioMeta {
                 return AudioMeta {
                     album: tag.album().map(|str| str.to_string()),
                     artist: tag.artist().map(|str| str.to_string()),
-                    duration_seconds: mp3_duration_from_frame_info(path),
+                    duration_seconds: mp3_duration_from_frame_info(path).unwrap_or(0),
                     lossless,
                     peaks,
                     title: tag.title().map(|str| str.to_string()),
@@ -72,7 +78,7 @@ impl AudioMeta {
         AudioMeta {
             album: None,
             artist: None,
-            duration_seconds: None,
+            duration_seconds: 0,
             lossless,
             peaks: None,
             title: None,

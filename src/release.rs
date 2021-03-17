@@ -47,6 +47,7 @@ pub struct Release {
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub payment_options: Vec<PaymentOption>,
+    pub runtime: u32,
     pub slug: String,
     pub streaming_format: AudioFormat,
     pub text: Option<String>,
@@ -133,6 +134,11 @@ impl Release {
     ) -> Release {
         // TODO: Use/store multiple images (beyond just one cover)
         // TOOD: Basic logic to determine which of multiple images most likely is the cover
+        
+        let runtime = tracks
+            .iter()
+            .map(|track| track.cached_assets.source_meta.duration_seconds)
+            .sum();
         let slug = slug::slugify(&title);
         
         Release {
@@ -142,6 +148,7 @@ impl Release {
             download_formats: manifest_overrides.download_formats.clone(),
             download_option: manifest_overrides.download_option.clone(),
             payment_options: manifest_overrides.payment_options.clone(),
+            runtime,
             slug,
             streaming_format: manifest_overrides.streaming_format.clone(),
             text: manifest_overrides.release_text.clone(),

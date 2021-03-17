@@ -5,6 +5,7 @@ use std::{fs, io, path::Path};
 const BYTES_KB: u64 = 1024; 
 const BYTES_MB: u64 = 1024 * BYTES_KB; 
 const BYTES_GB: u64 = 1024 * BYTES_MB; 
+const SECONDS_HOUR: u32 = 60 * 60;
 
 pub fn ensure_dir(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
@@ -29,6 +30,15 @@ pub fn format_bytes(size: u64) -> String {
         format!("{:.1}MB", size as f64 / BYTES_MB as f64) // e.g. "0.5MB", "1.3MB", "62.4MB"
     } else {
         format!("{}KB", size / BYTES_KB) // e.g. "3KB", "267KB", "510KB"
+    }
+}
+
+/// Takes `seconds` and adaptively formats them as `MM:SS`, or `HH:MM:SS` if longer than one hour
+pub fn format_time(seconds: u32) -> String {
+    if seconds > SECONDS_HOUR {
+        format!("{}:{}:{:02}", seconds / SECONDS_HOUR, (seconds % SECONDS_HOUR) / 60, seconds % 60)
+    } else {
+        format!("{}:{:02}", (seconds % SECONDS_HOUR) / 60, seconds % 60)
     }
 }
 

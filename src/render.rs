@@ -11,7 +11,8 @@ use crate::{
     localization::WritingDirection,
     payment_option::PaymentOption,
     release::Release,
-    track::Track
+    track::Track,
+    util
 };
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
@@ -361,16 +362,18 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
     
     let longest_track_duration = release.tracks
         .iter()
-        .map(|track| track.cached_assets.source_meta.duration_seconds.unwrap_or(0))
-        .max();
+        .map(|track| track.cached_assets.source_meta.duration_seconds)
+        .max()
+        .unwrap();
     
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
         .map(|(index, track)| {
-            let track_duration_width_em = match (track.cached_assets.source_meta.duration_seconds, longest_track_duration) {
-                (Some(this_duration), Some(longest_duration)) => (36.0 * (this_duration as f32 / longest_duration as f32)) as u32,
-                _ => 0
+            let track_duration_width_em = if longest_track_duration > 0 {
+                36.0 * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
+            } else {
+                0.0
             };
         
             formatdoc!(
@@ -386,7 +389,7 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                         {waveform} <span class="track_duration">{track_duration}</span>
                     </div>
                 "#,
-                track_duration = track.duration_formatted(),
+                track_duration = util::format_time(track.cached_assets.source_meta.duration_seconds),
                 track_number = index + 1,
                 track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = track.title,
@@ -494,7 +497,7 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
     layout(0, &body, build, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
 }
 
-fn waveform(track: &Track, index: usize, track_duration_width_em: u32) -> String {
+fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String {
     let step = 1;
     
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {

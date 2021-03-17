@@ -16,8 +16,6 @@ use crate::{
     util
 };
 
-const HOUR_SECONDS: u32 = 60 * 60;
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CachedTrackAssets {
     pub aac: Option<Asset>,
@@ -112,19 +110,6 @@ impl CachedTrackAssets {
 }
 
 impl Track {
-    pub fn duration_formatted(&self) -> String {
-        match self.cached_assets.source_meta.duration_seconds {
-            Some(seconds) => {
-                if seconds > HOUR_SECONDS {
-                    format!("{}:{}:{:02}", seconds / HOUR_SECONDS, (seconds % HOUR_SECONDS) / 60, seconds % 60)
-                } else {
-                    format!("{}:{:02}", (seconds % HOUR_SECONDS) / 60, seconds % 60)
-                }
-            },
-            None => String::new()
-        }
-    }
-    
     pub fn get_as(&self, format: &AudioFormat) -> &Option<Asset> {
         self.cached_assets.get(format)
     }
