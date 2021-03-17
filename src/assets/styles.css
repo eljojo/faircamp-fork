@@ -8,7 +8,7 @@
     src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
 }
 a {
-    color:hsl(var(--hue), var(--link-s), var(--link-l));
+    color: hsl(var(--hue), var(--link-s), var(--link-l));
     cursor: pointer;
     text-decoration: none;
 }
@@ -73,6 +73,14 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     height: 20em;
     width: 20em;
 }
+.cover_listing {
+    background-color: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
+    display: block;
+    display: none;
+    height: 10em;
+    margin-right: 1em;
+    width: 10em;
+}
 .hsplit {
     display: flex;
 }
@@ -80,7 +88,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     justify-content: space-between;
 }
 .js_enabled audio { display: none; }
-.large { font-size: 1.2em; }
+.large { font-size: 1.6em; }
 .layout {
     height: 100vh;
     overflow-x: hidden;
@@ -93,12 +101,16 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     grid-template-columns: 20em auto;
 }
 .releases {
-    align-content: center;
-    display: grid;
+    display: flex;
     flex: 1;
-    grid-template-columns: repeat(auto-fit, 200px);
+    flex-direction: column;
     height: 100%;
-    justify-content: center;
+}
+.runtime {
+	bottom: .2em;
+	font-size: .5em;
+	opacity: .4;
+	position: relative;
 }
 .share_notification {
     animation: appear 3s linear;
@@ -155,6 +167,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track_title.playing {
     animation: 3s linear infinite pulse;
+    color: hsl(var(--hue), var(--link-s), var(--link-l));
 }
 @keyframes pulse {
   0% { opacity: .8; }

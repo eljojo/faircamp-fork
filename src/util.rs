@@ -21,6 +21,7 @@ pub fn ensure_empty_dir(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
 }
 
+/// Takes a number of bytes and adaptively formats them as [n]KB, [n]MB or [n]GB
 pub fn format_bytes(size: u64) -> String {
     if size >= 512 * BYTES_MB {
         format!("{:.1}GB", size as f64 / BYTES_GB as f64) // e.g. "0.5GB", "1.3GB", "13.8GB"

@@ -461,25 +461,34 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
                     r#"<img alt="Release cover" src="{filename}">"#,
                     filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
                 ),
-                None => String::from(r#"<div class="cover"></div>"#)
+                None => String::from(r#"<div></div>"#)
             };
+            
+            let track_snippets = release.tracks
+                .iter()
+                .enumerate()
+                .map(|(index, track)| waveform_snippet(track, index, 2.0))
+                .collect::<Vec<String>>();
             
             formatdoc!(
                 r#"
-                    <div>
-                        <a class="cover" href="{release_slug}/">
+                    <div class="vpad" style="display: flex;">
+                        <a class="cover_listing" href="{release_slug}/">
                             {release_cover_rendered}
                         </a>
-                        <div class="vpad">
-                            <a class="large" href="{release_slug}/">{release_title}</a>
+                        <div>
+                            <a class="large" href="{release_slug}/" style="color: #fff;">{release_title} <span class="runtime">{release_runtime}</span></a>
                             <div>{artists_rendered}</div>
+                            <span class="">{track_snippets}</span>
                         </div>
                     </div>
                 "#,
-                artists_rendered=artists_rendered,
-                release_cover_rendered=release_cover_rendered,
-                release_slug=release.slug,
-                release_title=release.title
+                artists_rendered = artists_rendered,
+                release_cover_rendered = release_cover_rendered,
+                release_runtime = util::format_time(release.runtime),
+                release_slug = release.slug,
+                release_title = release.title,
+                track_snippets = track_snippets.join("&nbsp;&nbsp;&nbsp;&nbsp;")
             )
         })
         .collect::<Vec<String>>()
@@ -509,6 +518,58 @@ fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String
         let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
         
         while let Some((index, peak)) = enumerate_peaks.next() {
+            let command = format!(
+                " L {x},{y}",
+                x = index * step,
+                y = (1.0 - peak) * height as f32
+            );
+            
+            d.push_str(&command);
+        }
+        
+        formatdoc!(
+            r##"
+                <svg class="waveform"
+                     preserveAspectRatio="none"
+                     style="width: {track_duration_width_em}em;"
+                     viewBox="0 0 {width} {height}"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="progress_{index}">
+                            <stop offset="0%" stop-color="hsl(var(--hue), var(--link-s), var(--link-l))" />
+                            <stop offset="0.000001%" stop-color="hsl(var(--text-h), var(--text-s), var(--text-l))" />
+                        </linearGradient>
+                    </defs>
+                    <style>
+                        .levels_{index} {{ stroke: url(#progress_{index}); }}
+                    </style>
+                    <path class="levels_{index}" d="{d}" />
+                </svg>
+            "##,
+            d = d,
+            height = height,
+            index = index,
+            track_duration_width_em = track_duration_width_em,
+            width = width
+        )
+    } else {
+        String::new()
+    }
+}
+
+fn waveform_snippet(track: &Track, index: usize, track_duration_width_em: f32) -> String {
+    let step = 1;
+    
+    if let Some(peaks) = &track.cached_assets.source_meta.peaks {
+        let height = 10;
+        let width = 50;
+        let mut enumerate_peaks = peaks.iter().skip(width * 2).step_by(step).enumerate(); 
+        
+        let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
+        
+        while let Some((index, peak)) = enumerate_peaks.next() {
+            if index > width { break; }
+            
             let command = format!(
                 " L {x},{y}",
                 x = index * step,
