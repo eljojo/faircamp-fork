@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs,
     path::{Path, PathBuf},
     rc::Rc
@@ -10,7 +11,7 @@ use crate::{
     build::Build,
     image::Image,
     image_format::ImageFormat,
-    manifest::Overrides,
+    manifest::{LocalOptions, Overrides},
     release::Release,
     track::{CachedTrackAssets, Track},
     manifest,
@@ -32,6 +33,12 @@ pub struct Catalog {
     pub title: Option<String>
 }
 
+#[derive(Debug)]
+pub enum Permalink {
+    Generated(String),
+    UserAssigned(String)
+}
+
 impl Catalog {
     pub fn init_empty() -> Catalog {
         Catalog {
@@ -44,7 +51,7 @@ impl Catalog {
         }
     }
     
-    pub fn read(build: &mut Build, cache_manifest: &mut CacheManifest) -> Catalog {
+    pub fn read(build: &mut Build, cache_manifest: &mut CacheManifest) -> Result<Catalog, ()> {
         let mut catalog = Catalog::init_empty();
         
         catalog.read_dir(&build.catalog_dir.clone(), build, cache_manifest, &Overrides::default()).unwrap();
@@ -53,7 +60,47 @@ impl Catalog {
             catalog.text = Some(util::markdown_to_html(&markdown));
         }
         
-        catalog
+        // TODO: Put permalink collision check logic (the stuff below) into its own function
+        let mut permalinks = HashMap::new();
+        
+        for release in &catalog.releases {
+            match &release.permalink {
+                Permalink::Generated(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                    return Err(()); 
+                } else {
+                    permalinks.insert(permalink, &release.permalink);
+                }
+                Permalink::UserAssigned(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                    return Err(());
+                } else {
+                    permalinks.insert(permalink, &release.permalink);
+                }
+            }
+        }
+        
+        // TODO: We only need to validate this for those artists that are actually accessible via their own page
+        // TODO: We do not yet differentiate between artists that get their own page 
+        //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
+        for artist in &catalog.artists {
+            match &artist.permalink {
+                Permalink::Generated(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                    return Err(()); 
+                } else {
+                    permalinks.insert(permalink, &artist.permalink);
+                }
+                Permalink::UserAssigned(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                    return Err(());
+                } else {
+                    permalinks.insert(permalink, &artist.permalink);
+                }
+            }
+        }
+        
+        Ok(catalog)
     }
     
     fn read_dir(
@@ -63,6 +110,7 @@ impl Catalog {
         cache_manifest: &mut CacheManifest,
         parent_overrides: &Overrides
     ) -> Result<(), String> {
+        let mut local_options = LocalOptions::new();
         let mut local_overrides = None;
         
         let mut images: Vec<Image> = Vec::new();
@@ -130,10 +178,11 @@ impl Catalog {
         for meta_path in &meta_paths {
             info!("Reading meta {}", meta_path.display());
             
-            manifest::apply_globals_and_overrides(
+            manifest::apply_options(
                 meta_path,
                 build,
                 self,
+                &mut local_options,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
             );
         }
@@ -224,6 +273,7 @@ impl Catalog {
                 cached_assets,
                 images,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
+                local_options.release_permalink,
                 title.to_string(),
                 release_tracks
             );
@@ -279,7 +329,7 @@ impl Catalog {
                 .find(|artist| &artist.name == new_artist_name)
                 .map(|existing_artist| existing_artist.clone())
                 .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::init(new_artist_name.to_string()));
+                    let new_artist = Rc::new(Artist::init(new_artist_name.to_string(), None));
                     self.artists.push(new_artist.clone());
                     new_artist
                 })
@@ -289,7 +339,7 @@ impl Catalog {
                 .find(|artist| artist.name == "UNKNOWN_SPECIAL_STRING")
                 .map(|existing_artist| existing_artist.clone())
                 .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::init(String::from("UNKNOWN_SPECIAL_STRING")));
+                    let new_artist = Rc::new(Artist::init(String::from("UNKNOWN_SPECIAL_STRING"), None));
                     self.artists.push(new_artist.clone());
                     new_artist
                 })
@@ -325,6 +375,22 @@ impl Catalog {
             }
             
             release.write_download_archives(build);
+        }
+    }
+}
+
+impl Permalink {
+    pub fn get(&self) -> &str {
+        match self {
+            Permalink::Generated(string) => string,
+            Permalink::UserAssigned(string) => string
+        }
+    }
+    
+    pub fn new(user_assigned: Option<String>, fallback: &str) -> Permalink {
+        match user_assigned {
+            Some(permalink) => Permalink::UserAssigned(permalink),
+            None => Permalink::Generated(slug::slugify(fallback))
         }
     }
 }

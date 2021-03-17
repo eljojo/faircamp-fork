@@ -56,10 +56,10 @@ fn list_artists(page_depth: usize, artists: &Vec<Rc<Artist>>) -> String {
         .iter()
         .map(|artist|
             format!(
-                r#"<a href="{root_prefix}{artist_slug}/">{artist_name}</a>"#,
-                artist_slug=artist.slug,
-                artist_name=artist.name,
-                root_prefix=("../".repeat(page_depth))
+                r#"<a href="{root_prefix}{permalink}/">{name}</a>"#,
+                name = artist.name,
+                permalink = artist.permalink.get(),
+                root_prefix = ("../".repeat(page_depth))
             )
         )
         .collect::<Vec<String>>()
@@ -110,7 +110,7 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
                 return None;
             }
             
-            let release_cover_rendered = match &release.cover {
+            let cover = match &release.cover {
                 Some(image) => format!(
                     r#"<img alt="Release cover" class="cover" src="../{filename}">"#,
                     filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
@@ -121,13 +121,13 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
             let release_rendered = formatdoc!(
                 r#"
                     <div>
-                        {release_cover_rendered}
-                        <a href="../{release_slug}/">{release_title}</a>
+                        {cover}
+                        <a href="../{permalink}/">{title}</a>
                     </div>
                 "#,
-                release_cover_rendered=release_cover_rendered,
-                release_slug=release.slug,
-                release_title=release.title
+                cover = cover,
+                permalink = release.permalink.get(),
+                title = release.title
             );
             
             Some(release_rendered)
@@ -456,7 +456,7 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
         .map(|release| {
             let artists_rendered = list_artists(0, &release.artists);
             
-            let release_cover_rendered = match &release.cover {
+            let cover = match &release.cover {
                 Some(image) => format!(
                     r#"<img alt="Release cover" src="{filename}">"#,
                     filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
@@ -473,21 +473,21 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
             formatdoc!(
                 r#"
                     <div class="vpad" style="display: flex;">
-                        <a class="cover_listing" href="{release_slug}/">
-                            {release_cover_rendered}
+                        <a class="cover_listing" href="{permalink}/">
+                            {cover}
                         </a>
                         <div>
-                            <a class="large" href="{release_slug}/" style="color: #fff;">{release_title} <span class="runtime">{release_runtime}</span></a>
+                            <a class="large" href="{permalink}/" style="color: #fff;">{title} <span class="runtime">{runtime}</span></a>
                             <div>{artists_rendered}</div>
                             <span class="">{track_snippets}</span>
                         </div>
                     </div>
                 "#,
                 artists_rendered = artists_rendered,
-                release_cover_rendered = release_cover_rendered,
-                release_runtime = util::format_time(release.runtime),
-                release_slug = release.slug,
-                release_title = release.title,
+                cover = cover,
+                permalink = release.permalink.get(),
+                runtime = util::format_time(release.runtime),
+                title = release.title,
                 track_snippets = track_snippets.join("&nbsp;&nbsp;&nbsp;&nbsp;")
             )
         })

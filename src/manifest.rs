@@ -16,6 +16,11 @@ use crate::{
 };
 
 #[derive(Clone)]
+pub struct LocalOptions {
+    pub release_permalink: Option<String>
+}
+
+#[derive(Clone)]
 pub struct Overrides {
     pub download_option: DownloadOption,
     pub download_formats: Vec<AudioFormat>,
@@ -25,6 +30,14 @@ pub struct Overrides {
     pub release_title: Option<String>,
     pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>
+}
+
+impl LocalOptions {
+    pub fn new() -> LocalOptions {
+        LocalOptions {
+            release_permalink: None
+        }
+    }
 }
 
 impl Overrides {
@@ -42,7 +55,7 @@ impl Overrides {
     }
 }
 
-pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut Catalog, overrides: &mut Overrides) {
+pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, local_options: &mut LocalOptions, overrides: &mut Overrides) {
     match fs::read_to_string(path) {
         Ok(content) => {
             match enolib::parse(&content) {
@@ -305,6 +318,16 @@ pub fn apply_globals_and_overrides(path: &Path, build: &mut Build, catalog: &mut
                             Kind::Field(FieldContent::Value(value)) => overrides.release_artists = Some(vec![value]),
                             Kind::Field(FieldContent::Items(_)) => error!("Ignoring release_artist option with multiple values (use the key release_artists instead) in manifest '{:?}'", path),
                             _ => error!("Ignoring invalid release_artist option (can only be a field containing a value) in manifest '{:?}'", path)
+                        }
+                        "release_permalink" => match element.kind {
+                            Kind::Field(FieldContent::Value(value)) => {
+                                if let Some(previous) = &local_options.release_permalink {
+                                    warn!("Option release_permalink is set more than once - overriding previous value '{}' with '{}'", previous, value);
+                                }
+                                
+                                local_options.release_permalink = Some(value);      
+                            }
+                            _ => error!("Ignoring invalid release_permalink option (can only be a field containing a value) in manifest '{:?}'", path)
                         }
                         "release_text" => match element.kind {
                             Kind::Embed(Some(value)) |

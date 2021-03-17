@@ -1,6 +1,7 @@
-use slug;
-
-use crate::image::Image;
+use crate::{
+    catalog::Permalink,
+    image::Image
+};
 
 #[derive(Debug)]
 pub struct Artist {
@@ -8,19 +9,19 @@ pub struct Artist {
     pub links: Vec<Link>,
     pub location: Option<String>,
     pub name: String,
-    pub slug: String
+    pub permalink: Permalink
 }
 
 impl Artist {
-    pub fn init(name: String) -> Artist {
-        let slug = slug::slugify(&name);
+    pub fn init(name: String, permalink: Option<String>) -> Artist {
+        let permalink = Permalink::new(permalink, &name);
         
         Artist {
             image: None,
             links: Vec::new(),
             location: None,
             name,
-            slug
+            permalink
         }
     }
 }

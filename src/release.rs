@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
-use slug;
 use std::{
     fs::{self, File},
     io::prelude::*,
@@ -14,7 +13,7 @@ use crate::{
     asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
     audio_format::{AUDIO_FORMATS, AudioFormat},
     build::Build,
-    catalog::Catalog,
+    catalog::{Catalog, Permalink},
     download_option::DownloadOption,
     image::Image,
     image_format::ImageFormat,
@@ -47,8 +46,8 @@ pub struct Release {
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub payment_options: Vec<PaymentOption>,
+    pub permalink: Permalink,
     pub runtime: u32,
-    pub slug: String,
     pub streaming_format: AudioFormat,
     pub text: Option<String>,
     pub title: String,
@@ -129,6 +128,7 @@ impl Release {
         cached_assets: CachedReleaseAssets,
         mut images: Vec<Image>,
         manifest_overrides: &Overrides,
+        permalink: Option<String>,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
@@ -139,8 +139,7 @@ impl Release {
             .iter()
             .map(|track| track.cached_assets.source_meta.duration_seconds)
             .sum();
-        let slug = slug::slugify(&title);
-        
+            
         Release {
             artists,
             cached_assets,
@@ -148,8 +147,8 @@ impl Release {
             download_formats: manifest_overrides.download_formats.clone(),
             download_option: manifest_overrides.download_option.clone(),
             payment_options: manifest_overrides.payment_options.clone(),
+            permalink: Permalink::new(permalink, &title),
             runtime,
-            slug,
             streaming_format: manifest_overrides.streaming_format.clone(),
             text: manifest_overrides.release_text.clone(),
             title,
@@ -268,7 +267,7 @@ impl Release {
             }
         }
         
-        let release_dir = build.build_dir.join(&self.slug);
+        let release_dir = build.build_dir.join(&self.permalink.get());
         let release_html = render::render_release(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
     }

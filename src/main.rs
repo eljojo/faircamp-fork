@@ -68,7 +68,10 @@ fn main() {
     
     cache_manifest.mark_all_stale(&build.build_begin);
     
-    let mut catalog = Catalog::read(&mut build, &mut cache_manifest);
+    let mut catalog = match Catalog::read(&mut build, &mut cache_manifest) {
+        Ok(catalog) => catalog,
+        Err(()) => return
+    };
     
     util::ensure_empty_dir(&build.build_dir);
     util::ensure_dir(&build.build_dir.join("download"));
@@ -87,8 +90,8 @@ fn main() {
     // Render page for each artist
     for artist in &catalog.artists {
         let artist_html = render::render_artist(&build, &artist, &catalog);
-        fs::create_dir(build.build_dir.join(&artist.slug)).unwrap();
-        fs::write(build.build_dir.join(&artist.slug).join("index.html"), artist_html).unwrap();
+        fs::create_dir(build.build_dir.join(&artist.permalink.get())).unwrap();
+        fs::write(build.build_dir.join(&artist.permalink.get()).join("index.html"), artist_html).unwrap();
     }
     
     // Render page for each release

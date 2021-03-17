@@ -7,6 +7,8 @@ macro_rules! color {
     (yellow) => ("\x1b[33m");
 }
 
+// TODO: Use eprintln! (?)
+
 macro_rules! error {
     ($format_str:expr $(,$args:expr)*) => {
         println!(
