@@ -36,7 +36,7 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
                 root_prefix = root_prefix
             ),
             format!(
-                r#"<a href="{root_prefix}feed.rss">■ RSS</a>"#,
+                r#"<a href="{root_prefix}feed.rss">RSS</a>"#,
                 root_prefix = root_prefix
             ),
         ),
@@ -455,8 +455,10 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
     
     let body = formatdoc!(
         r#"
-            <div class="releases">
-                {releases}
+            <div class="center">
+                <div class="releases">
+                    {releases}
+                </div>
             </div>
         "#,
         releases = releases(root_prefix, catalog.releases.iter().collect())

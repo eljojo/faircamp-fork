@@ -12,14 +12,12 @@
     <body>
         <script>document.body.classList.add('js_enabled');</script>
         <div class="layout">
-            <main class="hsplit">
-                <nav>
-                    <a href="{root_prefix}">■ Home</a>
-                    <a href="{root_prefix}about/">■ {catalog_title}</a>
-                    {feed_user_link}
-                </nav>
+            <main>
                 {body}
             </main>
+            <footer>
+                <a href="{root_prefix}">Home</a> <a href="{root_prefix}about/">{catalog_title}</a> {feed_user_link}
+            </footer>
         </div>
     </body>
 </html>

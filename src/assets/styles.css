@@ -21,33 +21,32 @@ body {
     font-size: 18px;
     margin: 0;
 }
-/* TODO: Reactivate or remove */
-/* footer {
+footer {
     bottom: 0;
     color: var(--color-muted);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     left: 0;
     position: absolute;
     width: 100%;
 }
-footer > * { padding: .6em; } */
+footer a { color: var(--color-muted); }
+footer > * { padding: .6em; }
+/* TODO: Tie to a certain minimum screen-width (or place elsewhere on small screens) */
+.next_release {
+    bottom: calc(50% - 1em);
+    color: var(--color-muted);
+    display: flex;
+    justify-content: center;
+    padding; .6em;
+    position: absolute;
+    right: 0;
+}
 h1 {
     font-size: 1.8em;
     font-weight: 400;
     margin: 0;
 }
-nav {
-    font-size: 2em;
-    padding: .3em .6em 0 0;
-    writing-mode: vertical-rl;
-}
-nav > a {
-    color: hsl(var(--text-h), var(--nav-s), var(--link-l));
-    text-transform: uppercase;
-}
-nav > a:hover { color: hsl(var(--text-h), var(--nav-s), var(--link-hover-l)); }
-nav > *:not(:first-child) { margin-top: .3em; }
 img {
     display: block;
     max-width: 100%;
@@ -98,7 +97,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .release_grid {
     display: grid;
     grid-gap: 0.5em 1.4em;
-    grid-template-columns: 20em auto;
+    grid-template-columns: auto auto;
 }
 .releases {
     display: flex;
