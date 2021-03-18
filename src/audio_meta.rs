@@ -1,9 +1,12 @@
+use hound::{SampleFormat, WavReader};
 use id3;
 use metaflac;
 use rmp3::{Decoder, Frame};
 use serde_derive::{Serialize, Deserialize};
 use std::fs;
 use std::path::Path;
+
+const I24_MAX: i32 = 8388607;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
@@ -86,6 +89,24 @@ impl AudioMeta {
                     track_number: None
                 };
             }
+        } else if extension == "wav" {
+            let (duration_seconds, peaks) = match decode_wav(path) {
+                Some(decode_result) => (
+                    decode_result.duration as u32,
+                    Some(compute_peaks(decode_result, 320))
+                ),
+                None => (0, None)
+            };
+            
+            return AudioMeta {
+                album: None,
+                artist: None,
+                duration_seconds,
+                lossless,
+                peaks,
+                title: None,
+                track_number: None
+            };
         }
         
         AudioMeta {
@@ -195,4 +216,43 @@ fn decode_mp3(path: &Path) -> Option<DecodeResult> {
     }
     
     result
+}
+
+fn decode_wav(path: &Path) -> Option<DecodeResult> {
+    let mut reader = match WavReader::open(path) {
+        Ok(reader) => reader,
+        Err(_) => return None
+    };
+    
+    let sample_count = reader.duration();
+    let spec = reader.spec();
+    
+    let mut result = DecodeResult {
+        channels: spec.channels,
+        duration: sample_count as f32 / spec.sample_rate as f32,
+        sample_count: sample_count,
+        sample_rate: spec.sample_rate,
+        samples: Vec::with_capacity(sample_count as usize)
+    };
+    
+    match (spec.sample_format, spec.bits_per_sample) {
+        (SampleFormat::Float, _) => for sample in reader.samples::<f32>() {
+            result.samples.push(sample.unwrap());
+        }
+        (SampleFormat::Int, 8) => for sample in reader.samples::<i8>() {
+            result.samples.push(sample.unwrap() as f32 / std::i8::MAX as f32);
+        }
+        (SampleFormat::Int, 16) => for sample in reader.samples::<i16>() {
+            result.samples.push(sample.unwrap() as f32 / std::i16::MAX as f32);
+        }
+        (SampleFormat::Int, 24) => for sample in reader.samples::<i32>() {
+            result.samples.push(sample.unwrap() as f32 / I24_MAX as f32);
+        }
+        (SampleFormat::Int, 32) => for sample in reader.samples::<i32>() {
+            result.samples.push(sample.unwrap() as f32 / std::i32::MAX as f32);
+        }
+        _ => unimplemented!()
+    }
+    
+    Some(result)
 }
