@@ -1,3 +1,4 @@
+use claxon::{Block, FlacReader};
 use hound::{SampleFormat, WavReader};
 use id3;
 use metaflac;
@@ -36,50 +37,85 @@ impl AudioMeta {
             _ => unimplemented!("Determination whether extension {} indicates lossless audio in the file not yet implemented.", extension)
         };
         
-        if extension == "flac" {
-            if let Ok(tag) = metaflac::Tag::read_from_path(path) {
-                let duration_seconds = tag
-                    .get_streaminfo()
-                    .map(|streaminfo| (streaminfo.total_samples / streaminfo.sample_rate as u64) as u32)
-                    .unwrap_or(0);
-                    
-                let track_number = tag
-                    .get_vorbis("track") // TODO: Unconfirmed if that key is correct/available ("guessed it" for now :))
-                    .map(|iter| iter.collect())
-                    .filter(|str: &String| str.parse::<u32>().is_ok())
-                    .map(|str: String| str.parse::<u32>().unwrap());
+        match extension {
+            "flac" => {
+                let (duration_seconds, peaks) = match decode_flac(path) {
+                    Some(decode_result) => (
+                        decode_result.duration as u32,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0, None)
+                };
                 
-                return AudioMeta {
-                    album: tag.get_vorbis("album").map(|iter| iter.collect()),
-                    artist: tag.get_vorbis("artist").map(|iter| iter.collect()),
-                    duration_seconds,
-                    lossless,
-                    peaks: None,
-                    title: tag.get_vorbis("title").map(|iter| iter.collect()),
-                    track_number
-                };
+                if let Ok(tag) = metaflac::Tag::read_from_path(path) {
+                    let track_number = tag
+                        .get_vorbis("track") // TODO: Unconfirmed if that key is correct/available ("guessed it" for now :))
+                        .map(|iter| iter.collect())
+                        .filter(|str: &String| str.parse::<u32>().is_ok())
+                        .map(|str: String| str.parse::<u32>().unwrap());
+                    
+                    AudioMeta {
+                        album: tag.get_vorbis("album").map(|iter| iter.collect()),
+                        artist: tag.get_vorbis("artist").map(|iter| iter.collect()),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: tag.get_vorbis("title").map(|iter| iter.collect()),
+                        track_number
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        artist: None,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
+                }
             }
-        } else if extension == "mp3" {
-            let (duration_seconds, peaks) = match decode_mp3(path) {
-                Some(decode_result) => (
-                    decode_result.duration as u32,
-                    Some(compute_peaks(decode_result, 320))
-                ),
-                None => (0, None)
-            };
-            
-            if let Ok(tag) = id3::Tag::read_from_path(path) {
-                return AudioMeta {
-                    album: tag.album().map(|str| str.to_string()),
-                    artist: tag.artist().map(|str| str.to_string()),
-                    duration_seconds,
-                    lossless,
-                    peaks,
-                    title: tag.title().map(|str| str.to_string()),
-                    track_number: tag.track()
+            "mp3" => {
+                let (duration_seconds, peaks) = match decode_mp3(path) {
+                    Some(decode_result) => (
+                        decode_result.duration as u32,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0, None)
                 };
-            } else {
-                return AudioMeta {
+                
+                if let Ok(tag) = id3::Tag::read_from_path(path) {
+                    AudioMeta {
+                        album: tag.album().map(|str| str.to_string()),
+                        artist: tag.artist().map(|str| str.to_string()),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: tag.title().map(|str| str.to_string()),
+                        track_number: tag.track()
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        artist: None,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
+                }
+            }
+            "wav" => {
+                let (duration_seconds, peaks) = match decode_wav(path) {
+                    Some(decode_result) => (
+                        decode_result.duration as u32,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0, None)
+                };
+                
+                AudioMeta {
                     album: None,
                     artist: None,
                     duration_seconds,
@@ -87,36 +123,19 @@ impl AudioMeta {
                     peaks,
                     title: None,
                     track_number: None
-                };
+                }
             }
-        } else if extension == "wav" {
-            let (duration_seconds, peaks) = match decode_wav(path) {
-                Some(decode_result) => (
-                    decode_result.duration as u32,
-                    Some(compute_peaks(decode_result, 320))
-                ),
-                None => (0, None)
-            };
-            
-            return AudioMeta {
-                album: None,
-                artist: None,
-                duration_seconds,
-                lossless,
-                peaks,
-                title: None,
-                track_number: None
-            };
-        }
-        
-        AudioMeta {
-            album: None,
-            artist: None,
-            duration_seconds: 0,
-            lossless,
-            peaks: None,
-            title: None,
-            track_number: None
+            _ => {
+                    AudioMeta {
+                    album: None,
+                    artist: None,
+                    duration_seconds: 0,
+                    lossless,
+                    peaks: None,
+                    title: None,
+                    track_number: None
+                }
+            }
         }
     }
 }
@@ -177,6 +196,57 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<f32> {
         .collect()
 }
 
+fn decode_flac(path: &Path) -> Option<DecodeResult> {
+    let mut reader = match FlacReader::open(path) {
+        Ok(reader) => reader,
+        Err(_) => return None
+    };
+    
+    let streaminfo = reader.streaminfo();
+    let mut frame_reader = reader.blocks();
+    
+    let mut result = DecodeResult {
+        channels: streaminfo.channels as u16,
+        duration: 0.0,
+        sample_count: 0,
+        sample_rate: streaminfo.sample_rate,
+        samples: Vec::new()
+    };
+    
+    let mut block = Block::empty();
+    
+    loop {
+        match frame_reader.read_next_or_eof(block.into_buffer()) {
+            Ok(Some(next_block)) => block = next_block,
+            Ok(None) => break,
+            Err(error) => return None
+        }
+        
+        let sample_count = block.duration();
+        
+        result.sample_count += sample_count;
+        result.samples.reserve(sample_count as usize * result.channels as usize);
+        
+        for sample in 0..sample_count {
+            for channel in 0..result.channels {
+                let raw_sample = block.sample(channel as u32, sample);
+                let normalized_sample = match streaminfo.bits_per_sample {
+                    8 => raw_sample as f32 / std::i8::MAX as f32,
+                    16 => raw_sample as f32 / std::i16::MAX as f32,
+                    24 => raw_sample as f32 / I24_MAX as f32,
+                    _ => unimplemented!()
+                };
+
+                result.samples.push(normalized_sample);
+            }
+        }
+    }
+
+    result.duration = result.sample_count as f32 / result.sample_rate as f32;
+    
+    Some(result)
+}
+
 fn decode_mp3(path: &Path) -> Option<DecodeResult> {
     let buffer = match fs::read(path) {
         Ok(buffer) => buffer,
@@ -232,7 +302,7 @@ fn decode_wav(path: &Path) -> Option<DecodeResult> {
         duration: sample_count as f32 / spec.sample_rate as f32,
         sample_count: sample_count,
         sample_rate: spec.sample_rate,
-        samples: Vec::with_capacity(sample_count as usize)
+        samples: Vec::with_capacity(sample_count as usize * spec.channels as usize)
     };
     
     match (spec.sample_format, spec.bits_per_sample) {
