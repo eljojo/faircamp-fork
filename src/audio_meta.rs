@@ -179,14 +179,16 @@ fn decode_mp3(path: &Path) -> Option<DecodeResult> {
             
             let sample_count = audio.sample_count();
             
-            result_unpacked.sample_count += sample_count as u32;
-            result_unpacked.samples.reserve(result_unpacked.channels as usize * sample_count);
-            
-            for sample in audio.samples() {
-                result_unpacked.samples.push(*sample as f32 / std::i16::MAX as f32);
-            }
-            
             if sample_count > 0 {
+                result_unpacked.sample_count += sample_count as u32;
+                result_unpacked.samples.reserve(result_unpacked.channels as usize * sample_count);
+                
+                for sample in audio.samples() {
+                    // minimp3/rmp3 gives us raw decoded values, which by design can overshoot -1.0/1.0 slightly,
+                    // we manually clamp these down to -1.0/1.0 here (see https://github.com/notviri/rmp3/issues/6)
+                    result_unpacked.samples.push(sample.clamp(-1.0, 1.0));
+                }
+                
                 result_unpacked.duration = result_unpacked.sample_count as f32 / result_unpacked.sample_rate as f32;
             }
         }
