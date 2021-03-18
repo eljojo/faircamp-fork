@@ -17,18 +17,27 @@ use crate::{
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
-fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
-    let root_prefix = "../".repeat(page_depth);
-    
+fn cover(root_prefix: &str, release: &Release) -> String {
+    match &release.cover {
+        Some(image) => format!(
+            r#"<img alt="Release cover" src="{root_prefix}{filename}">"#,
+            filename = image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
+            root_prefix = root_prefix
+        ),
+        None => String::from(r#"<div></div>"#)
+    }
+}
+
+fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
     let (feed_meta_link, feed_user_link) = match &build.base_url.is_some() {
         true => (
             format!(
                 r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#,
-                root_prefix=root_prefix
+                root_prefix = root_prefix
             ),
             format!(
                 r#"<a href="{root_prefix}feed.rss">■ RSS</a>"#,
-                root_prefix=root_prefix
+                root_prefix = root_prefix
             ),
         ),
         false => (String::new(), String::new())
@@ -41,17 +50,17 @@ fn layout(page_depth: usize, body: &str, build: &Build, catalog: &Catalog, title
     
     format!(
         include_str!("templates/layout.html"),
-        body=body,
-        catalog_title=catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("About"),
-        dir_attribute=dir_attribute,
-        feed_meta_link=feed_meta_link,
-        feed_user_link=feed_user_link,
-        root_prefix=root_prefix,
-        title=title
+        body = body,
+        catalog_title = catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("About"),
+        dir_attribute = dir_attribute,
+        feed_meta_link = feed_meta_link,
+        feed_user_link = feed_user_link,
+        root_prefix = root_prefix,
+        title = title
     )
 }
 
-fn list_artists(page_depth: usize, artists: &Vec<Rc<Artist>>) -> String {
+fn list_artists(root_prefix: &str, artists: &Vec<Rc<Artist>>) -> String {
     artists
         .iter()
         .map(|artist|
@@ -59,14 +68,52 @@ fn list_artists(page_depth: usize, artists: &Vec<Rc<Artist>>) -> String {
                 r#"<a href="{root_prefix}{permalink}/">{name}</a>"#,
                 name = artist.name,
                 permalink = artist.permalink.get(),
-                root_prefix = ("../".repeat(page_depth))
+                root_prefix = root_prefix
             )
         )
         .collect::<Vec<String>>()
-        .join(", ") // TODO: Consider "Alice, Bob and Carol" as polish over "Alice, Bob, Carol" (something for later)
+        .join(", ")
+}
+
+fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
+    releases
+        .iter()
+        .map(|release| {
+            let track_snippets = release.tracks
+                .iter()
+                .enumerate()
+                .map(|(index, track)| waveform_snippet(track, index, 2.0))
+                .collect::<Vec<String>>();
+            
+            formatdoc!(
+                r#"
+                    <div class="vpad" style="display: flex;">
+                        <a class="cover_listing" href="{root_prefix}{permalink}/">
+                            {cover}
+                        </a>
+                        <div>
+                            <a class="large" href="{root_prefix}{permalink}/" style="color: #fff;">{title} <span class="runtime">{runtime}</span></a>
+                            <div>{artists}</div>
+                            <span class="">{track_snippets}</span>
+                        </div>
+                    </div>
+                "#,
+                artists = list_artists(root_prefix, &release.artists),
+                cover = cover(root_prefix, release),
+                permalink = release.permalink.get(),
+                root_prefix = root_prefix,
+                runtime = util::format_time(release.runtime),
+                title = release.title,
+                track_snippets = track_snippets.join("&nbsp;&nbsp;&nbsp;&nbsp;")
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 
 pub fn render_about(build: &Build, catalog: &Catalog) -> String {
+    let root_prefix = &"../".repeat(1);
+    
     let text = catalog.text
         .as_ref()
         .map(|title| title.as_str())
@@ -91,86 +138,56 @@ pub fn render_about(build: &Build, catalog: &Catalog) -> String {
                 {share_widget}
             </div>
         "#,
-        share_widget=SHARE_WIDGET,
-        text=text,
-        title=title
+        share_widget = SHARE_WIDGET,
+        text = text,
+        title = title
     );
     
-    layout(1, &body, build, catalog, title)
+    layout(root_prefix, &body, build, catalog, title)
 }
 
 pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> String {
-    let releases_rendered = catalog.releases
+    let root_prefix = &"../".repeat(1);
+    
+    let artist_releases = catalog.releases
         .iter()
-        .filter_map(|release| {
-            if release.artists
+        .filter(|release| {
+            release.artists
                 .iter()
                 .find(|release_artist| Rc::ptr_eq(release_artist, artist))
-                .is_none() {
-                return None;
-            }
-            
-            let cover = match &release.cover {
-                Some(image) => format!(
-                    r#"<img alt="Release cover" class="cover" src="../{filename}">"#,
-                    filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
-                ),
-                None => String::from(r#"<div class="cover"></div>"#)
-            };
-            
-            let release_rendered = formatdoc!(
-                r#"
-                    <div>
-                        {cover}
-                        <a href="../{permalink}/">{title}</a>
-                    </div>
-                "#,
-                cover = cover,
-                permalink = release.permalink.get(),
-                title = release.title
-            );
-            
-            Some(release_rendered)
+                .is_some()
         })
-        .collect::<Vec<String>>()
-        .join("<br><br>\n");
+        .collect::<Vec<&Release>>();
     
     let body = formatdoc!(
         r#"
             <div class="center">
-                TODO: Artist image
+                <!-- TODO: Artist image -->
 
                 <div class="vpad">
-                    <h1>{artist_name}</h1>
+                    <h1><a href="{root_prefix}">All Releases</a> &gt; {artist_name}</h1>
                 </div>
                 
-                <div class="vpad">
+                <!-- div class="vpad">
                     TODO: Artist text
-                </div>
-                
-                {releases_rendered}
+                </div -->
                 
                 {share_widget}
+                
+                {releases}
             </div>
         "#,
-        artist_name=artist.name,
-        releases_rendered=releases_rendered,
-        share_widget=SHARE_WIDGET
+        artist_name = artist.name,
+        releases = releases(root_prefix, artist_releases),
+        root_prefix = root_prefix,
+        share_widget = SHARE_WIDGET
     );
     
-    layout(1, &body, build, catalog, &artist.name)
+    layout(root_prefix, &body, build, catalog, &artist.name)
 }
 
 pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
-    let artists_rendered = list_artists(2, &release.artists);
-    
-    let release_cover_rendered = match &release.cover {
-        Some(image) => format!(
-            r#"<img alt="Release cover" class="cover" src="../../{filename}">"#,
-            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
-        ),
-        None => String::from(r#"<div class="cover"></div>"#)
-    };
+    let root_prefix = &"../".repeat(2);
     
     let payment_options = &release.payment_options
         .iter()
@@ -211,32 +228,24 @@ pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, down
     
     let body = formatdoc!(
         r#"
-            {release_cover_rendered}
+            {cover}
             
-            <h1>Buy {release_title}</h1>
-            <div>{artists_rendered}</div>
+            <h1>Buy {title}</h1>
+            <div>{artists}</div>
             
             {payment_options}
         "#,
-        artists_rendered=artists_rendered,
-        payment_options=payment_options,
-        release_cover_rendered=release_cover_rendered,
-        release_title=release.title
+        artists = list_artists(root_prefix, &release.artists),
+        payment_options = payment_options,
+        cover = cover(root_prefix, release),
+        title = release.title
     );
     
-    layout(2, &body, build, catalog, &release.title)
+    layout(root_prefix, &body, build, catalog, &release.title)
 }
 
 pub fn render_download(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let artists_rendered = list_artists(2, &release.artists);
-    
-    let release_cover_rendered = match &release.cover {
-        Some(image) => format!(
-            r#"<img alt="Release cover" class="cover" src="../../{filename}">"#,
-            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
-        ),
-        None => String::from(r#"<div class="cover"></div>"#)
-    };
+    let root_prefix = &"../".repeat(2);
     
     let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
         .iter()
@@ -257,24 +266,24 @@ pub fn render_download(build: &Build, catalog: &Catalog, release: &Release) -> S
     
     let body = formatdoc!(
         r#"
-            {release_cover_rendered}
+            {cover}
             
-            <h1>Download {release_title}</h1>
-            <div>{artists_rendered}</div>
+            <h1>Download {title}</h1>
+            <div>{artists}</div>
             
             {download_links}
         "#,
-        artists_rendered=artists_rendered,
-        download_links=download_links,
-        release_cover_rendered=release_cover_rendered,
-        release_title=release.title
+        artists = list_artists(root_prefix, &release.artists),
+        cover = cover(root_prefix, release),
+        download_links = download_links,
+        title = release.title
     );
     
-    layout(2, &body, build, catalog, &release.title)
+    layout(root_prefix, &body, build, catalog, &release.title)
 }
 
 pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let artists_rendered = list_artists(1, &release.artists);
+    let root_prefix = &"../".repeat(1);
     
     let formats_list = release.download_formats
         .iter()
@@ -346,15 +355,6 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
         }
     };
     
-    // TODO: Here and elsewhere DRY this up, repeats multiple times
-    let release_cover_rendered = match &release.cover {
-        Some(image) => format!(
-            r#"<img alt="Release cover" class="cover" src="../{filename}">"#,
-            filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
-        ),
-        None => String::from(r#"<div class="cover vpad"></div>"#)
-    };
-    
     let release_text = match &release.text {
         Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
         None => String::new()
@@ -409,8 +409,8 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                 
                 <div class="release_grid vpad">
                     <div></div>
-                    <div>
-                        {release_cover_rendered}
+                    <div class="cover">
+                        {cover}
                     </div>
                     
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
@@ -420,7 +420,7 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                     </div>
                     <div style="margin: 0.4em 0 1em 0;">
                         <h1>{release_title}</h1>
-                        <div>{artists_rendered}</div>
+                        <div>{artists}</div>
                     </div>
                     
                     {tracks_rendered}
@@ -438,61 +438,20 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                 </div>
             </div>
         "##,
-        artists_rendered=artists_rendered,
-        download_option_rendered=download_option_rendered,
-        release_cover_rendered=release_cover_rendered,
-        release_text=release_text,
-        release_title=release.title,
-        share_widget=SHARE_WIDGET,
-        tracks_rendered=tracks_rendered
+        artists = list_artists(root_prefix, &release.artists),
+        cover = cover(root_prefix, release),
+        download_option_rendered = download_option_rendered,
+        release_text = release_text,
+        release_title = release.title,
+        share_widget = SHARE_WIDGET,
+        tracks_rendered = tracks_rendered
     );
     
-    layout(1, &body, build, catalog, &release.title)
+    layout(root_prefix, &body, build, catalog, &release.title)
 }
 
 pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
-    let releases_rendered = catalog.releases
-        .iter()
-        .map(|release| {
-            let artists_rendered = list_artists(0, &release.artists);
-            
-            let cover = match &release.cover {
-                Some(image) => format!(
-                    r#"<img alt="Release cover" src="{filename}">"#,
-                    filename=image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename
-                ),
-                None => String::from(r#"<div></div>"#)
-            };
-            
-            let track_snippets = release.tracks
-                .iter()
-                .enumerate()
-                .map(|(index, track)| waveform_snippet(track, index, 2.0))
-                .collect::<Vec<String>>();
-            
-            formatdoc!(
-                r#"
-                    <div class="vpad" style="display: flex;">
-                        <a class="cover_listing" href="{permalink}/">
-                            {cover}
-                        </a>
-                        <div>
-                            <a class="large" href="{permalink}/" style="color: #fff;">{title} <span class="runtime">{runtime}</span></a>
-                            <div>{artists_rendered}</div>
-                            <span class="">{track_snippets}</span>
-                        </div>
-                    </div>
-                "#,
-                artists_rendered = artists_rendered,
-                cover = cover,
-                permalink = release.permalink.get(),
-                runtime = util::format_time(release.runtime),
-                title = release.title,
-                track_snippets = track_snippets.join("&nbsp;&nbsp;&nbsp;&nbsp;")
-            )
-        })
-        .collect::<Vec<String>>()
-        .join("<br><br>\n");
+    let root_prefix = "";
     
     let body = formatdoc!(
         r#"
@@ -500,10 +459,10 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
                 {releases}
             </div>
         "#,
-        releases=releases_rendered
+        releases = releases(root_prefix, catalog.releases.iter().collect())
     );
     
-    layout(0, &body, build, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
+    layout(root_prefix, &body, build, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
 }
 
 fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String {
@@ -557,7 +516,7 @@ fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String
     }
 }
 
-fn waveform_snippet(track: &Track, index: usize, track_duration_width_em: f32) -> String {
+fn waveform_snippet(track: &Track, snippet_index: usize, track_duration_width_em: f32) -> String {
     let step = 1;
     
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
@@ -568,11 +527,21 @@ fn waveform_snippet(track: &Track, index: usize, track_duration_width_em: f32) -
         let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
         
         while let Some((index, peak)) = enumerate_peaks.next() {
-            if index > width { break; }
+            // if index > width { break; }
+            
+            if index % width == 0 {
+                let command = format!(
+                    r#"" /> <path class="levels_{snippet_index}" d="M 0,{y}"#,
+                    snippet_index = snippet_index,
+                    y = (1.0 - peak) * height as f32
+                );
+                
+                d.push_str(&command);
+            }
             
             let command = format!(
                 " L {x},{y}",
-                x = index * step,
+                x = (index % width) * step,
                 y = (1.0 - peak) * height as f32
             );
             
@@ -586,21 +555,19 @@ fn waveform_snippet(track: &Track, index: usize, track_duration_width_em: f32) -
                      style="width: {track_duration_width_em}em;"
                      viewBox="0 0 {width} {height}"
                      xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="progress_{index}">
-                            <stop offset="0%" stop-color="hsl(var(--hue), var(--link-s), var(--link-l))" />
-                            <stop offset="0.000001%" stop-color="hsl(var(--text-h), var(--text-s), var(--text-l))" />
-                        </linearGradient>
-                    </defs>
                     <style>
-                        .levels_{index} {{ stroke: url(#progress_{index}); }}
+                        .levels_{snippet_index} {{
+                            mix-blend-mode: screen;
+                            stroke: hsl(var(--text-h), var(--text-s), var(--text-l), .1);
+                            stroke-width: 2px;
+                        }}
                     </style>
-                    <path class="levels_{index}" d="{d}" />
+                    <path class="levels_{snippet_index}" d="{d}" />
                 </svg>
             "##,
             d = d,
             height = height,
-            index = index,
+            snippet_index = snippet_index,
             track_duration_width_em = track_duration_width_em,
             width = width
         )
