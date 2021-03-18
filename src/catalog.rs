@@ -311,14 +311,9 @@ impl Catalog {
         let title = cached_assets.source_meta.title
             .as_ref()
             .map(|title| title.clone())
-            .unwrap_or(path.file_name().unwrap().to_str().unwrap().to_string());
+            .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
         
-        Track::init(
-            artists,
-            cached_assets,
-            source_file,
-            title
-        )
+        Track::new(artists, cached_assets, source_file, title)
     }
     
     // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"

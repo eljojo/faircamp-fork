@@ -136,7 +136,7 @@ impl Track {
         cached_format.as_mut().unwrap()
     }
     
-    pub fn init(
+    pub fn new(
         artists: Vec<Rc<Artist>>,
         cached_assets: CachedTrackAssets,
         source_file: PathBuf,
