@@ -21,7 +21,8 @@ pub struct Build {
     pub localization: Localization,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
-    pub theme: Option<Theme>
+    pub theme: Option<Theme>,
+    pub theming_widget: bool
 }
 
 pub enum PostBuildAction {
@@ -72,7 +73,8 @@ impl Build {
             localization: Localization::defaults(),
             post_build_action,
             stats: Stats::empty(),
-            theme: None
+            theme: None,
+            theming_widget: args.theming_widget
         }
     }
     

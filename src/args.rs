@@ -4,7 +4,7 @@ use std::path::PathBuf;
 #[clap(version = env!("CARGO_PKG_VERSION"))]
 #[derive(Clap, Debug)]
 pub struct Args {
-    /// Reports cached assets that are currently appear obsolete and their consumed disk space (no build is performed)
+    /// Reports cached assets that currently appear obsolete and their consumed disk space (no build is performed)
     #[clap(long = "analyze-cache")]
     pub analyze_cache: bool,
     
@@ -35,6 +35,9 @@ pub struct Args {
     /// Locally previews the build in the browser after the build is finished
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
+    
+    #[clap(long = "theming-widget")]
+    pub theming_widget: bool,
 
     /// Wipes the build and cache directory and exits (no build is performed)
     #[clap(long = "wipe-all")]

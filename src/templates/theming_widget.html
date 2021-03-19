@@ -1,0 +1,120 @@
+<style>
+    .theming_widget {
+        background-color: hsl(var(--background-h), var(--background-s), var(--background-l), .8);
+        border: 1px solid hsl(var(--text-h), var(--text-s), var(--text-l));
+        border-radius: .1em;
+        color: hsl(var(--text-h), var(--text-s), var(--text-l));
+        bottom: 1em;
+        padding: 1em;
+        position: absolute;
+        right: 1em;
+        width: 40em;
+    }
+    .theming_widget .option {
+        align-items: center;
+        display: flex;
+        margin-bottom: 1em;
+    }
+    .theming_widget .option input { width: 30em; }
+    .theming_widget .option .label { margin-left: 1em; }
+    .theming_widget textarea {
+        height: 10em;
+        width: 100%;
+    }
+</style>
+<div class="theming_widget"></div>
+<script>
+    // TODO: Inject already set options from theme options in manifest
+    const options = [
+        {
+            key: 'hue',
+            range: [0, 360],
+            step: 1,
+            tooltip: 'Primarily sets the hue of the link color (0-360 degrees)',
+            variable: '--hue',
+            unit: 'deg'
+        },
+        {
+            key: 'hue_spread',
+            step: 1,
+            tooltip: 'Applies additional hue variations if tint_back/tint_front is enabled (any number of degrees [+/-])',
+            variable: '--hue-spread',
+            unit: 'deg'
+        },
+        {
+            key: 'tint_back',
+            range: [0, 100],
+            step: 1,
+            tooltip: 'Applies a color tint to the page background (0-100%)',
+            variable: '--tint-back'
+        },
+        {
+            key: 'tint_front',
+            range: [0, 100],
+            step: 1,
+            tooltip: 'Applies a color tint to the page foreground elements (0-100%)',
+            variable: '--tint-front'
+        }
+    ];
+    
+    const textarea = document.createElement('textarea');
+    
+    textarea.readOnly = true;
+    
+    const updateTextarea = () => {
+        let entries = [];
+        
+        for (const option of options) {
+            if (option.value) {
+                entries.push(`${option.key} = ${option.value}`);
+            }
+        }
+        
+        if (entries.length == 0) {
+            textarea.innerHTML = '> Only defaults used currently'
+        } else {
+            textarea.innerHTML = `> Copy these to a manifest in your catalog\ntheme:\n${entries.join('\n')}`;
+        }
+    };
+    
+    for (const option of options) {
+        const input = document.createElement('input');
+        
+        if (option.range) {
+            input.min = option.range[0];
+            input.max = option.range[1];
+            input.type = 'range';
+        } else {
+            input.type = 'range';
+        }
+        
+        input.step = option.step;
+        input.title = option.tooltip;
+        input.value = 0;
+        
+        const setOption = (option, value) => {
+            option.value = value;
+            
+            document.querySelector(':root').style.setProperty(option.variable, `${option.value}${option.unit || ''}`);
+            updateTextarea();
+        };
+        
+        input.addEventListener('input', event => setOption(option, input.value));
+        
+        const span = document.createElement('span');
+        
+        span.classList.add('label');
+        span.innerHTML = option.key;
+        span.title = option.tooltip;
+        
+        const div = document.createElement('div');
+        
+        div.classList.add('option');
+        div.appendChild(input);
+        div.appendChild(span);
+        
+        document.querySelector('.theming_widget').appendChild(div);
+    }
+    
+    document.querySelector('.theming_widget').appendChild(textarea);
+</script>

@@ -48,6 +48,12 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
         WritingDirection::Rtl => "dir=\"rtl\""
     };
     
+    let theming_widget = if build.theming_widget {
+        include_str!("templates/theming_widget.html")
+    } else {
+        ""
+    };
+    
     format!(
         include_str!("templates/layout.html"),
         body = body,
@@ -56,6 +62,7 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
         feed_meta_link = feed_meta_link,
         feed_user_link = feed_user_link,
         root_prefix = root_prefix,
+        theming_widget = theming_widget,
         title = title
     )
 }

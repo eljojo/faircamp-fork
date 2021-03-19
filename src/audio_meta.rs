@@ -219,7 +219,7 @@ fn decode_flac(path: &Path) -> Option<DecodeResult> {
         match frame_reader.read_next_or_eof(block.into_buffer()) {
             Ok(Some(next_block)) => block = next_block,
             Ok(None) => break,
-            Err(error) => return None
+            Err(_) => return None
         }
         
         let sample_count = block.duration();

@@ -122,7 +122,14 @@ fn main() {
     
     match build.post_build_action {
         PostBuildAction::None => (),
-        PostBuildAction::Deploy => deploy::deploy(&build),
+        PostBuildAction::Deploy => {
+            if args.theming_widget {
+                // TODO: But maybe someone *wants* to deploy it to a "live" page, e.g. to ask their bandmates for their color preferences? Follow up again :)
+                error!("Aborting deploy because --theming-widget is enabled, we probably don't want that on the live page.")
+            } else {
+                deploy::deploy(&build);
+            }
+        },
         PostBuildAction::Preview => unimplemented!("Preview functionality is yet to be tackled")
     }
 }
