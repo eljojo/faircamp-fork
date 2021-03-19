@@ -17,6 +17,7 @@ use crate::{
 pub struct Theme {
     pub background_image: Option<String>,
     pub base: ThemeBase,
+    pub font: ThemeFont,
     pub hue: u16,
     pub hue_spread: i16,
     pub tint_back: u8,
@@ -36,6 +37,14 @@ pub struct ThemeBase {
     pub muted_l: u8,
     pub overlay_a: u8,
     pub text_l: u8
+}
+
+pub enum ThemeFont {
+    Custom(String),
+    Default,
+    SystemMono,
+    SystemSans,
+    System(String)
 }
 
 pub fn generate(build: &mut Build) {
@@ -64,6 +73,51 @@ pub fn generate(build: &mut Build) {
         None => String::new()
     };
     
+    let font_declaration = match &theme.font {
+        ThemeFont::Custom(path) => {
+            // TODO: Safe-guard against file not existing in that location
+            fs::copy(
+                build.catalog_dir.join(path),
+                build.build_dir.join("custom.woff2") // TODO: Support .woff (/whatever is supplied?) too
+            ).unwrap();
+            
+            formatdoc!(r#"
+                @font-face {{
+                    font-family: 'Custom';
+                    font-style: normal;
+                    font-weight: 400;
+                    src: url('custom.woff2') format('woff2');
+                }}
+                body {{ font-family: 'Custom'; }}
+            "#)
+        }
+        ThemeFont::Default => {
+            fs::write(
+                build.build_dir.join("barlow-v5-latin-regular.woff2"),
+                include_bytes!("assets/barlow-v5-latin-regular.woff2")
+            ).unwrap();
+            
+            formatdoc!(r#"
+                @font-face {{
+                    font-family: 'Barlow';
+                    font-style: normal;
+                    font-weight: 400;
+                    src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
+                }}
+                body {{ font-family: 'Barlow'; }}
+            "#)
+        }
+        ThemeFont::SystemMono => {
+            String::from(r#"body { font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }"#)
+        }
+        ThemeFont::SystemSans => {
+            String::from(r#"body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }"#)
+        }
+        ThemeFont::System(fonts) => {
+            format!("body {{ font-family: {}; }}", fonts)
+        }
+    };
+    
     let css = formatdoc!(
         r#"
             :root {{
@@ -90,28 +144,30 @@ pub fn generate(build: &mut Build) {
                 --text-l: {text_l}%;
                 --text-s: calc({text_s}% * (var(--tint-front) / 100));
             }}
+            {font_declaration}
             {included_static_css}
             {background_override}
         "#,
-        hue=theme.hue,
-        hue_spread=theme.hue_spread,
-        tint_back=theme.tint_back,
-        tint_front=theme.tint_front,
-        background_l=theme.base.background_l,
-        background_s=41,
-        cover_l=theme.base.cover_l,
-        cover_s=35,
-        link_l=theme.base.link_l,
-        link_s=theme.base.link_s,
-        link_hover_l=theme.base.link_hover_l,
-        muted_l=theme.base.muted_l,
-        muted_s=35,
-        nav_s=17,
-        overlay_a=theme.base.overlay_a,
-        text_l=theme.base.text_l,
-        text_s=94,
-        included_static_css=include_str!("assets/styles.css"),
-        background_override=background_override
+        hue = theme.hue,
+        hue_spread = theme.hue_spread,
+        tint_back = theme.tint_back,
+        tint_front = theme.tint_front,
+        background_l = theme.base.background_l,
+        background_s = 41,
+        cover_l = theme.base.cover_l,
+        cover_s = 35,
+        link_l = theme.base.link_l,
+        link_s = theme.base.link_s,
+        link_hover_l = theme.base.link_hover_l,
+        muted_l = theme.base.muted_l,
+        muted_s = 35,
+        nav_s = 17,
+        overlay_a = theme.base.overlay_a,
+        text_l = theme.base.text_l,
+        text_s = 94,
+        font_declaration = font_declaration,
+        included_static_css = include_str!("assets/styles.css"),
+        background_override = background_override
     );
     
     fs::write(build.build_dir.join("styles.css"), css).unwrap();
@@ -122,6 +178,7 @@ impl Theme {
         Theme {
             background_image: None,
             base: ThemeBase::DARK,
+            font: ThemeFont::Default,
             hue: 0,
             hue_spread: 0,
             tint_back: 0,

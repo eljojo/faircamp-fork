@@ -1,12 +1,6 @@
 :root {
   --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
 }
-@font-face {
-    font-family: 'Barlow';
-    font-style: normal;
-    font-weight: 400;
-    src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
-}
 a {
     color: hsl(var(--hue), var(--link-s), var(--link-l));
     cursor: pointer;
@@ -17,7 +11,6 @@ a * { pointer-events: none; }
 body {
     background-color: hsl(var(--background-h), var(--background-s), var(--background-l));
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
-    font-family: 'Barlow';
     font-size: 18px;
     margin: 0;
 }

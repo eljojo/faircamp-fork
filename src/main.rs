@@ -99,7 +99,6 @@ fn main() {
         release.write_files(&build, &catalog);
     }
 
-    fs::write(build.build_dir.join("barlow-v5-latin-regular.woff2"), include_bytes!("assets/barlow-v5-latin-regular.woff2")).unwrap();
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
     styles::generate(&mut build);

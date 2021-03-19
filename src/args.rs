@@ -36,6 +36,7 @@ pub struct Args {
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
     
+    /// Injects a small widget into the page which allows you to interactively explore different theme color configurations
     #[clap(long = "theming-widget")]
     pub theming_widget: bool,
 
