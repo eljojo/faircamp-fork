@@ -1,5 +1,6 @@
 use std::{
     fmt,
+    mem,
     str::Lines
 };
 
@@ -29,7 +30,7 @@ pub enum Kind {
     Embed(Option<String>),
     Empty,
     Field(FieldContent),
-    Section
+    Section(Vec<Element>)
 }
 
 #[derive(Debug)]
@@ -53,7 +54,10 @@ pub struct ParseContext<'a> {
     line_number: u32,
     lines: Lines<'a>,
     /// memorizes direct/spaced continuation state while reading values that can be continued
-    next_continuation_direct: bool
+    next_continuation_direct: bool,
+    section_depth: usize,
+    section_elements: Vec<Element>,
+    section_key: String
 }
 
 impl Document {
@@ -122,7 +126,10 @@ pub fn parse(input: &str) -> Result<Document, Error> {
         document: Document::new(),
         line_number: 0,
         lines: input.lines(),
-        next_continuation_direct: true
+        next_continuation_direct: true,
+        section_depth: 0,
+        section_elements: Vec::new(),
+        section_key: String::new()
     };
     
     while let Some(line) = context.lines.next() {
@@ -152,6 +159,29 @@ pub fn parse(input: &str) -> Result<Document, Error> {
         } else {
             read_attribute_empty_field(&mut context, trimmed)?;
         }
+    }
+    
+    // TODO: DRY - identical code in read_section
+    if context.section_depth == 0 {
+        context.document.elements.append(&mut context.section_elements);
+    } else {
+        let section = Element {
+            key: mem::take(&mut context.section_key),
+            kind: Kind::Section(mem::take(&mut context.section_elements))
+        };
+        
+        fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
+            if depth == 0 {
+                elements.push(section);
+            } else {
+                match elements.last_mut() {
+                    Some(Element { kind: Kind::Section(subelements), .. }) => deep_append(depth - 1, subelements, section),
+                    _ => unreachable!() // we know the last element exists and must be a section
+                } 
+            }
+        }
+        
+        deep_append(context.section_depth - 1, &mut context.document.elements, section);
     }
     
     Ok(context.document)
@@ -190,7 +220,7 @@ fn read_attribute_empty_field_escaped_key(context: &mut ParseContext, trimmed: &
     
 fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String, remainder: &str) -> Result<(), Error> {
     if remainder.is_empty() {
-        context.document.elements.push(Element {
+        context.section_elements.push(Element {
             key,
             kind: Kind::Empty
         });
@@ -206,7 +236,7 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
             )
         };
         
-        context.document.elements.push(element);
+        context.section_elements.push(element);
         context.next_continuation_direct = true;
     } else if remainder.starts_with("=") {
         let attribute = Attribute {
@@ -214,7 +244,7 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
             value: remainder[1..].trim().to_string()
         };
         
-        match context.document.elements.last_mut() {
+        match context.section_elements.last_mut() {
             Some(Element { kind: Kind::Field(content), .. }) => match content {
                 FieldContent::Attributes(attributes) => attributes.push(attribute),
                 FieldContent::None => *content = FieldContent::Attributes(vec![attribute]),
@@ -254,7 +284,7 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
                 )
             };
             
-            context.document.elements.push(element);
+            context.section_elements.push(element);
             context.next_continuation_direct = true;
         } else if trimmed[index..].starts_with("=") {
             let attribute = Attribute {
@@ -262,7 +292,7 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
                 value: trimmed[(index + 1)..].trim().to_string()
             };
             
-            match context.document.elements.last_mut() {
+            match context.section_elements.last_mut() {
                 Some(Element { kind: Kind::Field(content), .. }) => match content {
                     FieldContent::Attributes(attributes) => attributes.push(attribute),
                     FieldContent::None => *content = FieldContent::Attributes(vec![attribute]),
@@ -278,12 +308,12 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
             //     key: trimmed[..index].trim().to_string(),
             //     kind: Kind::Field(FieldContent::None)
             // };
-            // context.document.elements.push(element);
+            // context.section_elements.push(element);
             
             return Err(Error::new(format!("Copies are not (yet) supported. ('{}')", trimmed), context.line_number));
         }
     } else {
-        context.document.elements.push(Element {
+        context.section_elements.push(Element {
             key: trimmed.to_string(),
             kind: Kind::Empty
         })
@@ -300,7 +330,7 @@ fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Er
     let value = trimmed[1..].trim();
     
     if !value.is_empty() {
-        match context.document.elements.last_mut() {
+        match context.section_elements.last_mut() {
             Some(Element { kind: Kind::Field(content), .. }) => match content {
                 FieldContent::Attributes(attributes) => {
                     let existing = &mut attributes.last_mut().unwrap().value;
@@ -355,7 +385,7 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
                 if trimmed.starts_with("--") {
                     if let Some(end_operator_len) = trimmed.find(|c| c != '-') {
                         if begin_operator_len == end_operator_len && key == trimmed[end_operator_len..].trim() {
-                            context.document.elements.push(Element {
+                            context.section_elements.push(Element {
                                 key: key.to_string(),
                                 kind: Kind::Embed(value)
                             });
@@ -380,7 +410,7 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
 fn read_item(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     let item = trimmed[1..].trim().to_string();
     
-    match context.document.elements.last_mut() {
+    match context.section_elements.last_mut() {
         Some(Element { kind: Kind::Field(content), .. }) => match content {
             FieldContent::Items(items) => items.push(item),
             FieldContent::None => *content = FieldContent::Items(vec![item]),
@@ -395,6 +425,10 @@ fn read_item(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
 fn read_section(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     match trimmed.find(|c| c != '#') {
         Some(section_operator_len) => {
+            if section_operator_len > context.section_depth + 1 {
+                return Err(Error::new(format!("Section hierarchy layer skip encountered. ('{}')", trimmed), context.line_number));
+            }
+            
             let rightwards = trimmed[section_operator_len..].trim();
             
             if rightwards.starts_with("`") {
@@ -404,14 +438,37 @@ fn read_section(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> 
                         
                         // TODO: Handle escaped
                     }
-                    None => return Err(Error::new(format!("Section with an empty escaped key in manifest. ('{}')", trimmed), context.line_number))
+                    None => return Err(Error::new(format!("Section with an empty escaped key. ('{}')", trimmed), context.line_number))
                 }
             } else {
                 if let Some(copy_operator_position) = rightwards.find(|c| c == '<') {
                     let key = rightwards[..copy_operator_position].trim();
                     let template = rightwards[(copy_operator_position + 1)..].trim();
-                } else {
-                    let key = rightwards;
+                } else {                
+                    if context.section_depth == 0 {
+                        context.document.elements.append(&mut context.section_elements);
+                    } else {
+                        let section = Element {
+                            key: mem::take(&mut context.section_key),
+                            kind: Kind::Section(mem::take(&mut context.section_elements))
+                        };
+                        
+                        fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
+                            if depth == 0 {
+                                elements.push(section);
+                            } else {
+                                match elements.last_mut() {
+                                    Some(Element { kind: Kind::Section(subelements), .. }) => deep_append(depth - 1, subelements, section),
+                                    _ => unreachable!() // we know the last element exists and must be a section
+                                } 
+                            }
+                        }
+                        
+                        deep_append(context.section_depth - 1, &mut context.document.elements, section);
+                    }
+                    
+                    context.section_depth = section_operator_len;
+                    context.section_key = rightwards.to_string();
                 }
             }
         }
