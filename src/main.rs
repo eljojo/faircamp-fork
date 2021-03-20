@@ -46,13 +46,13 @@ fn main() {
     
     if args.analyze_cache {
         build.cache_optimization = CacheOptimization::Immediate;
-        asset_cache::report_stale(&cache_manifest, &Catalog::init_empty());
+        asset_cache::report_stale(&cache_manifest, &Catalog::new());
         return;
     }
     
     if args.optimize_cache {
         build.cache_optimization = CacheOptimization::Immediate;
-        asset_cache::optimize_cache(&build, &mut cache_manifest, &mut Catalog::init_empty());
+        asset_cache::optimize_cache(&build, &mut cache_manifest, &mut Catalog::new());
         return;
     }
     

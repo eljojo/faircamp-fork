@@ -40,7 +40,31 @@ pub enum Permalink {
 }
 
 impl Catalog {
-    pub fn init_empty() -> Catalog {
+    pub fn get_or_create_artist(&mut self, new_artist_name: Option<&str>) -> Rc<Artist> {
+        if let Some(new_artist_name) = new_artist_name {
+            self.artists
+                .iter()
+                .find(|artist| &artist.name == new_artist_name)
+                .map(|existing_artist| existing_artist.clone())
+                .unwrap_or_else(|| {
+                    let new_artist = Rc::new(Artist::new(new_artist_name.to_string(), None));
+                    self.artists.push(new_artist.clone());
+                    new_artist
+                })
+        } else {
+            self.artists
+                .iter()
+                .find(|artist| artist.name == "UNKNOWN_SPECIAL_STRING")
+                .map(|existing_artist| existing_artist.clone())
+                .unwrap_or_else(|| {
+                    let new_artist = Rc::new(Artist::new(String::from("UNKNOWN_SPECIAL_STRING"), None));
+                    self.artists.push(new_artist.clone());
+                    new_artist
+                })
+        }
+    }
+    
+    pub fn new() -> Catalog {
         Catalog {
             artists: Vec::new(),
             feed_image: None,
@@ -52,7 +76,7 @@ impl Catalog {
     }
     
     pub fn read(build: &mut Build, cache_manifest: &mut CacheManifest) -> Result<Catalog, ()> {
-        let mut catalog = Catalog::init_empty();
+        let mut catalog = Catalog::new();
         
         catalog.read_dir(&build.catalog_dir.clone(), build, cache_manifest, &Overrides::default()).unwrap();
         
@@ -232,7 +256,7 @@ impl Catalog {
             let mut release_artists: Vec<Rc<Artist>> = Vec::new();
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
                 for artist_name in artist_names {
-                    let artist = self.track_artist(Some(&artist_name));
+                    let artist = self.get_or_create_artist(Some(&artist_name));
                     release_artists.push(artist);
                 }
             } else {
@@ -301,10 +325,13 @@ impl Catalog {
         let artists = if let Some(artist_names) = &overrides.track_artists {
             artist_names
                 .iter()
-                .map(|name| self.track_artist(Some(name)))
+                .map(|name| self.get_or_create_artist(Some(name)))
                 .collect()
         } else {
-            vec![self.track_artist(cached_assets.source_meta.artist.as_ref().map(|name| name.as_str()))]
+            // TODO: We unconditionally assign an artist to the track - including a None artist,
+            //       that is, one that we give an UNKNOWN_SPECIAL_STRING identifier. Is there
+            //       any sensible reason not to just *not* have an artist for a track (?) 
+            vec![self.get_or_create_artist(cached_assets.source_meta.artist.as_ref().map(|name| name.as_str()))]
         };
         
         let source_file = path.to_path_buf();
@@ -314,31 +341,6 @@ impl Catalog {
             .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
         
         Track::new(artists, cached_assets, source_file, title)
-    }
-    
-    // TODO: track_artist is confusing because does it mean "track the artist" or "the track artist"
-    pub fn track_artist(&mut self, new_artist_name: Option<&str>) -> Rc<Artist> {
-        if let Some(new_artist_name) = new_artist_name {
-            self.artists
-                .iter()
-                .find(|artist| &artist.name == new_artist_name)
-                .map(|existing_artist| existing_artist.clone())
-                .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::init(new_artist_name.to_string(), None));
-                    self.artists.push(new_artist.clone());
-                    new_artist
-                })
-        } else {
-            self.artists
-                .iter()
-                .find(|artist| artist.name == "UNKNOWN_SPECIAL_STRING")
-                .map(|existing_artist| existing_artist.clone())
-                .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::init(String::from("UNKNOWN_SPECIAL_STRING"), None));
-                    self.artists.push(new_artist.clone());
-                    new_artist
-                })
-        }
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {

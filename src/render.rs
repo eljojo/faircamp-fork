@@ -166,6 +166,19 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
         })
         .collect::<Vec<&Release>>();
     
+    let text = if let Some(text) = &artist.text {
+        formatdoc!(
+            r#"
+                <div class="vpad">
+                    {text}
+                </div>
+            "#,
+            text = text
+        )
+    } else {
+        String::new()
+    };
+    
     let body = formatdoc!(
         r#"
             <div class="center">
@@ -175,9 +188,7 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
                     <h1><a href="{root_prefix}">All Releases</a> &gt; {artist_name}</h1>
                 </div>
                 
-                <!-- div class="vpad">
-                    TODO: Artist text
-                </div -->
+                {text}
                 
                 {share_widget}
                 
@@ -187,7 +198,8 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
         artist_name = artist.name,
         releases = releases(root_prefix, artist_releases),
         root_prefix = root_prefix,
-        share_widget = SHARE_WIDGET
+        share_widget = SHARE_WIDGET,
+        text = text
     );
     
     layout(root_prefix, &body, build, catalog, &artist.name)
