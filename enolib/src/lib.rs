@@ -10,6 +10,7 @@ mod test;
 #[derive(Debug)]
 pub struct Attribute {
     pub key: String,
+    pub line_number: u32,
     pub value: String
 }
 
@@ -22,7 +23,29 @@ pub struct Document {
 #[derive(Debug)]
 pub struct Element {
     pub key: String,
-    pub kind: Kind
+    pub kind: Kind,
+    pub line_number: u32
+}
+
+/// `line` is 1-indexed (i.e. the first line is line 1, not 0)
+#[derive(Debug)]
+pub struct Error {
+    pub line: u32,
+    pub message: String
+}
+
+#[derive(Debug)]
+pub enum FieldContent {
+    Attributes(Vec<Attribute>),
+    Items(Vec<Item>),
+    None,
+    Value(String)
+}
+
+#[derive(Debug)]
+pub struct Item {
+    pub line_number: u32,
+    pub value: String
 }
 
 #[derive(Debug)]
@@ -31,21 +54,6 @@ pub enum Kind {
     Empty,
     Field(FieldContent),
     Section(Vec<Element>)
-}
-
-#[derive(Debug)]
-pub enum FieldContent {
-    Attributes(Vec<Attribute>),
-    Items(Vec<String>),
-    None,
-    Value(String)
-}
-
-/// `line` is 1-indexed (i.e. the first line is line 1, not 0)
-#[derive(Debug)]
-pub struct Error {
-    pub line: u32,
-    pub message: String
 }
 
 pub struct ParseContext<'a> {
@@ -57,7 +65,8 @@ pub struct ParseContext<'a> {
     next_continuation_direct: bool,
     section_depth: usize,
     section_elements: Vec<Element>,
-    section_key: String
+    section_key: String,
+    section_line_number: u32
 }
 
 impl Document {
@@ -129,7 +138,8 @@ pub fn parse(input: &str) -> Result<Document, Error> {
         next_continuation_direct: true,
         section_depth: 0,
         section_elements: Vec::new(),
-        section_key: String::new()
+        section_key: String::new(),
+        section_line_number: 0
     };
     
     while let Some(line) = context.lines.next() {
@@ -167,7 +177,8 @@ pub fn parse(input: &str) -> Result<Document, Error> {
     } else {
         let section = Element {
             key: mem::take(&mut context.section_key),
-            kind: Kind::Section(mem::take(&mut context.section_elements))
+            kind: Kind::Section(mem::take(&mut context.section_elements)),
+            line_number: context.line_number
         };
         
         fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
@@ -222,7 +233,8 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
     if remainder.is_empty() {
         context.section_elements.push(Element {
             key,
-            kind: Kind::Empty
+            kind: Kind::Empty,
+            line_number: context.line_number
         });
     } else if remainder.starts_with(":") {
         let element = Element {
@@ -233,7 +245,8 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
                 } else {
                     FieldContent::Value(remainder[1..].trim().to_string())
                 }
-            )
+            ),
+            line_number: context.line_number
         };
         
         context.section_elements.push(element);
@@ -241,6 +254,7 @@ fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: String,
     } else if remainder.starts_with("=") {
         let attribute = Attribute {
             key,
+            line_number: context.line_number,
             value: remainder[1..].trim().to_string()
         };
         
@@ -281,7 +295,8 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
                     } else {
                         FieldContent::Value(trimmed[(index + 1)..].trim().to_string())
                     }
-                )
+                ),
+                line_number: context.line_number
             };
             
             context.section_elements.push(element);
@@ -289,6 +304,7 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
         } else if trimmed[index..].starts_with("=") {
             let attribute = Attribute {
                 key: trimmed[..index].trim().to_string(),
+                line_number: context.line_number,
                 value: trimmed[(index + 1)..].trim().to_string()
             };
             
@@ -315,7 +331,8 @@ fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Resu
     } else {
         context.section_elements.push(Element {
             key: trimmed.to_string(),
-            kind: Kind::Empty
+            kind: Kind::Empty,
+            line_number: context.line_number
         })
     }
     
@@ -345,11 +362,11 @@ fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Er
                 FieldContent::Items(items) => {
                     let existing = items.last_mut().unwrap();
                     
-                    if existing.is_empty() || context.next_continuation_direct {
-                        existing.push_str(value)
+                    if existing.value.is_empty() || context.next_continuation_direct {
+                        existing.value.push_str(value)
                     } else {
-                        existing.push_str(" ");
-                        existing.push_str(value);
+                        existing.value.push_str(" ");
+                        existing.value.push_str(value);
                     }
                 }
                 FieldContent::None => *content = FieldContent::Value(value.to_string()),
@@ -374,6 +391,7 @@ fn read_continuation(context: &mut ParseContext, trimmed: &str) -> Result<(), Er
 fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
     match trimmed.find(|c| c != '-') {
         Some(begin_operator_len) => {
+            let begin_line_number = context.line_number;
             let key = trimmed[begin_operator_len..].trim();
             let mut value = None;
             
@@ -387,7 +405,8 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
                         if begin_operator_len == end_operator_len && key == trimmed[end_operator_len..].trim() {
                             context.section_elements.push(Element {
                                 key: key.to_string(),
-                                kind: Kind::Embed(value)
+                                kind: Kind::Embed(value),
+                                line_number: begin_line_number
                             });
                             
                             return Ok(());
@@ -408,7 +427,10 @@ fn read_embed(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
 }
 
 fn read_item(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
-    let item = trimmed[1..].trim().to_string();
+    let item = Item {
+        line_number: context.line_number,
+        value: trimmed[1..].trim().to_string()
+    };
     
     match context.section_elements.last_mut() {
         Some(Element { kind: Kind::Field(content), .. }) => match content {
@@ -450,7 +472,8 @@ fn read_section(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> 
                     } else {
                         let section = Element {
                             key: mem::take(&mut context.section_key),
-                            kind: Kind::Section(mem::take(&mut context.section_elements))
+                            kind: Kind::Section(mem::take(&mut context.section_elements)),
+                            line_number: context.section_line_number
                         };
                         
                         fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
@@ -469,6 +492,7 @@ fn read_section(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> 
                     
                     context.section_depth = section_operator_len;
                     context.section_key = rightwards.to_string();
+                    context.section_line_number = context.line_number;
                 }
             }
         }

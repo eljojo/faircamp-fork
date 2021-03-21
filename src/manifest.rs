@@ -20,6 +20,16 @@ use crate::{
     util
 };
 
+macro_rules! file_line {
+    ($path:expr, $element:expr) => {
+        format!(
+            "{}:{}",
+            $path.display(),
+            $element.line_number
+        );
+    };
+}
+
 #[derive(Clone)]
 pub struct LocalOptions {
     pub release_permalink: Option<String>
@@ -76,16 +86,16 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     match section_element.key.as_ref() {
                                         "name" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => name = Some(value.clone()),
-                                            _ => error!("Ignoring invalid artist.name option (can only be a field containing a value) in manifest '{:?}'", path)
+                                            _ => error!("Ignoring invalid artist.name option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         "permalink" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => permalink = Some(value.clone()),
-                                            _ => error!("Ignoring invalid artist.permalink option (can only be a field containing a value) in manifest '{:?}'", path)
+                                            _ => error!("Ignoring invalid artist.permalink option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         "text" => match &section_element.kind {
                                             Kind::Embed(Some(value)) |
                                             Kind::Field(FieldContent::Value(value)) => text = Some(util::markdown_to_html(&value)),
-                                            _ => error!("Ignoring invalid artist.text option (can only be an embed or field containing a value) in manifest '{:?}'", path)
+                                            _ => error!("Ignoring invalid artist.text option (can only be an embed or field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         key => error!("Ignoring unsupported artist.{} option in manifest '{:?}'", key, path)
                                     }
@@ -104,10 +114,10 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     
                                     catalog.artists.push(Rc::new(new_artist));
                                 } else {
-                                    error!("An artist was specified without a name - and therefore discarded - in manifest '{:?}'", path);
+                                    error!("An artist was specified without a name, and therefore discarded, in {}", file_line!(path, element))
                                 }
                             }
-                            _ => error!("Ignoring invalid artist option (can only be a section containing specific elements) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid artist option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
                         "base_url" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -119,10 +129,10 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         
                                         build.base_url = Some(url);
                                     }
-                                    Err(err) => error!("Ignoring invalid base_url setting value '{}' in manifest '{:?}' ({})", value, path, err)
+                                    Err(err) => error!("Ignoring invalid base_url setting value '{}' in {} ({})", value, file_line!(path, element), err)
                                 }
                             }
-                            _ => error!("Ignoring invalid base_url option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid base_url option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "cache_optimization" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -134,10 +144,10 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         
                                         build.cache_optimization = strategy;
                                     }
-                                    None => error!("Ignoring invalid cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {:?}", value, path)
+                                    None => error!("Ignoring invalid cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}", value, file_line!(path, element))
                                 }
                             }
-                            _ => error!("Ignoring invalid cache_optimization option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid cache_optimization option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "catalog_text" => match element.kind {
                             Kind::Embed(Some(value)) |
@@ -148,7 +158,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 
                                 catalog.text = Some(value);      
                             }
-                            _ => error!("Ignoring invalid catalog_text option (can only be an embed or field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid catalog_text option (can only be an embed or field containing a value) in {}", file_line!(path, element))
                         }
                         "catalog_title" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -158,29 +168,29 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 
                                 catalog.title = Some(value);      
                             }
-                            _ => error!("Ignoring invalid catalog_title option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid catalog_title option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "disable_download" => match element.kind {
                             Kind::Empty  => overrides.download_option = DownloadOption::Disabled,
-                            _ => error!("Ignoring invalid disable_download option (can only be an empty) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid disable_download option (can only be an empty) in {}", file_line!(path, element))
                         }
                         "download_format" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
                                 match AudioFormat::from_manifest_key(value.as_str()) {
                                     Some(format) => overrides.download_formats = vec![format],
-                                    None => error!("Ignoring invalid download_format setting value '{}' in {:?}", value, path)
+                                    None => error!("Ignoring invalid download_format setting value '{}' in {}", value, file_line!(path, element))
                                 }
                             }
-                            _ => error!("Ignoring invalid download_format option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid download_format option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
-                        "download_formats" => match element.kind {
+                        "download_formats" => match &element.kind {
                             Kind::Field(FieldContent::Items(items))  => {
                                 overrides.download_formats = items
                                     .iter()
-                                    .filter_map(|key|
-                                        match AudioFormat::from_manifest_key(key.as_str()) {
+                                    .filter_map(|item|
+                                        match AudioFormat::from_manifest_key(item.value.as_str()) {
                                             None => {
-                                                error!("Ignoring invalid download_formats format specifier '{}' in {:?}", key, path);
+                                                error!("Ignoring invalid download_formats format specifier '{}' in {}", item.value, file_line!(path, item));
                                                 None
                                             }
                                             some_format => some_format
@@ -189,7 +199,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     .collect();
                             }
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid download_formats option (can only be a field containing a list) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid download_formats option (can only be a field containing a list) in {}", file_line!(path, element))
                         }
                         "feed_image" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -199,11 +209,11 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 
                                 catalog.feed_image = Some(value); // TODO: Verify file exists at provided location
                             }
-                            _ => error!("Ignoring invalid feed_image option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid feed_image option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "free_download" => match element.kind {
                             Kind::Empty  => overrides.download_option = DownloadOption::init_free(),
-                            _ => error!("Ignoring invalid free_download option (can only be an empty) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid free_download option (can only be an empty) in {}", file_line!(path, element))
                         }
                         "localization" => match element.kind {
                             Kind::Field(FieldContent::Attributes(attributes))  => {
@@ -213,14 +223,14 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         "writing_direction" => match attribute.value.as_str() {
                                             "ltr" => build.localization.writing_direction = WritingDirection::Ltr,
                                             "rtl" => build.localization.writing_direction = WritingDirection::Rtl,
-                                            value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in manifest '{:?}'", value, path)
+                                            value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in {}", value, file_line!(path, element))
                                         }
-                                        key => error!("Ignoring unsupported global 'localization.{}' in manifest '{:?}'", key, path)
+                                        key => error!("Ignoring unsupported global 'localization.{}' in {}", key, file_line!(path, element))
                                     }
                                 }
                             }
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid localization option (can only be a field containing a map of attributes) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid localization option (can only be a field containing a map of attributes) in {}", file_line!(path, element))
                         }
                         "paid_download" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -234,7 +244,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                             if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
                                                 overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
                                             } else {
-                                                error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
+                                                error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
                                             }
                                         } else {
                                             let mut split_by_dash = recombined.split("-");
@@ -244,13 +254,13 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                     if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
                                                         overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
                                                     } else {
-                                                        error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
+                                                        error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
                                                     }
                                                 } else {
                                                     overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
                                                 }
                                             } else {
-                                                error!("Ignoring paid_download option '{}' with malformed price in {:?}", value, path);
+                                                error!("Ignoring paid_download option '{}' with malformed price in {}", value, file_line!(path, element));
                                             }
                                         }
                                     } else if let Some(last_token) = split_by_whitespace.last() {
@@ -262,7 +272,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                 if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
                                                     overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
                                                 } else {
-                                                    error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
+                                                    error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
                                                 }
                                             } else {
                                                 let mut split_by_dash = recombined.split("-");
@@ -272,28 +282,28 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                         if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
                                                             overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
                                                         } else {
-                                                            error!("Ignoring paid_download option '{}' with malformed minimum price in {:?}", value, path);
+                                                            error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
                                                         }
                                                     } else {
                                                         overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
                                                     }
                                                 } else {
-                                                    error!("Ignoring paid_download option '{}' with malformed price in {:?}", value, path);
+                                                    error!("Ignoring paid_download option '{}' with malformed price in {}", value, file_line!(path, element));
                                                 }
                                             }
                                         } else {
-                                            error!("Ignoring paid_download option '{}' without recognizable currency code in {:?}", value, path);
+                                            error!("Ignoring paid_download option '{}' without recognizable currency code in {}", value, file_line!(path, element));
                                         }
                                     } else {
-                                        error!("Ignoring unrecognized paid_download option '{}' in {:?}", value, path);
+                                        error!("Ignoring unrecognized paid_download option '{}' in {}", value, file_line!(path, element));
                                     }
                                 } else {
-                                    error!("Ignoring unrecognized paid_download option '{}' in {:?}", value, path);
+                                    error!("Ignoring unrecognized paid_download option '{}' in {}", value, file_line!(path, element));
                                 }
                             }
-                            _ => error!("Ignoring invalid paid_download option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid paid_download option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
-                        "payment_options" => match element.kind {
+                        "payment_options" => match &element.kind {
                             Kind::Field(FieldContent::Attributes(attributes))  => {
                                 overrides.payment_options = attributes
                                     .iter()
@@ -302,7 +312,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                             "custom" => Some(PaymentOption::init_custom(&attribute.value)),
                                             "liberapay" => Some(PaymentOption::init_liberapay(&attribute.value)),
                                             key => {
-                                                error!("Ignoring unsupported payment_options attribute '{}' in manifest '{:?}'", key, path);
+                                                error!("Ignoring unsupported payment_options attribute '{}' in {}", key, file_line!(path, element));
                                                 None
                                             }
                                         }
@@ -310,17 +320,17 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     .collect();
                             }
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid payment_options option (can only be a field containing a map of attributes) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid payment_options option (can only be a field containing a map of attributes) in {}", file_line!(path, element))
                         }
                         "release_artist" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => overrides.release_artists = Some(vec![value]),
-                            Kind::Field(FieldContent::Items(_)) => error!("Ignoring release_artist option with multiple values (use the key release_artists instead) in manifest '{:?}'", path),
-                            _ => error!("Ignoring invalid release_artist option (can only be a field containing a value) in manifest '{:?}'", path)
+                            Kind::Field(FieldContent::Items(_)) => error!("Ignoring release_artist option with multiple values (use the key release_artists instead) in {}", file_line!(path, element)),
+                            _ => error!("Ignoring invalid release_artist option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "release_artists" => match element.kind {
-                            Kind::Field(FieldContent::Items(items)) => overrides.release_artists = Some(items),
+                            Kind::Field(FieldContent::Items(items)) => overrides.release_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid release_artists option (can only be a field containing a list) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid release_artists option (can only be a field containing a list) in {}", file_line!(path, element))
                         }
                         "release_permalink" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
@@ -328,28 +338,28 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     warn!("Option release_permalink is set more than once - overriding previous value '{}' with '{}'", previous, value);
                                 }
                                 
-                                local_options.release_permalink = Some(value);      
+                                local_options.release_permalink = Some(value);
                             }
-                            _ => error!("Ignoring invalid release_permalink option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid release_permalink option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "release_text" => match element.kind {
                             Kind::Embed(Some(value)) |
                             Kind::Field(FieldContent::Value(value)) => overrides.release_text = Some(util::markdown_to_html(&value)),
-                            _ => error!("Ignoring invalid release_text option (can only be an embed or field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid release_text option (can only be an embed or field containing a value) in {}", file_line!(path, element))
                         }
                         "release_title" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => overrides.release_title = Some(value),
-                            _ => error!("Ignoring invalid release_title option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid release_title option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "streaming_quality" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
                                 match value.as_str() {
                                     "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
                                     "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
-                                    value => error!("Ignoring invalid streaming_quality setting value '{}' (available: standard, transparent) in {:?}", value, path)
+                                    value => error!("Ignoring invalid streaming_quality setting value '{}' (available: standard, transparent) in {}", value, file_line!(path, element))
                                 }
                             },
-                            _ => error!("Ignoring invalid streaming_quality option (can only be a field containing a value) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid streaming_quality option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "theme" => match element.kind {
                             Kind::Field(FieldContent::Attributes(attributes))  => {
@@ -364,22 +374,22 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         "background_image" => theme.background_image = Some(attribute.value.clone()),  // TODO: Verify file exists at provided location
                                         "base" => match ThemeBase::from_manifest_key(attribute.value.as_str()) {
                                             Some(variant) => theme.base = variant,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in manifest '{:?}'", attribute.value, path)
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in {}", attribute.value, file_line!(path, attribute))
                                         }
                                         "custom_font" => {
                                             if attribute.value.is_empty() {
-                                                error!("Ignoring unsupported empty value for global 'theme.custom_font' (an existing path to a .woff2 file needs to be given) in manifest '{:?}'", path);
+                                                error!("Ignoring unsupported empty value for global 'theme.custom_font' (an existing path to a .woff2 file needs to be given) in {}", file_line!(path, attribute));
                                             } else {
                                                 theme.font = ThemeFont::Custom(attribute.value.clone());
                                             }
                                         }
                                         "hue" => match attribute.value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
                                             Some(degrees) => theme.hue = degrees,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in manifest '{:?}'", attribute.value, path)
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in {}", attribute.value, file_line!(path, attribute))
                                         }
                                         "hue_spread" => match attribute.value.parse::<i16>().ok() {
                                             Some(degree_offset) => theme.hue_spread = degree_offset,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in manifest '{:?}'", attribute.value, path)
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in {}", attribute.value, file_line!(path, attribute))
                                         }
                                         "system_font" => {
                                             theme.font = if attribute.value.is_empty() || attribute.value == "sans" {
@@ -392,11 +402,11 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         }
                                         "tint_back" => match attribute.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
                                             Some(percentage) => theme.tint_back = percentage,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in manifest '{:?}'", attribute.value, path)
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}", attribute.value, file_line!(path, attribute))
                                         }
                                         "tint_front" => match attribute.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
                                             Some(percentage) => theme.tint_front = percentage,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in manifest '{:?}'", attribute.value, path)
+                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}", attribute.value, file_line!(path, attribute))
                                         }
                                         key => error!("Ignoring unsupported global 'theme.{}' in manifest '{:?}'", key, path)
                                     }
@@ -405,24 +415,24 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 build.theme = Some(theme);
                             }
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid theme option (can only be a field containing a map of attributes) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid theme option (can only be a field containing a map of attributes) in {}", file_line!(path, element))
                         }
                         "track_artist" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => overrides.track_artists = Some(vec![value]),
-                            Kind::Field(FieldContent::Items(_)) => error!("Ignoring track_artist option with multiple values (use the key track_artists instead) in manifest '{:?}'", path),
-                            _ => error!("Ignoring invalid track_artist option (can only be a field containing a value) in manifest '{:?}'", path)
+                            Kind::Field(FieldContent::Items(_)) => error!("Ignoring track_artist option with multiple values (use the key track_artists instead) in {}", file_line!(path, element)),
+                            _ => error!("Ignoring invalid track_artist option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "track_artists" => match element.kind {
-                            Kind::Field(FieldContent::Items(items)) => overrides.track_artists = Some(items),
+                            Kind::Field(FieldContent::Items(items)) => overrides.track_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid track_artists option (can only be a field containing a list) in manifest '{:?}'", path)
+                            _ => error!("Ignoring invalid track_artists option (can only be a field containing a list) in {}", file_line!(path, element))
                         }
-                        unsupported_key => error!("Ignoring unsupported option '{}' in manifest '{:?}'", unsupported_key, path)
+                        unsupported_key => error!("Ignoring unsupported option '{}' in {}", unsupported_key, file_line!(path, element))
                     }
                 }
-                Err(err) => error!("Syntax error in manifest {:?} ({})", path, err)
+                Err(err) => error!("Syntax error in {}:{} ({})", path.display(), err.line, err)
             }
         }
-        Err(err) => error!("Could not read manifest {:?} ({})", path, err)
+        Err(err) => error!("Could not read manifest {} ({})", path.display(), err)
     } 
 }
