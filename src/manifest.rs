@@ -119,21 +119,6 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             }
                             _ => error!("Ignoring invalid artist option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
-                        "base_url" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                match Url::parse(&value) {
-                                    Ok(url) => {
-                                        if let Some(previous_url) = &build.base_url {
-                                            warn_global_set_repeatedly!("base_url", previous_url, url);
-                                        }
-                                        
-                                        build.base_url = Some(url);
-                                    }
-                                    Err(err) => error!("Ignoring invalid base_url setting value '{}' in {} ({})", value, file_line!(path, element), err)
-                                }
-                            }
-                            _ => error!("Ignoring invalid base_url option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
                         "cache_optimization" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => {
                                 match CacheOptimization::from_manifest_key(value.as_str()) {
@@ -201,15 +186,40 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             Kind::Field(FieldContent::None) => (),
                             _ => error!("Ignoring invalid download_formats option (can only be a field containing a list) in {}", file_line!(path, element))
                         }
-                        "feed_image" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                if let Some(previous) = &catalog.feed_image {
-                                    warn_global_set_repeatedly!("feed_image", previous, value);
+                        "feed" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "base_url" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match Url::parse(&value) {
+                                                    Ok(url) => {
+                                                        if let Some(previous_url) = &build.base_url {
+                                                            warn_global_set_repeatedly!("feed.base_url", previous_url, url);
+                                                        }
+                                                        
+                                                        build.base_url = Some(url);
+                                                    }
+                                                    Err(err) => error!("Ignoring invalid feed.base_url setting value '{}' in {} ({})", value, file_line!(path, section_element), err)
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid feed.base_url option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "image" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                if let Some(previous) = &catalog.feed_image {
+                                                    warn_global_set_repeatedly!("feed.image", previous, value);
+                                                }
+                                                
+                                                catalog.feed_image = Some(value.clone()); // TODO: Verify file exists at provided location
+                                            }
+                                            _ => error!("Ignoring invalid feed.image option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported feed.{} option in {}", key, file_line!(path, section_element))
+                                    }
                                 }
-                                
-                                catalog.feed_image = Some(value); // TODO: Verify file exists at provided location
                             }
-                            _ => error!("Ignoring invalid feed_image option (can only be a field containing a value) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid feed option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
                         "free_download" => match element.kind {
                             Kind::Empty  => overrides.download_option = DownloadOption::init_free(),
@@ -362,60 +372,95 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             _ => error!("Ignoring invalid streaming_quality option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "theme" => match element.kind {
-                            Kind::Field(FieldContent::Attributes(attributes))  => {
+                            Kind::Section(section_elements)  => {
                                 if build.theme.is_some() {
                                     warn_global_set_repeatedly!("theme");
                                 }
                                 
                                 let mut theme = Theme::defaults();
                                 
-                                for attribute in &attributes {
-                                    match attribute.key.as_str() {
-                                        "background_image" => theme.background_image = Some(attribute.value.clone()),  // TODO: Verify file exists at provided location
-                                        "base" => match ThemeBase::from_manifest_key(attribute.value.as_str()) {
-                                            Some(variant) => theme.base = variant,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in {}", attribute.value, file_line!(path, attribute))
-                                        }
-                                        "custom_font" => {
-                                            if attribute.value.is_empty() {
-                                                error!("Ignoring unsupported empty value for global 'theme.custom_font' (an existing path to a .woff2 file needs to be given) in {}", file_line!(path, attribute));
-                                            } else {
-                                                theme.font = ThemeFont::Custom(attribute.value.clone());
+                                for section_element in &section_elements {
+                                    match section_element.key.as_str() {
+                                        "background_image" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                theme.background_image = Some(value.clone());  // TODO: Verify file exists at provided location
                                             }
+                                            _ => error!("Ignoring invalid theme.background_image option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        "hue" => match attribute.value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                                            Some(degrees) => theme.hue = degrees,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in {}", attribute.value, file_line!(path, attribute))
+                                        "base" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match ThemeBase::from_manifest_key(value.as_str()) {
+                                                    Some(variant) => theme.base = variant,
+                                                    None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid theme.base option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        "hue_spread" => match attribute.value.parse::<i16>().ok() {
-                                            Some(degree_offset) => theme.hue_spread = degree_offset,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in {}", attribute.value, file_line!(path, attribute))
+                                        "custom_font" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                if value.is_empty() {
+                                                    error!("Ignoring unsupported empty value for global 'theme.custom_font' (an existing path to a .woff2 file needs to be given) in {}", file_line!(path, section_element));
+                                                } else {
+                                                    theme.font = ThemeFont::Custom(value.clone());
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid theme.custom_font option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        "system_font" => {
-                                            theme.font = if attribute.value.is_empty() || attribute.value == "sans" {
-                                                ThemeFont::SystemSans
-                                            } else if attribute.value == "mono" {
-                                                ThemeFont::SystemMono
-                                            } else {
-                                                ThemeFont::System(attribute.value.clone())
-                                            };
+                                        "hue" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
+                                                    Some(degrees) => theme.hue = degrees,
+                                                    None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid theme.hue option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        "tint_back" => match attribute.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                                            Some(percentage) => theme.tint_back = percentage,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}", attribute.value, file_line!(path, attribute))
+                                        "hue_spread" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match value.parse::<i16>().ok() {
+                                                    Some(degree_offset) => theme.hue_spread = degree_offset,
+                                                    None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid theme.hue_spread option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        "tint_front" => match attribute.value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                                            Some(percentage) => theme.tint_front = percentage,
-                                            None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}", attribute.value, file_line!(path, attribute))
+                                        "system_font" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                theme.font = if value.is_empty() || value == "sans" {
+                                                    ThemeFont::SystemSans
+                                                } else if value == "mono" {
+                                                    ThemeFont::SystemMono
+                                                } else {
+                                                    ThemeFont::System(value.clone())
+                                                };
+                                            }
+                                            _ => error!("Ignoring invalid theme.system_font option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        key => error!("Ignoring unsupported global 'theme.{}' in manifest '{:?}'", key, path)
+                                        "tint_back" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
+                                                    Some(percentage) => theme.tint_back = percentage,
+                                                    None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid theme.tint_back option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "tint_front" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
+                                                    Some(percentage) => theme.tint_front = percentage,
+                                                    None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid theme.tint_front option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported global 'theme.{}' in {}", key, file_line!(path, section_element))
                                     }
                                 }
                                 
                                 build.theme = Some(theme);
                             }
-                            Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid theme option (can only be a field containing a map of attributes) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid theme option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
                         "track_artist" => match element.kind {
                             Kind::Field(FieldContent::Value(value)) => overrides.track_artists = Some(vec![value]),

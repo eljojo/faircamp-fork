@@ -75,17 +75,11 @@ everything in its containing folder `release_a`, as likewise
 `my_release_manifest_b.eno` can selectively override certain things for
 everything in its containing folder `release_b`.
 
-### Example manifest
+### Manifest options by example
 
-Note that this demonstrates only a subset of available options, and because it is a demonstration, more options than you will usually see in a manifest:
+Note that this demonstrates only a subset of available options, and because it is a demonstration, more options than you will usually need:
 
 ```eno
-> Sets the URL under which you intend to host faircamp, only used for RSS feed generation
-base_url: https://myawesomemusic.site/
-
-> Sets an image for the generated RSS feed
-feed_image: exported_logo_v3.jpg
-
 > Sets the global about page text for your site
 catalog_text: My self hosted faircamp site, which presents some of my awesome music. Nice of you to stop by!
 
@@ -137,23 +131,42 @@ liberapay = ThatAwesomeArtist42
 
 > Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
 streaming_quality: standard
-
-> You can adjust the visual appearance of your faircamp site to your liking.
-> A *background_image* can be specified, the *base* theme can be chosen from *dark* and *light*,
-> the accent color used in the theme can be set through *hue* (0-360) and a *hue_spread* (e.g. -12, 3, 320)
-> can be defined, which makes the site more colorful (where 0 = mono-colored). In order for *hue_spread* to
-> have an effect, make sure to turn up tint_back (0-100) and/or tint_front (0-100) to add a varyingly
-> strong color tint to either the background, or the elements in the foreground (most prominently: text).
-theme:
-background_image = squiggly_monsters_texture.jpg
-base = dark
-hue = 13
-hue_spread = 0
-tint_back = 0
-tint_front = 0
 ```
 
-### Advanced control over caching strategy
+#### Feed
+
+You need to specify the base url under which you're hosting your faircamp site in order for the RSS feed to be generated. The image for the feed is optional.
+
+```eno
+# feed
+
+base_url: https://myawesomemusic.site/
+image: exported_logo_v3.jpg
+```
+
+#### Theme
+
+You can adjust the visual appearance of your faircamp site to your liking. A
+*background_image* can be specified, the *base* theme can be chosen from *dark*
+and *light*, the accent color used in the theme can be set through *hue* (0-360)
+and a *hue_spread* (e.g. -12, 3, 320) can be defined, which makes the site more
+colorful (where 0 = mono-colored). In order for *hue_spread* to have an effect,
+make sure to turn up tint_back (0-100) and/or tint_front (0-100) to add a
+varyingly strong color tint to either the background, or the elements in the
+foreground (most prominently: text).
+
+```eno
+# theme
+
+background_image: squiggly_monsters_texture.jpg
+base: dark
+hue: 13
+hue_spread: 0
+tint_back: 0
+tint_front: 0
+```
+
+#### Advanced control over caching strategy
 
 ```eno
 cache_optimization: [delayed|immediate|manual|wipe]
