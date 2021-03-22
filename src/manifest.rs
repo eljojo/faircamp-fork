@@ -359,9 +359,10 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     .filter_map(|section_element|
                                         match section_element.key.as_ref() {
                                             "custom" => match &section_element.kind {
+                                                Kind::Embed(Some(value)) |
                                                 Kind::Field(FieldContent::Value(value)) => Some(PaymentOption::init_custom(value)),
                                                 _ => {
-                                                    error!("Ignoring invalid payment.custom option (can only be a field containing a value) in {}", file_line!(path, section_element));
+                                                    error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}", file_line!(path, section_element));
                                                     None
                                                 }
                                             }
