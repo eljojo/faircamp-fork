@@ -1,10 +1,11 @@
 use claxon::{Block, FlacReader};
 use hound::{SampleFormat, WavReader};
 use id3;
+use lewton::inside_ogg::OggStreamReader;
 use metaflac;
 use rmp3::{Decoder, Frame};
 use serde_derive::{Serialize, Deserialize};
-use std::fs;
+use std::fs::{self, File};
 use std::path::Path;
 
 const I24_MAX: i32 = 8388607;
@@ -104,6 +105,25 @@ impl AudioMeta {
                         title: None,
                         track_number: None
                     }
+                }
+            }
+            "ogg" => {
+                let (duration_seconds, peaks) = match decode_ogg_vorbis(path) {
+                    Some(decode_result) => (
+                        decode_result.duration as u32,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0, None)
+                };
+                
+                AudioMeta {
+                    album: None,
+                    artist: None,
+                    duration_seconds,
+                    lossless,
+                    peaks,
+                    title: None,
+                    track_number: None
                 }
             }
             "wav" => {
@@ -286,6 +306,37 @@ fn decode_mp3(path: &Path) -> Option<DecodeResult> {
     }
     
     result
+}
+
+fn decode_ogg_vorbis(path: &Path) -> Option<DecodeResult> {
+    let mut reader = match File::open(path) {
+        Ok(file) => match OggStreamReader::new(file) {
+            Ok(reader) => reader,
+            Err(_) => return None
+        },
+        Err(_) => return None
+    };
+    
+    let mut result = DecodeResult {
+        channels: reader.ident_hdr.audio_channels as u16,
+        duration: 0.0,
+        sample_count: 0,
+        sample_rate: reader.ident_hdr.audio_sample_rate,
+        samples: Vec::new()
+    };
+    
+    while let Ok(Some(packet_samples)) = reader.read_dec_packet_itl() {
+        result.sample_count += packet_samples.len() as u32 / result.channels as u32;
+        result.samples.reserve(packet_samples.len());
+        
+        for sample in packet_samples {
+            result.samples.push(sample as f32 / std::i16::MAX as f32);
+        }
+        
+        result.duration = result.sample_count as f32 / result.sample_rate as f32;
+    }
+
+    Some(result)
 }
 
 fn decode_wav(path: &Path) -> Option<DecodeResult> {
