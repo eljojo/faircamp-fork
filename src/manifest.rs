@@ -119,72 +119,177 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             }
                             _ => error!("Ignoring invalid artist option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
-                        "cache_optimization" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                match CacheOptimization::from_manifest_key(value.as_str()) {
-                                    Some(strategy) => {
-                                        if build.cache_optimization != CacheOptimization::Default {
-                                            warn_global_set_repeatedly!("cache_optimization", build.cache_optimization, strategy);
-                                        }
-                                        
-                                        build.cache_optimization = strategy;
-                                    }
-                                    None => error!("Ignoring invalid cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}", value, file_line!(path, element))
-                                }
-                            }
-                            _ => error!("Ignoring invalid cache_optimization option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
-                        "catalog_text" => match element.kind {
-                            Kind::Embed(Some(value)) |
-                            Kind::Field(FieldContent::Value(value)) => {
-                                if let Some(previous) = &catalog.text {
-                                    warn_global_set_repeatedly!("catalog_text", previous, value);
-                                }
-                                
-                                catalog.text = Some(value);      
-                            }
-                            _ => error!("Ignoring invalid catalog_text option (can only be an embed or field containing a value) in {}", file_line!(path, element))
-                        }
-                        "catalog_title" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                if let Some(previous) = &catalog.title {
-                                    warn_global_set_repeatedly!("catalog_title", previous, value);
-                                }
-                                
-                                catalog.title = Some(value);      
-                            }
-                            _ => error!("Ignoring invalid catalog_title option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
-                        "disable_download" => match element.kind {
-                            Kind::Empty  => overrides.download_option = DownloadOption::Disabled,
-                            _ => error!("Ignoring invalid disable_download option (can only be an empty) in {}", file_line!(path, element))
-                        }
-                        "download_format" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                match AudioFormat::from_manifest_key(value.as_str()) {
-                                    Some(format) => overrides.download_formats = vec![format],
-                                    None => error!("Ignoring invalid download_format setting value '{}' in {}", value, file_line!(path, element))
-                                }
-                            }
-                            _ => error!("Ignoring invalid download_format option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
-                        "download_formats" => match &element.kind {
-                            Kind::Field(FieldContent::Items(items))  => {
-                                overrides.download_formats = items
-                                    .iter()
-                                    .filter_map(|item|
-                                        match AudioFormat::from_manifest_key(item.value.as_str()) {
-                                            None => {
-                                                error!("Ignoring invalid download_formats format specifier '{}' in {}", item.value, file_line!(path, item));
-                                                None
+                        "cache" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "optimization" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match CacheOptimization::from_manifest_key(value.as_str()) {
+                                                    Some(strategy) => {
+                                                        if build.cache_optimization != CacheOptimization::Default {
+                                                            warn_global_set_repeatedly!("cache.optimization", build.cache_optimization, strategy);
+                                                        }
+                                                        
+                                                        build.cache_optimization = strategy;
+                                                    }
+                                                    None => error!("Ignoring invalid cache.optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}", value, file_line!(path, section_element))
+                                                }
                                             }
-                                            some_format => some_format
+                                            _ => error!("Ignoring invalid cache.optimization option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                    )
-                                    .collect();
+                                        key => error!("Ignoring unsupported cache.{} option in {}", key, file_line!(path, section_element))
+                                    }
+                                }
                             }
-                            Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid download_formats option (can only be a field containing a list) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid cache option (can only be a section containing specific elements) in {}", file_line!(path, element))
+                        }
+                        "catalog" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "text" => match &section_element.kind {
+                                            Kind::Embed(Some(value)) |
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                if let Some(previous) = &catalog.text {
+                                                    warn_global_set_repeatedly!("catalog.text", previous, value);
+                                                }
+                                                
+                                                catalog.text = Some(value.clone());      
+                                            }
+                                            _ => error!("Ignoring invalid catalog.text option (can only be an embed or field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "title" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                if let Some(previous) = &catalog.title {
+                                                    warn_global_set_repeatedly!("catalog.title", previous, value);
+                                                }
+                                                
+                                                catalog.title = Some(value.clone());      
+                                            }
+                                            _ => error!("Ignoring invalid catalog.title option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported catalog.{} option in {}", key, file_line!(path, section_element))
+                                    }
+                                }
+                            }
+                            _ => error!("Ignoring invalid catalog option (can only be a section containing specific elements) in {}", file_line!(path, element))
+                        }
+                        "download" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "disabled" => match section_element.kind {
+                                            Kind::Empty  => overrides.download_option = DownloadOption::Disabled,
+                                            _ => error!("Ignoring invalid download.disabled option (can only be an empty) in {}", file_line!(path, element))
+                                        }
+                                        "format" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match AudioFormat::from_manifest_key(value.as_str()) {
+                                                    Some(format) => overrides.download_formats = vec![format],
+                                                    None => error!("Ignoring invalid download.format setting value '{}' in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid download.format option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "formats" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Items(items))  => {
+                                                overrides.download_formats = items
+                                                    .iter()
+                                                    .filter_map(|item|
+                                                        match AudioFormat::from_manifest_key(item.value.as_str()) {
+                                                            None => {
+                                                                error!("Ignoring invalid download.formats format specifier '{}' in {}", item.value, file_line!(path, item));
+                                                                None
+                                                            }
+                                                            some_format => some_format
+                                                        }
+                                                    )
+                                                    .collect();
+                                            }
+                                            Kind::Field(FieldContent::None) => (),
+                                            _ => error!("Ignoring invalid download.formats option (can only be a field containing a list) in {}", file_line!(path, section_element))
+                                        }
+                                        "free" => match section_element.kind {
+                                            Kind::Empty  => overrides.download_option = DownloadOption::init_free(),
+                                            _ => error!("Ignoring invalid download.free option (can only be an empty) in {}", file_line!(path, section_element))
+                                        }
+                                        "price" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                let mut split_by_whitespace = value.split_ascii_whitespace();
+                                                
+                                                if let Some(first_token) = split_by_whitespace.next() {
+                                                    if let Some(currency) = Currency::from_code(first_token) {
+                                                        let recombined = &value[4..];
+                                                        
+                                                        if recombined.ends_with("+") {
+                                                            if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
+                                                                overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
+                                                            } else {
+                                                                error!("Ignoring download.price option '{}' with malformed minimum price in {}", value, file_line!(path, section_element));
+                                                            }
+                                                        } else {
+                                                            let mut split_by_dash = recombined.split("-");
+                                                            
+                                                            if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
+                                                                if let Some(max_amount) = split_by_dash.next() {
+                                                                    if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
+                                                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
+                                                                    } else {
+                                                                        error!("Ignoring download.price option '{}' with malformed minimum price in {}", value, file_line!(path, section_element));
+                                                                    }
+                                                                } else {
+                                                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
+                                                                }
+                                                            } else {
+                                                                error!("Ignoring download.price option '{}' with malformed price in {}", value, file_line!(path, section_element));
+                                                            }
+                                                        }
+                                                    } else if let Some(last_token) = split_by_whitespace.last() {
+                                                        if let Some(currency) = Currency::from_code(last_token) {
+                                                            let recombined = &value[..(value.len() - 4)];
+                                                            
+                                                            // TODO: DRY - exact copy from above
+                                                            if recombined.ends_with("+") {
+                                                                if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
+                                                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
+                                                                } else {
+                                                                    error!("Ignoring download.price option '{}' with malformed minimum price in {}", value, file_line!(path, section_element));
+                                                                }
+                                                            } else {
+                                                                let mut split_by_dash = recombined.split("-");
+                                                                
+                                                                if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
+                                                                    if let Some(max_amount) = split_by_dash.next() {
+                                                                        if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
+                                                                            overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
+                                                                        } else {
+                                                                            error!("Ignoring download.price option '{}' with malformed minimum price in {}", value, file_line!(path, section_element));
+                                                                        }
+                                                                    } else {
+                                                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
+                                                                    }
+                                                                } else {
+                                                                    error!("Ignoring download.price option '{}' with malformed price in {}", value, file_line!(path, section_element));
+                                                                }
+                                                            }
+                                                        } else {
+                                                            error!("Ignoring download.price option '{}' without recognizable currency code in {}", value, file_line!(path, section_element));
+                                                        }
+                                                    } else {
+                                                        error!("Ignoring unrecognized download.price option '{}' in {}", value, file_line!(path, section_element));
+                                                    }
+                                                } else {
+                                                    error!("Ignoring unrecognized download.price option '{}' in {}", value, file_line!(path, section_element));
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid download.price option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported download.{} option in {}", key, file_line!(path, section_element))
+                                    }
+                                }
+                            }
+                            _ => error!("Ignoring invalid download option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
                         "feed" => match &element.kind {
                             Kind::Section(section_elements) => {
@@ -221,155 +326,120 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             }
                             _ => error!("Ignoring invalid feed option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
-                        "free_download" => match element.kind {
-                            Kind::Empty  => overrides.download_option = DownloadOption::init_free(),
-                            _ => error!("Ignoring invalid free_download option (can only be an empty) in {}", file_line!(path, element))
-                        }
-                        "localization" => match element.kind {
-                            Kind::Field(FieldContent::Attributes(attributes))  => {
-                                for attribute in &attributes {
-                                    match attribute.key.as_str() {
-                                        "language" => build.localization.language = attribute.value.clone(),
-                                        "writing_direction" => match attribute.value.as_str() {
-                                            "ltr" => build.localization.writing_direction = WritingDirection::Ltr,
-                                            "rtl" => build.localization.writing_direction = WritingDirection::Rtl,
-                                            value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in {}", value, file_line!(path, element))
+                        "localization" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "language" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                build.localization.language = value.clone();
+                                            }
+                                            _ => error!("Ignoring invalid localization.language option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
-                                        key => error!("Ignoring unsupported global 'localization.{}' in {}", key, file_line!(path, element))
+                                        "writing_direction" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match value.as_str() {
+                                                    "ltr" => build.localization.writing_direction = WritingDirection::Ltr,
+                                                    "rtl" => build.localization.writing_direction = WritingDirection::Rtl,
+                                                    value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid localization.language option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported localization.{} option in {}", key, file_line!(path, section_element))
                                     }
                                 }
                             }
-                            Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid localization option (can only be a field containing a map of attributes) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid localization option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
-                        "paid_download" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                let mut split_by_whitespace = value.split_ascii_whitespace();
-                                
-                                if let Some(first_token) = split_by_whitespace.next() {
-                                    if let Some(currency) = Currency::from_code(first_token) {
-                                        let recombined = &value[4..];
-                                        
-                                        if recombined.ends_with("+") {
-                                            if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
-                                                overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
-                                            } else {
-                                                error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
-                                            }
-                                        } else {
-                                            let mut split_by_dash = recombined.split("-");
-                                            
-                                            if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
-                                                if let Some(max_amount) = split_by_dash.next() {
-                                                    if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
-                                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
-                                                    } else {
-                                                        error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
-                                                    }
-                                                } else {
-                                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
-                                                }
-                                            } else {
-                                                error!("Ignoring paid_download option '{}' with malformed price in {}", value, file_line!(path, element));
-                                            }
-                                        }
-                                    } else if let Some(last_token) = split_by_whitespace.last() {
-                                        if let Some(currency) = Currency::from_code(last_token) {
-                                            let recombined = &value[..(value.len() - 4)];
-                                            
-                                            // TODO: DRY - exact copy from above
-                                            if recombined.ends_with("+") {
-                                                if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
-                                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
-                                                } else {
-                                                    error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
-                                                }
-                                            } else {
-                                                let mut split_by_dash = recombined.split("-");
-                                                
-                                                if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
-                                                    if let Some(max_amount) = split_by_dash.next() {
-                                                        if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
-                                                            overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
-                                                        } else {
-                                                            error!("Ignoring paid_download option '{}' with malformed minimum price in {}", value, file_line!(path, element));
-                                                        }
-                                                    } else {
-                                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
-                                                    }
-                                                } else {
-                                                    error!("Ignoring paid_download option '{}' with malformed price in {}", value, file_line!(path, element));
-                                                }
-                                            }
-                                        } else {
-                                            error!("Ignoring paid_download option '{}' without recognizable currency code in {}", value, file_line!(path, element));
-                                        }
-                                    } else {
-                                        error!("Ignoring unrecognized paid_download option '{}' in {}", value, file_line!(path, element));
-                                    }
-                                } else {
-                                    error!("Ignoring unrecognized paid_download option '{}' in {}", value, file_line!(path, element));
-                                }
-                            }
-                            _ => error!("Ignoring invalid paid_download option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
-                        "payment_options" => match &element.kind {
-                            Kind::Field(FieldContent::Attributes(attributes))  => {
-                                overrides.payment_options = attributes
+                        "payment" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                overrides.payment_options = section_elements
                                     .iter()
-                                    .filter_map(|attribute|
-                                        match attribute.key.as_str() {
-                                            "custom" => Some(PaymentOption::init_custom(&attribute.value)),
-                                            "liberapay" => Some(PaymentOption::init_liberapay(&attribute.value)),
+                                    .filter_map(|section_element|
+                                        match section_element.key.as_ref() {
+                                            "custom" => match &section_element.kind {
+                                                Kind::Field(FieldContent::Value(value)) => Some(PaymentOption::init_custom(value)),
+                                                _ => {
+                                                    error!("Ignoring invalid payment.custom option (can only be a field containing a value) in {}", file_line!(path, section_element));
+                                                    None
+                                                }
+                                            }
+                                            "liberapay" => match &section_element.kind {
+                                                Kind::Field(FieldContent::Value(value)) => Some(PaymentOption::init_liberapay(value)),
+                                                _ => {
+                                                    error!("Ignoring invalid payment.liberapay option (can only be a field containing a value) in {}", file_line!(path, section_element));
+                                                    None
+                                                }
+                                            }
                                             key => {
-                                                error!("Ignoring unsupported payment_options attribute '{}' in {}", key, file_line!(path, element));
+                                                error!("Ignoring unsupported payment.options setting '{}' in {}", key, file_line!(path, section_element));
                                                 None
                                             }
                                         }
                                     )
                                     .collect();
                             }
-                            Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid payment_options option (can only be a field containing a map of attributes) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid payment option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
-                        "release_artist" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => overrides.release_artists = Some(vec![value]),
-                            Kind::Field(FieldContent::Items(_)) => error!("Ignoring release_artist option with multiple values (use the key release_artists instead) in {}", file_line!(path, element)),
-                            _ => error!("Ignoring invalid release_artist option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
-                        "release_artists" => match element.kind {
-                            Kind::Field(FieldContent::Items(items)) => overrides.release_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
-                            Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid release_artists option (can only be a field containing a list) in {}", file_line!(path, element))
-                        }
-                        "release_permalink" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                if let Some(previous) = &local_options.release_permalink {
-                                    warn!("Option release_permalink is set more than once - overriding previous value '{}' with '{}'", previous, value);
+                        "release" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "artist" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => overrides.release_artists = Some(vec![value.clone()]),
+                                            Kind::Field(FieldContent::Items(_)) => error!("Ignoring release.artist option with multiple values (use plural release.artists instead) in {}", file_line!(path, section_element)),
+                                            _ => error!("Ignoring invalid release.artist option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "artists" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Items(items)) => overrides.release_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
+                                            Kind::Field(FieldContent::None) => (),
+                                            _ => error!("Ignoring invalid release.artists option (can only be a field containing a list) in {}", file_line!(path, section_element))
+                                        }
+                                        "permalink" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                if let Some(previous) = &local_options.release_permalink {
+                                                    warn!("Option release.permalink is set more than once - overriding previous value '{}' with '{}'", previous, value);
+                                                }
+                                                
+                                                local_options.release_permalink = Some(value.clone());
+                                            }
+                                            _ => error!("Ignoring invalid release.permalink option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "text" => match &section_element.kind {
+                                            Kind::Embed(Some(value)) |
+                                            Kind::Field(FieldContent::Value(value)) => overrides.release_text = Some(util::markdown_to_html(&value)),
+                                            _ => error!("Ignoring invalid release.text option (can only be an embed or field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "title" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => overrides.release_title = Some(value.clone()),
+                                            _ => error!("Ignoring invalid release.title option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported release.{} option in {}", key, file_line!(path, section_element))
+                                    }
                                 }
-                                
-                                local_options.release_permalink = Some(value);
                             }
-                            _ => error!("Ignoring invalid release_permalink option (can only be a field containing a value) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid release option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
-                        "release_text" => match element.kind {
-                            Kind::Embed(Some(value)) |
-                            Kind::Field(FieldContent::Value(value)) => overrides.release_text = Some(util::markdown_to_html(&value)),
-                            _ => error!("Ignoring invalid release_text option (can only be an embed or field containing a value) in {}", file_line!(path, element))
-                        }
-                        "release_title" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => overrides.release_title = Some(value),
-                            _ => error!("Ignoring invalid release_title option (can only be a field containing a value) in {}", file_line!(path, element))
-                        }
-                        "streaming_quality" => match element.kind {
-                            Kind::Field(FieldContent::Value(value)) => {
-                                match value.as_str() {
-                                    "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
-                                    "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
-                                    value => error!("Ignoring invalid streaming_quality setting value '{}' (available: standard, transparent) in {}", value, file_line!(path, element))
+                        "streaming" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "quality" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match value.as_str() {
+                                                    "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
+                                                    "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
+                                                    value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, transparent) in {}", value, file_line!(path, section_element))
+                                                }
+                                            },
+                                            _ => error!("Ignoring invalid streaming.quality option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        key => error!("Ignoring unsupported streaming.{} option in {}", key, file_line!(path, section_element))
+                                    }
                                 }
-                            },
-                            _ => error!("Ignoring invalid streaming_quality option (can only be a field containing a value) in {}", file_line!(path, element))
+                            }
+                            _ => error!("Ignoring invalid streaming option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
                         "theme" => match element.kind {
                             Kind::Section(section_elements)  => {

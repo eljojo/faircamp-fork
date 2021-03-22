@@ -77,17 +77,44 @@ everything in its containing folder `release_b`.
 
 ### Manifest options by example
 
-Note that this demonstrates only a subset of available options, and because it is a demonstration, more options than you will usually need:
+This demonstrates a subset of available options. None of them are required to get started and depending on your usecase you might only need very few of them in the end as well.
+
+Note that manifest lines such as `# catalog` are not comments but denote sections (and instead `> these are comments`).
+
+#### Catalog
+
+Here you can set the title of your site (which appears at the title of browser
+tabs, inside the RSS feed, etc.), as well as the global about page text for your
+site.
 
 ```eno
-> Sets the global about page text for your site
-catalog_text: My self hosted faircamp site, which presents some of my awesome music. Nice of you to stop by!
+# catalog
 
-> Sets the title of your site, appears at the title of browser tabs, inside the RSS feed, etc.
-catalog_title: My awesome music
+-- text
+My self hosted faircamp site,
+which presents some of my awesome music.
 
-> Enable all download formats for demonstration purposes (in practice less is recommended, e.g. flac + mp3_v0 + ogg_vorbis)
-download_formats:
+Nice of you to stop by!
+-- text
+
+title: My awesome music
+```
+
+#### Download
+
+By default only streaming is enabled, so you need to specify the `free` or `price` option to enable downloading.
+
+```eno
+# download
+
+> Use this to disable downloading for specific releases when it has been enabled in a manifest above in the hierarchy
+disabled
+
+> This enables downloading unconditionally without asking for recompensation
+free
+
+> All enabled for demonstration purposes (in practice less is recommended, e.g. flac and mp3)
+formats:
 - aac
 - aiff
 - flac
@@ -96,42 +123,18 @@ download_formats:
 - ogg_vorbis
 - wav
 
-> This enables downloading of (a) release(s) behind a soft - i.e. not technically enforced - paycurtain (by default only streaming is enabled)
-> (This overrides disable_download & free_download and in practice would not be used along side these in the same manifest)
->
-> This setting accepts (in any order) a currency code (ISO 4217 [1]) and a price range as in these examples:
-> USD 0+ (Name your price, including zero dollars as a valid option)
-> 3.50 EUR (Exactly 3.50 euros)
-> KRW 9080 (Exactly 9080 south korean won)
-> INR 230+ (230 indian rupees or more)
-> JPY 400-800 (Between 400 and 800 japanese yen)
->
-> [1] https://en.wikipedia.org/wiki/ISO_4217
-download_price: RUB 700+
-
-> This can be used to disable downloading (both free & paid) for specific releases (when it has been enabled in a manifest above in the hierarchy)
-> (This overrides download_price & free_download and in practice would not be used along side these in the same manifest)
-disable_download
-
-> This enables downloading of (a) release(s) unconditionally without mention of financial recompensation (by default only streaming is enabled)
-> (This overrides download_price & disable_download and in practice would not be used along side these in the same manifest)
-free_download
-
-> This allows you to configure a language code (used e.g. for the RSS feed metadata) and more importantly
-> to switch from left-to-right to right-to-left presentation for e.g. arabic and hebrew scripts.
-localization:
-language = he
-writing_direction = rtl
-
-> This sets payment options that are shown when someone wants to buy one of your releases (for liberapay just provide your account name)
-payment_options:
-custom = I'm playing a show at *Substage Indenhoven* on Dec 19th - you can get the digital album now and meet me at the merch stand in december in person to give me the money yourself!
-custom = If you're in europe you can send the money via SEPA, contact me at [lila@thatawesomeartist42.com](mailto:lila@thatawesomeartist42.com) and I'll send you the account details
-liberapay = ThatAwesomeArtist42
-
-> Sets the encoding quality of the files people hear when listening in the browser (standard or transparent).
-streaming_quality: standard
+> This enables downloads behind a soft (i.e. not technically enforced) paycurtain
+price: RUB 700+
 ```
+
+The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+- `USD 0+` (Name your price, including zero dollars as a valid option)
+- `3.50 EUR` (Exactly 3.50 euros)
+- `KRW 9080` (Exactly 9080 south korean won)
+- `INR 230+` (230 indian rupees or more)
+- `JPY 400-800` (Between 400 and 800 japanese yen)
+
+Note that in practice you won't use `disabled`, `free` and `price` in the same manifest because these options mutually exclude each other, they are just shown here together for demonstration purposes.
 
 #### Feed
 
@@ -142,6 +145,65 @@ You need to specify the base url under which you're hosting your faircamp site i
 
 base_url: https://myawesomemusic.site/
 image: exported_logo_v3.jpg
+```
+
+#### Localization
+
+This allows you to configure a language code (used e.g. for the RSS feed
+metadata) and more importantly to switch from left-to-right to right-to-left
+presentation for e.g. arabic and hebrew scripts.
+
+```eno
+# localization
+
+language = he
+writing_direction = rtl
+```
+
+#### Payment
+
+This sets payment options that are shown when someone wants to buy one of your
+releases. For liberapay just provide your account name.
+
+```eno
+# payment
+
+custom: I'm playing a show at *Substage Indenhoven* on Dec 19th - you can get the digital album now and meet me at the merch stand in december in person to give me the money yourself!
+
+custom: If you're in europe you can send the money via SEPA, contact me at [lila@thatawesomeartist42.com](mailto:lila@thatawesomeartist42.com) and I'll send you the account details
+
+liberapay: ThatAwesomeArtist42
+```
+
+#### Release
+
+Release artists and titles are automatically derived from audio file metadata,
+however as you will possibly want to provide a textual description or tweak
+the displayed title and artists for display in the browser, such data can
+be provided through the manifests.
+
+```eno
+# release
+
+artist: Heston Exchange
+
+-- text
+Recorded in the summer of '94 at West Callaghan Ranch, XE.
+-- text
+
+title: Ape Affairs (Bonus Track Edition)
+```
+
+#### Streaming
+
+Always enabled.
+
+You can optionally set the encoding quality for streaming in the browser from `standard` (the default) to `transparent`. The `transparent` option uses significantly more bandwidth (and consequently produces more CO2) and people on slow connections might not wait for your files to load (i.e. you might lose potential future fans that way), therefore it is not recommended to change this without an actual, good reason.
+
+```eno
+# streaming
+
+quality: standard
 ```
 
 #### Theme
@@ -169,17 +231,19 @@ tint_front: 0
 #### Advanced control over caching strategy
 
 ```eno
-cache_optimization: [delayed|immediate|manual|wipe]
+# cache
+
+optimization: [delayed|immediate|manual|wipe]
 ```
 
 Faircamp maintains an asset cache that holds the results of all computation-heavy build
 artifacts (transcoded audio files, images, and compressed archives). By default this cache uses a delayed optimization strategy: Any asset that is not directly used in a build gets marked as stale and past a certain period (e.g. 24 hours) gets purged from the cache during a follow-up build (if it is not meanwhile reactivated because it's needed again). This strikes a nice balance for achieving instant build speeds during editing (after assets have been generated initially) without inadvertently growing a storage resource leak in a directory you don't ever look at normally.
 
-If you're short on disk space you can switch to *immediate* optimization, which purges stale assets right after each build (which might result in small configuration mistakes  wiping assets that took long to generate as a drawback).
+If you're short on disk space you can switch to `immediate` optimization, which purges stale assets right after each build (which might result in small configuration mistakes  wiping assets that took long to generate as a drawback).
 
-If you're even shorter on disk space you can use *wipe* optimization, which just completely wipes the cache right after each build (so everything needs to be regenerated on each build).
+If you're even shorter on disk space you can use `wipe` optimization, which just completely wipes the cache right after each build (so everything needs to be regenerated on each build).
 
-If you're more the structured type you can use  *manual* optimization, which does not 
+If you're more the structured type you can use  `manual` optimization, which does not 
 automatically purge anything from the cache but instead prints back reports on stale
 assets after each build and lets you use `faircamp --optimize-cache` and `faircamp --wipe-cache` appropriately whenever you're done with your changes and don't expect to generate
 any new builds for a while.
@@ -194,7 +258,7 @@ package manager to install `ffmpeg`, it's readily available on all major distros
 Faircamp has so far only been tested on Linux - architecturally there should be
 no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
 
-**Note that faircamp is still in early development and *might* do bad things - delete/overwrite existing files, create tons of files - if you run into unlucky circumstances. For the time being you're running faircamp completely at your own risk.**
+**Note that faircamp is still in alpha development and you're running it at your own risk.**
 
 Run this to build and install faircamp on your system:
 
