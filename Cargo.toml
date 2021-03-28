@@ -13,14 +13,14 @@ enolib = { path = "enolib" }
 hound = "3.4.0"
 id3 = "0.6.1"
 indoc = "1.0.3"
-iso_currency = "0.4.0"
+iso_currency = "0.4.1"
 lewton = "0.10.2"
 metaflac = "0.2.4"
 nanoid = "0.3.0"
 pulldown-cmark = "0.8.0"
 rmp3 = { features = ["float", "simd"], version = "0.3.1" }
-serde = "1.0.123"
-serde_derive = "1.0.123"
+serde = "1.0.125"
+serde_derive = "1.0.125"
 slug = "0.1.4"
 url = "2.2.1"
 zip = { features = ["deflate"], version = "0.5.11" }

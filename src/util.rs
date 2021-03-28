@@ -56,7 +56,7 @@ pub fn remove_dir(dir: &Path) {
     match fs::remove_dir_all(dir) {
         Ok(()) => (),
         Err(ref err) if err.kind() == io::ErrorKind::NotFound => (), // just what we want anyway \o/
-        Err(err) => panic!(err)
+        Err(err) => panic!("{}", err)
     };
 }
 
@@ -64,7 +64,7 @@ pub fn remove_file(path: &Path) {
     match fs::remove_file(path) {
         Ok(()) => (),
         Err(ref err) if err.kind() == io::ErrorKind::NotFound => (), // just what we want anyway \o/
-        Err(err) => panic!(err)
+        Err(err) => panic!("{}", err)
     }
 }
 

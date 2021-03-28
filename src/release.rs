@@ -228,7 +228,7 @@ impl Release {
                         
                     match zip_writer.finish() {
                         Ok(_) => cached_format.replace(Asset::init(build, target_filename, AssetIntent::Deliverable)),
-                        Err(err) => panic!(err)
+                        Err(err) => panic!("{}", err)
                     };
                 }
                 
