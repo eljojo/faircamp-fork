@@ -129,19 +129,6 @@ pub fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: Str
         }
         
         context.next_continuation_direct = true;
-    } else if remainder.starts_with("<") {
-        let template = if remainder[1..].trim().is_empty() {
-            return Err(Error::new(format!("Copy operator needs to be followed by a template key. ('{}')", remainder), context.line_number));
-        } else {
-            remainder[1..].trim().to_string()
-        };
-        
-        let copy = Element::new_copy(key, context.line_number, template);
-        
-        context.document.elements.push(copy);
-        
-        // TODO: Remove when implemented
-        eprintln!("Copies are not yet resolved during parsing - element will appear as an empty for now. ('{}')", remainder);
     } else {
         return Err(Error::new(format!("Invalid syntax following a valid escaped key. ('{}')", remainder), context.line_number));
     }
@@ -150,7 +137,7 @@ pub fn read_attribute_empty_field_remainder(context: &mut ParseContext, key: Str
 }
     
 pub fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> Result<(), Error> {
-    if let Some(index) = trimmed.find(|c| c == ':' || c == '=' || c == '<') {
+    if let Some(index) = trimmed.find(|c| c == ':' || c == '=') {
         if trimmed[index..].starts_with(":") {
             let key = trimmed[..index].trim().to_string();            
             let field_content = if trimmed[(index + 1)..].trim().is_empty() {
@@ -180,20 +167,6 @@ pub fn read_attribute_empty_field(context: &mut ParseContext, trimmed: &str) -> 
             }
             
             context.next_continuation_direct = true;
-        } else if trimmed[index..].starts_with("<") {
-            let key = trimmed[..index].trim().to_string();
-            let template = if trimmed[index + 1..].trim().is_empty() {
-                return Err(Error::new(format!("Copy operator needs to be followed by a template key. ('{}')", trimmed), context.line_number));
-            } else {
-                trimmed[index + 1..].trim().to_string()
-            };
-            
-            let copy = Element::new_copy(key, context.line_number, template);
-            
-            context.document.elements.push(copy);
-            
-            // TODO: Remove when implemented
-            eprintln!("Copies are not yet resolved during parsing - element will appear as an empty for now. ('{}')", trimmed);
         }
     } else {
         let empty = Element::new(trimmed.to_string(), Kind::Empty, context.line_number);
@@ -316,76 +289,30 @@ pub fn read_section(context: &mut ParseContext, trimmed: &str) -> Result<(), Err
             
             let rightwards = trimmed[section_operator_len..].trim();
             
-            if rightwards.starts_with("`") {
-                match rightwards.find(|c| c != '`') {
-                    Some(escape_operator_len) => {
-                        let remainder = rightwards[escape_operator_len..].trim();
-                        
-                        // TODO: Handle escaped
-                    }
-                    None => return Err(Error::new(format!("Section with an empty escaped key. ('{}')", trimmed), context.line_number))
-                }
+            if context.section_depth == 0 {
+                context.document.elements.append(&mut context.section_elements);
             } else {
-                if let Some(copy_operator_position) = rightwards.find(|c| c == '<') {
-                    let key = rightwards[..copy_operator_position].trim();
-                    let template = if rightwards[copy_operator_position + 1..].starts_with("<") {
-                        // TODO: Carry on and implement deep copy flag/behavior
-                        rightwards[copy_operator_position + 2..].trim()
+                let key = mem::take(&mut context.section_key);
+                let kind = Kind::Section(mem::take(&mut context.section_elements));
+                let section = Element::new(key, kind, context.section_line_number);
+                    
+                fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
+                    if depth == 0 {
+                        elements.push(section);
                     } else {
-                        rightwards[copy_operator_position + 1..].trim()
-                    };
-                    
-                    if template.is_empty() {
-                        return Err(Error::new(format!("Copy operator needs to be followed by a template key. ('{}')", trimmed), context.line_number));
+                        match elements.last_mut() {
+                            Some(Element { kind: Kind::Section(subelements), .. }) => deep_append(depth - 1, subelements, section),
+                            _ => unreachable!() // we know the last element exists and must be a section
+                        } 
                     }
-                    
-                    // TODO: Implement further
-                    // let key = mem::take(&mut context.section_key);
-                    // let kind = Kind::Section(mem::take(&mut context.section_elements));
-                    // let section = Element::new(key, kind, context.section_line_number);
-                    // 
-                    // fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
-                    //     if depth == 0 {
-                    //         elements.push(section);
-                    //     } else {
-                    //         match elements.last_mut() {
-                    //             Some(Element { kind: Kind::Section(subelements), .. }) => deep_append(depth - 1, subelements, section),
-                    //             _ => unreachable!() // we know the last element exists and must be a section
-                    //         } 
-                    //     }
-                    // }
-                    // 
-                    // deep_append(context.section_depth - 1, &mut context.document.elements, section);
-                    // 
-                    // // TODO: Remove when implemented
-                    // eprintln!("Copies are not yet resolved during parsing - element will appear as an empty for now. ('{}')", trimmed);
-                } else {
-                    if context.section_depth == 0 {
-                        context.document.elements.append(&mut context.section_elements);
-                    } else {
-                        let key = mem::take(&mut context.section_key);
-                        let kind = Kind::Section(mem::take(&mut context.section_elements));
-                        let section = Element::new(key, kind, context.section_line_number);
-                            
-                        fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
-                            if depth == 0 {
-                                elements.push(section);
-                            } else {
-                                match elements.last_mut() {
-                                    Some(Element { kind: Kind::Section(subelements), .. }) => deep_append(depth - 1, subelements, section),
-                                    _ => unreachable!() // we know the last element exists and must be a section
-                                } 
-                            }
-                        }
-                        
-                        deep_append(context.section_depth - 1, &mut context.document.elements, section);
-                    }
-                    
-                    context.section_depth = section_operator_len;
-                    context.section_key = rightwards.to_string();
-                    context.section_line_number = context.line_number;
                 }
+                
+                deep_append(context.section_depth - 1, &mut context.document.elements, section);
             }
+            
+            context.section_depth = section_operator_len;
+            context.section_key = rightwards.to_string();
+            context.section_line_number = context.line_number;
         }
         None => return Err(Error::new(format!("Section without key in manifest. ('{}')", trimmed), context.line_number))
     }

@@ -15,8 +15,7 @@ pub struct Document {
 pub struct Element {
     pub key: String,
     pub kind: Kind,
-    pub line_number: u32,
-    template: Option<String>
+    pub line_number: u32
 }
 
 #[derive(Debug)]
@@ -55,17 +54,7 @@ impl Element {
         Element {
             key,
             kind,
-            line_number,
-            template: None
-        }
-    }
-    
-    pub fn new_copy(key: String, line_number: u32, template: String) -> Element {
-        Element {
-            key,
-            kind: Kind::Empty,
-            line_number,
-            template: Some(template)
+            line_number
         }
     }
 }
