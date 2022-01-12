@@ -1,5 +1,4 @@
 use std::fmt;
-use std::mem;
 
 mod document;
 mod parse;
@@ -42,21 +41,24 @@ pub fn parse(input: &str) -> Result<Document, Error> {
         line_number: 0,
         lines: input.lines(),
         next_continuation_direct: true,
+        section_comment: None,
         section_depth: 0,
         section_elements: Vec::new(),
         section_key: String::new(),
         section_line_number: 0
     };
-    
+
     while let Some(line) = context.lines.next() {
         let trimmed = line.trim();
-        
+
         context.line_number += 1;
-        
+
         if trimmed.is_empty() {
-            parse::associate_comment_with_document(&mut context);
-            context.comment.clear();
-            continue
+            match context.comment.first() {
+                Some((1, _)) => context.document.comment = context.assemble_comment(),
+                Some(_) => context.comment.clear(),
+                _ => ()
+            }
         } else if trimmed.starts_with(">") {
             parse::read_comment(&mut context, trimmed);
         } else if trimmed.starts_with("--") {
@@ -76,28 +78,9 @@ pub fn parse(input: &str) -> Result<Document, Error> {
             parse::read_attribute_empty_field(&mut context, trimmed)?;
         }
     }
-    
-    // TODO: DRY - identical code in read_section
-    if context.section_depth == 0 {
-        context.document.elements.append(&mut context.section_elements);
-    } else {
-        let key = mem::take(&mut context.section_key);
-        let kind = Kind::Section(mem::take(&mut context.section_elements));
-        let section = Element::new(key, kind, context.line_number);
-        
-        fn deep_append(depth: usize, elements: &mut Vec<Element>, section: Element) {
-            if depth == 0 {
-                elements.push(section);
-            } else {
-                match elements.last_mut() {
-                    Some(Element { kind: Kind::Section(subelements), .. }) => deep_append(depth - 1, subelements, section),
-                    _ => unreachable!() // we know the last element exists and must be a section
-                } 
-            }
-        }
-        
-        deep_append(context.section_depth - 1, &mut context.document.elements, section);
-    }
-    
+
+    context.attach_section_elements();
+    context.comment.clear();
+
     Ok(context.document)
 }

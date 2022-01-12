@@ -59,8 +59,8 @@ fn test_section() {
     
     let document = result.unwrap();
     let element = document.elements.first().unwrap();
-    
-    // assert_eq!(&element.comment, "associated comment"); // TODO: Implement then uncomment
+
+    assert_eq!(element.comment.as_deref(), Some("associated comment"));
     assert_eq!(&element.key, "section");
     
     match &element.kind {

@@ -1,5 +1,6 @@
 #[derive(Debug)]
 pub struct Attribute {
+    pub comment: Option<String>,
     pub key: String,
     pub line_number: u32,
     pub value: String
@@ -13,6 +14,7 @@ pub struct Document {
 
 #[derive(Debug)]
 pub struct Element {
+    pub comment: Option<String>,
     pub key: String,
     pub kind: Kind,
     pub line_number: u32
@@ -28,6 +30,7 @@ pub enum FieldContent {
 
 #[derive(Debug)]
 pub struct Item {
+    pub comment: Option<String>,
     pub line_number: u32,
     pub value: String
 }
@@ -50,8 +53,9 @@ impl Document {
 }
 
 impl Element {
-    pub fn new(key: String, kind: Kind, line_number: u32) -> Element {
+    pub fn new(comment: Option<String>, key: String, kind: Kind, line_number: u32) -> Element {
         Element {
+            comment,
             key,
             kind,
             line_number
