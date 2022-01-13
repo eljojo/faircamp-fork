@@ -1,8 +1,0 @@
-[package]
-authors = ["Simon Repp <simon@fdpl.io>"]
-edition = "2018"
-name = "enolib"
-version = "0.1.0"
-
-[dev-dependencies]
-indoc = "1.0.3"

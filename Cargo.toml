@@ -9,7 +9,7 @@ bincode = "1.3.2"
 chrono = { features = ["serde"], version = "0.4.19" }
 clap = { features = ["std"], git = "https://github.com/clap-rs/clap/" }
 claxon = "0.4.3"
-enolib = { path = "enolib" }
+enolib = { git = "https://codeberg.org/simonrepp/enolib-rs" }
 hound = "3.4.0"
 id3 = "0.6.1"
 indoc = "1.0.3"
