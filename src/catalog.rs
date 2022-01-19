@@ -89,13 +89,13 @@ impl Catalog {
         
         for release in &catalog.releases {
             match &release.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                Permalink::Generated(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
                     error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
                     return Err(()); 
                 } else {
                     permalinks.insert(permalink, &release.permalink);
                 }
-                Permalink::UserAssigned(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                Permalink::UserAssigned(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
                     error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
                     return Err(());
                 } else {
@@ -109,13 +109,13 @@ impl Catalog {
         //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
         for artist in &catalog.artists {
             match &artist.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                Permalink::Generated(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
                     error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
                     return Err(()); 
                 } else {
                     permalinks.insert(permalink, &artist.permalink);
                 }
-                Permalink::UserAssigned(permalink) => if let Some(previous_permalink) = permalinks.get(&permalink) {
+                Permalink::UserAssigned(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
                     error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
                     return Err(());
                 } else {
