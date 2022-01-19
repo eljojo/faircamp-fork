@@ -1,6 +1,6 @@
 [package]
 authors = ["Simon Repp <simon@fdpl.io>"]
-edition = "2018"
+edition = "2021"
 name = "faircamp"
 version = "0.1.0"
 
