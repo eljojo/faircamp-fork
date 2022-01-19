@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use std::fs;
 
 #[macro_use]

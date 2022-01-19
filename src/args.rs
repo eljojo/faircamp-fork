@@ -1,8 +1,8 @@
-use clap::Clap;
+use clap::Parser;
 use std::path::PathBuf;
 
+#[derive(Parser, Debug)]
 #[clap(version = env!("CARGO_PKG_VERSION"))]
-#[derive(Clap, Debug)]
 pub struct Args {
     /// Reports cached assets that currently appear obsolete and their consumed disk space (no build is performed)
     #[clap(long = "analyze-cache")]
