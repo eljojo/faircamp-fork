@@ -1,6 +1,6 @@
 use claxon::{Block, FlacReader};
 use hound::{SampleFormat, WavReader};
-use id3;
+use id3::{self, TagLike};
 use lewton::inside_ogg::OggStreamReader;
 use metaflac;
 use rmp3::{Decoder, Frame};
