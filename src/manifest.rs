@@ -26,7 +26,7 @@ macro_rules! file_line {
             "{}:{}",
             $path.display(),
             $element.line_number
-        );
+        )
     };
 }
 

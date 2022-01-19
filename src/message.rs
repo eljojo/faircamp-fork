@@ -14,7 +14,7 @@ macro_rules! error {
         println!(
             concat!(color!(red), "[ERROR] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
