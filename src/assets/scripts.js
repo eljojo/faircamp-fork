@@ -12,7 +12,7 @@ const share = a => {
     };
     
     navigator.clipboard
-        .writeText(a.dataset.url)
+        .writeText(window.location.href)
         .then(() => notify(`${window.location.href} has been copied to your clipboard`))
         .catch(err => notify(`Failed to copy ${window.location.href} to your clipboard (${err})`));
 };
