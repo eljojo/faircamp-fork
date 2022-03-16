@@ -75,7 +75,7 @@ impl AudioFormat {
             "mp3_320" => Some(AudioFormat::Mp3Cbr320),
             "mp3_v0" => Some(AudioFormat::Mp3VbrV0),
             "ogg_vorbis" => Some(AudioFormat::OggVorbis),
-            "wav" => Some(AudioFormat::Aac),
+            "wav" => Some(AudioFormat::Wav),
             _ =>  None
         }
     }
