@@ -236,7 +236,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                                     if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
                                                                         overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
                                                                     } else {
-                                                                        error!("Ignoring download.price option '{}' with malformed minimum price in {}", value, file_line!(path, section_element));
+                                                                        error!("Ignoring download.price option '{}' with malformed maximum price in {}", value, file_line!(path, section_element));
                                                                     }
                                                                 } else {
                                                                     overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
@@ -264,7 +264,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                                         if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
                                                                             overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
                                                                         } else {
-                                                                            error!("Ignoring download.price option '{}' with malformed minimum price in {}", value, file_line!(path, section_element));
+                                                                            error!("Ignoring download.price option '{}' with malformed maximum price in {}", value, file_line!(path, section_element));
                                                                         }
                                                                     } else {
                                                                         overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
