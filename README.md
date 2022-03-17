@@ -1,6 +1,6 @@
 # Faircamp (codename)
 
-A self-hostable, statically generated bandcamp alternative — *[as recently announced on mastodon](https://post.lurk.org/@freebliss/105685776449364587)*
+A self-hostable, statically generated bandcamp alternative — *[see screenshots/posts on mastodon](https://post.lurk.org/@freebliss/105685776449364587)*
 
 ## Concept Overview
 
@@ -35,7 +35,10 @@ recording within a release) level.
 
 ## Current development state
 
-Faircamp already does a lot of things (reading, transcoding, zipping, caching, rendering, deploying), and for testing purposes faircamp can be stably run on the main branch. For anything productive you will want to wait a few more weeks though, as as of yet faircamp also does not yet do anything really well - for now it's a prototype and a demo!
+Faircamp already does a lot of things (reading, transcoding, zipping, caching,
+rendering, deploying), and for testing purposes faircamp can be stably run on
+the main branch. For production usage you might still want to wait though,
+faircamp is still more of an advanced prototype and demo.
 
 ## Early Documentation
 
@@ -79,7 +82,11 @@ everything in its containing folder `release_b`.
 
 This demonstrates a subset of available options. None of them are required to get started and depending on your usecase you might only need very few of them in the end as well.
 
-Note that manifest lines such as `# catalog` are not comments but denote sections (and instead `> these are comments`).
+Note that manifest lines such as `# catalog` are not comments but denote
+sections (and instead `> these are comments`). For a detailed guide on the
+syntax used in the manifest files consult the [eno language
+guide](https://eno-lang.org/guide/), simply modifying the examples given below
+should likely get you there as well though.
 
 #### Catalog
 
@@ -251,7 +258,7 @@ If you're short on disk space you can switch to `immediate` optimization, which 
 
 If you're even shorter on disk space you can use `wipe` optimization, which just completely wipes the cache right after each build (so everything needs to be regenerated on each build).
 
-If you're more the structured type you can use  `manual` optimization, which does not 
+If you're more the structured type you can use  `manual` optimization, which does not
 automatically purge anything from the cache but instead prints back reports on stale
 assets after each build and lets you use `faircamp --optimize-cache` and `faircamp --wipe-cache` appropriately whenever you're done with your changes and don't expect to generate
 any new builds for a while.
