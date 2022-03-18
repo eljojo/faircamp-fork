@@ -216,6 +216,8 @@ be provided through the manifests.
 
 artist: Heston Exchange
 
+image_description: An ink drawing of a barren tree with monkeys in its branches
+
 -- text
 Recorded in the summer of '94 at West Callaghan Ranch, XE.
 -- text

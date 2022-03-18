@@ -46,6 +46,7 @@ pub struct Release {
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
+    pub image_description: Option<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub runtime: u32,
@@ -133,7 +134,7 @@ impl Release {
         title: String,
         tracks: Vec<Track>
     ) -> Release {
-        // TODO: Use/store multiple images (beyond just one cover)
+        // TODO: Use/store multiple images (beyond just one cover) (think this through: why?)
         // TOOD: Basic logic to determine which of multiple images most likely is the cover
 
         let runtime = tracks
@@ -148,6 +149,7 @@ impl Release {
             download_formats: manifest_overrides.download_formats.clone(),
             download_option: manifest_overrides.download_option.clone(),
             embedding: manifest_overrides.embedding,
+            image_description: manifest_overrides.release_image_description.clone(),
             payment_options: manifest_overrides.payment_options.clone(),
             permalink: Permalink::new(permalink, &title),
             runtime,
@@ -267,6 +269,10 @@ impl Release {
                 let download_html = render::render_download(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
+        }
+        
+        if self.cover.is_some() && self.image_description.is_none() {
+            warn_discouraged!("The release '{}' has a cover image but no image description, strongly consider supplying one.", self.title);
         }
 
         let release_dir = build.build_dir.join(&self.permalink.get());

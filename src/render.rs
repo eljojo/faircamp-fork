@@ -20,7 +20,8 @@ const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 fn cover(root_prefix: &str, release: &Release) -> String {
     match &release.cover {
         Some(image) => format!(
-            r#"<img alt="Release cover" src="{root_prefix}{filename}">"#,
+            r#"<img alt="{alt}" src="{root_prefix}{filename}">"#,
+            alt = release.image_description.as_ref().unwrap_or(&String::from("Cover image of this release")),
             filename = image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
             root_prefix = root_prefix
         ),

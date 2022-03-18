@@ -42,6 +42,7 @@ pub struct Overrides {
     pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
+    pub release_image_description: Option<String>,
     pub release_text: Option<String>,
     pub release_title: Option<String>,
     pub streaming_format: AudioFormat,
@@ -64,6 +65,7 @@ impl Overrides {
             embedding: true,
             payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
             release_artists: None,
+            release_image_description: None,
             release_text: None,
             release_title: None,
             streaming_format: AudioFormat::Mp3Cbr128,
@@ -416,6 +418,10 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                             Kind::Field(FieldContent::Items(items)) => overrides.release_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
                                             Kind::Field(FieldContent::None) => (),
                                             _ => error!("Ignoring invalid release.artists option (can only be a field containing a list) in {}", file_line!(path, section_element))
+                                        }
+                                        "image_description" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => overrides.release_image_description = Some(value.clone()),
+                                            _ => error!("Ignoring invalid release.image_description option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         "permalink" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => {
