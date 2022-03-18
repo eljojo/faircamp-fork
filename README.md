@@ -143,6 +143,20 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 Note that in practice you won't use `disabled`, `free` and `price` in the same manifest because these options mutually exclude each other, they are just shown here together for demonstration purposes.
 
+#### Embedding
+
+This allows external sites to embed a widget that presents music from your site.
+The embed code can be copied from each release page where embedding is enabled.
+
+Embedding is enabled by default. You can use `disabled` to disable it and
+`enabled` to re-enable it for specific albums.
+
+```eno
+# embedding
+
+disabled
+```
+
 #### Feed
 
 You need to specify the base url under which you're hosting your faircamp site in order for the RSS feed to be generated. The image for the feed is optional.

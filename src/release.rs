@@ -45,6 +45,7 @@ pub struct Release {
     pub cover: Option<Image>,
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
+    pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub runtime: u32,
@@ -61,7 +62,7 @@ impl CachedReleaseAssets {
             Err(_) => None
         }
     }
-    
+
     pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
         match format {
             AudioFormat::Aac => &self.aac,
@@ -74,7 +75,7 @@ impl CachedReleaseAssets {
             AudioFormat::Wav => &self.wav
         }
     }
-    
+
     pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
         match format {
             AudioFormat::Aac => &mut self.aac,
@@ -87,12 +88,12 @@ impl CachedReleaseAssets {
             AudioFormat::Wav => &mut self.wav
         }
     }
-    
+
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
         cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).join(filename)
     }
-    
+
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
         for format in AUDIO_FORMATS {
             if let Some(asset) = self.get_mut(format) {
@@ -115,7 +116,7 @@ impl CachedReleaseAssets {
             wav: None
         }
     }
-    
+
     pub fn persist(&self, cache_dir: &Path) {
         let serialized = bincode::serialize(self).unwrap();
         fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
@@ -134,18 +135,19 @@ impl Release {
     ) -> Release {
         // TODO: Use/store multiple images (beyond just one cover)
         // TOOD: Basic logic to determine which of multiple images most likely is the cover
-        
+
         let runtime = tracks
             .iter()
             .map(|track| track.cached_assets.source_meta.duration_seconds)
             .sum();
-            
+
         Release {
             artists,
             cached_assets,
             cover: images.pop(),
             download_formats: manifest_overrides.download_formats.clone(),
             download_option: manifest_overrides.download_option.clone(),
+            embedding: manifest_overrides.embedding,
             payment_options: manifest_overrides.payment_options.clone(),
             permalink: Permalink::new(permalink, &title),
             runtime,
@@ -155,15 +157,15 @@ impl Release {
             tracks
         }
     }
-    
+
     pub fn write_download_archives(&mut self, build: &mut Build) {
         if self.download_option != DownloadOption::Disabled {
             for format in &self.download_formats {
                 let cached_format = self.cached_assets.get_mut(format);
-                
+
                 if cached_format.is_none() {
                     let target_filename = format!("{}.zip", util::uid());
-                    
+
                     let zip_file = File::create(
                         build.cache_dir.join(&target_filename)
                     ).unwrap();
@@ -171,9 +173,9 @@ impl Release {
                     let options = FileOptions::default()
                         .compression_method(CompressionMethod::Deflated)
                         .unix_permissions(0o755);
-                        
+
                     let mut buffer = Vec::new();
-                    
+
                     for (index, track) in self.tracks.iter_mut().enumerate() {
                         if format.lossless() && !track.cached_assets.source_meta.lossless {
                             warn_discouraged!(
@@ -181,7 +183,7 @@ impl Release {
                                 &track.source_file.display()
                             );
                         }
-                        
+
                         let filename = format!(
                             "{track_number:02} {artists}{separator}{title}{extension}",
                             artists=track.artists
@@ -194,60 +196,60 @@ impl Release {
                             track_number=index + 1,
                             title=track.title
                         );
-                        
+
                         let download_track_asset = track.get_or_transcode_as(format, build, AssetIntent::Intermediate);
-                        
+
                         zip_writer.start_file(&filename, options).unwrap();
-                    
+
                         let mut zip_inner_file = File::open(
                             &build.cache_dir.join(&download_track_asset.filename)
                         ).unwrap();
-                            
+
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
-                        
+
                         track.cached_assets.persist(&build.cache_dir);
                     }
-                    
+
                     if let Some(cover) = &mut self.cover {
                         let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Intermediate);
-                        
+
                         zip_writer.start_file("cover.jpg", options).unwrap();
-                        
+
                         let mut zip_inner_file = File::open(
                             &build.cache_dir.join(&cover_asset.filename)
                         ).unwrap();
-                        
+
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
-                        
+
                         cover.cached_assets.persist(&build.cache_dir);
                     }
-                        
+
                     match zip_writer.finish() {
                         Ok(_) => cached_format.replace(Asset::init(build, target_filename, AssetIntent::Deliverable)),
                         Err(err) => panic!("{}", err)
                     };
                 }
-                
+
                 let download_archive_asset = cached_format.as_mut().unwrap();
-                
+
                 download_archive_asset.unmark_stale();
-                
+
                 fs::copy(
                     build.cache_dir.join(&download_archive_asset.filename),
                     build.build_dir.join(&download_archive_asset.filename)
                 ).unwrap();
-                
+
                 build.stats.add_archive(download_archive_asset.filesize_bytes);
-                
+
                 self.cached_assets.persist(&build.cache_dir);
             }
         }
     }
-    
+
     pub fn write_files(&self, build: &Build, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Disabled => (),
@@ -260,15 +262,21 @@ impl Release {
                 let checkout_page_dir = build.build_dir.join("checkout").join(checkout_page_uid);
                 let checkout_html = render::render_checkout(build, catalog, self, download_page_uid);
                 util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
-                
+
                 let download_page_dir = build.build_dir.join("download").join(download_page_uid);
                 let download_html = render::render_download(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
         }
-        
+
         let release_dir = build.build_dir.join(&self.permalink.get());
         let release_html = render::render_release(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
+
+        if self.embedding {
+            let embed_dir = release_dir.join("embed");
+            let embed_html = render::render_release_embed(build, catalog, self);
+            util::ensure_dir_and_write_index(&embed_dir, &embed_html);
+        }
     }
 }

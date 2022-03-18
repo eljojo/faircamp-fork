@@ -39,6 +39,7 @@ pub struct LocalOptions {
 pub struct Overrides {
     pub download_option: DownloadOption,
     pub download_formats: Vec<AudioFormat>,
+    pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_text: Option<String>,
@@ -60,6 +61,7 @@ impl Overrides {
         Overrides {
             download_option: DownloadOption::Disabled,
             download_formats: Vec::with_capacity(5),  // assuming e.g. MP3 320 + MP3 V0 + Ogg Vorbis + AAC + FLAC as a reasonably frequent choice
+            embedding: true,
             payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
             release_artists: None,
             release_text: None,
@@ -81,7 +83,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 let mut name = None;
                                 let mut permalink = None;
                                 let mut text = None;
-                                
+
                                 for section_element in section_elements {
                                     match section_element.key.as_ref() {
                                         "name" => match &section_element.kind {
@@ -100,8 +102,8 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         key => error!("Ignoring unsupported artist.{} option in manifest '{:?}'", key, path)
                                     }
                                 }
-                                
-                                if let Some(name) = name {                                    
+
+                                if let Some(name) = name {
                                     // TODO: At this point the artist might already exist - need to scan
                                     //       over all existing artists and modify the existing one if found.
                                     //       Next challenge is implementing the "aliases" functionality, i.e.
@@ -111,7 +113,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                     //       one, including changing the reference on the releases/tracks themselves,
                                     //       this shall be fun, fun, fun! :)
                                     let new_artist = Artist::new_from_manifest(name, permalink, text);
-                                    
+
                                     catalog.artists.push(Rc::new(new_artist));
                                 } else {
                                     error!("An artist was specified without a name, and therefore discarded, in {}", file_line!(path, element))
@@ -130,7 +132,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                         if build.cache_optimization != CacheOptimization::Default {
                                                             warn_global_set_repeatedly!("cache.optimization", build.cache_optimization, strategy);
                                                         }
-                                                        
+
                                                         build.cache_optimization = strategy;
                                                     }
                                                     None => error!("Ignoring invalid cache.optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}", value, file_line!(path, section_element))
@@ -154,8 +156,8 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                 if let Some(previous) = &catalog.text {
                                                     warn_global_set_repeatedly!("catalog.text", previous, value);
                                                 }
-                                                
-                                                catalog.text = Some(value.clone());      
+
+                                                catalog.text = Some(value.clone());
                                             }
                                             _ => error!("Ignoring invalid catalog.text option (can only be an embed or field containing a value) in {}", file_line!(path, section_element))
                                         }
@@ -164,8 +166,8 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                 if let Some(previous) = &catalog.title {
                                                     warn_global_set_repeatedly!("catalog.title", previous, value);
                                                 }
-                                                
-                                                catalog.title = Some(value.clone());      
+
+                                                catalog.title = Some(value.clone());
                                             }
                                             _ => error!("Ignoring invalid catalog.title option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
@@ -217,7 +219,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         "price" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => {
                                                 let mut split_by_whitespace = value.split_ascii_whitespace();
-                                                
+
                                                 if let Some(first_token) = split_by_whitespace.next() {
                                                     if let Some(currency) = Currency::from_code(first_token) {
                                                         let recombined = &value[4..];
@@ -230,7 +232,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                             }
                                                         } else {
                                                             let mut split_by_dash = recombined.split("-");
-                                                            
+
                                                             if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
                                                                 if let Some(max_amount) = split_by_dash.next() {
                                                                     if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
@@ -248,7 +250,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                     } else if let Some(last_token) = split_by_whitespace.last() {
                                                         if let Some(currency) = Currency::from_code(last_token) {
                                                             let recombined = &value[..(value.len() - 4)];
-                                                            
+
                                                             // TODO: DRY - exact copy from above
                                                             if recombined.ends_with("+") {
                                                                 if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
@@ -258,7 +260,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                                 }
                                                             } else {
                                                                 let mut split_by_dash = recombined.split("-");
-                                                                
+
                                                                 if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
                                                                     if let Some(max_amount) = split_by_dash.next() {
                                                                         if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
@@ -291,6 +293,24 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             }
                             _ => error!("Ignoring invalid download option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
+                        "embedding" => match &element.kind {
+                            Kind::Section(section_elements) => {
+                                for section_element in section_elements {
+                                    match section_element.key.as_ref() {
+                                        "disabled" => match section_element.kind {
+                                            Kind::Empty  => overrides.embedding = false,
+                                            _ => error!("Ignoring invalid embedding.disabled option (can only be an empty) in {}", file_line!(path, element))
+                                        }
+                                        "enabled" => match section_element.kind {
+                                            Kind::Empty  => overrides.embedding = true,
+                                            _ => error!("Ignoring invalid embedding.enabled option (can only be an empty) in {}", file_line!(path, element))
+                                        }
+                                        key => error!("Ignoring unsupported embedding.{} option in {}", key, file_line!(path, section_element))
+                                    }
+                                }
+                            }
+                            _ => error!("Ignoring invalid embedding option (can only be a section containing specific elements) in {}", file_line!(path, element))
+                        }
                         "feed" => match &element.kind {
                             Kind::Section(section_elements) => {
                                 for section_element in section_elements {
@@ -302,7 +322,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                         if let Some(previous_url) = &build.base_url {
                                                             warn_global_set_repeatedly!("feed.base_url", previous_url, url);
                                                         }
-                                                        
+
                                                         build.base_url = Some(url);
                                                     }
                                                     Err(err) => error!("Ignoring invalid feed.base_url setting value '{}' in {} ({})", value, file_line!(path, section_element), err)
@@ -315,7 +335,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                 if let Some(previous) = &catalog.feed_image {
                                                     warn_global_set_repeatedly!("feed.image", previous, value);
                                                 }
-                                                
+
                                                 catalog.feed_image = Some(value.clone()); // TODO: Verify file exists at provided location
                                             }
                                             _ => error!("Ignoring invalid feed.image option (can only be a field containing a value) in {}", file_line!(path, section_element))
@@ -402,7 +422,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                                 if let Some(previous) = &local_options.release_permalink {
                                                     warn!("Option release.permalink is set more than once - overriding previous value '{}' with '{}'", previous, value);
                                                 }
-                                                
+
                                                 local_options.release_permalink = Some(value.clone());
                                             }
                                             _ => error!("Ignoring invalid release.permalink option (can only be a field containing a value) in {}", file_line!(path, section_element))
@@ -447,9 +467,9 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 if build.theme.is_some() {
                                     warn_global_set_repeatedly!("theme");
                                 }
-                                
+
                                 let mut theme = Theme::defaults();
-                                
+
                                 for section_element in &section_elements {
                                     match section_element.key.as_str() {
                                         "background_image" => match &section_element.kind {
@@ -528,7 +548,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         key => error!("Ignoring unsupported global 'theme.{}' in {}", key, file_line!(path, section_element))
                                     }
                                 }
-                                
+
                                 build.theme = Some(theme);
                             }
                             _ => error!("Ignoring invalid theme option (can only be a section containing specific elements) in {}", file_line!(path, element))
@@ -550,5 +570,5 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             }
         }
         Err(err) => error!("Could not read manifest {} ({})", path.display(), err)
-    } 
+    }
 }

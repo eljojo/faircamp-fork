@@ -42,18 +42,18 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
         ),
         false => (String::new(), String::new())
     };
-    
+
     let dir_attribute = match build.localization.writing_direction {
         WritingDirection::Ltr => "",
         WritingDirection::Rtl => "dir=\"rtl\""
     };
-    
+
     let theming_widget = if build.theming_widget {
         include_str!("templates/theming_widget.html")
     } else {
         ""
     };
-    
+
     format!(
         include_str!("templates/layout.html"),
         body = body,
@@ -91,7 +91,7 @@ fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
                 .enumerate()
                 .map(|(index, track)| waveform_snippet(track, index, 2.0))
                 .collect::<Vec<String>>();
-            
+
             formatdoc!(
                 r#"
                     <div class="vpad" style="display: flex;">
@@ -120,28 +120,28 @@ fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
 
 pub fn render_about(build: &Build, catalog: &Catalog) -> String {
     let root_prefix = &"../".repeat(1);
-    
+
     let text = catalog.text
         .as_ref()
         .map(|title| title.as_str())
         .unwrap_or("");
-        
+
     let title = catalog.title
         .as_ref()
         .map(|title| title.as_str())
         .unwrap_or("Catalog");
-    
+
     let body = formatdoc!(
         r#"
             <div class="center">
                 <div class="vpad">
                     <h1>{title}</h1>
                 </div>
-                
+
                 <div class="vpad">
                     {text}
                 </div>
-                
+
                 {share_widget}
             </div>
         "#,
@@ -149,13 +149,13 @@ pub fn render_about(build: &Build, catalog: &Catalog) -> String {
         text = text,
         title = title
     );
-    
+
     layout(root_prefix, &body, build, catalog, title)
 }
 
 pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> String {
     let root_prefix = &"../".repeat(1);
-    
+
     let artist_releases = catalog.releases
         .iter()
         .filter(|release| {
@@ -165,7 +165,7 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
                 .is_some()
         })
         .collect::<Vec<&Release>>();
-    
+
     let text = if let Some(text) = &artist.text {
         formatdoc!(
             r#"
@@ -178,7 +178,7 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
     } else {
         String::new()
     };
-    
+
     let body = formatdoc!(
         r#"
             <div class="center">
@@ -187,11 +187,11 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
                 <div class="vpad">
                     <h1><a href="{root_prefix}">All Releases</a> &gt; {artist_name}</h1>
                 </div>
-                
+
                 {text}
-                
+
                 {share_widget}
-                
+
                 {releases}
             </div>
         "#,
@@ -201,13 +201,13 @@ pub fn render_artist(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> S
         share_widget = SHARE_WIDGET,
         text = text
     );
-    
+
     layout(root_prefix, &body, build, catalog, &artist.name)
 }
 
 pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
     let root_prefix = &"../".repeat(2);
-    
+
     let payment_options = &release.payment_options
         .iter()
         .map(|option|
@@ -226,7 +226,7 @@ pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, down
                 },
                 PaymentOption::Liberapay(account_name) => {
                     let liberapay_url = format!("https://liberapay.com/{}", account_name);
-                    
+
                     format!(
                         r#"
                             <div>
@@ -244,14 +244,14 @@ pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, down
         )
         .collect::<Vec<String>>()
         .join("\n");
-    
+
     let body = formatdoc!(
         r#"
             {cover}
-            
+
             <h1>Buy {title}</h1>
             <div>{artists}</div>
-            
+
             {payment_options}
         "#,
         artists = list_artists(root_prefix, &release.artists),
@@ -259,13 +259,13 @@ pub fn render_checkout(build: &Build, catalog: &Catalog, release: &Release, down
         cover = cover(root_prefix, release),
         title = release.title
     );
-    
+
     layout(root_prefix, &body, build, catalog, &release.title)
 }
 
 pub fn render_download(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let root_prefix = &"../".repeat(2);
-    
+
     let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
         .iter()
         .map(|(format, annotation)|
@@ -282,14 +282,14 @@ pub fn render_download(build: &Build, catalog: &Catalog, release: &Release) -> S
         )
         .collect::<Vec<String>>()
         .join("\n");
-    
+
     let body = formatdoc!(
         r#"
             {cover}
-            
+
             <h1>Download {title}</h1>
             <div>{artists}</div>
-            
+
             {download_links}
         "#,
         artists = list_artists(root_prefix, &release.artists),
@@ -297,21 +297,21 @@ pub fn render_download(build: &Build, catalog: &Catalog, release: &Release) -> S
         download_links = download_links,
         title = release.title
     );
-    
+
     layout(root_prefix, &body, build, catalog, &release.title)
 }
 
 pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let root_prefix = &"../".repeat(1);
-    
+
     let formats_list = release.download_formats
         .iter()
         .map(|format| format.to_string())
         .collect::<Vec<String>>()
         .join(", ");
-        
+
     let includes_text = format!("Available Formats: {}", formats_list);
-    
+
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free { download_page_uid } => formatdoc!(
@@ -373,18 +373,24 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
             )
         }
     };
-    
+
+    let embed_widget = if release.embedding {
+        r#"<a href="embed/">Embed</a>"#
+    } else {
+        ""
+    };
+
     let release_text = match &release.text {
         Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
         None => String::new()
     };
-    
+
     let longest_track_duration = release.tracks
         .iter()
         .map(|track| track.cached_assets.source_meta.duration_seconds)
         .max()
         .unwrap();
-    
+
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
@@ -394,7 +400,7 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
             } else {
                 0.0
             };
-        
+
             formatdoc!(
                 r#"
                     <div class="track_title_wrapper">
@@ -425,13 +431,13 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                 <!-- div>
                     <a href="#download_buy_todo">$</a>
                 </div -->
-                
+
                 <div class="release_grid vpad">
                     <div></div>
                     <div class="cover">
                         {cover}
                     </div>
-                    
+
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
                         <a class="track_play">
                             <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
@@ -441,17 +447,18 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
                         <h1>{release_title}</h1>
                         <div>{artists}</div>
                     </div>
-                    
+
                     {tracks_rendered}
-                    
+
                     <div></div>
                     <div>
                         {download_option_rendered}
                     </div>
-                    
+
                     <div></div>
                     <div>
                         {release_text}
+                        {embed_widget}
                         {share_widget}
                     </div>
                 </div>
@@ -460,18 +467,102 @@ pub fn render_release(build: &Build, catalog: &Catalog, release: &Release) -> St
         artists = list_artists(root_prefix, &release.artists),
         cover = cover(root_prefix, release),
         download_option_rendered = download_option_rendered,
+        embed_widget = embed_widget,
         release_text = release_text,
         release_title = release.title,
         share_widget = SHARE_WIDGET,
         tracks_rendered = tracks_rendered
     );
-    
+
+    layout(root_prefix, &body, build, catalog, &release.title)
+}
+
+pub fn render_release_embed(build: &Build, catalog: &Catalog, release: &Release) -> String {
+    let root_prefix = &"../".repeat(2);
+
+    let longest_track_duration = release.tracks
+        .iter()
+        .map(|track| track.cached_assets.source_meta.duration_seconds)
+        .max()
+        .unwrap();
+
+    let tracks_rendered = release.tracks
+        .iter()
+        .enumerate()
+        .map(|(index, track)| {
+            let track_duration_width_em = if longest_track_duration > 0 {
+                36.0 * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
+            } else {
+                0.0
+            };
+
+            formatdoc!(
+                r#"
+                    <div class="track_title_wrapper">
+                        <span class="track_number">{track_number:02}</span>
+                        <a class="track_title">
+                            {track_title} <span class="pause"></span>
+                        </a>
+                    </div>
+                    <div class="track_waveform">
+                        <audio controls preload="metadata" src="../../{track_src}"></audio>
+                        {waveform} <span class="track_duration">{track_duration}</span>
+                    </div>
+                "#,
+                track_duration = util::format_time(track.cached_assets.source_meta.duration_seconds),
+                track_number = index + 1,
+                track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
+                track_title = track.title,
+                waveform = waveform(track, index, track_duration_width_em)
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let body = formatdoc!(
+        r##"
+            <div class="center_unconstrained">
+                <div class="release_grid vpad">
+                    <div class="cover">
+                        {cover}
+                    </div>
+
+                    <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                        <a class="track_play">
+                            <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
+                        </a>
+                    </div>
+                    <div style="margin: 0.4em 0 1em 0;">
+                        <h1>{release_title}</h1>
+                        <div>{artists}</div>
+                    </div>
+
+                    {tracks_rendered}
+
+                    <div>
+                        <!-- TODO: For this link we need the base_url, so we can actually pull
+                                   this out of the "feed" options and make this a required-ish
+                                   thing in the "catalog" options itself. Required-*ish* because
+                                   we could still conditionally just not activate the embed
+                                   feature if the base_url is missing - which makes sense to support. -->
+                        Listen to everything at <a href="TODO">{catalog_title}</a>
+                    </div>
+                </div>
+            </div>
+        "##,
+        artists = list_artists(root_prefix, &release.artists),
+        catalog_title = catalog.title.as_ref().unwrap_or(&String::from("this site")),
+        cover = cover(root_prefix, release),
+        release_title = release.title,
+        tracks_rendered = tracks_rendered
+    );
+
     layout(root_prefix, &body, build, catalog, &release.title)
 }
 
 pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
     let root_prefix = "";
-    
+
     let body = formatdoc!(
         r#"
             <div class="center">
@@ -482,31 +573,31 @@ pub fn render_releases(build: &Build, catalog: &Catalog) -> String {
         "#,
         releases = releases(root_prefix, catalog.releases.iter().collect())
     );
-    
+
     layout(root_prefix, &body, build, catalog, catalog.title.as_ref().map(|title| title.as_str()).unwrap_or("Catalog"))
 }
 
 fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String {
     let step = 1;
-    
+
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
         let height = 10;
         let width = peaks.len();
-        
-        let mut enumerate_peaks = peaks.iter().step_by(step).enumerate(); 
-        
+
+        let mut enumerate_peaks = peaks.iter().step_by(step).enumerate();
+
         let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
-        
+
         while let Some((index, peak)) = enumerate_peaks.next() {
             let command = format!(
                 " L {x},{y}",
                 x = index * step,
                 y = (1.0 - peak) * height as f32
             );
-            
+
             d.push_str(&command);
         }
-        
+
         formatdoc!(
             r##"
                 <svg class="waveform"
@@ -539,36 +630,36 @@ fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String
 
 fn waveform_snippet(track: &Track, snippet_index: usize, track_duration_width_em: f32) -> String {
     let step = 1;
-    
+
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
         let height = 10;
         let width = 50;
-        let mut enumerate_peaks = peaks.iter().skip(width * 2).step_by(step).enumerate(); 
-        
+        let mut enumerate_peaks = peaks.iter().skip(width * 2).step_by(step).enumerate();
+
         let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
-        
+
         while let Some((index, peak)) = enumerate_peaks.next() {
             // if index > width { break; }
-            
+
             if index % width == 0 {
                 let command = format!(
                     r#"" /> <path class="levels_{snippet_index}" d="M 0,{y}"#,
                     snippet_index = snippet_index,
                     y = (1.0 - peak) * height as f32
                 );
-                
+
                 d.push_str(&command);
             }
-            
+
             let command = format!(
                 " L {x},{y}",
                 x = (index % width) * step,
                 y = (1.0 - peak) * height as f32
             );
-            
+
             d.push_str(&command);
         }
-        
+
         formatdoc!(
             r##"
                 <svg class="waveform"
