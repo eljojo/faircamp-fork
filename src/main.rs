@@ -79,17 +79,17 @@ fn main() {
     catalog.write_assets(&mut build);
 
     // Render about page
-    let about_html = render::render_about(&build, &catalog);
+    let about_html = render::about::about_html(&build, &catalog);
     fs::create_dir(build.build_dir.join("about")).unwrap();
     fs::write(build.build_dir.join("about/index.html"), about_html).unwrap();
     
-    // Render page for all releases
-    let releases_html = render::render_releases(&build, &catalog);
+    // Render page for all releases (= root index)
+    let releases_html = render::releases::releases_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), releases_html).unwrap();
     
     // Render page for each artist
     for artist in &catalog.artists {
-        let artist_html = render::render_artist(&build, &artist, &catalog);
+        let artist_html = render::artist::artist_html(&build, &artist, &catalog);
         fs::create_dir(build.build_dir.join(&artist.permalink.get())).unwrap();
         fs::write(build.build_dir.join(&artist.permalink.get()).join("index.html"), artist_html).unwrap();
     }

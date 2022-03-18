@@ -1,0 +1,67 @@
+use indoc::formatdoc;
+
+use crate::{
+    build::Build,
+    catalog::Catalog,
+    payment_option::PaymentOption,
+    release::Release,
+    render::{cover, layout, list_artists}
+};
+
+pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
+    let root_prefix = &"../".repeat(2);
+
+    let payment_options = &release.payment_options
+        .iter()
+        .map(|option|
+            match &option {
+                PaymentOption::Custom(html) => {
+                    format!(
+                        r#"
+                            <div>
+                                <div>{message}</div>
+                                <a href="../../download/{download_page_uid}/">I have made the payment — Continue</a>
+                            </div>
+                        "#,
+                        download_page_uid=download_page_uid,
+                        message=html.to_string()
+                    )
+                },
+                PaymentOption::Liberapay(account_name) => {
+                    let liberapay_url = format!("https://liberapay.com/{}", account_name);
+
+                    format!(
+                        r#"
+                            <div>
+                                <div>
+                                    Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a>
+                                </div>
+                                <a href="../../download/{download_page_uid}/">I have made the payment — Continue</a>
+                            </div>
+                        "#,
+                        download_page_uid=download_page_uid,
+                        liberapay_url=liberapay_url
+                    )
+                }
+            }
+        )
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let body = formatdoc!(
+        r#"
+            {cover}
+
+            <h1>Buy {title}</h1>
+            <div>{artists}</div>
+
+            {payment_options}
+        "#,
+        artists = list_artists(root_prefix, &release.artists),
+        payment_options = payment_options,
+        cover = cover(root_prefix, release),
+        title = release.title
+    );
+
+    layout(root_prefix, &body, build, catalog, &release.title)
+}

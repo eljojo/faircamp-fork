@@ -257,16 +257,16 @@ impl Release {
             DownloadOption::Disabled => (),
             DownloadOption::Free { download_page_uid }  => {
                 let download_page_dir = build.build_dir.join("download").join(download_page_uid);
-                let download_html = render::render_download(build, catalog, self);
+                let download_html = render::release::download::download_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
             DownloadOption::Paid { checkout_page_uid, download_page_uid, .. } => {
                 let checkout_page_dir = build.build_dir.join("checkout").join(checkout_page_uid);
-                let checkout_html = render::render_checkout(build, catalog, self, download_page_uid);
+                let checkout_html = render::release::checkout::checkout_html(build, catalog, self, download_page_uid);
                 util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
 
                 let download_page_dir = build.build_dir.join("download").join(download_page_uid);
-                let download_html = render::render_download(build, catalog, self);
+                let download_html = render::release::download::download_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
         }
@@ -276,12 +276,12 @@ impl Release {
         }
 
         let release_dir = build.build_dir.join(&self.permalink.get());
-        let release_html = render::render_release(build, catalog, self);
+        let release_html = render::release::release_html(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
 
         if self.embedding {
             let embed_dir = release_dir.join("embed");
-            let embed_html = render::render_release_embed(build, catalog, self);
+            let embed_html = render::release::embed::embed_html(build, catalog, self);
             util::ensure_dir_and_write_index(&embed_dir, &embed_html);
         }
     }

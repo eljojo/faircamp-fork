@@ -165,11 +165,9 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         }
                                         "title" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => {
-                                                if let Some(previous) = &catalog.title {
+                                                if let Some(previous) = catalog.set_title(value.clone()) {
                                                     warn_global_set_repeatedly!("catalog.title", previous, value);
                                                 }
-
-                                                catalog.title = Some(value.clone());
                                             }
                                             _ => error!("Ignoring invalid catalog.title option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
@@ -224,8 +222,8 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
 
                                                 if let Some(first_token) = split_by_whitespace.next() {
                                                     if let Some(currency) = Currency::from_code(first_token) {
-                                                        let recombined = &value[4..];
-                                                        
+                                                        let recombined = &value[4..]; // TODO: Why 4?
+
                                                         if recombined.ends_with("+") {
                                                             if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
                                                                 overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);

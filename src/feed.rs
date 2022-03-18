@@ -35,10 +35,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
             .map(|string| string.as_str())
             .unwrap_or("A faircamp-based music catalog"); 
         
-        let channel_title = catalog.title
-            .as_ref()
-            .map(|string| string.as_str())
-            .unwrap_or("Catalog");
+        let channel_title = catalog.title();
         
         let channel_image = match &catalog.feed_image {
             Some(feed_image) => {

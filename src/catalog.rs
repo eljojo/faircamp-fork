@@ -30,7 +30,7 @@ pub struct Catalog {
     pub images: Vec<Image>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
     pub releases: Vec<Release>,
     pub text: Option<String>,
-    pub title: Option<String>
+    title: Option<String>
 }
 
 #[derive(Debug)]
@@ -341,6 +341,14 @@ impl Catalog {
             .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
         
         Track::new(artists, cached_assets, source_file, title)
+    }
+    
+    pub fn set_title(&mut self, title: String) -> Option<String> {
+        self.title.replace(title)
+    }
+    
+    pub fn title(&self) -> String {
+        self.title.as_ref().cloned().unwrap_or(String::from("Faircamp catalog"))
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {
