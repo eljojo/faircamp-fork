@@ -16,6 +16,7 @@ use crate::{
     download_option::DownloadOption,
     localization::WritingDirection,
     payment_option::PaymentOption,
+    release::TrackNumbering,
     styles::{Theme, ThemeBase, ThemeFont},
     util
 };
@@ -45,6 +46,7 @@ pub struct Overrides {
     pub release_image_description: Option<String>,
     pub release_text: Option<String>,
     pub release_title: Option<String>,
+    pub release_track_numbering: TrackNumbering,
     pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>
 }
@@ -68,6 +70,7 @@ impl Overrides {
             release_image_description: None,
             release_text: None,
             release_title: None,
+            release_track_numbering: TrackNumbering::Arabic,
             streaming_format: AudioFormat::Mp3Cbr128,
             track_artists: None
         }
@@ -439,6 +442,15 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                         "title" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => overrides.release_title = Some(value.clone()),
                                             _ => error!("Ignoring invalid release.title option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "track_numbering" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match TrackNumbering::from_manifest_key(value.as_str()) {
+                                                    Some(variant) => overrides.release_track_numbering = variant,
+                                                    None => error!("Ignoring unsupported value '{}' for global 'release.track_numbering' (supported values are 'disabled', 'arabic', 'roman' and 'hexadecimal') in {}", value, file_line!(path, section_element))
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid release.track_numbering option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         key => error!("Ignoring unsupported release.{} option in {}", key, file_line!(path, section_element))
                                     }

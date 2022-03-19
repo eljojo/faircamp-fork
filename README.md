@@ -40,9 +40,9 @@ rendering, deploying), and for testing purposes faircamp can be stably run on
 the main branch. For production usage you might still want to wait though,
 faircamp is still more of an advanced prototype and demo.
 
-## Early Documentation
+## Documentation
 
-This documentation is still incomplete, in parts potentially inaccurate and subject to change.
+Mostly complete and accurate but some parts are subject to change.
 
 ### Commandline arguments
 
@@ -215,15 +215,22 @@ be provided through the manifests.
 # release
 
 artist: Heston Exchange
-
 image_description: An ink drawing of a barren tree with monkeys in its branches
+title: Ape Affairs (Bonus Track Edition)
+track_numbering: disabled
 
 -- text
 Recorded in the summer of '94 at West Callaghan Ranch, XE.
--- text
 
-title: Ape Affairs (Bonus Track Edition)
+Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
+-- text
 ```
+
+If you provide a cover image, `image_description` should be used to provide an
+alt text for it. `track_numbering` allows configuration of the numbering style
+used - by default it's `arabic` (01 02 03 …) but can be set to `hexadecimal`
+(0x01 0x02 0x03 …), `roman` (I II
+III …) or `disabled`.
 
 #### Streaming
 

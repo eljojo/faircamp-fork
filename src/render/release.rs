@@ -134,7 +134,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="track_title_wrapper">
-                        <span class="track_number">{track_number:02}</span>
+                        <span class="track_number">{track_number}</span>
                         <a class="track_title">
                             {track_title} <span class="pause"></span>
                         </a>
@@ -145,7 +145,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     </div>
                 "#,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
-                track_number = index + 1,
+                track_number = release.track_numbering.format(index + 1),
                 track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = track.title,
                 waveform = waveform(track, index, track_duration_width_em)
