@@ -134,6 +134,18 @@ impl Catalog {
         cache_manifest: &mut CacheManifest,
         parent_overrides: &Overrides
     ) -> Result<(), String> {
+        let dir_canonicalized = dir.canonicalize().unwrap();
+        for special_dir in &[&build.build_dir, &build.cache_dir] {
+            if let Ok(special_dir_canonicalized) = special_dir.canonicalize() {
+                if dir_canonicalized == special_dir_canonicalized {
+                    info!("Ignoring special directory {}", special_dir.display());
+                    return Ok(())
+                }
+            }
+        }
+        
+        info!("Reading directory {}", dir.display());
+        
         let mut local_options = LocalOptions::new();
         let mut local_overrides = None;
         
@@ -309,7 +321,6 @@ impl Catalog {
         }
         
         for dir_path in &dir_paths {
-            info!("Reading directory {}", dir_path.display());
             self.read_dir(dir_path, build, cache_manifest, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
 
