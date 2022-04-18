@@ -11,7 +11,7 @@ clap = { features = ["derive"], version = "3.0.10" }
 claxon = "0.4.3"
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs" }
 hound = "3.4.0"
-id3 = "1.0.1"
+id3 = "1.0.2"
 indoc = "1.0.3"
 iso_currency = "0.4.2"
 lewton = "0.10.2"

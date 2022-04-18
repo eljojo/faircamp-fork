@@ -185,8 +185,8 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 for section_element in section_elements {
                                     match section_element.key.as_ref() {
                                         "disabled" => match section_element.kind {
-                                            Kind::Empty  => overrides.download_option = DownloadOption::Disabled,
-                                            _ => error!("Ignoring invalid download.disabled option (can only be an empty) in {}", file_line!(path, element))
+                                            Kind::Flag  => overrides.download_option = DownloadOption::Disabled,
+                                            _ => error!("Ignoring invalid download.disabled option (can only be a flag) in {}", file_line!(path, element))
                                         }
                                         "format" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => {
@@ -201,23 +201,24 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                             Kind::Field(FieldContent::Items(items))  => {
                                                 overrides.download_formats = items
                                                     .iter()
-                                                    .filter_map(|item|
-                                                        match AudioFormat::from_manifest_key(item.value.as_str()) {
+                                                    .filter_map(|item| {
+                                                        let key = item.value.as_deref().unwrap_or("");
+                                                        match AudioFormat::from_manifest_key(key) {
                                                             None => {
-                                                                error!("Ignoring invalid download.formats format specifier '{}' in {}", item.value, file_line!(path, item));
+                                                                error!("Ignoring invalid download.formats format specifier '{}' in {}", key, file_line!(path, item));
                                                                 None
                                                             }
                                                             some_format => some_format
                                                         }
-                                                    )
+                                                    })
                                                     .collect();
                                             }
                                             Kind::Field(FieldContent::None) => (),
-                                            _ => error!("Ignoring invalid download.formats option (can only be a field containing a list) in {}", file_line!(path, section_element))
+                                            _ => error!("Ignoring invalid download.formats option (can only be a field containing items) in {}", file_line!(path, section_element))
                                         }
                                         "free" => match section_element.kind {
-                                            Kind::Empty  => overrides.download_option = DownloadOption::init_free(),
-                                            _ => error!("Ignoring invalid download.free option (can only be an empty) in {}", file_line!(path, section_element))
+                                            Kind::Flag  => overrides.download_option = DownloadOption::init_free(),
+                                            _ => error!("Ignoring invalid download.free option (can only be a flag) in {}", file_line!(path, section_element))
                                         }
                                         "price" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => {
@@ -301,12 +302,12 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 for section_element in section_elements {
                                     match section_element.key.as_ref() {
                                         "disabled" => match section_element.kind {
-                                            Kind::Empty  => overrides.embedding = false,
-                                            _ => error!("Ignoring invalid embedding.disabled option (can only be an empty) in {}", file_line!(path, element))
+                                            Kind::Flag  => overrides.embedding = false,
+                                            _ => error!("Ignoring invalid embedding.disabled option (can only be a flag) in {}", file_line!(path, element))
                                         }
                                         "enabled" => match section_element.kind {
-                                            Kind::Empty  => overrides.embedding = true,
-                                            _ => error!("Ignoring invalid embedding.enabled option (can only be an empty) in {}", file_line!(path, element))
+                                            Kind::Flag  => overrides.embedding = true,
+                                            _ => error!("Ignoring invalid embedding.enabled option (can only be a flag) in {}", file_line!(path, element))
                                         }
                                         key => error!("Ignoring unsupported embedding.{} option in {}", key, file_line!(path, section_element))
                                     }
@@ -416,9 +417,13 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                             _ => error!("Ignoring invalid release.artist option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         "artists" => match &section_element.kind {
-                                            Kind::Field(FieldContent::Items(items)) => overrides.release_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
+                                            Kind::Field(FieldContent::Items(items)) => {
+                                                overrides.release_artists = Some(
+                                                    items.iter().filter_map(|item| item.value.as_ref().map(|v| v.clone())).collect()
+                                                );
+                                            }
                                             Kind::Field(FieldContent::None) => (),
-                                            _ => error!("Ignoring invalid release.artists option (can only be a field containing a list) in {}", file_line!(path, section_element))
+                                            _ => error!("Ignoring invalid release.artists option (can only be a field containing items) in {}", file_line!(path, section_element))
                                         }
                                         "image_description" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => overrides.release_image_description = Some(value.clone()),
@@ -575,9 +580,13 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             _ => error!("Ignoring invalid track_artist option (can only be a field containing a value) in {}", file_line!(path, element))
                         }
                         "track_artists" => match element.kind {
-                            Kind::Field(FieldContent::Items(items)) => overrides.track_artists = Some(items.iter().map(|item| item.value.clone()).collect()),
+                            Kind::Field(FieldContent::Items(items)) => {
+                                overrides.track_artists = Some(
+                                    items.iter().filter_map(|item| item.value.as_ref().map(|v| v.clone())).collect()
+                                );
+                            }
                             Kind::Field(FieldContent::None) => (),
-                            _ => error!("Ignoring invalid track_artists option (can only be a field containing a list) in {}", file_line!(path, element))
+                            _ => error!("Ignoring invalid track_artists option (can only be a field containing items) in {}", file_line!(path, element))
                         }
                         unsupported_key => error!("Ignoring unsupported option '{}' in {}", unsupported_key, file_line!(path, element))
                     }
