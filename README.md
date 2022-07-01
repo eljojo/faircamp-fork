@@ -301,7 +301,7 @@ no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Wind
 Run this to build and install faircamp on your system:
 
 ```bash
-cargo install --path .
+cargo install --locked --path .
 ```
 
 Then run it *inside a directory that contains directories that contain audio files*:
