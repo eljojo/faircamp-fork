@@ -87,19 +87,35 @@ impl Catalog {
         // TODO: Put permalink collision check logic (the stuff below) into its own function
         let mut permalinks = HashMap::new();
         
+        let format_previous_usage = |previous_usage: &(Option<&Release>, Option<&Artist>)| -> String {
+            match previous_usage {
+                (Some(release), None) => {
+                    let mode = if let Permalink::UserAssigned(_) = release.permalink { "user-assigned" } else { "auto-generated" };
+                    format!("the {} permalink of the release '{}'", mode, release.title)
+                }
+                (None, Some(artist)) => {
+                    let mode = if let Permalink::UserAssigned(_) = artist.permalink { "user-assigned" } else { "auto-generated" };
+                    format!("the {} permalink of the artist '{}'", mode, artist.name)
+                }
+                _ => unreachable!()
+            }
+        };
+
         for release in &catalog.releases {
             match &release.permalink {
-                Permalink::Generated(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
-                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
-                    return Err(()); 
-                } else {
-                    permalinks.insert(permalink, &release.permalink);
-                }
-                Permalink::UserAssigned(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
-                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                Permalink::Generated(permalink) => if let Some(previous_usage) = permalinks.get(&permalink) {
+                    let message = format!("The auto-generated permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
+                    error!("{}", message);
                     return Err(());
                 } else {
-                    permalinks.insert(permalink, &release.permalink);
+                    permalinks.insert(permalink, (Some(&release), None));
+                }
+                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = permalinks.get(&permalink) {
+                    let message = format!("The user-assigned permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
+                    error!("{}", message);
+                    return Err(());
+                } else {
+                    permalinks.insert(permalink, (Some(&release), None));
                 }
             }
         }
@@ -109,17 +125,19 @@ impl Catalog {
         //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
         for artist in &catalog.artists {
             match &artist.permalink {
-                Permalink::Generated(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
-                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                Permalink::Generated(permalink) => if let Some(previous_usage) = permalinks.get(&permalink) {
+                    let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
+                    error!("{}", message);
                     return Err(()); 
                 } else {
-                    permalinks.insert(permalink, &artist.permalink);
+                    permalinks.insert(permalink, (None, Some(&artist)));
                 }
-                Permalink::UserAssigned(permalink) => if let Some(_previous_permalink) = permalinks.get(&permalink) {
-                    error!("Conflicting permalinks"); // TODO: Proper error message that indicates what conflicts with what and how to resolve it
+                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = permalinks.get(&permalink) {
+                    let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
+                    error!("{}", message);
                     return Err(());
                 } else {
-                    permalinks.insert(permalink, &artist.permalink);
+                    permalinks.insert(permalink, (None, Some(&artist)));
                 }
             }
         }
