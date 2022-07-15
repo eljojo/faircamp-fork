@@ -42,11 +42,20 @@ faircamp is still more of an advanced prototype and demo.
 
 ## Documentation
 
-Mostly complete and accurate but some parts are subject to change.
+Mostly complete and accurate but keep in mind that things are still being developed and in motion.
 
 ### Commandline arguments
 
-Consult `faircamp --help` for up-to-date information on that.
+Consult `faircamp --help` for the most authoritative and up-to-date information on available arguments.
+
+That said here's a glimpse at some particularly interesting ones:
+- `--build-dir <BUILD_DIR>` Override build directory (default is .faircamp_build/ inside the current working directory)
+- `--cache-dir <CACHE_DIR>` Override cache directory (default is .faircamp_cache/ inside the current working directory)
+- `--catalog-dir <CATALOG_DIR>` Override catalog directory (default is the current working directory)
+- `--exclude <EXCLUDE_PATTERNS>` Excludes all file paths that contain the specified pattern from being processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex
+- `--include <INCLUDE_PATTERNS>` Pass this so only file paths that contain the specified pattern will get processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex
+- `--theming-widget` Injects a small widget into the page which allows you to interactively explore different theme color configurations (see section `Theme` further below)
+
 
 ### Manifests
 

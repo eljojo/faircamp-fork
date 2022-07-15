@@ -27,12 +27,20 @@ pub struct Args {
     /// Configures the deploy destination (passed to rsync as [DEST] argument), e.g. "user@example.com:/var/www/example.com/music/"
     #[clap(long = "deploy-destination")]
     pub deploy_destination: Option<String>,
+
+    /// Excludes all file paths that contain the specified pattern from being processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex.
+    #[clap(long = "exclude")]
+    pub exclude_patterns: Vec<String>,
+
+    /// Pass this so only file paths that contain the specified pattern will get processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex.
+    #[clap(long = "include")]
+    pub include_patterns: Vec<String>,
     
     /// Reclaims disk space by removing all cached assets that were not used for the last build and exits (no build is performed)
     #[clap(long = "optimize-cache")]
     pub optimize_cache: bool,
     
-    /// Locally previews the build in the browser after the build is finished
+    /// Locally previews the build in the browser after the build is finished (not yet implemented)
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
     

@@ -100,6 +100,15 @@ impl Catalog {
                 }
             }
         }
+
+        for exclude_pattern in &build.exclude_patterns {
+            if let Some(dir_str) = dir.to_str() {
+                if dir_str.contains(exclude_pattern) {
+                    info!("Ignoring directory {} and all below (excluded by pattern '{}')", dir.display(), exclude_pattern);
+                    return Ok(())
+                }
+            }
+        }
         
         info!("Reading directory {}", dir.display());
         
@@ -122,7 +131,7 @@ impl Catalog {
         
         match dir.read_dir() {
             Ok(dir_entries) => {
-                for dir_entry_result in dir_entries {
+                'dir_entry_iter: for dir_entry_result in dir_entries {
                     if let Ok(dir_entry) = dir_entry_result {
                         if let Some(filename) = dir_entry.file_name().to_str() {
                             if filename.starts_with(".") {
@@ -137,6 +146,33 @@ impl Catalog {
                             if file_type.is_dir() {
                                 dir_paths.push(path);
                             } else if file_type.is_file() {
+                                for exclude_pattern in &build.exclude_patterns {
+                                    if let Some(dir_entry_str) = dir_entry.path().to_str() {
+                                        if dir_entry_str.contains(exclude_pattern) {
+                                            info!("Ignoring file {} (excluded by pattern '{}')", dir_entry.path().display(), exclude_pattern);
+                                            continue 'dir_entry_iter
+                                        }
+                                    }
+                                }
+
+                                if build.include_patterns.len() > 0 {
+                                    let mut include = false;
+
+                                    for include_pattern in &build.include_patterns {
+                                        if let Some(dir_entry_str) = dir_entry.path().to_str() {
+                                            if dir_entry_str.contains(include_pattern) {
+                                                include = true;
+                                                break
+                                            }
+                                        }
+                                    }
+
+                                    if !include {
+                                        info!("Ignoring file {} (matches no include pattern)", dir_entry.path().display());
+                                        continue 'dir_entry_iter
+                                    }
+                                }
+
                                 if let Some(extension) = path.extension()
                                     .map(|osstr|
                                         osstr.to_str().map(|str|
