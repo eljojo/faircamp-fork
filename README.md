@@ -88,6 +88,27 @@ syntax used in the manifest files consult the [eno language
 guide](https://eno-lang.org/guide/), simply modifying the examples given below
 should likely get you there as well though.
 
+#### Artist
+
+Artists are already automatically created by faircamp from the metadata on tracks,
+but if you explicitly define an artist you can specify additional fields like a
+permalink or text for the artist. Make sure that the artist name in the track metadata
+is the same as the one you specify here in the manifest - this is used to associate
+the track's artist with its artist metadata!
+
+```eno
+# artist
+
+name: Heston Exchange
+permalink: heston-exchange
+
+-- text
+Classic Dada-core formation founded in the 90ies.
+
+Only ever known to publicly perform at birthday parties and the gym at their hometown.
+-- text
+```
+
 #### Catalog
 
 Here you can set the title of your site (which appears at the title of browser
@@ -216,6 +237,7 @@ be provided through the manifests.
 
 artist: Heston Exchange
 image_description: An ink drawing of a barren tree with monkeys in its branches
+permalink: ape-affairs-bonus-track-edition
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
 
