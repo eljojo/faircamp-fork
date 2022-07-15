@@ -47,28 +47,16 @@ pub enum PermalinkUsage<'a> {
 }
 
 impl Catalog {
-    pub fn get_or_create_artist(&mut self, new_artist_name: Option<&str>) -> Rc<Artist> {
-        if let Some(new_artist_name) = new_artist_name {
-            self.artists
-                .iter()
-                .find(|artist| &artist.name == new_artist_name)
-                .map(|existing_artist| existing_artist.clone())
-                .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::new(new_artist_name.to_string(), None));
-                    self.artists.push(new_artist.clone());
-                    new_artist
-                })
-        } else {
-            self.artists
-                .iter()
-                .find(|artist| artist.name == "UNKNOWN_SPECIAL_STRING")
-                .map(|existing_artist| existing_artist.clone())
-                .unwrap_or_else(|| {
-                    let new_artist = Rc::new(Artist::new(String::from("UNKNOWN_SPECIAL_STRING"), None));
-                    self.artists.push(new_artist.clone());
-                    new_artist
-                })
-        }
+    pub fn get_or_create_artist(&mut self, new_artist_name: &str) -> Rc<Artist> {
+        self.artists
+            .iter()
+            .find(|artist| &artist.name == new_artist_name)
+            .map(|existing_artist| existing_artist.clone())
+            .unwrap_or_else(|| {
+                let new_artist = Rc::new(Artist::new(new_artist_name.to_string(), None));
+                self.artists.push(new_artist.clone());
+                new_artist
+            })
     }
     
     pub fn new() -> Catalog {
@@ -237,7 +225,7 @@ impl Catalog {
             let mut release_artists: Vec<Rc<Artist>> = Vec::new();
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
                 for artist_name in artist_names {
-                    let artist = self.get_or_create_artist(Some(&artist_name));
+                    let artist = self.get_or_create_artist(&artist_name);
                     release_artists.push(artist);
                 }
             } else {
@@ -305,13 +293,12 @@ impl Catalog {
         let artists = if let Some(artist_names) = &overrides.track_artists {
             artist_names
                 .iter()
-                .map(|name| self.get_or_create_artist(Some(name)))
+                .map(|name| self.get_or_create_artist(name))
                 .collect()
+        } else if let Some(name) = cached_assets.source_meta.artist.as_ref() {
+            vec![self.get_or_create_artist(name.as_str())]
         } else {
-            // TODO: We unconditionally assign an artist to the track - including a None artist,
-            //       that is, one that we give an UNKNOWN_SPECIAL_STRING identifier. Is there
-            //       any sensible reason not to just *not* have an artist for a track (?) 
-            vec![self.get_or_create_artist(cached_assets.source_meta.artist.as_ref().map(|name| name.as_str()))]
+            vec![]
         };
         
         let source_file = path.to_path_buf();
