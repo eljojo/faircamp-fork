@@ -103,6 +103,14 @@ fn main() {
     
     styles::generate(&mut build);
     feed::generate(&build, &catalog);
+
+    if build.base_url.is_none() {
+        if build.embeds_requested {
+            warn!("No catalog.base_url specified, embeds for releases and the RSS feed were not generated");
+        } else {
+            warn!("No catalog.base_url specified, RSS feed was not generated");
+        }
+    }
     
     match build.cache_optimization {
         CacheOptimization::Default |

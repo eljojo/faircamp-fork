@@ -111,12 +111,15 @@ Only ever known to publicly perform at birthday parties and the gym at their hom
 
 #### Catalog
 
-Here you can set the title of your site (which appears at the title of browser
-tabs, inside the RSS feed, etc.), as well as the global about page text for your
-site.
+Here you can set the global site title (which appears at the title of browser
+tabs, inside the RSS feed, etc.), the base url (required for generation of embeds and the RSS feed), an optional RSS feed image, as well as an about page text for your catalog.
 
 ```eno
 # catalog
+
+base_url: https://myawesomemusic.site/
+feed_image: exported_logo_v3.jpg
+title: My awesome music
 
 -- text
 My self hosted faircamp site,
@@ -124,8 +127,6 @@ which presents some of my awesome music.
 
 Nice of you to stop by!
 -- text
-
-title: My awesome music
 ```
 
 #### Download
@@ -176,17 +177,6 @@ Embedding is enabled by default. You can use `disabled` to disable it and
 # embedding
 
 disabled
-```
-
-#### Feed
-
-You need to specify the base url under which you're hosting your faircamp site in order for the RSS feed to be generated. The image for the feed is optional.
-
-```eno
-# feed
-
-base_url: https://myawesomemusic.site/
-image: exported_logo_v3.jpg
 ```
 
 #### Localization

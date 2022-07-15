@@ -289,10 +289,12 @@ impl Release {
         let release_html = render::release::release_html(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
 
-        if self.embedding {
-            let embed_dir = release_dir.join("embed");
-            let embed_html = render::release::embed::embed_html(build, catalog, self);
-            util::ensure_dir_and_write_index(&embed_dir, &embed_html);
+        if self.embedding  {
+            if let Some(base_url) = &build.base_url {
+                let embed_dir = release_dir.join("embed");
+                let embed_html = render::release::embed::embed_html(build, catalog, self, &base_url);
+                util::ensure_dir_and_write_index(&embed_dir, &embed_html);
+            }
         }
     }
 }

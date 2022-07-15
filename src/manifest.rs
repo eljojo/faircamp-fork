@@ -155,6 +155,31 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                             Kind::Section(section_elements) => {
                                 for section_element in section_elements {
                                     match section_element.key.as_ref() {
+                                        "base_url" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                match Url::parse(&value) {
+                                                    Ok(url) => {
+                                                        if let Some(previous_url) = &build.base_url {
+                                                            warn_global_set_repeatedly!("catalog.base_url", previous_url, url);
+                                                        }
+
+                                                        build.base_url = Some(url);
+                                                    }
+                                                    Err(err) => error!("Ignoring invalid catalog.base_url setting value '{}' in {} ({})", value, file_line!(path, section_element), err)
+                                                }
+                                            }
+                                            _ => error!("Ignoring invalid feed.base_url option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
+                                        "feed_image" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Value(value)) => {
+                                                if let Some(previous) = &catalog.feed_image {
+                                                    warn_global_set_repeatedly!("catalog.feed_image", previous, value);
+                                                }
+
+                                                catalog.feed_image = Some(value.clone()); // TODO: Verify file exists at provided location
+                                            }
+                                            _ => error!("Ignoring invalid catalog.feed_image option (can only be a field containing a value) in {}", file_line!(path, section_element))
+                                        }
                                         "text" => match &section_element.kind {
                                             Kind::Embed(Some(value)) |
                                             Kind::Field(FieldContent::Value(value)) => {
@@ -314,41 +339,6 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 }
                             }
                             _ => error!("Ignoring invalid embedding option (can only be a section containing specific elements) in {}", file_line!(path, element))
-                        }
-                        "feed" => match &element.kind {
-                            Kind::Section(section_elements) => {
-                                for section_element in section_elements {
-                                    match section_element.key.as_ref() {
-                                        "base_url" => match &section_element.kind {
-                                            Kind::Field(FieldContent::Value(value)) => {
-                                                match Url::parse(&value) {
-                                                    Ok(url) => {
-                                                        if let Some(previous_url) = &build.base_url {
-                                                            warn_global_set_repeatedly!("feed.base_url", previous_url, url);
-                                                        }
-
-                                                        build.base_url = Some(url);
-                                                    }
-                                                    Err(err) => error!("Ignoring invalid feed.base_url setting value '{}' in {} ({})", value, file_line!(path, section_element), err)
-                                                }
-                                            }
-                                            _ => error!("Ignoring invalid feed.base_url option (can only be a field containing a value) in {}", file_line!(path, section_element))
-                                        }
-                                        "image" => match &section_element.kind {
-                                            Kind::Field(FieldContent::Value(value)) => {
-                                                if let Some(previous) = &catalog.feed_image {
-                                                    warn_global_set_repeatedly!("feed.image", previous, value);
-                                                }
-
-                                                catalog.feed_image = Some(value.clone()); // TODO: Verify file exists at provided location
-                                            }
-                                            _ => error!("Ignoring invalid feed.image option (can only be a field containing a value) in {}", file_line!(path, section_element))
-                                        }
-                                        key => error!("Ignoring unsupported feed.{} option in {}", key, file_line!(path, section_element))
-                                    }
-                                }
-                            }
-                            _ => error!("Ignoring invalid feed option (can only be a section containing specific elements) in {}", file_line!(path, element))
                         }
                         "localization" => match &element.kind {
                             Kind::Section(section_elements) => {

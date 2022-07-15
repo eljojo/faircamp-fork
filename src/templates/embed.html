@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html {dir_attribute}>
+    <head>
+        <title>{title}</title>
+        <meta charset="utf-8">
+        <meta name="description" content="{title}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="{root_prefix}styles.css" rel="stylesheet">
+        <script defer src="{root_prefix}scripts.js"></script>
+    </head>
+    <body>
+        <script>document.body.classList.add('js_enabled');</script>
+        <div class="layout">
+            <main>
+                {body}
+            </main>
+            <footer>
+                <a href="{root_prefix}">Home</a> <a href="{root_prefix}about/">{catalog_title}</a> {feed_user_link}
+            </footer>
+        </div>
+        {theming_widget}
+    </body>
+</html>

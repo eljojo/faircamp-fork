@@ -1,14 +1,16 @@
 use indoc::formatdoc;
+use url::Url;
 
 use crate::{
     build::Build,
     catalog::Catalog,
+    localization::WritingDirection,
     release::Release,
-    render::{cover, layout, list_artists, release::waveform},
+    render::{cover, list_artists, release::waveform},
     util::format_time
 };
 
-pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
+pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
     let root_prefix = &"../".repeat(2);
 
     let longest_track_duration = release.tracks
@@ -71,22 +73,50 @@ pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release) -> String
                     {tracks_rendered}
 
                     <div>
-                        <!-- TODO: For this link we need the base_url, so we can actually pull
-                                   this out of the "feed" options and make this a required-ish
-                                   thing in the "catalog" options itself. Required-*ish* because
-                                   we could still conditionally just not activate the embed
-                                   feature if the base_url is missing - which makes sense to support. -->
-                        Listen to everything at <a href="TODO">{catalog_title}</a>
+                        Listen to everything at <a href="{root_prefix}">{base_url}</a>
                     </div>
                 </div>
             </div>
         "##,
         artists = list_artists(root_prefix, &release.artists),
-        catalog_title = catalog.title(),
+        base_url = base_url,
         cover = cover(root_prefix, release),
         release_title = release.title,
+        root_prefix = root_prefix,
         tracks_rendered = tracks_rendered
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title)
+    embed_layout(root_prefix, &body, build, catalog, &release.title)
+}
+
+fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
+    let feed_user_link = match &build.base_url.is_some() {
+        true => format!(
+            r#"<a href="{root_prefix}feed.rss">RSS</a>"#,
+            root_prefix = root_prefix
+        ),
+        false => String::new()
+    };
+
+    let dir_attribute = match build.localization.writing_direction {
+        WritingDirection::Ltr => "",
+        WritingDirection::Rtl => "dir=\"rtl\""
+    };
+
+    let theming_widget = if build.theming_widget {
+        include_str!("../../templates/theming_widget.html")
+    } else {
+        ""
+    };
+
+    format!(
+        include_str!("../../templates/embed.html"),
+        body = body,
+        catalog_title = catalog.title(),
+        dir_attribute = dir_attribute,
+        feed_user_link = feed_user_link,
+        root_prefix = root_prefix,
+        theming_widget = theming_widget,
+        title = title
+    )
 }

@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn generate(build: &Build, catalog: &Catalog) {
-    if let Some(base_url) = &build.base_url {        
+    if let Some(base_url) = &build.base_url { 
         let channel_items = catalog.releases
             .iter()
             .map(|release| {
@@ -69,7 +69,5 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         );
         
         fs::write(build.build_dir.join("feed.rss"), xml).unwrap();
-    } else {
-        warn!("No base_url specified, skipping RSS feed generation");
     }
 }

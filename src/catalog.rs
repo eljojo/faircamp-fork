@@ -260,6 +260,10 @@ impl Catalog {
                             .to_string()
                         )
                 );
+
+            if local_overrides.as_ref().unwrap_or(parent_overrides).embedding {
+                build.embeds_requested = true;
+            }
             
             let release = Release::init(
                 release_artists,
