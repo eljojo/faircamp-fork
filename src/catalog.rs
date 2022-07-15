@@ -23,6 +23,8 @@ use crate::{
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
+const RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through metadata (see faircamp's README.md)";
+
 #[derive(Debug)]
 pub struct Catalog {
     pub artists: Vec<Rc<Artist>>,
@@ -91,7 +93,7 @@ impl Catalog {
         
         // TODO: Put permalink collision check logic (the stuff below) into its own function
         let mut used_permalinks = HashMap::new();
-        
+
         let format_previous_usage = |previous_usage: &PermalinkUsage| -> String {
             match previous_usage {
                 PermalinkUsage::Artist(artist) => {
@@ -109,14 +111,14 @@ impl Catalog {
             match &release.permalink {
                 Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
                     let message = format!("The auto-generated permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
-                    error!("{}", message);
+                    error!("{}\n{}", message, RESOLUTION_HINT);
                     return Err(());
                 } else {
                     used_permalinks.insert(permalink, PermalinkUsage::Release(&release));
                 }
                 Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
                     let message = format!("The user-assigned permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
-                    error!("{}", message);
+                    error!("{}\n{}", message, RESOLUTION_HINT);
                     return Err(());
                 } else {
                     used_permalinks.insert(permalink, PermalinkUsage::Release(&release));
@@ -131,14 +133,14 @@ impl Catalog {
             match &artist.permalink {
                 Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
                     let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
-                    error!("{}", message);
+                    error!("{}\n{}", message, RESOLUTION_HINT);
                     return Err(()); 
                 } else {
                     used_permalinks.insert(permalink, PermalinkUsage::Artist(&artist));
                 }
                 Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
                     let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
-                    error!("{}", message);
+                    error!("{}\n{}", message, RESOLUTION_HINT);
                     return Err(());
                 } else {
                     used_permalinks.insert(permalink, PermalinkUsage::Artist(&artist));
