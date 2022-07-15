@@ -91,62 +91,7 @@ impl Catalog {
             catalog.text = Some(util::markdown_to_html(&markdown));
         }
         
-        // TODO: Put permalink collision check logic (the stuff below) into its own function
-        let mut used_permalinks = HashMap::new();
-
-        let format_previous_usage = |previous_usage: &PermalinkUsage| -> String {
-            match previous_usage {
-                PermalinkUsage::Artist(artist) => {
-                    let mode = if let Permalink::UserAssigned(_) = artist.permalink { "user-assigned" } else { "auto-generated" };
-                    format!("the {} permalink of the artist '{}'", mode, artist.name)
-                }
-                PermalinkUsage::Release(release) => {
-                    let mode = if let Permalink::UserAssigned(_) = release.permalink { "user-assigned" } else { "auto-generated" };
-                    format!("the {} permalink of the release '{}'", mode, release.title)
-                }
-            }
-        };
-
-        for release in &catalog.releases {
-            match &release.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
-                    let message = format!("The auto-generated permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return Err(());
-                } else {
-                    used_permalinks.insert(permalink, PermalinkUsage::Release(&release));
-                }
-                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
-                    let message = format!("The user-assigned permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return Err(());
-                } else {
-                    used_permalinks.insert(permalink, PermalinkUsage::Release(&release));
-                }
-            }
-        }
-        
-        // TODO: We only need to validate this for those artists that are actually accessible via their own page
-        // TODO: We do not yet differentiate between artists that get their own page 
-        //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
-        for artist in &catalog.artists {
-            match &artist.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
-                    let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return Err(()); 
-                } else {
-                    used_permalinks.insert(permalink, PermalinkUsage::Artist(&artist));
-                }
-                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
-                    let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return Err(());
-                } else {
-                    used_permalinks.insert(permalink, PermalinkUsage::Artist(&artist));
-                }
-            }
-        }
+        if !catalog.validate_permalinks() { return Err(()); }
         
         Ok(catalog)
     }
@@ -384,6 +329,100 @@ impl Catalog {
     
     pub fn title(&self) -> String {
         self.title.as_ref().cloned().unwrap_or(String::from("Faircamp catalog"))
+    }
+
+     fn validate_permalinks(&mut self) -> bool {
+        let mut generated_permalinks = (None, None, None, 0);
+        let mut used_permalinks = HashMap::new();
+
+        let mut add_generated_usage = |usage: &PermalinkUsage| {
+            if generated_permalinks.2.is_some() {
+                generated_permalinks.3 += 1;
+            } else {
+                let label = match usage {
+                    PermalinkUsage::Artist(artist) => format!("artist '{}'", artist.name),
+                    PermalinkUsage::Release(release) => format!("release '{}'", release.title)
+                };
+
+                if generated_permalinks.1.is_some() {
+                    generated_permalinks.2 = Some(label);
+                } else if generated_permalinks.0.is_some() {
+                    generated_permalinks.1 = Some(label);
+                } else {
+                    generated_permalinks.0 = Some(label);
+                }
+            }
+        };
+
+        let format_previous_usage = |previous_usage: &PermalinkUsage| -> String {
+            match previous_usage {
+                PermalinkUsage::Artist(artist) => {
+                    let mode = if let Permalink::UserAssigned(_) = artist.permalink { "user-assigned" } else { "auto-generated" };
+                    format!("the {} permalink of the artist '{}'", mode, artist.name)
+                }
+                PermalinkUsage::Release(release) => {
+                    let mode = if let Permalink::UserAssigned(_) = release.permalink { "user-assigned" } else { "auto-generated" };
+                    format!("the {} permalink of the release '{}'", mode, release.title)
+                }
+            }
+        };
+
+        for release in &self.releases {
+            match &release.permalink {
+                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
+                    let message = format!("The auto-generated permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
+                    error!("{}\n{}", message, RESOLUTION_HINT);
+                    return false;
+                } else {
+                    let usage = PermalinkUsage::Release(&release);
+                    add_generated_usage(&usage);
+                    used_permalinks.insert(permalink, usage);
+
+                }
+                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
+                    let message = format!("The user-assigned permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
+                    error!("{}\n{}", message, RESOLUTION_HINT);
+                    return false;
+                } else {
+                    used_permalinks.insert(permalink, PermalinkUsage::Release(&release));
+                }
+            }
+        }
+        
+        // TODO: We only need to validate this for those artists that are actually accessible via their own page
+        // TODO: We do not yet differentiate between artists that get their own page 
+        //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
+        for artist in &self.artists {
+            match &artist.permalink {
+                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
+                    let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
+                    error!("{}\n{}", message, RESOLUTION_HINT);
+                    return false; 
+                } else {
+                    let usage = PermalinkUsage::Artist(&artist);
+                    add_generated_usage(&usage);
+                    used_permalinks.insert(permalink, usage);
+                }
+                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
+                    let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
+                    error!("{}\n{}", message, RESOLUTION_HINT);
+                    return false;
+                } else {
+                    used_permalinks.insert(permalink, PermalinkUsage::Artist(&artist));
+                }
+            }
+        }
+
+        match generated_permalinks {
+            (None, None, None, 0) => (),
+            (Some(first), None, None, 0) => warn!("The {} has no user-assigned permalink, it is recommended to assign one.", first),
+            (Some(first), Some(second), None, 0) => warn!("The {} and the {} have no user-assigned permalinks, it is recommended to assign some.", first, second),
+            (Some(first), Some(second), Some(third), 0) => warn!("The {}, the {} and the {} have no user-assigned permalinks, it is recommended to assign some.", first, second, third),
+            (Some(first), Some(second), Some(third), further) => warn!("The {}, the {}, the {} and {} other entities have no user-assigned permalinks, it is recommended to assign some.", first, second, third, further),
+            _ => unreachable!()
+        }
+
+        return true;
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {

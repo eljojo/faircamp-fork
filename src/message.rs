@@ -23,7 +23,7 @@ macro_rules! info {
         println!(
             concat!(color!(blue), "[INFO] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
@@ -32,7 +32,7 @@ macro_rules! info_cache {
         println!(
             concat!(color!(magenta), "[CACHE] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
@@ -41,7 +41,7 @@ macro_rules! info_stats {
         println!(
             concat!(color!(cyan), "[STATS] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
@@ -50,7 +50,7 @@ macro_rules! info_transcoding {
         println!(
             concat!(color!(blue), "[TRANSCODING] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
@@ -59,7 +59,7 @@ macro_rules! warn {
         println!(
             concat!(color!(yellow), "[WARNING] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
@@ -68,7 +68,7 @@ macro_rules! warn_discouraged {
         println!(
             concat!(color!(yellow), "[DISCOURAGED] ", $format_str, color!(reset))
             $(,$args)*
-        );
+        )
     };
 }
 
@@ -77,7 +77,7 @@ macro_rules! warn_global_set_repeatedly {
         warn!(
             "Global {} is set more than once - overriding previous value",
             $key
-        );
+        )
     };
     ($key:expr, $previous:expr, $new:expr) => {
         warn!(
