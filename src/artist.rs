@@ -26,23 +26,6 @@ impl Artist {
             text: None
         }
     }
-    
-    pub fn new_from_manifest(
-        name: String,
-        permalink: Option<String>,
-        text: Option<String>
-    ) -> Artist {
-        let permalink = Permalink::new(permalink, &name);
-        
-        Artist {
-            image: None,
-            links: Vec::new(),
-            location: None,
-            name,
-            permalink,
-            text
-        }
-    }
 }
 
 #[derive(Debug)]

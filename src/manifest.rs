@@ -8,11 +8,10 @@ use std::{
 use url::Url;
 
 use crate::{
-    artist::Artist,
     asset_cache::CacheOptimization,
     audio_format::AudioFormat,
     build::Build,
-    catalog::Catalog,
+    catalog::{Catalog, Permalink},
     download_option::DownloadOption,
     localization::WritingDirection,
     payment_option::PaymentOption,
@@ -85,41 +84,40 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                     match element.key.as_ref() {
                         "artist" => match &element.kind {
                             Kind::Section(section_elements) => {
-                                let mut name = None;
-                                let mut permalink = None;
-                                let mut text = None;
+                                let mut name_option = None;
+                                let mut permalink_option = None;
+                                let mut text_option = None;
 
                                 for section_element in section_elements {
                                     match section_element.key.as_ref() {
                                         "name" => match &section_element.kind {
-                                            Kind::Field(FieldContent::Value(value)) => name = Some(value.clone()),
+                                            Kind::Field(FieldContent::Value(value)) => name_option = Some(value.clone()),
                                             _ => error!("Ignoring invalid artist.name option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         "permalink" => match &section_element.kind {
-                                            Kind::Field(FieldContent::Value(value)) => permalink = Some(value.clone()),
+                                            Kind::Field(FieldContent::Value(value)) => permalink_option = Some(value.clone()),
                                             _ => error!("Ignoring invalid artist.permalink option (can only be a field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         "text" => match &section_element.kind {
                                             Kind::Embed(Some(value)) |
-                                            Kind::Field(FieldContent::Value(value)) => text = Some(util::markdown_to_html(&value)),
+                                            Kind::Field(FieldContent::Value(value)) => text_option = Some(util::markdown_to_html(&value)),
                                             _ => error!("Ignoring invalid artist.text option (can only be an embed or field containing a value) in {}", file_line!(path, section_element))
                                         }
                                         key => error!("Ignoring unsupported artist.{} option in manifest '{:?}'", key, path)
                                     }
                                 }
 
-                                if let Some(name) = name {
-                                    // TODO: At this point the artist might already exist - need to scan
-                                    //       over all existing artists and modify the existing one if found.
-                                    //       Next challenge is implementing the "aliases" functionality, i.e.
-                                    //       allow user to specify multiple names under which the artist appears
-                                    //       (in metadata, that is), and then any previously created or
-                                    //       successively found artists with that alias need to be combined into
-                                    //       one, including changing the reference on the releases/tracks themselves,
-                                    //       this shall be fun, fun, fun! :)
-                                    let new_artist = Artist::new_from_manifest(name, permalink, text);
+                                if let Some(name) = name_option {
+                                    let mut artist = catalog.get_or_create_artist(&name);
 
-                                    catalog.artists.push(Rc::new(new_artist));
+                                    let artist_mut = Rc::get_mut(&mut artist).expect("Can not access artist as mutable");
+
+                                    if let Some(permalink) = permalink_option {
+                                        artist_mut.permalink = Permalink::UserAssigned(permalink);
+                                    }
+                                    if text_option.is_some() {
+                                        artist_mut.text = text_option;
+                                    }
                                 } else {
                                     error!("An artist was specified without a name, and therefore discarded, in {}", file_line!(path, element))
                                 }
