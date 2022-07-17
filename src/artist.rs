@@ -5,6 +5,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Artist {
+    pub aliases: Vec<String>,
     pub image: Option<Image>,
     pub links: Vec<Link>, // TODO: Revisit this - we want that? (as in: maybe leave up to user to provide this in text)
     pub location: Option<String>, // TODO: Revisit this - we want that? (as in: maybe leave up to user to provide this in text)
@@ -14,14 +15,15 @@ pub struct Artist {
 }
 
 impl Artist {
-    pub fn new(name: String, permalink: Option<String>) -> Artist {
-        let permalink = Permalink::new(permalink, &name);
+    pub fn new(name: &str) -> Artist {
+        let permalink = Permalink::generate(name);
         
         Artist {
+            aliases: Vec::new(),
             image: None,
             links: Vec::new(),
             location: None,
-            name,
+            name: name.to_string(),
             permalink,
             text: None
         }

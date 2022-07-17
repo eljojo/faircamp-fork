@@ -14,8 +14,8 @@ pub fn generate(build: &Build, catalog: &Catalog) {
             .map(|release| {
                 let artists_list = release.artists
                     .iter()
-                    .map(|artist| artist.name.as_str())
-                    .collect::<Vec<&str>>()
+                    .map(|artist| artist.borrow().name.clone())
+                    .collect::<Vec<String>>()
                     .join(", ");
                 
                 format!(

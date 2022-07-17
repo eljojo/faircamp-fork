@@ -89,9 +89,10 @@ fn main() {
     
     // Render page for each artist
     for artist in &catalog.artists {
-        let artist_html = render::artist::artist_html(&build, &artist, &catalog);
-        fs::create_dir(build.build_dir.join(&artist.permalink.get())).unwrap();
-        fs::write(build.build_dir.join(&artist.permalink.get()).join("index.html"), artist_html).unwrap();
+        let artist_html = render::artist::artist_html(&build, artist, &catalog);
+        let artist_ref = artist.borrow();
+        fs::create_dir(build.build_dir.join(&artist_ref.permalink.get())).unwrap();
+        fs::write(build.build_dir.join(&artist_ref.permalink.get()).join("index.html"), artist_html).unwrap();
     }
     
     // Render page for each release

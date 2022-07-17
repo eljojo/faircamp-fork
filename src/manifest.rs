@@ -3,7 +3,6 @@ use iso_currency::Currency;
 use std::{
     fs,
     path::Path,
-    rc::Rc
 };
 use url::Url;
 
@@ -84,12 +83,33 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                     match element.key.as_ref() {
                         "artist" => match &element.kind {
                             Kind::Section(section_elements) => {
+                                let mut aliases_option = None;
                                 let mut name_option = None;
                                 let mut permalink_option = None;
                                 let mut text_option = None;
 
                                 for section_element in section_elements {
                                     match section_element.key.as_ref() {
+                                        "aliases" => match &section_element.kind {
+                                            Kind::Field(FieldContent::Items(items))  => {
+                                                aliases_option = Some(
+                                                    items
+                                                        .iter()
+                                                        .filter_map(|item| {
+                                                            match item.value.as_deref() {
+                                                                None => {
+                                                                    error!("Ignoring empty artist.aliases entry in {}", file_line!(path, item));
+                                                                    None
+                                                                }
+                                                                Some(alias) => Some(alias.to_string())
+                                                            }
+                                                        })
+                                                        .collect()
+                                                );
+                                            }
+                                            Kind::Field(FieldContent::None) => (),
+                                            _ => error!("Ignoring invalid artist.aliases option (can only be a field containing items) in {}", file_line!(path, section_element))
+                                        }
                                         "name" => match &section_element.kind {
                                             Kind::Field(FieldContent::Value(value)) => name_option = Some(value.clone()),
                                             _ => error!("Ignoring invalid artist.name option (can only be a field containing a value) in {}", file_line!(path, section_element))
@@ -108,10 +128,13 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                                 }
 
                                 if let Some(name) = name_option {
-                                    let mut artist = catalog.get_or_create_artist(&name);
+                                    let artist = catalog.create_artist(&name);
 
-                                    let artist_mut = Rc::get_mut(&mut artist).expect("Can not access artist as mutable");
+                                    let mut artist_mut = artist.borrow_mut();
 
+                                    if let Some(aliases) = aliases_option {
+                                        artist_mut.aliases = aliases;
+                                    }
                                     if let Some(permalink) = permalink_option {
                                         artist_mut.permalink = Permalink::UserAssigned(permalink);
                                     }

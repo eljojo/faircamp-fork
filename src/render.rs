@@ -1,4 +1,5 @@
 use indoc::formatdoc;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{
@@ -70,17 +71,18 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
     )
 }
 
-fn list_artists(root_prefix: &str, artists: &Vec<Rc<Artist>>) -> String {
+fn list_artists(root_prefix: &str, artists: &Vec<Rc<RefCell<Artist>>>) -> String {
     artists
         .iter()
-        .map(|artist|
+        .map(|artist| {
+            let artist_ref = artist.borrow();
             format!(
                 r#"<a href="{root_prefix}{permalink}/">{name}</a>"#,
-                name = artist.name,
-                permalink = artist.permalink.get(),
+                name = artist_ref.name,
+                permalink = artist_ref.permalink.get(),
                 root_prefix = root_prefix
             )
-        )
+        })
         .collect::<Vec<String>>()
         .join(", ")
 }

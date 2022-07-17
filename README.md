@@ -99,17 +99,27 @@ should likely get you there as well though.
 
 #### Artist
 
-Artists are already automatically created by faircamp from the metadata on tracks,
-but if you explicitly define an artist you can specify additional fields like a
-permalink or text for the artist. Make sure that the artist name in the track metadata
-is the same as the one you specify here in the manifest - this is used to associate
-the track's artist with its artist metadata!
+Artists are automatically created by faircamp when they are encountered in
+audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
+says a track is by "Alice"). To add further information to an artist, you can
+expliclity define it in a manifest. The name you assign will be used to match
+the explicitly defined artist (by you in the manifest) to the implicitly
+defined one (by the audio file metadata) so pay close attention that both
+are written the same. If (as often happens) different audio files use
+slightly different versions of an artist name (e.g. "Motörhead" vs. "Motorhead"),
+or the artist appears in a collaboration (e.g. "Alice (feat. Bob)"), you can
+additionally specify `aliases` that will also be matched against to map the artist
+to the right tracks.
 
 ```eno
 # artist
 
 name: Heston Exchange
 permalink: heston-exchange
+
+aliases:
+- heston exchange
+- Heston Exchange (feat. Bar Foo)
 
 -- text
 Classic Dada-core formation founded in the 90ies.

@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
 use std::{
+    cell::RefCell,
     fs,
     path::{Path, PathBuf},
     rc::Rc
@@ -34,7 +35,10 @@ pub struct CachedTrackAssets {
 
 #[derive(Debug)]
 pub struct Track {
-    pub artists: Vec<Rc<Artist>>,
+    /// The final mapped artists (including metadata). Used in assembling the final page.
+    pub artists: Vec<Rc<RefCell<Artist>>>,
+    /// Names/aliases that should be mapped to this track, coming from the audio file metadata or from manifest overrides. Only relevant as an intermediate step before actual mapping.
+    pub artists_to_map: Vec<String>,
     pub cached_assets: CachedTrackAssets,
     pub source_file: PathBuf,
     pub title: String
@@ -137,13 +141,14 @@ impl Track {
     }
     
     pub fn new(
-        artists: Vec<Rc<Artist>>,
+        artists_to_map: Vec<String>,
         cached_assets: CachedTrackAssets,
         source_file: PathBuf,
         title: String
     ) -> Track {
         Track {
-            artists,
+            artists: Vec::new(),
+            artists_to_map,
             cached_assets,
             source_file,
             title

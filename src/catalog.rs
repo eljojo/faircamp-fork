@@ -1,4 +1,5 @@
 use std::{
+    cell::RefCell,
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
@@ -27,7 +28,7 @@ const RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitl
 
 #[derive(Debug)]
 pub struct Catalog {
-    pub artists: Vec<Rc<Artist>>,
+    pub artists: Vec<Rc<RefCell<Artist>>>,
     pub feed_image: Option<String>,
     pub images: Vec<Image>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
     pub releases: Vec<Release>,
@@ -42,21 +43,66 @@ pub enum Permalink {
 }
 
 pub enum PermalinkUsage<'a> {
-    Artist(&'a Artist),
+    Artist(&'a Rc<RefCell<Artist>>),
     Release(&'a Release)
 }
 
 impl Catalog {
-    pub fn get_or_create_artist(&mut self, new_artist_name: &str) -> Rc<Artist> {
-        self.artists
-            .iter()
-            .find(|artist| &artist.name == new_artist_name)
-            .map(|existing_artist| existing_artist.clone())
-            .unwrap_or_else(|| {
-                let new_artist = Rc::new(Artist::new(new_artist_name.to_string(), None));
-                self.artists.push(new_artist.clone());
-                new_artist
-            })
+    pub fn create_artist(&mut self, name: &str) -> Rc<RefCell<Artist>> {
+        let artist = Rc::new(RefCell::new(Artist::new(name)));
+        self.artists.push(artist.clone());
+        artist
+    }
+
+    // TODO: Here or earlier ensure that the artist names don't collide
+    fn map_artists(&mut self) {
+        for release in self.releases.iter_mut() {
+            for release_artist_to_map in release.artists_to_map.drain(..) {
+                let mut any_artist_found = false;
+                for artist in &self.artists {
+                    let artist_ref = artist.borrow();
+                    if artist_ref.name == release_artist_to_map ||
+                        artist_ref.aliases.iter().any(|alias| alias == &release_artist_to_map) {
+                        any_artist_found = true;
+
+                        // Only assign artist to release if it hasn't already been assigned to it
+                        if !release.artists.iter().any(|release_artist| Rc::ptr_eq(release_artist, artist)) {
+                            release.artists.push(artist.clone());
+                        }
+                    }
+                }
+
+                if !any_artist_found {
+                    let new_artist = Rc::new(RefCell::new(Artist::new(&release_artist_to_map)));
+                    self.artists.push(new_artist.clone());
+                    release.artists.push(new_artist.clone());
+                }
+            }
+
+            for track in release.tracks.iter_mut() {
+                for track_artist_to_map in track.artists_to_map.drain(..) {
+                    let mut any_artist_found = false;
+                    for artist in &self.artists {
+                        let artist_ref = artist.borrow();
+                        if artist_ref.name == track_artist_to_map ||
+                            artist_ref.aliases.iter().any(|alias| alias == &track_artist_to_map) {
+                            any_artist_found = true;
+
+                            // Only assign artist to track if it hasn't already been assigned to it
+                            if !track.artists.iter().any(|track_artist| Rc::ptr_eq(track_artist, artist)) {
+                                track.artists.push(artist.clone());
+                            }
+                        }
+                    }
+
+                    if !any_artist_found {
+                        let new_artist = Rc::new(RefCell::new(Artist::new(&track_artist_to_map)));
+                        self.artists.push(new_artist.clone());
+                        track.artists.push(new_artist.clone());
+                    }
+                }
+            }
+        }
     }
     
     pub fn new() -> Catalog {
@@ -78,6 +124,8 @@ impl Catalog {
         if let Some(markdown) = catalog.text.take() {
             catalog.text = Some(util::markdown_to_html(&markdown));
         }
+
+        catalog.map_artists();
         
         if !catalog.validate_permalinks() { return Err(()); }
         
@@ -258,20 +306,19 @@ impl Catalog {
             );
             release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0)); // sort most often occuring title to the end of the Vec
             
-            let mut release_artists: Vec<Rc<Artist>> = Vec::new();
+            let mut release_artists_to_map: Vec<String> = Vec::new();
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
                 for artist_name in artist_names {
-                    let artist = self.get_or_create_artist(&artist_name);
-                    release_artists.push(artist);
+                    release_artists_to_map.push(artist_name.to_string());
                 }
             } else {
                 for release_track in &release_tracks {
-                    for track_artist in &release_track.artists {
-                        if release_artists
+                    for track_artist_to_map in &release_track.artists_to_map {
+                        if release_artists_to_map
                         .iter()
-                        .find(|release_artist| Rc::ptr_eq(release_artist, track_artist))
+                        .find(|release_artist_to_map| release_artist_to_map == &track_artist_to_map)
                         .is_none() {
-                            release_artists.push(track_artist.clone());
+                            release_artists_to_map.push(track_artist_to_map.clone());
                         }
                     }
                 }
@@ -301,8 +348,8 @@ impl Catalog {
                 build.embeds_requested = true;
             }
             
-            let release = Release::init(
-                release_artists,
+            let release = Release::new(
+                release_artists_to_map,
                 cached_assets,
                 images,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
@@ -330,13 +377,10 @@ impl Catalog {
         overrides: &Overrides,
         cached_assets: CachedTrackAssets
     ) -> Track {
-        let artists = if let Some(artist_names) = &overrides.track_artists {
-            artist_names
-                .iter()
-                .map(|name| self.get_or_create_artist(name))
-                .collect()
+        let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
+            artist_names.iter().map(|name| name.clone()).collect()
         } else if let Some(name) = cached_assets.source_meta.artist.as_ref() {
-            vec![self.get_or_create_artist(name.as_str())]
+            vec![name.to_string()]
         } else {
             vec![]
         };
@@ -347,7 +391,7 @@ impl Catalog {
             .map(|title| title.clone())
             .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
         
-        Track::new(artists, cached_assets, source_file, title)
+        Track::new(artists_to_map, cached_assets, source_file, title)
     }
     
     pub fn set_title(&mut self, title: String) -> Option<String> {
@@ -367,7 +411,7 @@ impl Catalog {
                 generated_permalinks.3 += 1;
             } else {
                 let label = match usage {
-                    PermalinkUsage::Artist(artist) => format!("artist '{}'", artist.name),
+                    PermalinkUsage::Artist(artist) => format!("artist '{}'", artist.borrow().name),
                     PermalinkUsage::Release(release) => format!("release '{}'", release.title)
                 };
 
@@ -384,8 +428,9 @@ impl Catalog {
         let format_previous_usage = |previous_usage: &PermalinkUsage| -> String {
             match previous_usage {
                 PermalinkUsage::Artist(artist) => {
-                    let mode = if let Permalink::UserAssigned(_) = artist.permalink { "user-assigned" } else { "auto-generated" };
-                    format!("the {} permalink of the artist '{}'", mode, artist.name)
+                    let artist_ref = artist.borrow();
+                    let mode = if let Permalink::UserAssigned(_) = artist_ref.permalink { "user-assigned" } else { "auto-generated" };
+                    format!("the {} permalink of the artist '{}'", mode, artist_ref.name)
                 }
                 PermalinkUsage::Release(release) => {
                     let mode = if let Permalink::UserAssigned(_) = release.permalink { "user-assigned" } else { "auto-generated" };
@@ -396,22 +441,22 @@ impl Catalog {
 
         for release in &self.releases {
             match &release.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
+                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
                     let message = format!("The auto-generated permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
                     error!("{}\n{}", message, RESOLUTION_HINT);
                     return false;
                 } else {
                     let usage = PermalinkUsage::Release(&release);
                     add_generated_usage(&usage);
-                    used_permalinks.insert(permalink, usage);
+                    used_permalinks.insert(permalink.to_string(), usage);
 
                 }
-                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
+                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
                     let message = format!("The user-assigned permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
                     error!("{}\n{}", message, RESOLUTION_HINT);
                     return false;
                 } else {
-                    used_permalinks.insert(permalink, PermalinkUsage::Release(&release));
+                    used_permalinks.insert(permalink.to_string(), PermalinkUsage::Release(&release));
                 }
             }
         }
@@ -420,22 +465,23 @@ impl Catalog {
         // TODO: We do not yet differentiate between artists that get their own page 
         //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
         for artist in &self.artists {
-            match &artist.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
-                    let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return false; 
-                } else {
-                    let usage = PermalinkUsage::Artist(&artist);
-                    add_generated_usage(&usage);
-                    used_permalinks.insert(permalink, usage);
-                }
-                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(&permalink) {
-                    let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist.name, format_previous_usage(previous_usage));
+            let artist_ref = artist.borrow();
+            match &artist_ref.permalink {
+                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
+                    let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist_ref.name, format_previous_usage(previous_usage));
                     error!("{}\n{}", message, RESOLUTION_HINT);
                     return false;
                 } else {
-                    used_permalinks.insert(permalink, PermalinkUsage::Artist(&artist));
+                    let usage = PermalinkUsage::Artist(&artist);
+                    add_generated_usage(&usage);
+                    used_permalinks.insert(permalink.to_string(), usage);
+                }
+                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
+                    let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist_ref.name, format_previous_usage(previous_usage));
+                    error!("{}\n{}", message, RESOLUTION_HINT);
+                    return false;
+                } else {
+                    used_permalinks.insert(permalink.to_string(), PermalinkUsage::Artist(&artist));
                 }
             }
         }
@@ -486,6 +532,10 @@ impl Catalog {
 }
 
 impl Permalink {
+    pub fn generate(string: &str) -> Permalink {
+        Permalink::Generated(slug::slugify(string))
+    }
+
     pub fn get(&self) -> &str {
         match self {
             Permalink::Generated(string) => string,

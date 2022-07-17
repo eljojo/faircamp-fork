@@ -1,13 +1,11 @@
 use indoc::formatdoc;
-use std::rc::Rc;
 
 use crate::{
-    artist::Artist,
     build::Build,
     catalog::Catalog,
     download_option::DownloadOption,
     release::Release,
-    render::{SHARE_WIDGET, cover, layout},
+    render::{SHARE_WIDGET, cover, layout, list_artists},
     track::Track,
     util::format_time
 };
@@ -15,21 +13,6 @@ use crate::{
 pub mod checkout;
 pub mod download;
 pub mod embed;
-
-fn list_artists(root_prefix: &str, artists: &Vec<Rc<Artist>>) -> String {
-    artists
-        .iter()
-        .map(|artist|
-            format!(
-                r#"<a href="{root_prefix}{permalink}/">{name}</a>"#,
-                name = artist.name,
-                permalink = artist.permalink.get(),
-                root_prefix = root_prefix
-            )
-        )
-        .collect::<Vec<String>>()
-        .join(", ")
-}
 
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let root_prefix = &"../".repeat(1);

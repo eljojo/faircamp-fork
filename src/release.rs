@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
 use std::{
+    cell::RefCell,
     fs::{self, File},
     io::prelude::*,
     path::{Path, PathBuf},
@@ -40,7 +41,8 @@ pub struct CachedReleaseAssets {
 
 #[derive(Debug)]
 pub struct Release {
-    pub artists: Vec<Rc<Artist>>,
+    pub artists: Vec<Rc<RefCell<Artist>>>,
+    pub artists_to_map: Vec<String>,
     pub cached_assets: CachedReleaseAssets,
     pub cover: Option<Image>,
     pub download_formats: Vec<AudioFormat>,
@@ -134,8 +136,8 @@ impl CachedReleaseAssets {
 }
 
 impl Release {
-    pub fn init(
-        artists: Vec<Rc<Artist>>,
+    pub fn new(
+        artists_to_map: Vec<String>,
         cached_assets: CachedReleaseAssets,
         mut images: Vec<Image>,
         manifest_overrides: &Overrides,
@@ -152,7 +154,8 @@ impl Release {
             .sum();
 
         Release {
-            artists,
+            artists: Vec::new(),
+            artists_to_map,
             cached_assets,
             cover: images.pop(),
             download_formats: manifest_overrides.download_formats.clone(),
@@ -200,7 +203,7 @@ impl Release {
                             "{track_number:02} {artists}{separator}{title}{extension}",
                             artists=track.artists
                                 .iter()
-                                .map(|artist| artist.name.clone())
+                                .map(|artist| artist.borrow().name.clone())
                                 .collect::<Vec<String>>()
                                 .join(", "),
                             extension=format.extension(),

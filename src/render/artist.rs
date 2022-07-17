@@ -1,4 +1,5 @@
 use indoc::formatdoc;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{
@@ -9,9 +10,10 @@ use crate::{
     render::{SHARE_WIDGET, layout, releases}
 };
 
-pub fn artist_html(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> String {
+pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalog) -> String {
     let root_prefix = &"../".repeat(1);
 
+    // TODO: Possibly prepare these associations earlier, when mapping artists to releases based on artists_to_map
     let artist_releases = catalog.releases
         .iter()
         .filter(|release| {
@@ -22,7 +24,9 @@ pub fn artist_html(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> Str
         })
         .collect::<Vec<&Release>>();
 
-    let text = if let Some(text) = &artist.text {
+    let artist_ref = artist.borrow();
+
+    let text = if let Some(text) = &artist_ref.text {
         formatdoc!(
             r#"
                 <div class="vpad">
@@ -51,12 +55,12 @@ pub fn artist_html(build: &Build, artist: &Rc<Artist>, catalog: &Catalog) -> Str
                 {releases}
             </div>
         "#,
-        artist_name = artist.name,
+        artist_name = artist_ref.name,
         releases = releases(root_prefix, artist_releases),
         root_prefix = root_prefix,
         share_widget = SHARE_WIDGET,
         text = text
     );
 
-    layout(root_prefix, &body, build, catalog, &artist.name)
+    layout(root_prefix, &body, build, catalog, &artist_ref.name)
 }
