@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::rc::Rc;
 use std::fs;
 
 #[macro_use]
@@ -78,6 +79,22 @@ fn main() {
     
     catalog.write_assets(&mut build);
 
+    for artist in &catalog.artists {
+        if artist.borrow().image.is_none() {
+            for release in &catalog.releases {
+                if let Some(cover) = &release.cover {
+                    if release.artists
+                        .iter()
+                        .find(|release_artist| Rc::ptr_eq(release_artist, artist))
+                        .is_some() {
+                        let mut artist_mut = artist.borrow_mut();
+                        artist_mut.image = Some(cover.clone());
+                    }
+                }
+            }
+        }
+    }
+    
     // Render about page
     let about_html = render::about::about_html(&build, &catalog);
     fs::create_dir(build.build_dir.join("about")).unwrap();

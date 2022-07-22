@@ -75,7 +75,7 @@ pub fn optimize_cache(
     
     for release in catalog.releases.iter_mut() {
         if let Some(image) = &mut release.cover {
-            optimize_image_assets(&mut image.cached_assets, build);
+            optimize_image_assets(&mut image.borrow_mut().cached_assets, build);
         }
         
         for track in release.tracks.iter_mut() {
@@ -170,7 +170,7 @@ pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
     
     for release in &catalog.releases {
         if let Some(image) = &release.cover {
-            report_stale_image_assets(&image.cached_assets, &mut num_unused, &mut unused_bytesize);
+            report_stale_image_assets(&image.borrow().cached_assets, &mut num_unused, &mut unused_bytesize);
         }
         
         for track in &release.tracks {

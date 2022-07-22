@@ -25,7 +25,7 @@ fn cover(root_prefix: &str, release: &Release) -> String {
         Some(image) => format!(
             r#"<a href="{root_prefix}{filename}"><img alt="{alt}" src="{root_prefix}{filename}"></a>"#,
             alt = release.image_description.as_ref().unwrap_or(&String::from("Cover image of this release")),
-            filename = image.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
+            filename = image.borrow().get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
             root_prefix = root_prefix
         ),
         None => String::from(r#"<div></div>"#)

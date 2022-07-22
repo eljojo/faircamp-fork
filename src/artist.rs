@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::{
     catalog::Permalink,
     image::Image
@@ -6,7 +9,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Artist {
     pub aliases: Vec<String>,
-    pub image: Option<Image>,
+    pub image: Option<Rc<RefCell<Image>>>,
     pub links: Vec<Link>, // TODO: Revisit this - we want that? (as in: maybe leave up to user to provide this in text)
     pub location: Option<String>, // TODO: Revisit this - we want that? (as in: maybe leave up to user to provide this in text)
     pub name: String,

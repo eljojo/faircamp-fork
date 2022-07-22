@@ -44,7 +44,7 @@ pub struct Release {
     pub artists: Vec<Rc<RefCell<Artist>>>,
     pub artists_to_map: Vec<String>,
     pub cached_assets: CachedReleaseAssets,
-    pub cover: Option<Image>,
+    pub cover: Option<Rc<RefCell<Image>>>,
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
@@ -139,7 +139,7 @@ impl Release {
     pub fn new(
         artists_to_map: Vec<String>,
         cached_assets: CachedReleaseAssets,
-        mut images: Vec<Image>,
+        mut images: Vec<Rc<RefCell<Image>>>,
         manifest_overrides: &Overrides,
         permalink: Option<String>,
         title: String,
@@ -228,7 +228,8 @@ impl Release {
                     }
 
                     if let Some(cover) = &mut self.cover {
-                        let cover_asset = cover.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Intermediate);
+                        let mut cover_mut = cover.borrow_mut();
+                        let cover_asset = cover_mut.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Intermediate);
 
                         zip_writer.start_file("cover.jpg", options).unwrap();
 
@@ -240,7 +241,7 @@ impl Release {
                         zip_writer.write_all(&*buffer).unwrap();
                         buffer.clear();
 
-                        cover.cached_assets.persist(&build.cache_dir);
+                        cover_mut.cached_assets.persist(&build.cache_dir);
                     }
 
                     match zip_writer.finish() {

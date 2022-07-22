@@ -30,7 +30,7 @@ const RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitl
 pub struct Catalog {
     pub artists: Vec<Rc<RefCell<Artist>>>,
     pub feed_image: Option<String>,
-    pub images: Vec<Image>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
+    pub images: Vec<Rc<RefCell<Image>>>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
     pub releases: Vec<Release>,
     pub text: Option<String>,
     title: Option<String>
@@ -163,7 +163,7 @@ impl Catalog {
         let mut local_options = LocalOptions::new();
         let mut local_overrides = None;
         
-        let mut images: Vec<Image> = Vec::new();
+        let mut images = Vec::new();
         // We get the 'album' metadata from each track in a release. As each track in a
         // release could have a different 'album' specified, we count how often each
         // distinct 'album' tag is present on a track in the release, and then when we
@@ -293,7 +293,7 @@ impl Catalog {
             
             let cached_assets = cache_manifest.take_or_create_image_assets(image_path);
             
-            images.push(Image::init(cached_assets, image_path));
+            images.push(Rc::new(RefCell::new(Image::init(cached_assets, image_path))));
         }
         
         if !release_tracks.is_empty() {
@@ -501,7 +501,8 @@ impl Catalog {
     pub fn write_assets(&mut self, build: &mut Build) {
         for release in self.releases.iter_mut() {            
             if let Some(image) = &mut release.cover {
-                let image_asset = image.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Deliverable);
+                let mut image_mut = image.borrow_mut();
+                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build.cache_dir.join(&image_asset.filename),
@@ -510,7 +511,7 @@ impl Catalog {
                 
                 build.stats.add_image(image_asset.filesize_bytes);
                 
-                image.cached_assets.persist(&build.cache_dir);
+                image_mut.cached_assets.persist(&build.cache_dir);
             }
             
             for track in release.tracks.iter_mut() {
