@@ -21,6 +21,7 @@ mod image_format;
 mod localization;
 mod manifest;
 mod payment_option;
+mod permalink;
 mod release;
 mod render;
 mod rsync;
@@ -108,8 +109,8 @@ fn main() {
     for artist in &catalog.artists {
         let artist_html = render::artist::artist_html(&build, artist, &catalog);
         let artist_ref = artist.borrow();
-        fs::create_dir(build.build_dir.join(&artist_ref.permalink.get())).unwrap();
-        fs::write(build.build_dir.join(&artist_ref.permalink.get()).join("index.html"), artist_html).unwrap();
+        fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
+        fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
     }
     
     // Render page for each release

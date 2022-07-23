@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{
-    catalog::Permalink,
-    image::Image
+    image::Image,
+    permalink::Permalink
 };
 
 #[derive(Debug)]

@@ -14,12 +14,13 @@ use crate::{
     asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
     audio_format::{AUDIO_FORMATS, AudioFormat},
     build::Build,
-    catalog::{Catalog, Permalink},
+    catalog::Catalog,
     download_option::DownloadOption,
     image::Image,
     image_format::ImageFormat,
     manifest::Overrides,
     payment_option::PaymentOption,
+    permalink::Permalink,
     render,
     track::Track,
     util
@@ -141,7 +142,7 @@ impl Release {
         cached_assets: CachedReleaseAssets,
         mut images: Vec<Rc<RefCell<Image>>>,
         manifest_overrides: &Overrides,
-        permalink: Option<String>,
+        permalink_option: Option<Permalink>,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
@@ -153,6 +154,8 @@ impl Release {
             .map(|track| track.cached_assets.source_meta.duration_seconds)
             .sum();
 
+        let permalink = permalink_option.unwrap_or_else(|| Permalink::generate(&title));
+
         Release {
             artists: Vec::new(),
             artists_to_map,
@@ -163,7 +166,7 @@ impl Release {
             embedding: manifest_overrides.embedding,
             image_description: manifest_overrides.release_image_description.clone(),
             payment_options: manifest_overrides.payment_options.clone(),
-            permalink: Permalink::new(permalink, &title),
+            permalink,
             runtime,
             streaming_format: manifest_overrides.streaming_format.clone(),
             text: manifest_overrides.release_text.clone(),
@@ -289,7 +292,7 @@ impl Release {
             warn_discouraged!("The release '{}' has a cover image but no image description, strongly consider supplying one.", self.title);
         }
 
-        let release_dir = build.build_dir.join(&self.permalink.get());
+        let release_dir = build.build_dir.join(&self.permalink.slug);
         let release_html = render::release::release_html(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
 

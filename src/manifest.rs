@@ -10,10 +10,11 @@ use crate::{
     asset_cache::CacheOptimization,
     audio_format::AudioFormat,
     build::Build,
-    catalog::{Catalog, Permalink},
+    catalog::Catalog,
     download_option::DownloadOption,
     localization::WritingDirection,
     payment_option::PaymentOption,
+    permalink::Permalink,
     release::TrackNumbering,
     styles::{Theme, ThemeBase, ThemeFont},
     util
@@ -31,7 +32,7 @@ macro_rules! err_line {
 
 #[derive(Clone)]
 pub struct LocalOptions {
-    pub release_permalink: Option<String>
+    pub release_permalink: Option<Permalink>
 }
 
 #[derive(Clone)]
@@ -215,8 +216,11 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
 
                 });
 
-                if let Some(value) = optional_field_value(section, "permalink") {
-                    artist_mut.permalink = Permalink::UserAssigned(value);
+                if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {
+                    match Permalink::new(&slug) {
+                        Ok(permalink) => artist_mut.permalink = permalink,
+                        Err(err) => error!("Ignoring invalid artist.permalink value '{}' in {}:{} ({})", slug, path.display(), line, err)
+                    }
                 }
                 
                 if let Some(text) = optional_embed_value(section, "text") {
@@ -449,12 +453,16 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             overrides.release_image_description = Some(value);
         }
 
-        if let Some(value) = optional_field_value(section, "permalink") {
-            if let Some(previous) = &local_options.release_permalink {
-                warn!("Option release.permalink is set more than once - overriding previous value '{}' with '{}'", previous, value);
+        if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {
+            match Permalink::new(&slug) {
+                Ok(permalink) => {
+                    if let Some(previous) = &local_options.release_permalink {
+                        warn!("Option release.permalink is set more than once - overriding previous value '{}' with '{}'", previous.slug, slug);
+                    }
+                    local_options.release_permalink = Some(permalink);
+                },
+                Err(err) => error!("Ignoring invalid release.permalink value '{}' in {}:{} ({})", slug, path.display(), line, err)
             }
-
-            local_options.release_permalink = Some(value.clone());
         }
 
         if let Some(value) = optional_field_value(section, "text") {

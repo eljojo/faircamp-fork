@@ -79,7 +79,7 @@ fn list_artists(root_prefix: &str, artists: &Vec<Rc<RefCell<Artist>>>) -> String
             format!(
                 r#"<a href="{root_prefix}{permalink}/">{name}</a>"#,
                 name = artist_ref.name,
-                permalink = artist_ref.permalink.get(),
+                permalink = artist_ref.permalink.slug,
                 root_prefix = root_prefix
             )
         })
@@ -112,7 +112,7 @@ fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
                 "#,
                 artists = list_artists(root_prefix, &release.artists),
                 cover = cover(root_prefix, release),
-                permalink = release.permalink.get(),
+                permalink = release.permalink.slug,
                 root_prefix = root_prefix,
                 runtime = util::format_time(release.runtime),
                 title = release.title,

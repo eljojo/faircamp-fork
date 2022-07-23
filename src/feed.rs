@@ -21,7 +21,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
                 format!(
                     include_str!("templates/feed/item.xml"),
                     description=format!("A release by {}", artists_list),
-                    permalink=base_url.join(&release.permalink.get()).unwrap(),
+                    permalink=base_url.join(&release.permalink.slug).unwrap(),
                     title=release.title,
                 )
             })

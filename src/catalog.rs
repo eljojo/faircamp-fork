@@ -13,6 +13,7 @@ use crate::{
     image::Image,
     image_format::ImageFormat,
     manifest::{LocalOptions, Overrides},
+    permalink::{Permalink, PermalinkUsage},
     release::Release,
     track::{CachedTrackAssets, Track},
     manifest,
@@ -34,17 +35,6 @@ pub struct Catalog {
     pub releases: Vec<Release>,
     pub text: Option<String>,
     title: Option<String>
-}
-
-#[derive(Debug)]
-pub enum Permalink {
-    Generated(String),
-    UserAssigned(String)
-}
-
-pub enum PermalinkUsage<'a> {
-    Artist(&'a Rc<RefCell<Artist>>),
-    Release(&'a Release)
 }
 
 impl Catalog {
@@ -425,39 +415,31 @@ impl Catalog {
             }
         };
 
+        let mode = |permalink: &Permalink| -> &str {
+            if permalink.generated { "auto-generated" } else { "user-assigned" }
+        };
+
         let format_previous_usage = |previous_usage: &PermalinkUsage| -> String {
             match previous_usage {
                 PermalinkUsage::Artist(artist) => {
                     let artist_ref = artist.borrow();
-                    let mode = if let Permalink::UserAssigned(_) = artist_ref.permalink { "user-assigned" } else { "auto-generated" };
-                    format!("the {} permalink of the artist '{}'", mode, artist_ref.name)
+                    format!("the {} permalink of the artist '{}'", mode(&artist_ref.permalink), artist_ref.name)
                 }
                 PermalinkUsage::Release(release) => {
-                    let mode = if let Permalink::UserAssigned(_) = release.permalink { "user-assigned" } else { "auto-generated" };
-                    format!("the {} permalink of the release '{}'", mode, release.title)
+                    format!("the {} permalink of the release '{}'", mode(&release.permalink), release.title)
                 }
             }
         };
 
         for release in &self.releases {
-            match &release.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
-                    let message = format!("The auto-generated permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return false;
-                } else {
-                    let usage = PermalinkUsage::Release(&release);
-                    add_generated_usage(&usage);
-                    used_permalinks.insert(permalink.to_string(), usage);
-
-                }
-                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
-                    let message = format!("The user-assigned permalink '{}' of the release '{}' conflicts with {}", permalink, release.title, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return false;
-                } else {
-                    used_permalinks.insert(permalink.to_string(), PermalinkUsage::Release(&release));
-                }
+            if let Some(previous_usage) = used_permalinks.get(&release.permalink.slug) {
+                let message = format!("The {} permalink '{}' of the release '{}' conflicts with {}", mode(&release.permalink), release.permalink.slug, release.title, format_previous_usage(previous_usage));
+                error!("{}\n{}", message, RESOLUTION_HINT);
+                return false;
+            } else {
+                let usage = PermalinkUsage::Release(&release);
+                add_generated_usage(&usage);
+                used_permalinks.insert(release.permalink.slug.to_string(), usage);
             }
         }
         
@@ -466,23 +448,14 @@ impl Catalog {
         //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
         for artist in &self.artists {
             let artist_ref = artist.borrow();
-            match &artist_ref.permalink {
-                Permalink::Generated(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
-                    let message = format!("The auto-generated permalink '{}' of the artist '{}' conflicts with {}", permalink, artist_ref.name, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return false;
-                } else {
-                    let usage = PermalinkUsage::Artist(&artist);
-                    add_generated_usage(&usage);
-                    used_permalinks.insert(permalink.to_string(), usage);
-                }
-                Permalink::UserAssigned(permalink) => if let Some(previous_usage) = used_permalinks.get(permalink) {
-                    let message = format!("The user-assigned permalink '{}' of the artist '{}' conflicts with {}", permalink, artist_ref.name, format_previous_usage(previous_usage));
-                    error!("{}\n{}", message, RESOLUTION_HINT);
-                    return false;
-                } else {
-                    used_permalinks.insert(permalink.to_string(), PermalinkUsage::Artist(&artist));
-                }
+            if let Some(previous_usage) = used_permalinks.get(&artist_ref.permalink.slug) {
+                let message = format!("The {} permalink '{}' of the artist '{}' conflicts with {}", mode(&artist_ref.permalink), artist_ref.permalink.slug, artist_ref.name, format_previous_usage(previous_usage));
+                error!("{}\n{}", message, RESOLUTION_HINT);
+                return false;
+            } else {
+                let usage = PermalinkUsage::Artist(&artist);
+                add_generated_usage(&usage);
+                used_permalinks.insert(artist_ref.permalink.slug.to_string(), usage);
             }
         }
 
@@ -528,26 +501,6 @@ impl Catalog {
             }
             
             release.write_download_archives(build);
-        }
-    }
-}
-
-impl Permalink {
-    pub fn generate(string: &str) -> Permalink {
-        Permalink::Generated(slug::slugify(string))
-    }
-
-    pub fn get(&self) -> &str {
-        match self {
-            Permalink::Generated(string) => string,
-            Permalink::UserAssigned(string) => string
-        }
-    }
-    
-    pub fn new(user_assigned: Option<String>, fallback: &str) -> Permalink {
-        match user_assigned {
-            Some(permalink) => Permalink::UserAssigned(permalink),
-            None => Permalink::Generated(slug::slugify(fallback))
         }
     }
 }
