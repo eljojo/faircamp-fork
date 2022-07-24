@@ -48,11 +48,12 @@ impl Catalog {
     fn map_artists(&mut self) {
         for release in self.releases.iter_mut() {
             for release_artist_to_map in release.artists_to_map.drain(..) {
+                let release_artist_to_map_lowercase = release_artist_to_map.to_lowercase();
                 let mut any_artist_found = false;
                 for artist in &self.artists {
                     let artist_ref = artist.borrow();
-                    if artist_ref.name == release_artist_to_map ||
-                        artist_ref.aliases.iter().any(|alias| alias == &release_artist_to_map) {
+                    if artist_ref.name.to_lowercase() == release_artist_to_map_lowercase ||
+                        artist_ref.aliases.iter().any(|alias| alias.to_lowercase() == release_artist_to_map_lowercase) {
                         any_artist_found = true;
 
                         // Only assign artist to release if it hasn't already been assigned to it
@@ -71,11 +72,12 @@ impl Catalog {
 
             for track in release.tracks.iter_mut() {
                 for track_artist_to_map in track.artists_to_map.drain(..) {
+                    let track_artist_to_map_lowercase = track_artist_to_map.to_lowercase();
                     let mut any_artist_found = false;
                     for artist in &self.artists {
                         let artist_ref = artist.borrow();
-                        if artist_ref.name == track_artist_to_map ||
-                            artist_ref.aliases.iter().any(|alias| alias == &track_artist_to_map) {
+                        if artist_ref.name.to_lowercase() == track_artist_to_map_lowercase ||
+                            artist_ref.aliases.iter().any(|alias| alias.to_lowercase() == track_artist_to_map_lowercase) {
                             any_artist_found = true;
 
                             // Only assign artist to track if it hasn't already been assigned to it

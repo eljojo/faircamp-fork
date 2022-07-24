@@ -104,12 +104,13 @@ audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
 says a track is by "Alice"). To add further information to an artist, you can
 expliclity define it in a manifest. The name you assign will be used to match
 the explicitly defined artist (by you in the manifest) to the implicitly
-defined one (by the audio file metadata) so pay close attention that both
-are written the same. If (as often happens) different audio files use
-slightly different versions of an artist name (e.g. "Motörhead" vs. "Motorhead"),
-or the artist appears in a collaboration (e.g. "Alice (feat. Bob)"), you can
-additionally specify `aliases` that will also be matched against to map the artist
-to the right tracks.
+defined one (by the audio file metadata) so pay close attention that both are
+written the same (NB: lowercase/uppercase is ignored for matching). If
+(as often happens) different audio files use slightly different versions of
+an artist name (e.g. "Motörhead" vs. "Motorhead"), or the artist appears in a
+collaboration (e.g. "Alice (feat. Bob)"), you can additionally specify
+`aliases` that will also be matched against to map the artist to the right
+tracks.
 
 ```eno
 # artist
