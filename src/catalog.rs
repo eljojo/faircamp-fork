@@ -30,7 +30,8 @@ const RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitl
 #[derive(Debug)]
 pub struct Catalog {
     pub artists: Vec<Rc<RefCell<Artist>>>,
-    pub feed_image: Option<String>,
+    // Contains an absolute path to the file (validity is checked when reading manifests)
+    pub feed_image: Option<PathBuf>,
     pub images: Vec<Rc<RefCell<Image>>>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
     pub releases: Vec<Release>,
     pub text: Option<String>,

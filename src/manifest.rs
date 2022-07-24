@@ -261,12 +261,17 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
         }
 
 
-        if let Some(value) = optional_field_value(section, "feed_image"){
+        if let Some((relative_path, line)) = optional_field_value_with_line(section, "feed_image"){
             if let Some(previous) = &catalog.feed_image {
-                warn_global_set_repeatedly!("catalog.feed_image", previous, value);
+                warn_global_set_repeatedly!("catalog.feed_image", previous.display(), relative_path);
             }
 
-            catalog.feed_image = Some(value.clone()); // TODO: Verify file exists at provided location
+            let absolute_path = path.parent().unwrap().join(&relative_path);
+            if absolute_path.exists() {
+                catalog.feed_image = Some(absolute_path);
+            } else {
+                error!("Ignoring invalid catalog.feed_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+            }
         }
 
         if let Some(value) = optional_field_value(section, "title") {
@@ -498,8 +503,13 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
 
         let mut theme = Theme::defaults();
 
-        if let Some(value) = optional_field_value(section, "background_image") {
-            theme.background_image = Some(value.clone());  // TODO: Verify file exists at provided location
+        if let Some((relative_path, line)) = optional_field_value_with_line(section, "background_image") {
+            let absolute_path = path.parent().unwrap().join(&relative_path);
+            if absolute_path.exists() {
+                theme.background_image = Some(absolute_path);
+            } else {
+                error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+            }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {

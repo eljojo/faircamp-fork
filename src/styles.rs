@@ -1,5 +1,6 @@
 use indoc::formatdoc;
 use std::fs;
+use std::path::PathBuf;
 
 use crate::{
     build::Build,
@@ -15,7 +16,8 @@ use crate::{
 // tint_back   0-100 percent
 // tint_front  0-100 percent
 pub struct Theme {
-    pub background_image: Option<String>,
+    // Contains an absolute path to the file (validity is checked when reading manifests)
+    pub background_image: Option<PathBuf>,
     pub base: ThemeBase,
     pub font: ThemeFont,
     pub hue: u16,
@@ -54,7 +56,7 @@ pub fn generate(build: &mut Build) {
         Some(background_image) => {
             // TODO: Go through asset cache with this
             ffmpeg::transcode(
-                &build.catalog_dir.join(background_image),
+                background_image,
                 &build.build_dir.join("background.jpg"),
                 MediaFormat::Image(&ImageFormat::Jpeg)
             ).unwrap();

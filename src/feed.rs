@@ -41,7 +41,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
             Some(feed_image) => {
                 // TODO: Go through asset cache with this
                 ffmpeg::transcode(
-                    &build.catalog_dir.join(feed_image),
+                    feed_image,
                     &build.build_dir.join("feed.jpg"),
                     MediaFormat::Image(&ImageFormat::Jpeg)
                 ).unwrap();
