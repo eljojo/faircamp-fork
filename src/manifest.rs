@@ -519,8 +519,16 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             }
         }
 
-        if let Some(value) = optional_field_value(section, "custom_font") {
-            theme.font = ThemeFont::Custom(value.clone());
+        if let Some((relative_path, line)) = optional_field_value_with_line(section, "custom_font") {
+            let absolute_path = path.parent().unwrap().join(&relative_path);
+            if absolute_path.exists() {
+                match ThemeFont::custom(absolute_path) {
+                    Ok(theme_font) => theme.font = theme_font,
+                    Err(message) => error!("Ignoring invalid theme.font setting value '{}' in {}:{} ({})", relative_path, path.display(), line, message) 
+                }
+            } else {
+                error!("Ignoring invalid theme.font setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+            }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "hue") {

@@ -42,7 +42,10 @@ pub struct ThemeBase {
 }
 
 pub enum ThemeFont {
-    Custom(String),
+    Custom {
+        extension: String,
+        path: PathBuf
+    },
     Default,
     SystemMono,
     SystemSans,
@@ -76,22 +79,24 @@ pub fn generate(build: &mut Build) {
     };
     
     let font_declaration = match &theme.font {
-        ThemeFont::Custom(path) => {
-            // TODO: Safe-guard against file not existing in that location
-            fs::copy(
-                build.catalog_dir.join(path),
-                build.build_dir.join("custom.woff2") // TODO: Support .woff (/whatever is supplied?) too
-            ).unwrap();
+        ThemeFont::Custom { extension, path } => {
+            let filename = format!("custom.{}", extension);
+
+            fs::copy(path, build.build_dir.join(&filename)).unwrap();
             
-            formatdoc!(r#"
-                @font-face {{
-                    font-family: 'Custom';
-                    font-style: normal;
-                    font-weight: 400;
-                    src: url('custom.woff2') format('woff2');
-                }}
-                body {{ font-family: 'Custom'; }}
-            "#)
+            formatdoc!(
+                r#"
+                    @font-face {{
+                        font-family: 'Custom';
+                        font-style: normal;
+                        font-weight: 400;
+                        src: url('{filename}') format('{extension}');
+                    }}
+                    body {{ font-family: 'Custom'; }}
+                "#,
+                extension = extension,
+                filename = filename
+            )
         }
         ThemeFont::Default => {
             fs::write(
@@ -217,6 +222,26 @@ impl ThemeBase {
             "dark" => Some(ThemeBase::DARK),
             "light" => Some(ThemeBase::LIGHT),
             _ => None
+        }
+    }
+}
+
+impl ThemeFont {
+    pub fn custom(path: PathBuf) -> Result<ThemeFont, String> {
+        match path.extension() {
+            Some(extension) => {
+                if extension == "woff" || extension == "woff2" {
+                    let theme_font = ThemeFont::Custom {
+                        extension: extension.to_str().unwrap().to_string(),
+                        path
+                    };
+
+                    Ok(theme_font)
+                } else {
+                    Err(format!("Theme font extension {:?} not supported (only .woff/.woff2 is supported)", extension))
+                }
+            }
+            None => Err(format!("Custom theme font file needs to have a file extension"))
         }
     }
 }
