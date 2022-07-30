@@ -129,6 +129,8 @@ Only ever known to publicly perform at birthday parties and the gym at their hom
 -- text
 ```
 
+Note that the `text` field supports markdown.
+
 #### Catalog
 
 Here you can set the global site title (which appears at the title of browser

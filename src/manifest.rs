@@ -224,7 +224,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                 }
                 
                 if let Some(text) = optional_embed_value(section, "text") {
-                    artist_mut.text = Some(text); // TODO: Markdown (?)
+                    artist_mut.text = Some(util::markdown_to_html(&text));
                 }
             }
             Err(err) => error!("An artist was specified without a name, and therefore discarded, in {}", err_line!(path, err))
