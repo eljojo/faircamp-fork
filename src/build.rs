@@ -25,7 +25,8 @@ pub struct Build {
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
     pub theme: Option<Theme>,
-    pub theming_widget: bool
+    pub theming_widget: bool,
+    pub verbose: bool
 }
 
 pub enum PostBuildAction {
@@ -80,7 +81,8 @@ impl Build {
             post_build_action,
             stats: Stats::empty(),
             theme: None,
-            theming_widget: args.theming_widget
+            theming_widget: args.theming_widget,
+            verbose: args.verbose
         }
     }
     

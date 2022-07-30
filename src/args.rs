@@ -48,6 +48,10 @@ pub struct Args {
     #[clap(long = "theming-widget")]
     pub theming_widget: bool,
 
+    /// Show more messages during build
+    #[clap(long = "verbose", short = 'v')]
+    pub verbose: bool,
+
     /// Wipes the build and cache directory and exits (no build is performed)
     #[clap(long = "wipe-all")]
     pub wipe_all: bool,

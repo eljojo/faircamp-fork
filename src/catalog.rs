@@ -136,7 +136,9 @@ impl Catalog {
         for special_dir in &[&build.build_dir, &build.cache_dir] {
             if let Ok(special_dir_canonicalized) = special_dir.canonicalize() {
                 if dir_canonicalized == special_dir_canonicalized {
-                    info!("Ignoring special directory {}", special_dir.display());
+                    if build.verbose {
+                        info!("Ignoring special directory {}", special_dir.display());
+                    }
                     return Ok(())
                 }
             }
@@ -145,13 +147,17 @@ impl Catalog {
         for exclude_pattern in &build.exclude_patterns {
             if let Some(dir_str) = dir.to_str() {
                 if dir_str.contains(exclude_pattern) {
-                    info!("Ignoring directory {} and all below (excluded by pattern '{}')", dir.display(), exclude_pattern);
+                    if build.verbose {
+                        info!("Ignoring directory {} and all below (excluded by pattern '{}')", dir.display(), exclude_pattern);
+                    }
                     return Ok(())
                 }
             }
         }
         
-        info!("Reading directory {}", dir.display());
+        if build.verbose {
+            info!("Reading directory {}", dir.display());
+        }
         
         let mut local_options = LocalOptions::new();
         let mut local_overrides = None;
@@ -176,7 +182,9 @@ impl Catalog {
                     if let Ok(dir_entry) = dir_entry_result {
                         if let Some(filename) = dir_entry.file_name().to_str() {
                             if filename.starts_with(".") {
-                                info!("Ignoring hidden file '{}'", filename);
+                                if build.verbose {
+                                    info!("Ignoring hidden file '{}'", filename);
+                                }
                                 continue
                             }
                         }
@@ -190,7 +198,9 @@ impl Catalog {
                                 for exclude_pattern in &build.exclude_patterns {
                                     if let Some(dir_entry_str) = dir_entry.path().to_str() {
                                         if dir_entry_str.contains(exclude_pattern) {
-                                            info!("Ignoring file {} (excluded by pattern '{}')", dir_entry.path().display(), exclude_pattern);
+                                            if build.verbose {
+                                                info!("Ignoring file {} (excluded by pattern '{}')", dir_entry.path().display(), exclude_pattern);
+                                            }
                                             continue 'dir_entry_iter
                                         }
                                     }
@@ -209,7 +219,9 @@ impl Catalog {
                                     }
 
                                     if !include {
-                                        info!("Ignoring file {} (matches no include pattern)", dir_entry.path().display());
+                                        if build.verbose {
+                                            info!("Ignoring file {} (matches no include pattern)", dir_entry.path().display());
+                                        }
                                         continue 'dir_entry_iter
                                     }
                                 }
@@ -246,7 +258,9 @@ impl Catalog {
         }
         
         for meta_path in &meta_paths {
-            info!("Reading meta {}", meta_path.display());
+            if build.verbose {
+                info!("Reading meta {}", meta_path.display());
+            }
             
             manifest::apply_options(
                 meta_path,
@@ -258,7 +272,9 @@ impl Catalog {
         }
         
         for (track_path, extension) in &track_paths {
-            info!("Reading track {}", track_path.display());
+            if build.verbose {
+                info!("Reading track {}", track_path.display());
+            }
             
             let cached_assets = cache_manifest.take_or_create_track_assets(track_path, extension);
             
@@ -282,7 +298,9 @@ impl Catalog {
         }
         
         for image_path in &image_paths {
-            info!("Reading image {}", image_path.display());
+            if build.verbose {
+                info!("Reading image {}", image_path.display());
+            }
             
             let cached_assets = cache_manifest.take_or_create_image_assets(image_path);
             
