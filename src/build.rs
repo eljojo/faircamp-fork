@@ -6,7 +6,7 @@ use crate::{
     args::Args,
     asset_cache::CacheOptimization,
     localization::Localization,
-    styles::Theme,
+    theme::Theme,
     util
 };
 
@@ -24,7 +24,7 @@ pub struct Build {
     pub localization: Localization,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
-    pub theme: Option<Theme>,
+    pub theme: Theme,
     pub theming_widget: bool,
     pub verbose: bool
 }
@@ -79,8 +79,8 @@ impl Build {
             include_patterns: args.include_patterns.clone(),
             localization: Localization::defaults(),
             post_build_action,
-            stats: Stats::empty(),
-            theme: None,
+            stats: Stats::new(),
+            theme: Theme::new(),
             theming_widget: args.theming_widget,
             verbose: args.verbose
         }
@@ -126,7 +126,7 @@ impl Stats {
         self.num_tracks += 1;
     }
     
-    pub fn empty() -> Stats {
+    pub fn new() -> Stats {
         Stats {
             bytes_used_archives: 0,
             bytes_used_images: 0,

@@ -16,7 +16,7 @@ use crate::{
     payment_option::PaymentOption,
     permalink::Permalink,
     release::TrackNumbering,
-    styles::{Theme, ThemeBase, ThemeFont},
+    theme::{ThemeBase, ThemeFont},
     util
 };
 
@@ -497,16 +497,16 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
-        if build.theme.is_some() {
+        if build.theme.customized {
             warn_global_set_repeatedly!("theme");
         }
 
-        let mut theme = Theme::defaults();
+        build.theme.customized = true;
 
         if let Some((relative_path, line)) = optional_field_value_with_line(section, "background_image") {
             let absolute_path = path.parent().unwrap().join(&relative_path);
             if absolute_path.exists() {
-                theme.background_image = Some(absolute_path);
+                build.theme.background_image = Some(absolute_path);
             } else {
                 error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
             }
@@ -514,7 +514,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
 
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {
             match ThemeBase::from_manifest_key(value.as_str()) {
-                Some(variant) => theme.base = variant,
+                Some(variant) => build.theme.base = variant,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in {}:{}", value, path.display(), line)
             }
         }
@@ -523,7 +523,7 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             let absolute_path = path.parent().unwrap().join(&relative_path);
             if absolute_path.exists() {
                 match ThemeFont::custom(absolute_path) {
-                    Ok(theme_font) => theme.font = theme_font,
+                    Ok(theme_font) => build.theme.font = theme_font,
                     Err(message) => error!("Ignoring invalid theme.font setting value '{}' in {}:{} ({})", relative_path, path.display(), line, message) 
                 }
             } else {
@@ -533,20 +533,20 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
 
         if let Some((value, line)) = optional_field_value_with_line(section, "hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => theme.hue = degrees,
+                Some(degrees) => build.theme.hue = degrees,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "hue_spread") {
             match value.parse::<i16>().ok() {
-                Some(degree_offset) => theme.hue_spread = degree_offset,
+                Some(degree_offset) => build.theme.hue_spread = degree_offset,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some(value) = optional_field_value(section, "system_font") {
-            theme.font = if value == "sans" {
+            build.theme.font = if value == "sans" {
                 ThemeFont::SystemSans
             } else if value == "mono" {
                 ThemeFont::SystemMono
@@ -557,19 +557,17 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_back") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => theme.tint_front = percentage,
+                Some(percentage) => build.theme.tint_back = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_front") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => theme.tint_front = percentage,
+                Some(percentage) => build.theme.tint_front = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
-
-        build.theme = Some(theme);
     }
 
     // TODO: We probably should have these props on a section too - not in the root scope (where it's likely to cause problems/confusion for users)

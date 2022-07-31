@@ -15,7 +15,7 @@ You can upload the files faircamp generates to any webspace - no database and no
 
 Your *catalog* is a set of directories with a structure of your choosing, the
 only convention you need to follow is that directories that directly contain
-audio files will  be presented as *releases* (thinks albums, singles and
+audio files will  be presented as *releases* (think albums, singles and
 playlists) with their own page. Faircamp will automatically gather metadata from
 your audio files and make good use of it - if your audio files are properly
 tagged and there are cover images within each release directory you will likely
@@ -299,6 +299,11 @@ hue_spread: 0
 tint_back: 0
 tint_front: 0
 ```
+
+Note that there is a `--theming-widget` CLI option that lets you interactively
+explore different settings for `hue`, `hue_spread`, `tint_back` and
+`tint_front`. Just build your catalog with the option enabled and open it in
+the browser - the page will then contain the theming widget.
 
 #### Advanced control over caching strategy
 

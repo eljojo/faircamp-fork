@@ -26,6 +26,7 @@ mod release;
 mod render;
 mod rsync;
 mod styles;
+mod theme;
 mod track;
 mod util;
 

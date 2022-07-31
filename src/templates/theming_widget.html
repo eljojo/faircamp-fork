@@ -10,6 +10,7 @@
         right: 1em;
         width: 40em;
     }
+    .theming_widget .message { margin-bottom: 1em; }
     .theming_widget .option {
         align-items: center;
         display: flex;
@@ -24,88 +25,91 @@
 </style>
 <div class="theming_widget"></div>
 <script>
-    // TODO: Inject already set options from theme options in manifest
     const options = [
         {
+            default: 0,
             key: 'hue',
             range: [0, 360],
             step: 1,
             tooltip: 'Primarily sets the hue of the link color (0-360 degrees)',
+            value: HUE,
             variable: '--hue',
             unit: 'deg'
         },
         {
+            default: 0,
             key: 'hue_spread',
             step: 1,
             tooltip: 'Applies additional hue variations if tint_back/tint_front is enabled (any number of degrees [+/-])',
+            value: HUE_SPREAD,
             variable: '--hue-spread',
             unit: 'deg'
         },
         {
+            default: 0,
             key: 'tint_back',
             range: [0, 100],
             step: 1,
             tooltip: 'Applies a color tint to the page background (0-100%)',
+            value: TINT_BACK,
             variable: '--tint-back'
         },
         {
+            default: 0,
             key: 'tint_front',
             range: [0, 100],
             step: 1,
             tooltip: 'Applies a color tint to the page foreground elements (0-100%)',
+            value: TINT_FRONT,
             variable: '--tint-front'
         }
     ];
     
-    const textarea = document.createElement('textarea');
+    const message = document.createElement('div');
+    message.classList.add('message');
+
+    const customizations = document.createElement('textarea');
     
-    textarea.readOnly = true;
+    customizations.readOnly = true;
     
     const updateTextarea = () => {
-        let entries = [];
-        
-        for (const option of options) {
-            if (option.value) {
-                entries.push(`${option.key} = ${option.value}`);
-            }
-        }
-        
-        if (entries.length == 0) {
-            textarea.innerHTML = '> Only defaults used currently'
+        const customized = options.filter(option => option.value !== option.default);
+
+        if (customized.length === 0) {
+            customizations.innerHTML = '';
+            message.innerHTML = 'No customizations made (all options are at their default currently).';
         } else {
-            textarea.innerHTML = `> Copy these to a manifest in your catalog\ntheme:\n${entries.join('\n')}`;
+            customizations.innerHTML = `# theme\n\n${customized.map(option => `${option.key}: ${option.value}`).join('\n')}`;
+            message.innerHTML = 'Copy the customizations below to a manifest in your catalog';
         }
     };
     
     for (const option of options) {
+        const { key, range, step, tooltip, unit, variable } = option;
+
         const input = document.createElement('input');
         
-        if (option.range) {
-            input.min = option.range[0];
-            input.max = option.range[1];
-            input.type = 'range';
-        } else {
-            input.type = 'range';
+        if (range) {
+            input.min = range[0];
+            input.max = range[1];
         }
         
-        input.step = option.step;
-        input.title = option.tooltip;
-        input.value = 0;
+        input.step = step;
+        input.title = tooltip;
+        input.type = 'range';
+        input.value = option.value;
         
-        const setOption = (option, value) => {
-            option.value = value;
-            
-            document.querySelector(':root').style.setProperty(option.variable, `${option.value}${option.unit || ''}`);
+        input.addEventListener('input', () => {
+            option.value = input.valueAsNumber;
+            document.querySelector(':root').style.setProperty(variable, unit ? `${option.value}${unit}` : option.value.toString());
             updateTextarea();
-        };
-        
-        input.addEventListener('input', event => setOption(option, input.value));
+        });
         
         const span = document.createElement('span');
         
         span.classList.add('label');
-        span.innerHTML = option.key;
-        span.title = option.tooltip;
+        span.innerHTML = key;
+        span.title = tooltip;
         
         const div = document.createElement('div');
         
@@ -116,5 +120,9 @@
         document.querySelector('.theming_widget').appendChild(div);
     }
     
-    document.querySelector('.theming_widget').appendChild(textarea);
+    document.querySelector('.theming_widget').appendChild(message);
+
+    document.querySelector('.theming_widget').appendChild(customizations);
+
+    updateTextarea();
 </script>
