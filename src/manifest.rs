@@ -1,4 +1,4 @@
-use enolib::{Document, Item, Section};
+use enolib::{prelude::*, Document, Item, Section};
 use iso_currency::Currency;
 use std::{
     fs,
@@ -417,15 +417,15 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             .iter()
             .filter_map(|element|
                 match element.key() {
-                    "custom" => if let Ok(embed) = element.as_embed() {
+                    "custom" => if let Some(embed) = element.as_embed() {
                         embed.optional_value::<String>().map(|result| result.ok().map(|value| PaymentOption::init_custom(&value))).flatten()
-                    } else if let Ok(field) = element.as_field() {
+                    } else if let Some(field) = element.as_field() {
                         field.optional_value().ok().map(|result| result.map(|value| PaymentOption::init_custom(&value))).flatten()
                     } else {
                         error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}:{}", path.display(), element.line_number());
                         None
                     }
-                    "liberapay" => if let Ok(field) = element.as_field() {
+                    "liberapay" => if let Some(field) = element.as_field() {
                         field.optional_value().ok().map(|result| result.map(|value| PaymentOption::init_liberapay(&value))).flatten()
                     } else {
                         error!("Ignoring invalid payment.liberapay option (can only be a field containing a value) in {}:{}", path.display(), element.line_number());
@@ -583,4 +583,20 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
                 .collect()
         );
     });
+
+    let untouched_elements = document.untouched_elements();
+
+    for element in &untouched_elements {
+        if let Some(attribute) = element.as_attribute() {
+            error!("Ignoring unsupported attribute '{}' in {}:{}", attribute.key(), path.display(), element.line_number())
+        } else if let Some(embed) = element.as_embed() {
+            error!("Ignoring unsupported embed '{}' in {}:{}", embed.key(), path.display(), element.line_number())
+        } else if let Some(flag) = element.as_flag() {
+            error!("Ignoring unsupported flag '{}' in {}:{}", flag.key(), path.display(), element.line_number())
+        } else if let Some(field) = element.as_field() {
+            error!("Ignoring unsupported field '{}' in {}:{}", field.key(), path.display(), element.line_number())
+        } else if let Some(section) = element.as_section() {
+            error!("Ignoring unsupported section '{}' in {}:{}", section.key(), path.display(), element.line_number())
+        }
+    }
 }

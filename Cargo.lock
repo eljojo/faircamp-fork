@@ -156,7 +156,7 @@ checksum = "850878694b7933ca4c9569d30a34b55031b9b139ee1fc7b94a527c4ef960d690"
 [[package]]
 name = "enolib"
 version = "0.1.0"
-source = "git+https://codeberg.org/simonrepp/enolib-rs#606ba8432806af38e9ebb2ecb0e43fbb997fb07b"
+source = "git+https://codeberg.org/simonrepp/enolib-rs#a368b31276321326762524405899ce731f5d67af"
 
 [[package]]
 name = "faircamp"
