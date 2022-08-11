@@ -172,6 +172,7 @@ formats:
 - mp3_320
 - mp3_v0
 - ogg_vorbis
+- opus
 - wav
 
 > This enables downloads behind a soft (i.e. not technically enforced) paycurtain

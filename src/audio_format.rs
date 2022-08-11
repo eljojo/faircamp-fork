@@ -8,6 +8,7 @@ pub const AUDIO_FORMATS: &[AudioFormat] = &[
     AudioFormat::Mp3Cbr320,
     AudioFormat::Mp3VbrV0,
     AudioFormat::OggVorbis,
+    AudioFormat::Opus,
     AudioFormat::Wav
 ];
 
@@ -20,6 +21,7 @@ pub enum AudioFormat {
     Mp3Cbr320,
     Mp3VbrV0,
     OggVorbis,
+    Opus,
     Wav
 }
 
@@ -49,11 +51,12 @@ impl AudioFormat {
             AudioFormat::Mp3VbrV0 => 1,
             AudioFormat::Mp3Cbr320 => 2,
             AudioFormat::Mp3Cbr128 => 3,
-            AudioFormat::OggVorbis => 4,
-            AudioFormat::Flac => 5,
-            AudioFormat::Aac => 6,
-            AudioFormat::Wav => 7,
-            AudioFormat::Aiff => 8
+            AudioFormat::Opus => 4,
+            AudioFormat::OggVorbis => 5,
+            AudioFormat::Flac => 6,
+            AudioFormat::Aac => 7,
+            AudioFormat::Wav => 8,
+            AudioFormat::Aiff => 9
         }
     }
     
@@ -64,6 +67,7 @@ impl AudioFormat {
             AudioFormat::Flac => ".flac",
             AudioFormat::Mp3Cbr128 | AudioFormat::Mp3Cbr320 | AudioFormat::Mp3VbrV0 => ".mp3",
             AudioFormat::OggVorbis => ".ogg",
+            AudioFormat::Opus => ".opus",
             AudioFormat::Wav => ".wav"
         }
     }
@@ -75,6 +79,7 @@ impl AudioFormat {
             "mp3_320" => Some(AudioFormat::Mp3Cbr320),
             "mp3_v0" => Some(AudioFormat::Mp3VbrV0),
             "ogg_vorbis" => Some(AudioFormat::OggVorbis),
+            "opus" => Some(AudioFormat::Opus),
             "wav" => Some(AudioFormat::Wav),
             _ =>  None
         }
@@ -86,7 +91,8 @@ impl AudioFormat {
             AudioFormat::Mp3Cbr128 |
             AudioFormat::Mp3Cbr320 |
             AudioFormat::Mp3VbrV0 |
-            AudioFormat::OggVorbis
+            AudioFormat::OggVorbis |
+            AudioFormat::Opus
                 => false,
             AudioFormat::Aiff |
             AudioFormat::Flac |
@@ -105,7 +111,8 @@ impl AudioFormat {
             AudioFormat::Flac |
             AudioFormat::Mp3Cbr320 |  // technically wasteful but recommendation-worthy in the absence of V0
             AudioFormat::Mp3VbrV0 |
-            AudioFormat::OggVorbis
+            AudioFormat::OggVorbis |
+            AudioFormat::Opus
                 => true
         }
     }
@@ -120,6 +127,7 @@ impl AudioFormat {
             AudioFormat::Mp3Cbr320 => "MP3 (CBR/320kbps)",
             AudioFormat::Mp3VbrV0 => "MP3 (VBR/V0)",
             AudioFormat::OggVorbis => "Ogg Vorbis",
+            AudioFormat::Opus => "Opus",
             AudioFormat::Wav => "WAV"
         }
     }
@@ -135,6 +143,7 @@ impl fmt::Display for AudioFormat {
             AudioFormat::Mp3Cbr320 => "MP3 320",
             AudioFormat::Mp3VbrV0 => "MP3 V0",
             AudioFormat::OggVorbis => "Ogg Vorbis",
+            AudioFormat::Opus => "Opus",
             AudioFormat::Wav => "WAV"
         };
         

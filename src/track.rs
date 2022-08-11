@@ -26,6 +26,7 @@ pub struct CachedTrackAssets {
     pub mp3_320: Option<Asset>,
     pub mp3_v0: Option<Asset>,
     pub ogg_vorbis: Option<Asset>,
+    pub opus: Option<Asset>,
     // TODO: There is overlap between this and track.source_file - probably implications for model changes that could/should be made
     pub source_file_signature: SourceFileSignature,
     pub source_meta: AudioMeta,
@@ -61,6 +62,7 @@ impl CachedTrackAssets {
             AudioFormat::Mp3Cbr320 => &self.mp3_320,
             AudioFormat::Mp3VbrV0 => &self.mp3_v0,
             AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Opus => &self.opus,
             AudioFormat::Wav => &self.wav
         }
     }
@@ -74,6 +76,7 @@ impl CachedTrackAssets {
             AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
             AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
             AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Opus => &mut self.opus,
             AudioFormat::Wav => &mut self.wav
         }
     }
@@ -100,6 +103,7 @@ impl CachedTrackAssets {
             mp3_320: None,
             mp3_v0: None,
             ogg_vorbis: None,
+            opus: None,
             source_file_signature,
             source_meta,
             uid: util::uid(),

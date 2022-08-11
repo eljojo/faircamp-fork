@@ -35,6 +35,7 @@ pub struct CachedReleaseAssets {
     pub mp3_320: Option<Asset>,
     pub mp3_v0: Option<Asset>,
     pub ogg_vorbis: Option<Asset>,
+    pub opus: Option<Asset>,
     pub source_file_signatures: Vec<SourceFileSignature>,
     pub uid: String,
     pub wav: Option<Asset>
@@ -85,6 +86,7 @@ impl CachedReleaseAssets {
             AudioFormat::Mp3Cbr320 => &self.mp3_320,
             AudioFormat::Mp3VbrV0 => &self.mp3_v0,
             AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Opus => &self.opus,
             AudioFormat::Wav => &self.wav
         }
     }
@@ -98,6 +100,7 @@ impl CachedReleaseAssets {
             AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
             AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
             AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Opus => &mut self.opus,
             AudioFormat::Wav => &mut self.wav
         }
     }
@@ -124,6 +127,7 @@ impl CachedReleaseAssets {
             mp3_320: None,
             mp3_v0: None,
             ogg_vorbis: None,
+            opus: None,
             source_file_signatures,
             uid: util::uid(),
             wav: None
