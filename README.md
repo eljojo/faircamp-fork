@@ -164,15 +164,18 @@ disabled
 > This enables downloading unconditionally without asking for recompensation
 free
 
-> All enabled for demonstration purposes (in practice less is recommended, e.g. flac and mp3)
+> All shown for demonstration purposes – in practice a minimal lossless/lossy combination is recommended, e.g. flac and opus
+> (Note that opus is an alias for opus_128)
 formats:
 - aac
 - aiff
 - flac
-- mp3_320
-- mp3_v0
+- mp3
 - ogg_vorbis
 - opus
+- opus_48
+- opus_96
+- opus_128
 - wav
 
 > This enables downloads behind a soft (i.e. not technically enforced) paycurtain
@@ -271,12 +274,14 @@ III …) or `disabled`.
 
 Always enabled.
 
-You can optionally set the encoding quality for streaming in the browser from `standard` (the default) to `transparent`. The `transparent` option uses significantly more bandwidth (and consequently produces more CO2) and people on slow connections might not wait for your files to load (i.e. you might lose potential future fans that way), therefore it is not recommended to change this without an actual, good reason.
+You can optionally set the encoding quality for streaming from `standard`
+(the default) to `frugal`. This uses 1/3 less bandwidth, reduces emissions
+and improves load times for listeners, especially on slow connections.
 
 ```eno
 # streaming
 
-quality: standard
+quality: frugal
 ```
 
 #### Theme

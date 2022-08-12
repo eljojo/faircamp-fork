@@ -23,17 +23,21 @@ pub fn transcode(input_file: &Path, output_file: &Path, target_format: MediaForm
     
     match target_format {
         MediaFormat::Audio(format) => match format {
-            AudioFormat::Mp3Cbr128 => {
-                command.arg("-codec:a").arg("libmp3lame");
-                command.arg("-b:a").arg("128");
-            }
-            AudioFormat::Mp3Cbr320 => {
-                command.arg("-codec:a").arg("libmp3lame");
-                command.arg("-b:a").arg("320");
-            }
             AudioFormat::Mp3VbrV0 => {
                 command.arg("-codec:a").arg("libmp3lame");
                 command.arg("-qscale:a").arg("0");
+            }
+            AudioFormat::Opus48Kbps => {
+                command.arg("-codec:a").arg("libopus");
+                command.arg("-b:a").arg("48k");
+            }
+            AudioFormat::Opus96Kbps => {
+                command.arg("-codec:a").arg("libopus");
+                command.arg("-b:a").arg("96k");
+            }
+            AudioFormat::Opus128Kbps => {
+                command.arg("-codec:a").arg("libopus");
+                command.arg("-b:a").arg("128k");
             }
             _ => ()
         }

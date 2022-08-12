@@ -8,7 +8,7 @@ use url::Url;
 
 use crate::{
     asset_cache::CacheOptimization,
-    audio_format::AudioFormat,
+    audio_format::{AudioFormat, FRUGAL_STREAMING_FORMAT, STANDARD_STREAMING_FORMAT},
     build::Build,
     catalog::Catalog,
     download_option::DownloadOption,
@@ -70,7 +70,7 @@ impl Overrides {
             release_text: None,
             release_title: None,
             release_track_numbering: TrackNumbering::Arabic,
-            streaming_format: AudioFormat::Mp3Cbr128,
+            streaming_format: STANDARD_STREAMING_FORMAT,
             track_artists: None
         }
     }
@@ -489,9 +489,9 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
     if let Some(section) = optional_section(&document, "streaming", path) {
         if let Some((value, line)) = optional_field_value_with_line(section, "quality") {
             match value.as_str() {
-                "standard" => overrides.streaming_format = AudioFormat::Mp3Cbr128,
-                "transparent" => overrides.streaming_format = AudioFormat::Mp3VbrV0,
-                value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, transparent) in {}:{}", value, path.display(), line)
+                "standard" => overrides.streaming_format = STANDARD_STREAMING_FORMAT,
+                "frugal" => overrides.streaming_format = FRUGAL_STREAMING_FORMAT,
+                value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, frugal) in {}:{}", value, path.display(), line)
             }
         }
     }

@@ -31,11 +31,11 @@ pub struct CachedReleaseAssets {
     pub aac: Option<Asset>,
     pub aiff: Option<Asset>,
     pub flac: Option<Asset>,
-    pub mp3_128: Option<Asset>,
-    pub mp3_320: Option<Asset>,
-    pub mp3_v0: Option<Asset>,
+    pub mp3: Option<Asset>,
     pub ogg_vorbis: Option<Asset>,
-    pub opus: Option<Asset>,
+    pub opus_48: Option<Asset>,
+    pub opus_96: Option<Asset>,
+    pub opus_128: Option<Asset>,
     pub source_file_signatures: Vec<SourceFileSignature>,
     pub uid: String,
     pub wav: Option<Asset>
@@ -82,11 +82,11 @@ impl CachedReleaseAssets {
             AudioFormat::Aac => &self.aac,
             AudioFormat::Aiff => &self.aiff,
             AudioFormat::Flac => &self.flac,
-            AudioFormat::Mp3Cbr128 => &self.mp3_128,
-            AudioFormat::Mp3Cbr320 => &self.mp3_320,
-            AudioFormat::Mp3VbrV0 => &self.mp3_v0,
+            AudioFormat::Mp3VbrV0 => &self.mp3,
             AudioFormat::OggVorbis => &self.ogg_vorbis,
-            AudioFormat::Opus => &self.opus,
+            AudioFormat::Opus48Kbps => &self.opus_48,
+            AudioFormat::Opus96Kbps => &self.opus_96,
+            AudioFormat::Opus128Kbps => &self.opus_128,
             AudioFormat::Wav => &self.wav
         }
     }
@@ -96,11 +96,11 @@ impl CachedReleaseAssets {
             AudioFormat::Aac => &mut self.aac,
             AudioFormat::Aiff => &mut self.aiff,
             AudioFormat::Flac => &mut self.flac,
-            AudioFormat::Mp3Cbr128 => &mut self.mp3_128,
-            AudioFormat::Mp3Cbr320 => &mut self.mp3_320,
-            AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
+            AudioFormat::Mp3VbrV0 => &mut self.mp3,
             AudioFormat::OggVorbis => &mut self.ogg_vorbis,
-            AudioFormat::Opus => &mut self.opus,
+            AudioFormat::Opus48Kbps => &mut self.opus_48,
+            AudioFormat::Opus96Kbps => &mut self.opus_96,
+            AudioFormat::Opus128Kbps => &mut self.opus_128,
             AudioFormat::Wav => &mut self.wav
         }
     }
@@ -123,11 +123,11 @@ impl CachedReleaseAssets {
             aac: None,
             aiff: None,
             flac: None,
-            mp3_128: None,
-            mp3_320: None,
-            mp3_v0: None,
+            mp3: None,
             ogg_vorbis: None,
-            opus: None,
+            opus_48: None,
+            opus_96: None,
+            opus_128: None,
             source_file_signatures,
             uid: util::uid(),
             wav: None
