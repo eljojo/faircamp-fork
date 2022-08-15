@@ -11,7 +11,6 @@ pub struct Permalink {
     pub slug: String
 }
 
-// TODO: Flatten Permalinkusage into struct with an associated enum (like Permalink)
 pub enum PermalinkUsage<'a> {
     Artist(&'a Rc<RefCell<Artist>>),
     Release(&'a Release)
