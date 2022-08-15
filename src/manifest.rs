@@ -1,17 +1,20 @@
-use enolib::{prelude::*, Document, Item, Section};
+use enolib::{prelude::*, Document, Field, Item, Section};
 use iso_currency::Currency;
 use std::{
+    cell::RefCell,
     fs,
     path::Path,
+    rc::Rc
 };
 use url::Url;
 
 use crate::{
-    asset_cache::CacheOptimization,
+    asset_cache::{CacheManifest, CacheOptimization},
     audio_format::{AudioFormat, FRUGAL_STREAMING_FORMAT, STANDARD_STREAMING_FORMAT},
     build::Build,
     catalog::Catalog,
     download_option::DownloadOption,
+    image::Image,
     localization::WritingDirection,
     payment_option::PaymentOption,
     permalink::Permalink,
@@ -42,7 +45,7 @@ pub struct Overrides {
     pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
-    pub release_image_description: Option<String>,
+    pub release_cover: Option<Rc<RefCell<Image>>>,
     pub release_text: Option<String>,
     pub release_title: Option<String>,
     pub release_track_numbering: TrackNumbering,
@@ -66,7 +69,7 @@ impl Overrides {
             embedding: true,
             payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
             release_artists: None,
-            release_image_description: None,
+            release_cover: None,
             release_text: None,
             release_title: None,
             release_track_numbering: TrackNumbering::Arabic,
@@ -76,7 +79,14 @@ impl Overrides {
     }
 }
 
-pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, local_options: &mut LocalOptions, overrides: &mut Overrides) {
+pub fn apply_options(
+    path: &Path,
+    build: &mut Build,
+    cache_manifest: &mut CacheManifest,
+    catalog: &mut Catalog,
+    local_options: &mut LocalOptions,
+    overrides: &mut Overrides
+) {
     let content = match fs::read_to_string(path) {
         Ok(content) => content,
         Err(err) => {
@@ -158,6 +168,16 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
         false
     };
 
+    fn optional_field<'a>(section: &'a Section, key: &str, path: &Path) -> Option<&'a Field> {
+        match section.optional_field(key) {
+            Ok(field_option) => field_option,
+            Err(err) => {
+                error!("{} {}", err.message, err_line!(path, err));
+                None
+            }
+        }
+    }
+
     let optional_field_with_items = |section: &Section, key: &str, callback: &mut dyn FnMut(&[Item])| {
         match section.optional_field(key) {
             Ok(Some(field)) => {
@@ -193,6 +213,19 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             }
         }
     }
+
+    let required_attribute_value_with_line = |field: &Field, key: &str| -> Option<(String, u32)> {
+        match field.required_attribute(key) {
+            Ok(attribute) => {
+                match attribute.required_value() {
+                    Ok(value) => return Some((value, attribute.line_number)),
+                    Err(err) => error!("{} {}", err.message, err_line!(path, err))
+                }
+            }
+            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+        }
+        None
+    };
 
     if let Some(section) = optional_section(&document, "artist", path) {
         match section.field("name").and_then(|field| field.required_value::<String>()) {
@@ -454,8 +487,29 @@ pub fn apply_options(path: &Path, build: &mut Build, catalog: &mut Catalog, loca
             );
         });
 
-        if let Some(value) = optional_field_value(section, "image_description") {
-            overrides.release_image_description = Some(value);
+        if let Some(field) = optional_field(section, "cover", path) {
+            match required_attribute_value_with_line(&field, "file") {
+                Some((relative_path, line)) => {
+                    let absolute_path = path.parent().unwrap().join(&relative_path);
+                    if absolute_path.exists() {
+                        // TODO: Print errors, refactor
+                        let description = match field.required_attribute("description") {
+                            Ok(attribute) => match attribute.required_value() {
+                                Ok(description) => Some(description),
+                                _ => None
+                            }
+                            _ => None
+                        };
+
+                        let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+
+                        overrides.release_cover = Some(Rc::new(RefCell::new(Image::new(cached_assets, description, &absolute_path))));
+                    } else {
+                        error!("Ignoring invalid release.cover.file setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+                    }
+                }
+                None => ()
+            }
         }
 
         if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {

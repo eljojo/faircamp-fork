@@ -23,6 +23,7 @@ pub struct CachedImageAssets {
 #[derive(Debug)]
 pub struct Image {
     pub cached_assets: CachedImageAssets,
+    pub description: Option<String>,
     pub source_file: PathBuf
 }
 
@@ -98,9 +99,10 @@ impl Image {
         cached_format.as_mut().unwrap()
     }
     
-    pub fn init(cached_assets: CachedImageAssets, source_file: &Path) -> Image {
+    pub fn new(cached_assets: CachedImageAssets, description: Option<String>, source_file: &Path) -> Image {
         Image {
             cached_assets,
+            description,
             source_file: source_file.to_path_buf()
         }
     }

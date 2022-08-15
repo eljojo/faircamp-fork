@@ -50,7 +50,6 @@ pub struct Release {
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
-    pub image_description: Option<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub runtime: u32,
@@ -144,14 +143,13 @@ impl Release {
     pub fn new(
         artists_to_map: Vec<String>,
         cached_assets: CachedReleaseAssets,
-        mut images: Vec<Rc<RefCell<Image>>>,
+        cover: Option<Rc<RefCell<Image>>>,
         manifest_overrides: &Overrides,
         permalink_option: Option<Permalink>,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
         // TODO: Use/store multiple images (beyond just one cover) (think this through: why?)
-        // TOOD: Basic logic to determine which of multiple images most likely is the cover
 
         let runtime = tracks
             .iter()
@@ -164,11 +162,10 @@ impl Release {
             artists: Vec::new(),
             artists_to_map,
             cached_assets,
-            cover: images.pop(),
+            cover,
             download_formats: manifest_overrides.download_formats.clone(),
             download_option: manifest_overrides.download_option.clone(),
             embedding: manifest_overrides.embedding,
-            image_description: manifest_overrides.release_image_description.clone(),
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
             runtime,
@@ -292,8 +289,10 @@ impl Release {
             }
         }
         
-        if self.cover.is_some() && self.image_description.is_none() {
-            warn_discouraged!("The release '{}' has a cover image but no image description, strongly consider supplying one.", self.title);
+        if let Some(cover) = &self.cover {
+            if cover.borrow().description.is_none() {
+                warn_discouraged!("The cover image for release '{}' is missing an image description.", self.title);
+            }
         }
 
         let release_dir = build.build_dir.join(&self.permalink.slug);

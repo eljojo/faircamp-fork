@@ -22,12 +22,25 @@ const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
 fn cover(root_prefix: &str, release: &Release) -> String {
     match &release.cover {
-        Some(image) => format!(
-            r#"<a href="{root_prefix}{filename}"><img alt="{alt}" src="{root_prefix}{filename}"></a>"#,
-            alt = release.image_description.as_ref().unwrap_or(&String::from("Cover image of this release")),
-            filename = image.borrow().get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
-            root_prefix = root_prefix
-        ),
+        Some(image) => {
+            let image_ref = image.borrow();
+
+            if let Some(description) = &image_ref.description {
+                format!(
+                    r#"<a href="{root_prefix}{filename}"><img alt="{alt}" src="{root_prefix}{filename}"></a>"#,
+                    alt = description,
+                    filename = image_ref.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
+                    root_prefix = root_prefix
+                )
+            } else {
+                format!(
+                    // TODO: Design the "missing image caption" overlay to be elegant, subtle, but clearly present. (and possibly add further help text that can be clicked/opened)
+                    r#"<a href="{root_prefix}{filename}" style="border: 2px solid red;"><img src="{root_prefix}{filename}">Missing image caption</a>"#,
+                    filename = image_ref.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
+                    root_prefix = root_prefix
+                )
+            }
+        },
         None => String::from(r#"<div></div>"#)
     }
 }

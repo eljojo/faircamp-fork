@@ -252,7 +252,9 @@ be provided through the manifests.
 # release
 
 artist: Heston Exchange
-image_description: An ink drawing of a barren tree with monkeys in its branches
+cover:
+description = An ink drawing of a barren tree with monkeys in its branches
+file = cover.jpg
 permalink: ape-affairs-bonus-track-edition
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
@@ -264,8 +266,8 @@ Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
 -- text
 ```
 
-If you provide a cover image, `image_description` should be used to provide an
-alt text for it. `track_numbering` allows configuration of the numbering style
+If you provide a cover image, use `description` to include an image description
+for it. `track_numbering` allows configuration of the numbering style
 used - by default it's `arabic` (01 02 03 …) but can be set to `hexadecimal`
 (0x01 0x02 0x03 …), `roman` (I II
 III …) or `disabled`.

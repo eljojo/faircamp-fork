@@ -265,6 +265,7 @@ impl Catalog {
             manifest::apply_options(
                 meta_path,
                 build,
+                cache_manifest,
                 self,
                 &mut local_options,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
@@ -304,7 +305,7 @@ impl Catalog {
             
             let cached_assets = cache_manifest.take_or_create_image_assets(image_path);
             
-            images.push(Rc::new(RefCell::new(Image::init(cached_assets, image_path))));
+            images.push(Rc::new(RefCell::new(Image::new(cached_assets, None, image_path))));
         }
         
         if !release_tracks.is_empty() {
@@ -358,11 +359,20 @@ impl Catalog {
             if local_overrides.as_ref().unwrap_or(parent_overrides).embedding {
                 build.embeds_requested = true;
             }
+
+            let cover = match &local_overrides.as_ref().unwrap_or(parent_overrides).release_cover {
+                Some(image) => Some(image.clone()),
+                // TODO: Basic logic to determine which of multiple images most likely is the cover (e.g. prioritize "(cover|album|front).xyz")
+                None => match images.iter().next() {
+                    Some(image) => Some(image.clone()),
+                    None => None
+                }
+            };
             
             let release = Release::new(
                 release_artists_to_map,
                 cached_assets,
-                images,
+                cover,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 local_options.release_permalink,
                 title.to_string(),
