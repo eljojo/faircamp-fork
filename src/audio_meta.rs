@@ -1,14 +1,16 @@
-use claxon::{Block, FlacReader};
-use hound::{SampleFormat, WavReader};
 use id3::{self, TagLike};
-use lewton::inside_ogg::OggStreamReader;
 use metaflac;
-use rmp3::{Decoder, Frame};
 use serde_derive::{Serialize, Deserialize};
-use std::fs::{self, File};
 use std::path::Path;
 
-const I24_MAX: i32 = 8388607;
+use crate::decode::{
+    DecodeResult,
+    flac,
+    mp3,
+    ogg_vorbis,
+    opus,
+    wav
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
@@ -21,26 +23,17 @@ pub struct AudioMeta {
     pub track_number: Option<u32>
 }
 
-#[derive(Debug)]
-struct DecodeResult {
-    pub channels: u16,
-    pub duration: f32,
-    pub sample_count: u32,
-    pub sample_rate: u32,
-    pub samples: Vec<f32>
-}
-
 impl AudioMeta {
     pub fn extract(path: &Path, extension: &str) -> AudioMeta {
         let lossless = match extension {
             "aiff" | "alac" | "flac" | "wav" => true,
-            "aac" | "mp3" | "ogg" => false,
+            "aac" | "mp3" | "ogg" | "opus" => false,
             _ => unimplemented!("Determination whether extension {} indicates lossless audio in the file not yet implemented.", extension)
         };
-        
+
         match extension {
             "flac" => {
-                let (duration_seconds, peaks) = match decode_flac(path) {
+                let (duration_seconds, peaks) = match flac::decode(path) {
                     Some(decode_result) => (
                         decode_result.duration as u32,
                         Some(compute_peaks(decode_result, 320))
@@ -77,7 +70,7 @@ impl AudioMeta {
                 }
             }
             "mp3" => {
-                let (duration_seconds, peaks) = match decode_mp3(path) {
+                let (duration_seconds, peaks) = match mp3::decode(path) {
                     Some(decode_result) => (
                         decode_result.duration as u32,
                         Some(compute_peaks(decode_result, 320))
@@ -108,7 +101,26 @@ impl AudioMeta {
                 }
             }
             "ogg" => {
-                let (duration_seconds, peaks) = match decode_ogg_vorbis(path) {
+                let (duration_seconds, peaks) = match ogg_vorbis::decode(path) {
+                    Some(decode_result) => (
+                        decode_result.duration as u32,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0, None)
+                };
+                
+                AudioMeta {
+                    album: None,
+                    artist: None,
+                    duration_seconds,
+                    lossless,
+                    peaks,
+                    title: None,
+                    track_number: None
+                }
+            }
+            "opus" => {
+                let (duration_seconds, peaks) = match opus::decode(path) {
                     Some(decode_result) => (
                         decode_result.duration as u32,
                         Some(compute_peaks(decode_result, 320))
@@ -127,7 +139,7 @@ impl AudioMeta {
                 }
             }
             "wav" => {
-                let (duration_seconds, peaks) = match decode_wav(path) {
+                let (duration_seconds, peaks) = match wav::decode(path) {
                     Some(decode_result) => (
                         decode_result.duration as u32,
                         Some(compute_peaks(decode_result, 320))
@@ -214,166 +226,4 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<f32> {
     
         })
         .collect()
-}
-
-fn decode_flac(path: &Path) -> Option<DecodeResult> {
-    let mut reader = match FlacReader::open(path) {
-        Ok(reader) => reader,
-        Err(_) => return None
-    };
-    
-    let streaminfo = reader.streaminfo();
-    let mut frame_reader = reader.blocks();
-    
-    let mut result = DecodeResult {
-        channels: streaminfo.channels as u16,
-        duration: 0.0,
-        sample_count: 0,
-        sample_rate: streaminfo.sample_rate,
-        samples: Vec::new()
-    };
-    
-    let mut block = Block::empty();
-    
-    loop {
-        match frame_reader.read_next_or_eof(block.into_buffer()) {
-            Ok(Some(next_block)) => block = next_block,
-            Ok(None) => break,
-            Err(_) => return None
-        }
-        
-        let sample_count = block.duration();
-        
-        result.sample_count += sample_count;
-        result.samples.reserve(sample_count as usize * result.channels as usize);
-        
-        for sample in 0..sample_count {
-            for channel in 0..result.channels {
-                let raw_sample = block.sample(channel as u32, sample);
-                let normalized_sample = match streaminfo.bits_per_sample {
-                    8 => raw_sample as f32 / std::i8::MAX as f32,
-                    16 => raw_sample as f32 / std::i16::MAX as f32,
-                    24 => raw_sample as f32 / I24_MAX as f32,
-                    _ => unimplemented!()
-                };
-
-                result.samples.push(normalized_sample);
-            }
-        }
-    }
-
-    result.duration = result.sample_count as f32 / result.sample_rate as f32;
-    
-    Some(result)
-}
-
-fn decode_mp3(path: &Path) -> Option<DecodeResult> {
-    let buffer = match fs::read(path) {
-        Ok(buffer) => buffer,
-        Err(_) => return None
-    };
-    
-    let mut decoder = Decoder::new(&buffer);
-    let mut result = None;
-    
-    while let Some(frame) = decoder.next() {
-        if let Frame::Audio(audio) = frame {
-            let result_unpacked = result.get_or_insert_with(|| {
-                DecodeResult {
-                    channels: audio.channels(),
-                    duration: 0.0,
-                    sample_count: 0,
-                    sample_rate: audio.sample_rate(),
-                    samples: Vec::new()
-                }
-            });
-            
-            let sample_count = audio.sample_count();
-            
-            if sample_count > 0 {
-                result_unpacked.sample_count += sample_count as u32;
-                result_unpacked.samples.reserve(result_unpacked.channels as usize * sample_count);
-                
-                for sample in audio.samples() {
-                    // minimp3/rmp3 gives us raw decoded values, which by design can overshoot -1.0/1.0 slightly,
-                    // we manually clamp these down to -1.0/1.0 here (see https://github.com/notviri/rmp3/issues/6)
-                    result_unpacked.samples.push(sample.clamp(-1.0, 1.0));
-                }
-                
-                result_unpacked.duration = result_unpacked.sample_count as f32 / result_unpacked.sample_rate as f32;
-            }
-        }
-    }
-    
-    result
-}
-
-fn decode_ogg_vorbis(path: &Path) -> Option<DecodeResult> {
-    let mut reader = match File::open(path) {
-        Ok(file) => match OggStreamReader::new(file) {
-            Ok(reader) => reader,
-            Err(_) => return None
-        },
-        Err(_) => return None
-    };
-    
-    let mut result = DecodeResult {
-        channels: reader.ident_hdr.audio_channels as u16,
-        duration: 0.0,
-        sample_count: 0,
-        sample_rate: reader.ident_hdr.audio_sample_rate,
-        samples: Vec::new()
-    };
-    
-    while let Ok(Some(packet_samples)) = reader.read_dec_packet_itl() {
-        result.sample_count += packet_samples.len() as u32 / result.channels as u32;
-        result.samples.reserve(packet_samples.len());
-        
-        for sample in packet_samples {
-            result.samples.push(sample as f32 / std::i16::MAX as f32);
-        }
-        
-        result.duration = result.sample_count as f32 / result.sample_rate as f32;
-    }
-
-    Some(result)
-}
-
-fn decode_wav(path: &Path) -> Option<DecodeResult> {
-    let mut reader = match WavReader::open(path) {
-        Ok(reader) => reader,
-        Err(_) => return None
-    };
-    
-    let sample_count = reader.duration();
-    let spec = reader.spec();
-    
-    let mut result = DecodeResult {
-        channels: spec.channels,
-        duration: sample_count as f32 / spec.sample_rate as f32,
-        sample_count: sample_count,
-        sample_rate: spec.sample_rate,
-        samples: Vec::with_capacity(sample_count as usize * spec.channels as usize)
-    };
-    
-    match (spec.sample_format, spec.bits_per_sample) {
-        (SampleFormat::Float, _) => for sample in reader.samples::<f32>() {
-            result.samples.push(sample.unwrap());
-        }
-        (SampleFormat::Int, 8) => for sample in reader.samples::<i8>() {
-            result.samples.push(sample.unwrap() as f32 / std::i8::MAX as f32);
-        }
-        (SampleFormat::Int, 16) => for sample in reader.samples::<i16>() {
-            result.samples.push(sample.unwrap() as f32 / std::i16::MAX as f32);
-        }
-        (SampleFormat::Int, 24) => for sample in reader.samples::<i32>() {
-            result.samples.push(sample.unwrap() as f32 / I24_MAX as f32);
-        }
-        (SampleFormat::Int, 32) => for sample in reader.samples::<i32>() {
-            result.samples.push(sample.unwrap() as f32 / std::i32::MAX as f32);
-        }
-        _ => unimplemented!()
-    }
-    
-    Some(result)
 }

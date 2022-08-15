@@ -22,7 +22,7 @@ use crate::{
 
 // TODO: Verify if ogg even works already
 // TODO: See if aac, aiff as input is easily possible
-const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "wav"];
+const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
 const RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through metadata (see faircamp's README.md)";

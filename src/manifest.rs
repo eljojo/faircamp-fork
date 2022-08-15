@@ -62,7 +62,7 @@ impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
             download_option: DownloadOption::Disabled,
-            download_formats: Vec::with_capacity(5),  // assuming e.g. MP3 320 + MP3 V0 + Ogg Vorbis + AAC + FLAC as a reasonably frequent choice
+            download_formats: Vec::with_capacity(5),  // assuming e.g. Opus 128 + Opus 96 + MP3 + AAC + FLAC as a reasonably frequent choice
             embedding: true,
             payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
             release_artists: None,

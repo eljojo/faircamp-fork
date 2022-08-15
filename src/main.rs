@@ -12,6 +12,7 @@ mod audio_format;
 mod audio_meta;
 mod build;
 mod catalog;
+mod decode;
 mod deploy;
 mod download_option;
 mod feed;
