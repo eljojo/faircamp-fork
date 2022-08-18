@@ -5,7 +5,7 @@ use crate::{
     catalog::Catalog,
     payment_option::PaymentOption,
     release::Release,
-    render::{cover, layout, list_artists}
+    render::{image, layout, list_artists}
 };
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
@@ -59,7 +59,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         "#,
         artists = list_artists(root_prefix, &release.artists),
         payment_options = payment_options,
-        cover = cover(root_prefix, release),
+        cover = image(root_prefix, &release.cover),
         title = release.title
     );
 

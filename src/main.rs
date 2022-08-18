@@ -82,6 +82,7 @@ fn main() {
     
     catalog.write_assets(&mut build);
 
+    // Artists without images are assigned a cover image from one of their releases here
     for artist in &catalog.artists {
         if artist.borrow().image.is_none() {
             for release in &catalog.releases {
@@ -109,8 +110,17 @@ fn main() {
     
     // Render page for each artist
     for artist in &catalog.artists {
+        let artist_ref = artist.borrow();
+        if let Some(image) = &artist_ref.image {
+            if image.borrow().description.is_none() {
+                warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
+                build.missing_image_descriptions = true;
+            }
+        }
+
         let artist_html = render::artist::artist_html(&build, artist, &catalog);
         let artist_ref = artist.borrow();
+
         fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
         fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
     }

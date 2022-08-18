@@ -6,7 +6,7 @@ use crate::{
     catalog::Catalog,
     localization::WritingDirection,
     release::Release,
-    render::{cover, list_artists, release::waveform},
+    render::{image, list_artists, release::waveform},
     util::format_time
 };
 
@@ -80,7 +80,7 @@ pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release, base_url:
         "##,
         artists = list_artists(root_prefix, &release.artists),
         base_url = base_url,
-        cover = cover(root_prefix, release),
+        cover = image(root_prefix, &release.cover),
         release_title = release.title,
         root_prefix = root_prefix,
         tracks_rendered = tracks_rendered

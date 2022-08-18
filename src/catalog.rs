@@ -526,6 +526,24 @@ impl Catalog {
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {
+        for artist in self.artists.iter_mut() {
+            let mut artist_mut = artist.borrow_mut();
+
+            if let Some(image) = &mut artist_mut.image {
+                let mut image_mut = image.borrow_mut();
+                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Deliverable);
+                
+                fs::copy(
+                    build.cache_dir.join(&image_asset.filename),
+                    build.build_dir.join(&image_asset.filename)
+                ).unwrap();
+                
+                build.stats.add_image(image_asset.filesize_bytes);
+                
+                image_mut.cached_assets.persist(&build.cache_dir);
+            }
+        }
+
         for release in self.releases.iter_mut() {            
             if let Some(image) = &mut release.cover {
                 let mut image_mut = image.borrow_mut();

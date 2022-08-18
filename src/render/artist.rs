@@ -7,7 +7,7 @@ use crate::{
     build::Build,
     catalog::Catalog,
     release::Release,
-    render::{SHARE_WIDGET, layout, releases}
+    render::{SHARE_WIDGET, image, layout, releases}
 };
 
 pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalog) -> String {
@@ -42,7 +42,9 @@ pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalo
     let body = formatdoc!(
         r#"
             <div class="center">
-                <!-- TODO: Artist image -->
+                <div class="cover">
+                    {artist_image}
+                </div>
 
                 <div class="vpad">
                     <h1><a href="{root_prefix}">All Releases</a> &gt; {artist_name}</h1>
@@ -55,6 +57,7 @@ pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalo
                 {releases}
             </div>
         "#,
+        artist_image = image(root_prefix, &artist_ref.image),
         artist_name = artist_ref.name,
         releases = releases(root_prefix, artist_releases),
         root_prefix = root_prefix,

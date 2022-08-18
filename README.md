@@ -122,6 +122,10 @@ aliases:
 - heston exchange
 - Heston Exchange (feat. Bar Foo)
 
+image:
+description = All four bandmembers against a bright blue sky, wearing pink velvet top-hats
+file = heston_exchange.jpg
+
 -- text
 Classic Dada-core formation founded in the 90ies.
 
@@ -252,12 +256,13 @@ be provided through the manifests.
 # release
 
 artist: Heston Exchange
-cover:
-description = An ink drawing of a barren tree with monkeys in its branches
-file = cover.jpg
 permalink: ape-affairs-bonus-track-edition
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
+
+cover:
+description = An ink drawing of a barren tree with monkeys in its branches
+file = cover.jpg
 
 -- text
 Recorded in the summer of '94 at West Callaghan Ranch, XE.

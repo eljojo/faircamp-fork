@@ -5,7 +5,7 @@ use crate::{
     build::Build,
     catalog::Catalog,
     release::Release,
-    render::{cover, layout, list_artists}
+    render::{image, layout, list_artists}
 };
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
@@ -38,7 +38,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             {download_links}
         "#,
         artists = list_artists(root_prefix, &release.artists),
-        cover = cover(root_prefix, release),
+        cover = image(root_prefix, &release.cover),
         download_links = download_links,
         title = release.title
     );

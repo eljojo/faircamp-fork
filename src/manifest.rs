@@ -249,6 +249,32 @@ pub fn apply_options(
 
                 });
 
+                if let Some(field) = optional_field(section, "image", path) {
+                    match required_attribute_value_with_line(&field, "file") {
+                        Some((relative_path, line)) => {
+                            let absolute_path = path.parent().unwrap().join(&relative_path);
+                            if absolute_path.exists() {
+                                // TODO: Print errors, refactor
+                                let description = match field.required_attribute("description") {
+                                    Ok(attribute) => match attribute.required_value() {
+                                        Ok(description) => Some(description),
+                                        _ => None
+                                    }
+                                    _ => None
+                                };
+
+                                // TODO: Images should be fetched from cache, but not removed (taken) from there when that happens (which is the current behaviour)
+                                let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+
+                                artist_mut.image = Some(Rc::new(RefCell::new(Image::new(cached_assets, description, &absolute_path))));
+                            } else {
+                                error!("Ignoring invalid artist.image.file setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+                            }
+                        }
+                        None => ()
+                    }
+                }
+
                 if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {
                     match Permalink::new(&slug) {
                         Ok(permalink) => artist_mut.permalink = permalink,

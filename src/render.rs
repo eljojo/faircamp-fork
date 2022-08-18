@@ -6,6 +6,7 @@ use crate::{
     artist::Artist,
     build::Build,
     catalog::Catalog,
+    image::Image,
     image_format::ImageFormat,
     localization::WritingDirection,
     release::Release,
@@ -20,8 +21,8 @@ pub mod releases;
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
-fn cover(root_prefix: &str, release: &Release) -> String {
-    match &release.cover {
+fn image(root_prefix: &str, image: &Option<Rc<RefCell<Image>>>) -> String {
+    match image {
         Some(image) => {
             let image_ref = image.borrow();
 
@@ -139,7 +140,7 @@ fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
                     </div>
                 "#,
                 artists = list_artists(root_prefix, &release.artists),
-                cover = cover(root_prefix, release),
+                cover = image(root_prefix, &release.cover),
                 permalink = release.permalink.slug,
                 root_prefix = root_prefix,
                 runtime = util::format_time(release.runtime),
