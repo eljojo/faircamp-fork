@@ -492,7 +492,7 @@ impl Catalog {
                 return false;
             } else {
                 let usage = PermalinkUsage::Release(&release);
-                add_generated_usage(&usage);
+                if release.permalink.generated { add_generated_usage(&usage); }
                 used_permalinks.insert(release.permalink.slug.to_string(), usage);
             }
         }
@@ -508,7 +508,7 @@ impl Catalog {
                 return false;
             } else {
                 let usage = PermalinkUsage::Artist(&artist);
-                add_generated_usage(&usage);
+                if artist_ref.permalink.generated { add_generated_usage(&usage); }
                 used_permalinks.insert(artist_ref.permalink.slug.to_string(), usage);
             }
         }
