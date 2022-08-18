@@ -38,6 +38,32 @@ pub struct Catalog {
     title: Option<String>
 }
 
+/// Gets passed the images found in a release directory. Checks against a few
+/// hardcoded filenames (the usual suspects) to determine which image is most
+/// likely to be the intended release cover image.
+fn pick_best_cover_image(images: Vec<Rc<RefCell<Image>>>) -> Option<Rc<RefCell<Image>>> {
+    let mut cover_candidate_option: Option<(usize, _)> = None;
+
+    for image in images {
+        let priority = match image.borrow().source_file.file_stem().unwrap().to_str().unwrap() {
+            "cover" => 1,
+            "front" => 2,
+            "album" => 3,
+            _ => 4
+        };
+
+        if let Some(cover_candidate) = &cover_candidate_option {
+            if priority < cover_candidate.0 {
+                cover_candidate_option = Some((priority, image));
+            }
+        } else {
+            cover_candidate_option = Some((priority, image));
+        }
+    }
+
+    cover_candidate_option.map(|cover_candidate| cover_candidate.1.clone())
+}
+
 impl Catalog {
     pub fn create_artist(&mut self, name: &str) -> Rc<RefCell<Artist>> {
         let artist = Rc::new(RefCell::new(Artist::new(name)));
@@ -362,11 +388,7 @@ impl Catalog {
 
             let cover = match &local_overrides.as_ref().unwrap_or(parent_overrides).release_cover {
                 Some(image) => Some(image.clone()),
-                // TODO: Basic logic to determine which of multiple images most likely is the cover (e.g. prioritize "(cover|album|front).xyz")
-                None => match images.iter().next() {
-                    Some(image) => Some(image.clone()),
-                    None => None
-                }
+                None => pick_best_cover_image(images)
             };
             
             let release = Release::new(
@@ -382,6 +404,7 @@ impl Catalog {
             self.releases.push(release);
         } else if !images.is_empty() {
             // TODO: Some future logic/configuration lookup for  associating images with an artist
+            // TODO: Right now might as well drop these (artist images need to be directly assigned anyway currently)
             self.images.append(&mut images);
         }
         
