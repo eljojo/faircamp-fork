@@ -34,8 +34,8 @@ fn cover(root_prefix: &str, release: &Release) -> String {
                 )
             } else {
                 format!(
-                    // TODO: Design the "missing image caption" overlay to be elegant, subtle, but clearly present. (and possibly add further help text that can be clicked/opened)
-                    r#"<a href="{root_prefix}{filename}" style="border: 2px solid red;"><img src="{root_prefix}{filename}">Missing image caption</a>"#,
+                    // TODO: Implement the clickable further info text properly (e.g. output own static info page, just as the missing_image_description styles are already conditionally included, also include instructions for how to write good image descriptions)
+                    r#"<a class="missing_image_description" href="\#" onclick="alert('Millions of people browse the web using screen-readers because they can not see (or not well enough). Images without textual descriptions are inaccessible to them, this is why we should make the effort to provide image descriptions for them. Consult the faircamp README for how to add image descriptions, it\'s simple and an act of kindness.')"><span class="missing_image_description_overlay">Missing image description.<br>Click to learn more</span><img src="{root_prefix}{filename}"></a>"#,
                     filename = image_ref.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )

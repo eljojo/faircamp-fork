@@ -270,7 +270,7 @@ impl Release {
         }
     }
 
-    pub fn write_files(&self, build: &Build, catalog: &Catalog) {
+    pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Disabled => (),
             DownloadOption::Free { download_page_uid }  => {
@@ -292,6 +292,7 @@ impl Release {
         if let Some(cover) = &self.cover {
             if cover.borrow().description.is_none() {
                 warn_discouraged!("The cover image for release '{}' is missing an image description.", self.title);
+                build.missing_image_descriptions = true;
             }
         }
 

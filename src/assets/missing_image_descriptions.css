@@ -1,0 +1,12 @@
+.missing_image_description { position: relative; }
+.missing_image_description_overlay {
+    align-items: center;
+    background-color: hsla(var(--cover-h), var(--cover-s), var(--cover-l), .5);
+    color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}

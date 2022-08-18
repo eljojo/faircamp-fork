@@ -22,6 +22,9 @@ pub struct Build {
     pub exclude_patterns: Vec<String>,
     pub include_patterns: Vec<String>,
     pub localization: Localization,
+    /// If we encounter missing image descriptions during the build we set this flag.
+    /// This lets us know to inject optional css used for indicating these images.
+    pub missing_image_descriptions: bool,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
     pub theme: Theme,
@@ -45,7 +48,7 @@ pub struct Stats {
 }
 
 impl Build {
-    pub fn init(args: &Args) -> Build {
+    pub fn new(args: &Args) -> Build {
         let catalog_dir = args.catalog_dir
             .as_ref()
             .map(|path| path.to_path_buf())
@@ -64,7 +67,7 @@ impl Build {
             .map(|path| path.to_path_buf())
             .unwrap_or_else(|| catalog_dir.join(".faircamp_cache"));
         
-        let post_build_action = PostBuildAction::init(args);
+        let post_build_action = PostBuildAction::new(args);
         
         Build {
             base_url: None,
@@ -78,6 +81,7 @@ impl Build {
             exclude_patterns: args.exclude_patterns.clone(),
             include_patterns: args.include_patterns.clone(),
             localization: Localization::defaults(),
+            missing_image_descriptions: false,
             post_build_action,
             stats: Stats::new(),
             theme: Theme::new(),
@@ -95,7 +99,7 @@ impl Build {
 }
 
 impl PostBuildAction {
-    pub fn init(args: &Args) -> PostBuildAction {
+    pub fn new(args: &Args) -> PostBuildAction {
         if args.deploy {
             if args.preview {
                 panic!("Provided options --deploy and --preview are mutually exclusive.")

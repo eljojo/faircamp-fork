@@ -38,7 +38,7 @@ use catalog::Catalog;
 
 fn main() {
     let args: Args = Args::parse();
-    let mut build = Build::init(&args);
+    let mut build = Build::new(&args);
     
     if !build.catalog_dir.is_dir() {
         error!("Configured catalog directory does not exist - aborting build");
@@ -117,12 +117,12 @@ fn main() {
     
     // Render page for each release
     for release in &catalog.releases {
-        release.write_files(&build, &catalog);
+        release.write_files(&mut build, &catalog);
     }
 
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
-    styles::generate(&mut build);
+    styles::generate(&build);
     feed::generate(&build, &catalog);
 
     if build.base_url.is_none() {

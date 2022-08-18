@@ -8,31 +8,8 @@ use crate::{
     theme::ThemeFont
 };
 
-pub fn generate(build: &mut Build) {
+pub fn generate(build: &Build) {
     let theme = &build.theme;    
-    
-    let background_override = match &theme.background_image {
-        Some(background_image) => {
-            // TODO: Go through asset cache with this
-            ffmpeg::transcode(
-                background_image,
-                &build.build_dir.join("background.jpg"),
-                MediaFormat::Image(&ImageFormat::Jpeg)
-            ).unwrap();
-            
-            formatdoc!(r#"
-                body {{
-                    background:
-                        linear-gradient(
-                            hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
-                            hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
-                        ),
-                        url(background.jpg) center / cover;
-                }}
-            "#)
-        }
-        None => String::new()
-    };
     
     let font_declaration = match &theme.font {
         ThemeFont::Custom { extension, path } => {
@@ -81,7 +58,7 @@ pub fn generate(build: &mut Build) {
         }
     };
     
-    let css = formatdoc!(
+    let mut css = formatdoc!(
         r#"
             :root {{
                 --hue: {hue}deg;
@@ -109,7 +86,6 @@ pub fn generate(build: &mut Build) {
             }}
             {font_declaration}
             {included_static_css}
-            {background_override}
         "#,
         hue = theme.hue,
         hue_spread = theme.hue_spread,
@@ -129,9 +105,38 @@ pub fn generate(build: &mut Build) {
         text_l = theme.base.text_l,
         text_s = 94,
         font_declaration = font_declaration,
-        included_static_css = include_str!("assets/styles.css"),
-        background_override = background_override
+        included_static_css = include_str!("assets/styles.css")
     );
+
+    if let Some(background_image) = &theme.background_image {
+        // TODO: Go through asset cache with this
+        ffmpeg::transcode(
+            background_image,
+            &build.build_dir.join("background.jpg"),
+            MediaFormat::Image(&ImageFormat::Jpeg)
+        ).unwrap();
+        
+        let background_override = formatdoc!(r#"
+            body {{
+                background:
+                    linear-gradient(
+                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
+                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
+                    ),
+                    url(background.jpg) center / cover;
+            }}
+        "#);
+
+        css.push_str(&background_override);
+    }
+
+    if build.missing_image_descriptions {
+        css.push_str(include_str!("assets/missing_image_descriptions.css"));
+    }
+
+    if build.theming_widget {
+        css.push_str(include_str!("assets/theming_widget.css"));
+    }
     
     fs::write(build.build_dir.join("styles.css"), css).unwrap();
 }
