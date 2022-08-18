@@ -25,7 +25,7 @@ use crate::{
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
-const RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through metadata (see faircamp's README.md)";
+const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through metadata (see faircamp's README.md)";
 
 #[derive(Debug)]
 pub struct Catalog {
@@ -488,7 +488,7 @@ impl Catalog {
         for release in &self.releases {
             if let Some(previous_usage) = used_permalinks.get(&release.permalink.slug) {
                 let message = format!("The {} permalink '{}' of the release '{}' conflicts with {}", mode(&release.permalink), release.permalink.slug, release.title, format_previous_usage(previous_usage));
-                error!("{}\n{}", message, RESOLUTION_HINT);
+                error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
                 let usage = PermalinkUsage::Release(&release);
@@ -504,7 +504,7 @@ impl Catalog {
             let artist_ref = artist.borrow();
             if let Some(previous_usage) = used_permalinks.get(&artist_ref.permalink.slug) {
                 let message = format!("The {} permalink '{}' of the artist '{}' conflicts with {}", mode(&artist_ref.permalink), artist_ref.permalink.slug, artist_ref.name, format_previous_usage(previous_usage));
-                error!("{}\n{}", message, RESOLUTION_HINT);
+                error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
                 let usage = PermalinkUsage::Artist(&artist);
