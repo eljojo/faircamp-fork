@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::rc::Rc;
 use std::fs;
+use webbrowser;
 
 #[macro_use]
 mod message;
@@ -168,6 +169,11 @@ fn main() {
                 deploy::deploy(&build);
             }
         },
-        PostBuildAction::Preview => unimplemented!("Preview functionality is yet to be tackled")
+        PostBuildAction::Preview => {
+            let local_file_url = build.build_dir.join("index.html");
+            if webbrowser::open(&local_file_url.to_string_lossy()).is_err() {
+                error!("Could not open browser for previewing the site")
+            }
+        }
     }
 }

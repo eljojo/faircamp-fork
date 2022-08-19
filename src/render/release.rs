@@ -15,7 +15,8 @@ pub mod download;
 pub mod embed;
 
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let root_prefix = &"../".repeat(1);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../";
 
     let formats_list = release.download_formats
         .iter()
@@ -30,12 +31,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Free { download_page_uid } => formatdoc!(
             r#"
                 <div class="vpad">
-                    <a href="../download/{download_page_uid}/">Download Digital Release</a>
+                    <a href="../download/{download_page_uid}{explicit_index}">Download Digital Release</a>
                     <div>{includes_text}</div>
                 </div>
             "#,
-            download_page_uid=download_page_uid,
-            includes_text=includes_text
+            download_page_uid = download_page_uid,
+            explicit_index = explicit_index,
+            includes_text = includes_text
         ),
         DownloadOption::Paid { checkout_page_uid, currency, range, .. } => {
             let price_label = if range.end == f32::INFINITY {
@@ -76,11 +78,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="vpad">
-                        <a href="../checkout/{checkout_page_uid}/">Buy Digital Release</a> {price_label}
+                        <a href="../checkout/{checkout_page_uid}{explicit_index}">Buy Digital Release</a> {price_label}
                         <div>{includes_text}</div>
                     </div>
                 "#,
                 checkout_page_uid=checkout_page_uid,
+                explicit_index = explicit_index,
                 includes_text=includes_text,
                 price_label=price_label
             )
@@ -88,9 +91,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let embed_widget = if release.embedding {
-        r#"<a href="embed/">Embed</a>"#
+        format!(
+            r#"<a href="embed{explicit_index}">Embed</a>"#,
+            explicit_index = explicit_index
+        )
     } else {
-        ""
+        String::new()
     };
 
     let release_text = match &release.text {
@@ -178,7 +184,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
             </div>
         "##,
-        artists = list_artists(root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &release.artists),
         cover = image(root_prefix, &release.cover),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,

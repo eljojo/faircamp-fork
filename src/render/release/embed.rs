@@ -21,7 +21,8 @@ fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfi
 }
 
 pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
-    let root_prefix = &"../".repeat(2);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../../";
 
     let track_choices_rendered = release.tracks
         .iter()
@@ -66,7 +67,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                 </div>
             </div>
         "##,
-        artists = list_artists(root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &release.artists),
         cover = image(root_prefix, &release.cover),
         embed_code = embed_code(base_url, &release.permalink.slug, "all"),
         release_title = release.title,
@@ -77,7 +78,8 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
 }
 
 pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
-    let root_prefix = &"../".repeat(3);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../../../";
 
     let longest_track_duration = release.tracks
         .iter()
@@ -140,14 +142,15 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                     {tracks_rendered}
 
                     <div>
-                        Listen to everything at <a href="{root_prefix}">{base_url}</a>
+                        Listen to everything at <a href="{root_prefix}.{explicit_index}">{base_url}</a>
                     </div>
                 </div>
             </div>
         "##,
-        artists = list_artists(root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &release.artists),
         base_url = base_url,
         cover = image(root_prefix, &release.cover),
+        explicit_index = explicit_index,
         release_title = release.title,
         root_prefix = root_prefix,
         tracks_rendered = tracks_rendered
@@ -157,6 +160,8 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
 }
 
 fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    
     let feed_user_link = match &build.base_url.is_some() {
         true => format!(
             r#"<a href="{root_prefix}feed.rss">RSS</a>"#,
@@ -181,6 +186,7 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
         body = body,
         catalog_title = catalog.title(),
         dir_attribute = dir_attribute,
+        explicit_index = explicit_index,
         feed_user_link = feed_user_link,
         root_prefix = root_prefix,
         theming_widget = theming_widget,
@@ -189,7 +195,8 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
 }
 
 pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, track: &Track, track_number: usize, base_url: &Url) -> String {
-    let root_prefix = &"../".repeat(3);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../../../";
 
     let track_duration = track.cached_assets.source_meta.duration_seconds;
     let track_duration_width_em = if track_duration > 0 { 36.0 } else { 0.0 };
@@ -234,14 +241,15 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
                     {track_rendered}
 
                     <div>
-                        Listen to everything at <a href="{root_prefix}">{base_url}</a>
+                        Listen to everything at <a href="{root_prefix}.{explicit_index}">{base_url}</a>
                     </div>
                 </div>
             </div>
         "##,
-        artists = list_artists(root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &release.artists),
         base_url = base_url,
         cover = image(root_prefix, &release.cover),
+        explicit_index = explicit_index,
         release_title = release.title,
         root_prefix = root_prefix,
         track_rendered = track_rendered

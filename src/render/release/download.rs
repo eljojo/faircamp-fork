@@ -9,7 +9,8 @@ use crate::{
 };
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let root_prefix = &"../".repeat(2);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../../";
 
     let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
         .iter()
@@ -37,7 +38,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
             {download_links}
         "#,
-        artists = list_artists(root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &release.artists),
         cover = image(root_prefix, &release.cover),
         download_links = download_links,
         title = release.title

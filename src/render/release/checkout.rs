@@ -9,7 +9,8 @@ use crate::{
 };
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
-    let root_prefix = &"../".repeat(2);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../../";
 
     let payment_options = &release.payment_options
         .iter()
@@ -20,10 +21,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
                         r#"
                             <div>
                                 <div>{message}</div>
-                                <a href="../../download/{download_page_uid}/">I have made the payment — Continue</a>
+                                <a href="../../download/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
                             </div>
                         "#,
                         download_page_uid=download_page_uid,
+                        explicit_index = explicit_index,
                         message=html.to_string()
                     )
                 },
@@ -36,10 +38,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
                                 <div>
                                     Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a>
                                 </div>
-                                <a href="../../download/{download_page_uid}/">I have made the payment — Continue</a>
+                                <a href="../../download/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
                             </div>
                         "#,
                         download_page_uid=download_page_uid,
+                        explicit_index = explicit_index,
                         liberapay_url=liberapay_url
                     )
                 }
@@ -57,7 +60,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
 
             {payment_options}
         "#,
-        artists = list_artists(root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &release.artists),
         payment_options = payment_options,
         cover = image(root_prefix, &release.cover),
         title = release.title

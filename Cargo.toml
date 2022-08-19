@@ -25,4 +25,5 @@ serde = "1.0.143"
 serde_derive = "1.0.143"
 slug = "0.1.4"
 url = "2.2.2"
+webbrowser = "0.7.1"
 zip = { features = ["deflate"], version = "0.6.2" }

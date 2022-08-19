@@ -92,6 +92,7 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
         body = body,
         catalog_title = catalog.title(),
         dir_attribute = dir_attribute,
+        explicit_index = if build.clean_urls { "/" } else { "/index.html" },
         feed_meta_link = feed_meta_link,
         feed_user_link = feed_user_link,
         root_prefix = root_prefix,
@@ -100,13 +101,14 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
     )
 }
 
-fn list_artists(root_prefix: &str, artists: &Vec<Rc<RefCell<Artist>>>) -> String {
+fn list_artists(explicit_index: &str, root_prefix: &str, artists: &Vec<Rc<RefCell<Artist>>>) -> String {
     artists
         .iter()
         .map(|artist| {
             let artist_ref = artist.borrow();
             format!(
-                r#"<a href="{root_prefix}{permalink}/">{name}</a>"#,
+                r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
+                explicit_index = explicit_index,
                 name = artist_ref.name,
                 permalink = artist_ref.permalink.slug,
                 root_prefix = root_prefix
@@ -116,7 +118,7 @@ fn list_artists(root_prefix: &str, artists: &Vec<Rc<RefCell<Artist>>>) -> String
         .join(", ")
 }
 
-fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
+fn releases(explicit_index: &str, root_prefix: &str, releases: Vec<&Release>) -> String {
     releases
         .iter()
         .map(|release| {
@@ -129,18 +131,19 @@ fn releases(root_prefix: &str, releases: Vec<&Release>) -> String {
             formatdoc!(
                 r#"
                     <div class="vpad" style="display: flex;">
-                        <a class="cover_listing" href="{root_prefix}{permalink}/">
+                        <a class="cover_listing" href="{root_prefix}{permalink}{explicit_index}">
                             {cover}
                         </a>
                         <div>
-                            <a class="large" href="{root_prefix}{permalink}/" style="color: #fff;">{title} <span class="runtime">{runtime}</span></a>
+                            <a class="large" href="{root_prefix}{permalink}{explicit_index}" style="color: #fff;">{title} <span class="runtime">{runtime}</span></a>
                             <div>{artists}</div>
                             <span class="">{track_snippets}</span>
                         </div>
                     </div>
                 "#,
-                artists = list_artists(root_prefix, &release.artists),
+                artists = list_artists(explicit_index, root_prefix, &release.artists),
                 cover = image(root_prefix, &release.cover),
+                explicit_index = explicit_index,
                 permalink = release.permalink.slug,
                 root_prefix = root_prefix,
                 runtime = util::format_time(release.runtime),

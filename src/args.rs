@@ -40,7 +40,7 @@ pub struct Args {
     #[clap(long = "optimize-cache")]
     pub optimize_cache: bool,
     
-    /// Locally previews the build in the browser after the build is finished (not yet implemented)
+    /// Locally previews the build in the browser after the build is finished (note that this emits a faircamp site with relative links, i.e. the resulting build is then not indended for direct deployment)
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
     

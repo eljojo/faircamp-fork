@@ -11,7 +11,8 @@ use crate::{
 };
 
 pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalog) -> String {
-    let root_prefix = &"../".repeat(1);
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let root_prefix = "../";
 
     // TODO: Possibly prepare these associations earlier, when mapping artists to releases based on artists_to_map
     let artist_releases = catalog.releases
@@ -47,7 +48,7 @@ pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalo
                 </div>
 
                 <div class="vpad">
-                    <h1><a href="{root_prefix}">All Releases</a> &gt; {artist_name}</h1>
+                    <h1><a href="{root_prefix}.{explicit_index}">All Releases</a> &gt; {artist_name}</h1>
                 </div>
 
                 {text}
@@ -59,7 +60,8 @@ pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalo
         "#,
         artist_image = image(root_prefix, &artist_ref.image),
         artist_name = artist_ref.name,
-        releases = releases(root_prefix, artist_releases),
+        explicit_index = explicit_index,
+        releases = releases(explicit_index, root_prefix, artist_releases),
         root_prefix = root_prefix,
         share_widget = SHARE_WIDGET,
         text = text

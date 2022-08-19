@@ -17,6 +17,7 @@ pub struct Build {
     pub cache_dir: PathBuf,
     pub cache_optimization: CacheOptimization,
     pub catalog_dir: PathBuf,
+    pub clean_urls: bool,
     pub deploy_destination: Option<String>,
     pub embeds_requested: bool,
     pub exclude_patterns: Vec<String>,
@@ -32,6 +33,7 @@ pub struct Build {
     pub verbose: bool
 }
 
+#[derive(PartialEq)]
 pub enum PostBuildAction {
     None,
     Deploy,
@@ -76,6 +78,7 @@ impl Build {
             cache_dir,
             cache_optimization: CacheOptimization::Default,
             catalog_dir,
+            clean_urls: post_build_action != PostBuildAction::Preview,
             deploy_destination: args.deploy_destination.clone(),
             embeds_requested: false,
             exclude_patterns: args.exclude_patterns.clone(),

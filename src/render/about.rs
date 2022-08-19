@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub fn about_html(build: &Build, catalog: &Catalog) -> String {
-    let root_prefix = &"../".repeat(1);
+    let root_prefix = "../";
     
     let catalog_title = catalog.title();
 

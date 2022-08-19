@@ -7,6 +7,7 @@ use crate::{
 };
 
 pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
+    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "";
     
     let catalog_title = catalog.title();
@@ -14,7 +15,7 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
     let body = formatdoc!(
         r#"
             <header class="center" style="display: flex; align-items: center; margin-top: 0;">
-                <a href="" style="color: #fff; font-size: 2em;">
+                <a href=".{explicit_index}" style="color: #fff; font-size: 2em;">
                     {title}
                 </a>
             </header>
@@ -24,7 +25,8 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
                 </div>
             </div>
         "#,
-        releases = releases(root_prefix, catalog.releases.iter().collect()),
+        explicit_index = explicit_index,
+        releases = releases(explicit_index, root_prefix, catalog.releases.iter().collect()),
         title = catalog_title
     );
 
