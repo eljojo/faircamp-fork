@@ -6,12 +6,78 @@ use crate::{
     catalog::Catalog,
     localization::WritingDirection,
     release::Release,
-    render::{image, list_artists, release::waveform},
+    render::{image, layout, list_artists, release::waveform},
+    track::Track,
     util::format_time
 };
 
-pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
+fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T) -> String {
+    format!(
+        r#"<textarea readonly="true">&lt;iframe src="{base_url}{permalink_slug}/embed/{postfix}"&gt;&lt;/iframe&gt;</textarea>"#,
+        base_url = base_url,
+        permalink_slug = permalink_slug,
+        postfix = postfix
+    )
+}
+
+pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
     let root_prefix = &"../".repeat(2);
+
+    let track_choices_rendered = release.tracks
+        .iter()
+        .enumerate()
+        .map(|(index, track)| {
+            let track_number = index + 1;
+            formatdoc!(
+                r#"
+                    <div class="track_title_wrapper">
+                        <span class="track_number">{track_number:02}</span>
+                        <a class="track_title">
+                            {track_title} <span class="pause"></span>
+                        </a>
+                        {embed_code}
+                    </div>
+                "#,
+                embed_code = embed_code(base_url, &release.permalink.slug, track_number),
+                track_number = track_number,
+                track_title = track.title
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let body = formatdoc!(
+        r##"
+            <div class="center_unconstrained">
+                <div class="release_grid vpad">
+                    <div class="cover">
+                        {cover}
+                    </div>
+
+                    <div style="margin: 0.4em 0 1em 0;">
+                        <h1>{release_title}</h1>
+                        <div>{artists}</div>
+                    </div>
+
+                    Embed the entire release
+                    {embed_code}
+
+                    {track_choices_rendered}
+                </div>
+            </div>
+        "##,
+        artists = list_artists(root_prefix, &release.artists),
+        cover = image(root_prefix, &release.cover),
+        embed_code = embed_code(base_url, &release.permalink.slug, "all"),
+        release_title = release.title,
+        track_choices_rendered = track_choices_rendered
+    );
+
+    layout(root_prefix, &body, build, catalog, &release.title)
+}
+
+pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
+    let root_prefix = &"../".repeat(3);
 
     let longest_track_duration = release.tracks
         .iter()
@@ -28,6 +94,7 @@ pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release, base_url:
             } else {
                 0.0
             };
+            let track_number = index + 1;
 
             formatdoc!(
                 r#"
@@ -43,10 +110,10 @@ pub fn embed_html(build: &Build, catalog: &Catalog, release: &Release, base_url:
                     </div>
                 "#,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
-                track_number = index + 1,
+                track_number = track_number,
                 track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = track.title,
-                waveform = waveform(track, index, track_duration_width_em)
+                waveform = waveform(track, track_number, track_duration_width_em)
             )
         })
         .collect::<Vec<String>>()
@@ -119,4 +186,66 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
         theming_widget = theming_widget,
         title = title
     )
+}
+
+pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, track: &Track, track_number: usize, base_url: &Url) -> String {
+    let root_prefix = &"../".repeat(3);
+
+    let track_duration = track.cached_assets.source_meta.duration_seconds;
+    let track_duration_width_em = if track_duration > 0 { 36.0 } else { 0.0 };
+
+    let track_rendered = formatdoc!(
+        r#"
+            <div class="track_title_wrapper">
+                <span class="track_number">{track_number:02}</span>
+                <a class="track_title">
+                    {track_title} <span class="pause"></span>
+                </a>
+            </div>
+            <div class="track_waveform">
+                <audio controls preload="metadata" src="../../{track_src}"></audio>
+                {waveform} <span class="track_duration">{track_duration}</span>
+            </div>
+        "#,
+        track_duration = format_time(track_duration),
+        track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
+        track_title = track.title,
+        waveform = waveform(track, track_number, track_duration_width_em)
+    );
+
+    let body = formatdoc!(
+        r##"
+            <div class="center_unconstrained">
+                <div class="release_grid vpad">
+                    <div class="cover">
+                        {cover}
+                    </div>
+
+                    <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                        <a class="track_play">
+                            <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
+                        </a>
+                    </div>
+                    <div style="margin: 0.4em 0 1em 0;">
+                        <h1>{release_title}</h1>
+                        <div>{artists}</div>
+                    </div>
+
+                    {track_rendered}
+
+                    <div>
+                        Listen to everything at <a href="{root_prefix}">{base_url}</a>
+                    </div>
+                </div>
+            </div>
+        "##,
+        artists = list_artists(root_prefix, &release.artists),
+        base_url = base_url,
+        cover = image(root_prefix, &release.cover),
+        release_title = release.title,
+        root_prefix = root_prefix,
+        track_rendered = track_rendered
+    );
+
+    embed_layout(root_prefix, &body, build, catalog, &release.title)
 }

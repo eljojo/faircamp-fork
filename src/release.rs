@@ -302,9 +302,20 @@ impl Release {
 
         if self.embedding  {
             if let Some(base_url) = &build.base_url {
-                let embed_dir = release_dir.join("embed");
-                let embed_html = render::release::embed::embed_html(build, catalog, self, &base_url);
-                util::ensure_dir_and_write_index(&embed_dir, &embed_html);
+                let embed_choices_dir = release_dir.join("embed");
+                let embed_choices_html = render::release::embed::embed_choices_html(build, catalog, self, &base_url);
+                util::ensure_dir_and_write_index(&embed_choices_dir, &embed_choices_html);
+
+                let embed_release_dir = embed_choices_dir.join("all");
+                let embed_release_html = render::release::embed::embed_release_html(build, catalog, self, &base_url);
+                util::ensure_dir_and_write_index(&embed_release_dir, &embed_release_html);
+
+                for (index, track) in self.tracks.iter().enumerate() {
+                    let track_number = index + 1;
+                    let embed_track_dir = embed_choices_dir.join(track_number.to_string());
+                    let embed_track_html = render::release::embed::embed_track_html(build, catalog, self, track, track_number, &base_url);
+                    util::ensure_dir_and_write_index(&embed_track_dir, &embed_track_html);
+                }
             }
         }
     }

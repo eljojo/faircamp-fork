@@ -113,6 +113,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             } else {
                 0.0
             };
+            let track_number = index + 1;
 
             formatdoc!(
                 r#"
@@ -128,10 +129,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     </div>
                 "#,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
-                track_number = release.track_numbering.format(index + 1),
+                track_number = release.track_numbering.format(track_number),
                 track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = track.title,
-                waveform = waveform(track, index, track_duration_width_em)
+                waveform = waveform(track, track_number, track_duration_width_em)
             )
         })
         .collect::<Vec<String>>()
@@ -190,7 +191,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     layout(root_prefix, &body, build, catalog, &release.title)
 }
 
-fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String {
+fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) -> String {
     let step = 1;
 
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
@@ -219,21 +220,21 @@ fn waveform(track: &Track, index: usize, track_duration_width_em: f32) -> String
                      viewBox="0 0 {width} {height}"
                      xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="progress_{index}">
+                        <linearGradient id="progress_{track_number}">
                             <stop offset="0%" stop-color="hsl(var(--hue), var(--link-s), var(--link-l))" />
                             <stop offset="0.000001%" stop-color="hsl(var(--text-h), var(--text-s), var(--text-l))" />
                         </linearGradient>
                     </defs>
                     <style>
-                        .levels_{index} {{ stroke: url(#progress_{index}); }}
+                        .levels_{track_number} {{ stroke: url(#progress_{track_number}); }}
                     </style>
-                    <path class="levels_{index}" d="{d}" />
+                    <path class="levels_{track_number}" d="{d}" />
                 </svg>
             "##,
             d = d,
             height = height,
-            index = index,
             track_duration_width_em = track_duration_width_em,
+            track_number = track_number,
             width = width
         )
     } else {
