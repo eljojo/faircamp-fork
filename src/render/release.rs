@@ -185,7 +185,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(root_prefix, &release.cover),
+        cover = image(explicit_index, root_prefix, &release.cover),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         release_text = release_text,

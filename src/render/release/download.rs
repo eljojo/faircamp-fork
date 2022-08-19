@@ -39,7 +39,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             {download_links}
         "#,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(root_prefix, &release.cover),
+        cover = image(explicit_index, root_prefix, &release.cover),
         download_links = download_links,
         title = release.title
     );

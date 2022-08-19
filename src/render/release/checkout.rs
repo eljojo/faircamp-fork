@@ -62,7 +62,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         "#,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         payment_options = payment_options,
-        cover = image(root_prefix, &release.cover),
+        cover = image(explicit_index, root_prefix, &release.cover),
         title = release.title
     );
 

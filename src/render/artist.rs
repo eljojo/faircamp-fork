@@ -58,7 +58,7 @@ pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalo
                 {releases}
             </div>
         "#,
-        artist_image = image(root_prefix, &artist_ref.image),
+        artist_image = image(explicit_index, root_prefix, &artist_ref.image),
         artist_name = artist_ref.name,
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, artist_releases),

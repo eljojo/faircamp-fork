@@ -131,6 +131,13 @@ fn main() {
         release.write_files(&mut build, &catalog);
     }
 
+    // Render image descriptions page (when needed)
+    if build.missing_image_descriptions {
+        let image_descriptions_html = render::image_descriptions::image_descriptions_html(&build, &catalog);
+        fs::create_dir(build.build_dir.join("image-descriptions")).unwrap();
+        fs::write(build.build_dir.join("image-descriptions/index.html"), image_descriptions_html).unwrap();
+    }
+
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
     styles::generate(&build);

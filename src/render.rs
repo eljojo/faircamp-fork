@@ -16,12 +16,13 @@ use crate::{
 
 pub mod about;
 pub mod artist;
+pub mod image_descriptions;
 pub mod release;
 pub mod releases;
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
-fn image(root_prefix: &str, image: &Option<Rc<RefCell<Image>>>) -> String {
+fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Image>>>) -> String {
     match image {
         Some(image) => {
             let image_ref = image.borrow();
@@ -35,8 +36,8 @@ fn image(root_prefix: &str, image: &Option<Rc<RefCell<Image>>>) -> String {
                 )
             } else {
                 format!(
-                    // TODO: Implement the clickable further info text properly (e.g. output own static info page, just as the missing_image_description styles are already conditionally included, also include instructions for how to write good image descriptions)
-                    r#"<a class="missing_image_description" href="\#" onclick="alert('Millions of people browse the web using screen-readers because they can not see (or not well enough). Images without textual descriptions are inaccessible to them, this is why we should make the effort to provide image descriptions for them. Consult the faircamp README for how to add image descriptions, it\'s simple and an act of kindness.')"><span class="missing_image_description_overlay">Missing image description.<br>Click to learn more</span><img src="{root_prefix}{filename}"></a>"#,
+                    r#"<a class="missing_image_description" href="{root_prefix}image-descriptions{explicit_index}"><span class="missing_image_description_overlay">Missing image description.<br>Click to learn more</span><img src="{root_prefix}{filename}"></a>"#,
+                    explicit_index = explicit_index,
                     filename = image_ref.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )
@@ -142,7 +143,7 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: Vec<&Release>) ->
                     </div>
                 "#,
                 artists = list_artists(explicit_index, root_prefix, &release.artists),
-                cover = image(root_prefix, &release.cover),
+                cover = image(explicit_index, root_prefix, &release.cover),
                 explicit_index = explicit_index,
                 permalink = release.permalink.slug,
                 root_prefix = root_prefix,
