@@ -11,12 +11,16 @@ use crate::{
     WritingDirection
 };
 
-fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T) -> String {
+/// The title parameter provides a text that indicates to screen-reader users
+/// what to expect inside the iframe. See description at
+/// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
+fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T, title: &str) -> String {
     format!(
-        r#"<textarea readonly="true">&lt;iframe src="{base_url}{permalink_slug}/embed/{postfix}"&gt;&lt;/iframe&gt;</textarea>"#,
+        r#"<textarea class="embed_code" readonly="true">&lt;iframe src="{base_url}{permalink_slug}/embed/{postfix}" title="{title}"&gt;&lt;/iframe&gt;</textarea>"#,
         base_url = base_url,
         permalink_slug = permalink_slug,
-        postfix = postfix
+        postfix = postfix,
+        title = title
     )
 }
 
@@ -39,7 +43,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                         {embed_code}
                     </div>
                 "#,
-                embed_code = embed_code(base_url, &release.permalink.slug, track_number),
+                embed_code = embed_code(base_url, &release.permalink.slug, track_number, "Audio player widget for one track"),
                 track_number = track_number,
                 track_title = track.title
             )
@@ -69,7 +73,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         cover = image(explicit_index, root_prefix, &release.cover),
-        embed_code = embed_code(base_url, &release.permalink.slug, "all"),
+        embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release"),
         release_title = release.title,
         track_choices_rendered = track_choices_rendered
     );

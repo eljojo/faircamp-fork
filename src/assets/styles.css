@@ -63,12 +63,9 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-right: 1em;
     width: 10em;
 }
-.hsplit {
-    display: flex;
-}
-.hsplit.apart {
-    justify-content: space-between;
-}
+.embed_code { width: 10em; }
+.hsplit { display: flex; }
+.hsplit.apart { justify-content: space-between; }
 .js_enabled audio { display: none; }
 .large { font-size: 1.6em; }
 .layout {
@@ -139,9 +136,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 	position: relative;
     width: 1.4em;
 }
-.track_play:hover {
-    opacity: .8;
-}
+.track_play:hover { opacity: .8; }
 .js_enabled .track_play { display: flex; }
 .track_title {
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
@@ -156,9 +151,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
   50% { opacity: .4; }
   100% { opacity: .8; }
 }
-.track_title_wrapper {
-    justify-self: end;
-}
+.track_title_wrapper { justify-self: end; }
 .vpad { margin: 1em 0; }
 .waveform {
     bottom: .3em;
