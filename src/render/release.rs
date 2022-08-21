@@ -1,12 +1,12 @@
 use indoc::formatdoc;
 
 use crate::{
-    build::Build,
-    catalog::Catalog,
-    download_option::DownloadOption,
-    release::Release,
+    Build,
+    Catalog,
+    DownloadOption,
+    Release,
     render::{SHARE_WIDGET, image, layout, list_artists},
-    track::Track,
+    Track,
     util::format_time
 };
 

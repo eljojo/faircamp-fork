@@ -10,19 +10,22 @@ use std::{
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
-    artist::Artist,
-    asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
-    audio_format::{AUDIO_FORMATS, AudioFormat},
-    build::Build,
-    catalog::Catalog,
-    download_option::DownloadOption,
-    image::Image,
-    image_format::ImageFormat,
+    Artist,
+    Asset,
+    AssetIntent,
+    AudioFormat,
+    Build,
+    CacheManifest,
+    Catalog,
+    DownloadOption,
+    Image,
+    ImageFormat,
     manifest::Overrides,
-    payment_option::PaymentOption,
-    permalink::Permalink,
+    PaymentOption,
+    Permalink,
     render,
-    track::Track,
+    SourceFileSignature,
+    Track,
     util
 };
 
@@ -110,7 +113,7 @@ impl CachedReleaseAssets {
     }
 
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for format in AUDIO_FORMATS {
+        for format in AudioFormat::ALL_FORMATS {
             if let Some(asset) = self.get_mut(format) {
                 asset.mark_stale(timestamp);
             }
@@ -249,7 +252,7 @@ impl Release {
                     }
 
                     match zip_writer.finish() {
-                        Ok(_) => cached_format.replace(Asset::init(build, target_filename, AssetIntent::Deliverable)),
+                        Ok(_) => cached_format.replace(Asset::new(build, target_filename, AssetIntent::Deliverable)),
                         Err(err) => panic!("{}", err)
                     };
                 }

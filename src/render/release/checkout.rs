@@ -1,10 +1,10 @@
 use indoc::formatdoc;
 
 use crate::{
-    build::Build,
-    catalog::Catalog,
-    payment_option::PaymentOption,
-    release::Release,
+    Build,
+    Catalog,
+    PaymentOption,
+    Release,
     render::{image, layout, list_artists}
 };
 

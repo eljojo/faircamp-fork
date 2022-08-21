@@ -1,8 +1,7 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
-use crate::audio_format::AudioFormat;
-use crate::image_format::ImageFormat;
+use crate::{AudioFormat, ImageFormat};
 
 #[cfg(not(target_os = "windows"))]
 pub const FFMPEG_BINARY: &str = "ffmpeg";

@@ -9,18 +9,19 @@ use std::{
 use url::Url;
 
 use crate::{
-    asset_cache::{CacheManifest, CacheOptimization},
-    audio_format::{AudioFormat, FRUGAL_STREAMING_FORMAT, STANDARD_STREAMING_FORMAT},
-    build::Build,
-    catalog::Catalog,
-    download_option::DownloadOption,
-    image::Image,
-    localization::WritingDirection,
-    payment_option::PaymentOption,
-    permalink::Permalink,
+    AudioFormat,
+    Build,
+    CacheManifest,
+    CacheOptimization,
+    Catalog,
+    DownloadOption,
+    Image,
+    PaymentOption,
+    Permalink,
     release::TrackNumbering,
     theme::{ThemeBase, ThemeFont},
-    util
+    util,
+    WritingDirection
 };
 
 macro_rules! err_line {
@@ -73,7 +74,7 @@ impl Overrides {
             release_text: None,
             release_title: None,
             release_track_numbering: TrackNumbering::Arabic,
-            streaming_format: STANDARD_STREAMING_FORMAT,
+            streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
             track_artists: None
         }
     }
@@ -569,8 +570,8 @@ pub fn apply_options(
     if let Some(section) = optional_section(&document, "streaming", path) {
         if let Some((value, line)) = optional_field_value_with_line(section, "quality") {
             match value.as_str() {
-                "standard" => overrides.streaming_format = STANDARD_STREAMING_FORMAT,
-                "frugal" => overrides.streaming_format = FRUGAL_STREAMING_FORMAT,
+                "standard" => overrides.streaming_format = AudioFormat::STANDARD_STREAMING_FORMAT,
+                "frugal" => overrides.streaming_format = AudioFormat::FRUGAL_STREAMING_FORMAT,
                 value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, frugal) in {}:{}", value, path.display(), line)
             }
         }

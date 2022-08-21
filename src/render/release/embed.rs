@@ -2,13 +2,13 @@ use indoc::formatdoc;
 use url::Url;
 
 use crate::{
-    build::Build,
-    catalog::Catalog,
-    localization::WritingDirection,
-    release::Release,
+    Build,
+    Catalog,
+    Release,
     render::{image, layout, list_artists, release::waveform},
-    track::Track,
-    util::format_time
+    Track,
+    util::format_time,
+    WritingDirection
 };
 
 fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T) -> String {

@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-// hue         0-360 degrees
-// hue_spread  0+ degrees
-// tint_back   0-100 percent
-// tint_front  0-100 percent
+/// hue         0-360 degrees
+/// hue_spread  0+ degrees
+/// tint_back   0-100 percent
+/// tint_front  0-100 percent
 pub struct Theme {
-    // Contains an absolute path to the file (validity is checked when reading manifests)
+    /// Contains an absolute path to the file (validity is checked when reading manifests)
     pub background_image: Option<PathBuf>,
     pub base: ThemeBase,
     pub customized: bool,
@@ -16,10 +16,10 @@ pub struct Theme {
     pub tint_front: u8
 }
 
-// h(ue)         0-360 degrees
-// s(aturation)  0-100 percent
-// l(ightness)   0-100 percent
-// a(lpha)       0-100 percent (gets converted to 0.0-1.0 in css)
+/// h(ue)         0-360 degrees
+/// s(aturation)  0-100 percent
+/// l(ightness)   0-100 percent
+/// a(lpha)       0-100 percent (gets converted to 0.0-1.0 in css)
 pub struct ThemeBase {
     pub background_l: u8,
     pub cover_l: u8,

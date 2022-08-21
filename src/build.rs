@@ -3,10 +3,10 @@ use std::{env, path::PathBuf};
 use url::Url;
 
 use crate::{
-    args::Args,
-    asset_cache::CacheOptimization,
-    localization::Localization,
-    theme::Theme,
+    Args,
+    CacheOptimization,
+    Localization,
+    Theme,
     util
 };
 

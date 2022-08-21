@@ -8,12 +8,16 @@ use std::{
 };
 
 use crate::{
-    artist::Artist,
-    asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
-    audio_format::{AUDIO_FORMATS, AudioFormat},
-    audio_meta::AudioMeta,
-    build::Build,
-    ffmpeg::{self, MediaFormat},
+    Artist,
+    Asset,
+    AssetIntent,
+    AudioFormat,
+    AudioMeta,
+    Build,
+    CacheManifest,
+    ffmpeg,
+    MediaFormat,
+    SourceFileSignature,
     util
 };
 
@@ -87,7 +91,7 @@ impl CachedTrackAssets {
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for format in AUDIO_FORMATS {
+        for format in AudioFormat::ALL_FORMATS {
             if let Some(asset) = self.get_mut(format) {
                 asset.mark_stale(timestamp);
             }
@@ -137,7 +141,7 @@ impl Track {
                     MediaFormat::Audio(format)
                 ).unwrap();
             
-                cached_format.replace(Asset::init(build, target_filename, asset_intent));
+                cached_format.replace(Asset::new(build, target_filename, asset_intent));
             }
         }
         

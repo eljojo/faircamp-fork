@@ -3,10 +3,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{
-    artist::Artist,
-    build::Build,
-    catalog::Catalog,
-    release::Release,
+    Artist,
+    Build,
+    Catalog,
+    Release,
     render::{SHARE_WIDGET, image, layout, releases}
 };
 

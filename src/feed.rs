@@ -1,10 +1,11 @@
 use std::fs;
 
 use crate::{
-    build::Build,
-    catalog::Catalog,
-    ffmpeg::{self, MediaFormat},
-    image_format::ImageFormat
+    Build,
+    Catalog,
+    ffmpeg,
+    ImageFormat,
+    MediaFormat
 };
 
 pub fn generate(build: &Build, catalog: &Catalog) {

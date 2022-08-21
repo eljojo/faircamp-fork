@@ -1,35 +1,20 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
-use std::{
-    fmt,
-    fs,
-    path::{Path, PathBuf},
-    time::SystemTime
-};
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use crate::{
-    audio_format::AUDIO_FORMATS,
-    audio_meta::AudioMeta,
-    build::Build,
-    catalog::Catalog,
-    image::CachedImageAssets,
-    release::{CachedReleaseAssets},
-    track::{CachedTrackAssets, Track},
+    AudioFormat,
+    AudioMeta,
+    Build,
+    CachedImageAssets,
+    CachedReleaseAssets,
+    CachedTrackAssets,
+    Catalog,
+    Track,
     util
 };
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Asset {
-    pub filename: String,
-    pub filesize_bytes: u64, 
-    pub marked_stale: Option<DateTime<Utc>>
-}
-
-#[derive(PartialEq)]
-pub enum AssetIntent {
-    Deliverable,
-    Intermediate
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CacheManifest {
@@ -100,7 +85,7 @@ pub fn optimize_image_assets(cached_assets: &mut CachedImageAssets, build: &Buil
 pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &Build) {
     let mut keep_container = false;
     
-    for format in AUDIO_FORMATS {
+    for format in AudioFormat::ALL_FORMATS {
         let cached_format = cached_assets.get_mut(&format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
@@ -128,7 +113,7 @@ pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &
 pub fn optimize_track_assets(cached_assets: &mut CachedTrackAssets, build: &Build) {
     let mut keep_container = false;
     
-    for format in AUDIO_FORMATS {
+    for format in AudioFormat::ALL_FORMATS {
         let cached_format = cached_assets.get_mut(&format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
@@ -202,7 +187,7 @@ pub fn report_stale_image_assets(cached_assets: &CachedImageAssets, num_unused: 
 }
 
 pub fn report_stale_release_assets(cached_assets: &CachedReleaseAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
-    for format in AUDIO_FORMATS {
+    for format in AudioFormat::ALL_FORMATS {
         if let Some(filesize_bytes) = cached_assets
             .get(format)
             .as_ref()
@@ -215,7 +200,7 @@ pub fn report_stale_release_assets(cached_assets: &CachedReleaseAssets, num_unus
 }
 
 pub fn report_stale_track_assets(cached_assets: &CachedTrackAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
-    for format in AUDIO_FORMATS {
+    for format in AudioFormat::ALL_FORMATS {
         if let Some(filesize_bytes) = cached_assets
             .get(format)
             .as_ref()
@@ -224,47 +209,6 @@ pub fn report_stale_track_assets(cached_assets: &CachedTrackAssets, num_unused: 
             *num_unused += 1;
             *unused_bytesize += filesize_bytes;
         }
-    }
-}
-
-impl Asset {    
-    pub fn init(build: &Build, filename: String, intent: AssetIntent) -> Asset {
-        let metadata = fs::metadata(build.cache_dir.join(&filename)).expect("Could not access asset");
-        
-        Asset {
-            filename,
-            filesize_bytes: metadata.len(),
-            marked_stale: match intent {
-                AssetIntent::Deliverable => None,
-                AssetIntent::Intermediate => Some(build.build_begin)
-            }
-        }
-    }
-    
-    pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
-        if self.marked_stale.is_none() {
-            self.marked_stale = Some(timestamp.clone());
-        }
-    }
-    
-    pub fn obsolete(&self, build: &Build) -> bool {
-        match &self.marked_stale {
-            Some(marked_stale) => {
-                match &build.cache_optimization {
-                    CacheOptimization::Default | 
-                    CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(marked_stale.clone()) > Duration::hours(24),
-                    CacheOptimization::Immediate |
-                    CacheOptimization::Manual |
-                    CacheOptimization::Wipe => true
-                }
-            },
-            None => false
-        }
-    }
-    
-    pub fn unmark_stale(&mut self) {
-        self.marked_stale = None;
     }
 }
 
@@ -408,8 +352,8 @@ impl CacheOptimization {
     }
 }
 
-impl fmt::Display for CacheOptimization {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for CacheOptimization {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let text = match self {
             CacheOptimization::Default => "Default",
             CacheOptimization::Delayed => "Delayed",

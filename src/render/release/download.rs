@@ -2,9 +2,9 @@ use indoc::formatdoc;
 
 use crate::{
     audio_format,
-    build::Build,
-    catalog::Catalog,
-    release::Release,
+    Build,
+    Catalog,
+    Release,
     render::{image, layout, list_artists}
 };
 

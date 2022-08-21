@@ -1,10 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{
-    image::Image,
-    permalink::Permalink
-};
+use crate::{Image, Permalink};
 
 #[derive(Debug)]
 pub struct Artist {

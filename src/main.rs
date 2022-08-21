@@ -1,6 +1,6 @@
 use clap::Parser;
-use std::rc::Rc;
 use std::fs;
+use std::rc::Rc;
 use webbrowser;
 
 #[macro_use]
@@ -8,6 +8,7 @@ mod message;
 
 mod args;
 mod artist;
+mod asset;
 mod asset_cache;
 mod audio_format;
 mod audio_meta;
@@ -33,9 +34,23 @@ mod track;
 mod util;
 
 use args::Args;
-use asset_cache::{CacheManifest, CacheOptimization};
+use artist::Artist;
+use asset::{Asset, AssetIntent};
+use asset_cache::{CacheManifest, CacheOptimization, SourceFileSignature};
+use audio_format::AudioFormat;
+use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
 use catalog::Catalog;
+use download_option::DownloadOption;
+use ffmpeg::MediaFormat;
+use image::{CachedImageAssets, Image};
+use image_format::ImageFormat;
+use localization::{Localization, WritingDirection};
+use payment_option::PaymentOption;
+use permalink::{Permalink, PermalinkUsage};
+use release::{CachedReleaseAssets, Release};
+use theme::Theme;
+use track::{CachedTrackAssets, Track};
 
 fn main() {
     let args: Args = Args::parse();

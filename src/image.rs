@@ -1,15 +1,17 @@
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
-use std::{
-    fs,
-    path::{Path, PathBuf}
-};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use crate::{
-    asset_cache::{Asset, AssetIntent, CacheManifest, SourceFileSignature},
-    build::Build,
-    ffmpeg::{self, MediaFormat},
-    image_format::ImageFormat,
+    Asset,
+    AssetIntent,
+    Build,
+    CacheManifest,
+    ffmpeg,
+    ImageFormat,
+    MediaFormat,
+    SourceFileSignature,
     util
 };
 
@@ -92,7 +94,7 @@ impl Image {
                     MediaFormat::Image(format)
                 ).unwrap();
             
-                cached_format.replace(Asset::init(build, target_filename, asset_intent));
+                cached_format.replace(Asset::new(build, target_filename, asset_intent));
             }
         }
         

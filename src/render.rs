@@ -3,15 +3,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{
-    artist::Artist,
-    build::Build,
-    catalog::Catalog,
-    image::Image,
-    image_format::ImageFormat,
-    localization::WritingDirection,
-    release::Release,
-    track::Track,
-    util
+    Artist,
+    Build,
+    Catalog,
+    Image,
+    ImageFormat,
+    Release,
+    Track,
+    util,
+    WritingDirection
 };
 
 pub mod about;

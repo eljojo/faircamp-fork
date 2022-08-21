@@ -1,20 +1,3 @@
-use std::fmt;
-
-pub const AUDIO_FORMATS: &[AudioFormat] = &[
-    AudioFormat::Aac,
-    AudioFormat::Aiff,
-    AudioFormat::Flac,
-    AudioFormat::Mp3VbrV0,
-    AudioFormat::OggVorbis,
-    AudioFormat::Opus48Kbps,
-    AudioFormat::Opus96Kbps,
-    AudioFormat::Opus128Kbps,
-    AudioFormat::Wav
-];
-
-pub const FRUGAL_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus48Kbps;
-pub const STANDARD_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus96Kbps;
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum AudioFormat {
     Aac,
@@ -49,6 +32,20 @@ pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) ->
 }
 
 impl AudioFormat {
+    pub const ALL_FORMATS: &'static [AudioFormat] = &[
+        AudioFormat::Aac,
+        AudioFormat::Aiff,
+        AudioFormat::Flac,
+        AudioFormat::Mp3VbrV0,
+        AudioFormat::OggVorbis,
+        AudioFormat::Opus48Kbps,
+        AudioFormat::Opus96Kbps,
+        AudioFormat::Opus128Kbps,
+        AudioFormat::Wav
+    ];
+    pub const FRUGAL_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus48Kbps;
+    pub const STANDARD_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus96Kbps;
+
     pub fn download_rank(&self) -> u8 {
         match self {
             AudioFormat::Opus128Kbps => 1,
@@ -139,8 +136,8 @@ impl AudioFormat {
     }
 }
 
-impl fmt::Display for AudioFormat {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for AudioFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let text = match self {
             AudioFormat::Aac => "AAC",
             AudioFormat::Aiff => "AIFF",

@@ -1,9 +1,8 @@
+use slug::slugify;
 use std::cell::RefCell;
 use std::rc::Rc;
-use slug::slugify;
 
-use crate::artist::Artist;
-use crate::release::Release;
+use crate::{Artist, Release};
 
 #[derive(Clone, Debug)]
 pub struct Permalink {

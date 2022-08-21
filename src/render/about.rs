@@ -1,8 +1,8 @@
 use indoc::formatdoc;
 
 use crate::{
-    build::Build,
-    catalog::Catalog,
+    Build,
+    Catalog,
     render::{SHARE_WIDGET, layout}
 };
 

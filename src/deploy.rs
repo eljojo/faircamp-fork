@@ -1,5 +1,4 @@
-use crate::build::Build;
-use crate::rsync;
+use crate::{Build, rsync};
 
 pub fn deploy(build: &Build) {
     if let Some(destination) = &build.deploy_destination {

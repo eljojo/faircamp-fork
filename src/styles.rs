@@ -2,9 +2,10 @@ use indoc::formatdoc;
 use std::fs;
 
 use crate::{
-    build::Build,
-    ffmpeg::{self, MediaFormat},
-    image_format::ImageFormat,
+    Build,
+    ffmpeg,
+    ImageFormat,
+    MediaFormat,
     theme::ThemeFont
 };
 
