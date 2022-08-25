@@ -77,11 +77,14 @@ fn main() {
     
     if args.wipe_all || args.wipe_build || args.wipe_cache {
         if args.wipe_build || args.wipe_all {
+            info!("The build directory was wiped, as requested");
             util::remove_dir(&build.build_dir);
         }
         if args.wipe_cache || args.wipe_all {
+            info_cache!("The cache directory was wiped, as requested");
             util::remove_dir(&build.cache_dir);
         }
+        info!("No further actions are performed due to requested wipe operation(s)");
         return;
     }
     
@@ -91,10 +94,10 @@ fn main() {
         Ok(catalog) => catalog,
         Err(()) => return
     };
-    
+
     util::ensure_empty_dir(&build.build_dir);
     util::ensure_dir(&build.build_dir.join("download"));
-    
+
     catalog.write_assets(&mut build);
 
     // Artists without images are assigned a cover image from one of their releases here
