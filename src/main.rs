@@ -1,6 +1,5 @@
 use clap::Parser;
 use std::fs;
-use std::rc::Rc;
 use webbrowser;
 
 #[macro_use]
@@ -99,23 +98,6 @@ fn main() {
     util::ensure_dir(&build.build_dir.join("download"));
 
     catalog.write_assets(&mut build);
-
-    // Artists without images are assigned a cover image from one of their releases here
-    for artist in &catalog.artists {
-        if artist.borrow().image.is_none() {
-            for release in &catalog.releases {
-                if let Some(cover) = &release.cover {
-                    if release.artists
-                        .iter()
-                        .find(|release_artist| Rc::ptr_eq(release_artist, artist))
-                        .is_some() {
-                        let mut artist_mut = artist.borrow_mut();
-                        artist_mut.image = Some(cover.clone());
-                    }
-                }
-            }
-        }
-    }
     
     // Render about page
     let about_html = render::about::about_html(&build, &catalog);

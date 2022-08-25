@@ -150,6 +150,23 @@ impl Catalog {
         catalog.map_artists();
         
         if !catalog.validate_permalinks() { return Err(()); }
+
+        // Artists without images are assigned a cover image from one of their releases here
+        for artist in &catalog.artists {
+            if artist.borrow().image.is_none() {
+                for release in &catalog.releases {
+                    if let Some(cover) = &release.cover {
+                        if release.artists
+                            .iter()
+                            .find(|release_artist| Rc::ptr_eq(release_artist, artist))
+                            .is_some() {
+                            let mut artist_mut = artist.borrow_mut();
+                            artist_mut.image = Some(cover.clone());
+                        }
+                    }
+                }
+            }
+        }
         
         Ok(catalog)
     }
