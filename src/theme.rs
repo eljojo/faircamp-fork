@@ -1,4 +1,8 @@
+use std::cell::RefCell;
 use std::path::PathBuf;
+use std::rc::Rc;
+
+use crate::Image;
 
 /// hue         0-360 degrees
 /// hue_spread  0+ degrees
@@ -6,7 +10,7 @@ use std::path::PathBuf;
 /// tint_front  0-100 percent
 pub struct Theme {
     /// Contains an absolute path to the file (validity is checked when reading manifests)
-    pub background_image: Option<PathBuf>,
+    pub background_image: Option<Rc<RefCell<Image>>>,
     pub base: ThemeBase,
     pub customized: bool,
     pub font: ThemeFont,

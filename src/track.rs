@@ -16,7 +16,6 @@ use crate::{
     Build,
     CacheManifest,
     ffmpeg,
-    MediaFormat,
     SourceFileSignature,
     util
 };
@@ -138,7 +137,7 @@ impl Track {
                 ffmpeg::transcode(
                     &self.source_file,
                     &build.cache_dir.join(&target_filename),
-                    MediaFormat::Audio(format)
+                    format
                 ).unwrap();
             
                 cached_format.replace(Asset::new(build, target_filename, asset_intent));

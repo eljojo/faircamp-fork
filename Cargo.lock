@@ -367,6 +367,7 @@ dependencies = [
  "indoc",
  "iso_currency",
  "lewton",
+ "libvips",
  "metaflac",
  "nanoid",
  "ogg 0.9.0",
@@ -622,6 +623,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64de3cc433455c14174d42e554d4027ee631c4d046d43e3ecc6efc4636cdc7a7"
 
 [[package]]
+name = "libvips"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c6574a02b3823ce436bd70d47546428f4546686031f8d2af4c056d23969ace2"
+dependencies = [
+ "num-derive",
+ "num-traits",
+]
+
+[[package]]
 name = "log"
 version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -725,6 +736,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e5a6ae77c8ee183dcbbba6150e2e6b9f3f4196a7666c02a715a95692ec1fa97"
 dependencies = [
  "jni-sys",
+]
+
+[[package]]
+name = "num-derive"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

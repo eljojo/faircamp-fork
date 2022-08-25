@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use libvips::{ops, VipsImage};
 use serde_derive::{Serialize, Deserialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -8,16 +9,22 @@ use crate::{
     AssetIntent,
     Build,
     CacheManifest,
-    ffmpeg,
     ImageFormat,
-    MediaFormat,
     SourceFileSignature,
     util
 };
 
+const ARTIST_EDGE_SIZE: i32 = 320;
+const BACKGROUND_MAX_EDGE_SIZE: i32 = 1280;
+const COVER_EDGE_SIZE: i32 = 240;
+const FEED_MAX_EDGE_SIZE: i32 = 920;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CachedImageAssets {
-    pub jpeg: Option<Asset>,
+    pub artist: Option<Asset>,
+    pub background: Option<Asset>,
+    pub cover: Option<Asset>,
+    pub feed: Option<Asset>,
     pub source_file_signature: SourceFileSignature,
     pub uid: String
 }
@@ -39,13 +46,19 @@ impl CachedImageAssets {
     
     pub fn get(&self, format: &ImageFormat) -> &Option<Asset> {
         match format {
-            ImageFormat::Jpeg => &self.jpeg
+            ImageFormat::Artist => &self.artist,
+            ImageFormat::Background => &self.background,
+            ImageFormat::Cover => &self.cover,
+            ImageFormat::Feed => &self.feed
         }
     }
     
     pub fn get_mut(&mut self, format: &ImageFormat) -> &mut Option<Asset> {
         match format {
-            ImageFormat::Jpeg => &mut self.jpeg
+            ImageFormat::Artist => &mut self.artist,
+            ImageFormat::Background => &mut self.background,
+            ImageFormat::Cover => &mut self.cover,
+            ImageFormat::Feed => &mut self.feed
         }
     }
     
@@ -55,14 +68,19 @@ impl CachedImageAssets {
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        if let Some(asset) = self.jpeg.as_mut() {
-            asset.mark_stale(timestamp);
+        for format in ImageFormat::ALL_FORMATS {
+            if let Some(asset) = self.get_mut(format) {
+                asset.mark_stale(timestamp);
+            }
         }
     }
     
     pub fn new(source_file_signature: SourceFileSignature) -> CachedImageAssets {
         CachedImageAssets {
-            jpeg: None,
+            artist: None,
+            background: None,
+            cover: None,
+            feed: None,
             source_file_signature,
             uid: util::uid()
         }
@@ -87,12 +105,73 @@ impl Image {
             None => {
                 let target_filename = format!("{}{}", util::uid(), format.extension());
             
-                info_transcoding!("{:?} to {}", self.source_file, format);
-                ffmpeg::transcode(
-                    &self.source_file,
-                    &build.cache_dir.join(&target_filename),
-                    MediaFormat::Image(format)
-                ).unwrap();
+                info_resizing!("{:?} to {}", self.source_file, format);
+
+                let image = VipsImage::new_from_file(&self.source_file.to_string_lossy()).unwrap();
+
+                let height = image.get_height();
+                let width = image.get_width();
+                let smaller_edge = std::cmp::min(height, width);
+
+                let transformed = match format {
+                    ImageFormat::Artist => {
+                        let cropped = if height != width {
+                            let smaller_edge = std::cmp::min(height, width);
+                            ops::smartcrop(&image, smaller_edge, smaller_edge).unwrap()
+                        } else {
+                            image
+                        };
+
+                        if smaller_edge <= ARTIST_EDGE_SIZE {
+                            cropped
+                        } else {
+                            ops::resize(&cropped, ARTIST_EDGE_SIZE as f64 / smaller_edge as f64).unwrap()
+                        }
+                    }
+                    ImageFormat::Background => {
+                        let longer_edge = std::cmp::max(height, width);
+                        if longer_edge > BACKGROUND_MAX_EDGE_SIZE {
+                            ops::resize(&image, BACKGROUND_MAX_EDGE_SIZE as f64 / longer_edge as f64).unwrap()
+                        } else {
+                            image
+                        }
+                    }
+                    ImageFormat::Cover => {
+                        let cropped = if height != width {
+                            let smaller_edge = std::cmp::min(height, width);
+                            ops::smartcrop(&image, smaller_edge, smaller_edge).unwrap()
+                        } else {
+                            image
+                        };
+
+                        if smaller_edge <= COVER_EDGE_SIZE {
+                            cropped
+                        } else {
+                            ops::resize(&cropped, COVER_EDGE_SIZE as f64 / smaller_edge as f64).unwrap()
+                        }
+                    }
+                    ImageFormat::Feed => {
+                        let longer_edge = std::cmp::max(height, width);
+                        if longer_edge > FEED_MAX_EDGE_SIZE {
+                            ops::resize(&image, FEED_MAX_EDGE_SIZE as f64 / longer_edge as f64).unwrap()
+                        } else {
+                            image
+                        }
+                    }
+                };
+
+                let options = ops::JpegsaveOptions {
+                    interlace: true,
+                    optimize_coding: true,
+                    q: 75,
+                    strip: true,
+                    ..ops::JpegsaveOptions::default()
+                };
+
+                match ops::jpegsave_with_opts(&transformed, &build.cache_dir.join(&target_filename).to_string_lossy(),  &options) {
+                    Ok(_) => (),
+                    Err(_) => println!("error: {}", build.libvips_app.error_buffer().unwrap())
+                }
             
                 cached_format.replace(Asset::new(build, target_filename, asset_intent));
             }

@@ -6,6 +6,7 @@ use crate::{
     Artist,
     Build,
     Catalog,
+    ImageFormat,
     Release,
     render::{SHARE_WIDGET, image, layout, releases}
 };
@@ -58,7 +59,7 @@ pub fn artist_html(build: &Build, artist: &Rc<RefCell<Artist>>, catalog: &Catalo
                 {releases}
             </div>
         "#,
-        artist_image = image(explicit_index, root_prefix, &artist_ref.image),
+        artist_image = image(explicit_index, root_prefix, &artist_ref.image, ImageFormat::Artist),
         artist_name = artist_ref.name,
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, artist_releases),

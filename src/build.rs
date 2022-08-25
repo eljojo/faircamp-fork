@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use libvips::VipsApp;
 use std::{env, path::PathBuf};
 use url::Url;
 
@@ -23,6 +24,7 @@ pub struct Build {
     pub exclude_patterns: Vec<String>,
     pub include_patterns: Vec<String>,
     pub localization: Localization,
+    pub libvips_app: VipsApp,
     /// If we encounter missing image descriptions during the build we set this flag.
     /// This lets us know to inject optional css used for indicating these images.
     pub missing_image_descriptions: bool,
@@ -69,8 +71,11 @@ impl Build {
             .map(|path| path.to_path_buf())
             .unwrap_or_else(|| catalog_dir.join(".faircamp_cache"));
         
+        let libvips_app = VipsApp::new("faircamp", false).expect("Cannot initialize libvips");
+        libvips_app.concurrency_set(2);
+
         let post_build_action = PostBuildAction::new(args);
-        
+
         Build {
             base_url: None,
             build_begin: Utc::now(),
@@ -83,6 +88,7 @@ impl Build {
             embeds_requested: false,
             exclude_patterns: args.exclude_patterns.clone(),
             include_patterns: args.include_patterns.clone(),
+            libvips_app,
             localization: Localization::defaults(),
             missing_image_descriptions: false,
             post_build_action,

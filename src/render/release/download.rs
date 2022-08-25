@@ -4,6 +4,7 @@ use crate::{
     audio_format,
     Build,
     Catalog,
+    ImageFormat,
     Release,
     render::{image, layout, list_artists}
 };
@@ -39,7 +40,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             {download_links}
         "#,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         download_links = download_links,
         title = release.title
     );

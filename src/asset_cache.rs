@@ -12,6 +12,7 @@ use crate::{
     CachedReleaseAssets,
     CachedTrackAssets,
     Catalog,
+    ImageFormat,
     Track,
     util
 };
@@ -72,14 +73,30 @@ pub fn optimize_cache(
 }
 
 pub fn optimize_image_assets(cached_assets: &mut CachedImageAssets, build: &Build) {
-    if cached_assets.jpeg.as_ref().filter(|asset| asset.obsolete(build)).is_some() {
-        if let Some(asset) = cached_assets.jpeg.take() {
-            info_cache!("Removing cached image asset (JPEG) for {}.", cached_assets.source_file_signature.path.display());
-            util::remove_file(&build.cache_dir.join(asset.filename));
-        }
+    let mut keep_container = false;
+
+    for format in ImageFormat::ALL_FORMATS {
+        let cached_format = cached_assets.get_mut(&format);
         
+        match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
+            Some(true) => {
+                util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
+                info_cache!(
+                    "Removed cached image asset ({}) for {}.",
+                    format,
+                    cached_assets.source_file_signature.path.display()
+                );
+            }
+            Some(false) => keep_container = true,
+            None => ()
+        }
+    }
+
+    if keep_container {
+        cached_assets.persist(&build.cache_dir);
+    } else {
         util::remove_file(&cached_assets.manifest_path(&build.cache_dir));
-    }   
+    }
 }
 
 pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &Build) {
@@ -177,12 +194,15 @@ pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
 }
 
 pub fn report_stale_image_assets(cached_assets: &CachedImageAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
-    if let Some(filesize_bytes) = cached_assets.jpeg
-        .as_ref()
-        .filter(|asset| asset.marked_stale.is_some())
-        .map(|asset| asset.filesize_bytes) {
-        *num_unused += 1;
-        *unused_bytesize += filesize_bytes;
+    for format in ImageFormat::ALL_FORMATS {
+        if let Some(filesize_bytes) = cached_assets
+            .get(format)
+            .as_ref()
+            .filter(|asset| asset.marked_stale.is_some())
+            .map(|asset| asset.filesize_bytes) {
+            *num_unused += 1;
+            *unused_bytesize += filesize_bytes;
+        }
     }
 }
 

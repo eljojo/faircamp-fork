@@ -1,12 +1,6 @@
 use std::fs;
 
-use crate::{
-    Build,
-    Catalog,
-    ffmpeg,
-    ImageFormat,
-    MediaFormat
-};
+use crate::{Build, Catalog, ImageFormat};
 
 pub fn generate(build: &Build, catalog: &Catalog) {
     if let Some(base_url) = &build.base_url { 
@@ -39,21 +33,14 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         let channel_title = catalog.title();
         
         let channel_image = match &catalog.feed_image {
-            Some(feed_image) => {
-                // TODO: Go through asset cache with this
-                ffmpeg::transcode(
-                    feed_image,
-                    &build.build_dir.join("feed.jpg"),
-                    MediaFormat::Image(&ImageFormat::Jpeg)
-                ).unwrap();
-                
+            Some(channel_image) => {
                 format!(
                     include_str!("templates/feed/image.xml"),
                     base_url=base_url,
-                    image_url=base_url.join("feed.jpg").unwrap(),
+                    image_url=base_url.join(&channel_image.borrow().get_as(&ImageFormat::Feed).as_ref().unwrap().filename).unwrap(),
                     title=channel_title
                 )
-            },
+            }
             None => String::new()
         };
         

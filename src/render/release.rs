@@ -4,6 +4,7 @@ use crate::{
     Build,
     Catalog,
     DownloadOption,
+    ImageFormat,
     Release,
     render::{SHARE_WIDGET, image, layout, list_artists},
     Track,
@@ -185,7 +186,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         release_text = release_text,

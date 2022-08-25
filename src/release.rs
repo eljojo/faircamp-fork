@@ -236,7 +236,7 @@ impl Release {
 
                     if let Some(cover) = &mut self.cover {
                         let mut cover_mut = cover.borrow_mut();
-                        let cover_asset = cover_mut.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Intermediate);
+                        let cover_asset = cover_mut.get_or_transcode_as(&ImageFormat::Cover, build, AssetIntent::Intermediate);
 
                         zip_writer.start_file("cover.jpg", options).unwrap();
 

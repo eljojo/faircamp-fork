@@ -1,13 +1,7 @@
 use indoc::formatdoc;
 use std::fs;
 
-use crate::{
-    Build,
-    ffmpeg,
-    ImageFormat,
-    MediaFormat,
-    theme::ThemeFont
-};
+use crate::{Build, ImageFormat, theme::ThemeFont};
 
 pub fn generate(build: &Build) {
     let theme = &build.theme;    
@@ -109,24 +103,20 @@ pub fn generate(build: &Build) {
         included_static_css = include_str!("assets/styles.css")
     );
 
-    if let Some(background_image) = &theme.background_image {
-        // TODO: Go through asset cache with this
-        ffmpeg::transcode(
-            background_image,
-            &build.build_dir.join("background.jpg"),
-            MediaFormat::Image(&ImageFormat::Jpeg)
-        ).unwrap();
-        
-        let background_override = formatdoc!(r#"
-            body {{
-                background:
-                    linear-gradient(
-                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
-                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
-                    ),
-                    url(background.jpg) center / cover;
-            }}
-        "#);
+    if let Some(background_image) = &theme.background_image {    
+        let background_override = formatdoc!(
+            r#"
+                body {{
+                    background:
+                        linear-gradient(
+                            hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
+                            hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
+                        ),
+                        url({filename}) center / cover;
+                }}
+            "#,
+            filename = background_image.borrow().get_as(&ImageFormat::Background).as_ref().unwrap().filename
+        );
 
         css.push_str(&background_override);
     }

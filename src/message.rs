@@ -7,8 +7,6 @@ macro_rules! color {
     (yellow) => ("\x1b[33m");
 }
 
-// TODO: Use eprintln! (?)
-
 macro_rules! error {
     ($format_str:expr $(,$args:expr)*) => {
         println!(
@@ -31,6 +29,15 @@ macro_rules! info_cache {
     ($format_str:expr $(,$args:expr)*) => {
         println!(
             concat!(color!(magenta), "[CACHE] ", $format_str, color!(reset))
+            $(,$args)*
+        )
+    };
+}
+
+macro_rules! info_resizing {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(blue), "[RESIZING] ", $format_str, color!(reset))
             $(,$args)*
         )
     };

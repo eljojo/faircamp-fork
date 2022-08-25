@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
-use crate::{AudioFormat, ImageFormat};
+use crate::AudioFormat;
 
 #[cfg(not(target_os = "windows"))]
 pub const FFMPEG_BINARY: &str = "ffmpeg";
@@ -9,36 +9,28 @@ pub const FFMPEG_BINARY: &str = "ffmpeg";
 #[cfg(target_os = "windows")]
 pub const FFMPEG_BINARY: &str = "ffmpeg.exe";
 
-pub enum MediaFormat<'a> {
-    Audio(&'a AudioFormat),
-    Image(&'a ImageFormat)
-}
-
-pub fn transcode(input_file: &Path, output_file: &Path, target_format: MediaFormat) -> Result<(), String> {
+pub fn transcode(input_file: &Path, output_file: &Path, target_format: &AudioFormat) -> Result<(), String> {
     let mut command = Command::new(FFMPEG_BINARY);
     
     command.arg("-y");
     command.arg("-i").arg(input_file);
     
     match target_format {
-        MediaFormat::Audio(format) => match format {
-            AudioFormat::Mp3VbrV0 => {
-                command.arg("-codec:a").arg("libmp3lame");
-                command.arg("-qscale:a").arg("0");
-            }
-            AudioFormat::Opus48Kbps => {
-                command.arg("-codec:a").arg("libopus");
-                command.arg("-b:a").arg("48k");
-            }
-            AudioFormat::Opus96Kbps => {
-                command.arg("-codec:a").arg("libopus");
-                command.arg("-b:a").arg("96k");
-            }
-            AudioFormat::Opus128Kbps => {
-                command.arg("-codec:a").arg("libopus");
-                command.arg("-b:a").arg("128k");
-            }
-            _ => ()
+        AudioFormat::Mp3VbrV0 => {
+            command.arg("-codec:a").arg("libmp3lame");
+            command.arg("-qscale:a").arg("0");
+        }
+        AudioFormat::Opus48Kbps => {
+            command.arg("-codec:a").arg("libopus");
+            command.arg("-b:a").arg("48k");
+        }
+        AudioFormat::Opus96Kbps => {
+            command.arg("-codec:a").arg("libopus");
+            command.arg("-b:a").arg("96k");
+        }
+        AudioFormat::Opus128Kbps => {
+            command.arg("-codec:a").arg("libopus");
+            command.arg("-b:a").arg("128k");
         }
         _ => ()
     }

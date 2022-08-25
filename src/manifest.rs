@@ -323,12 +323,15 @@ pub fn apply_options(
 
         if let Some((relative_path, line)) = optional_field_value_with_line(section, "feed_image"){
             if let Some(previous) = &catalog.feed_image {
-                warn_global_set_repeatedly!("catalog.feed_image", previous.display(), relative_path);
+                warn_global_set_repeatedly!("catalog.feed_image", previous.borrow().source_file.display(), relative_path);
             }
 
             let absolute_path = path.parent().unwrap().join(&relative_path);
             if absolute_path.exists() {
-                catalog.feed_image = Some(absolute_path);
+                let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+
+                // TODO: Double check if the RSS feed image can specify an image description somehow
+                catalog.feed_image = Some(Rc::new(RefCell::new(Image::new(cached_assets, None, &absolute_path))));
             } else {
                 error!("Ignoring invalid catalog.feed_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
             }
@@ -587,7 +590,10 @@ pub fn apply_options(
         if let Some((relative_path, line)) = optional_field_value_with_line(section, "background_image") {
             let absolute_path = path.parent().unwrap().join(&relative_path);
             if absolute_path.exists() {
-                build.theme.background_image = Some(absolute_path);
+                let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+
+                // TODO: Double check if the background image can specify an image description somehow
+                build.theme.background_image = Some(Rc::new(RefCell::new(Image::new(cached_assets, None, &absolute_path))));
             } else {
                 error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
             }

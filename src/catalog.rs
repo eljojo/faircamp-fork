@@ -34,7 +34,7 @@ const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the 
 pub struct Catalog {
     pub artists: Vec<Rc<RefCell<Artist>>>,
     // Contains an absolute path to the file (validity is checked when reading manifests)
-    pub feed_image: Option<PathBuf>,
+    pub feed_image: Option<Rc<RefCell<Image>>>,
     pub images: Vec<Rc<RefCell<Image>>>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
     pub releases: Vec<Release>,
     pub text: Option<String>,
@@ -529,12 +529,40 @@ impl Catalog {
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {
+        if let Some(background_image) = &build.theme.background_image {
+            let mut background_image_mut = background_image.borrow_mut();
+            let image_asset = background_image_mut.get_or_transcode_as(&ImageFormat::Background, build, AssetIntent::Deliverable);
+            
+            fs::copy(
+                build.cache_dir.join(&image_asset.filename),
+                build.build_dir.join(&image_asset.filename)
+            ).unwrap();
+            
+            build.stats.add_image(image_asset.filesize_bytes);
+            
+            background_image_mut.cached_assets.persist(&build.cache_dir);
+        }
+
+        if let Some(feed_image) = &self.feed_image {
+            let mut feed_image_mut = feed_image.borrow_mut();
+            let image_asset = feed_image_mut.get_or_transcode_as(&ImageFormat::Feed, build, AssetIntent::Deliverable);
+            
+            fs::copy(
+                build.cache_dir.join(&image_asset.filename),
+                build.build_dir.join(&image_asset.filename)
+            ).unwrap();
+            
+            build.stats.add_image(image_asset.filesize_bytes);
+            
+            feed_image_mut.cached_assets.persist(&build.cache_dir);
+        }
+
         for artist in self.artists.iter_mut() {
             let mut artist_mut = artist.borrow_mut();
 
             if let Some(image) = &mut artist_mut.image {
                 let mut image_mut = image.borrow_mut();
-                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Deliverable);
+                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Artist, build, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build.cache_dir.join(&image_asset.filename),
@@ -550,7 +578,7 @@ impl Catalog {
         for release in self.releases.iter_mut() {            
             if let Some(image) = &mut release.cover {
                 let mut image_mut = image.borrow_mut();
-                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Jpeg, build, AssetIntent::Deliverable);
+                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Cover, build, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build.cache_dir.join(&image_asset.filename),

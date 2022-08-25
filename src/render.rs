@@ -22,7 +22,7 @@ pub mod releases;
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
-fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Image>>>) -> String {
+fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Image>>>, format: ImageFormat) -> String {
     match image {
         Some(image) => {
             let image_ref = image.borrow();
@@ -31,14 +31,14 @@ fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Imag
                 format!(
                     r#"<a href="{root_prefix}{filename}"><img alt="{alt}" src="{root_prefix}{filename}"></a>"#,
                     alt = description,
-                    filename = image_ref.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
+                    filename = image_ref.get_as(&format).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )
             } else {
                 format!(
                     r#"<a class="missing_image_description" href="{root_prefix}image-descriptions{explicit_index}"><span class="missing_image_description_overlay">Missing image description.<br>Click to learn more</span><img src="{root_prefix}{filename}"></a>"#,
                     explicit_index = explicit_index,
-                    filename = image_ref.get_as(&ImageFormat::Jpeg).as_ref().unwrap().filename,
+                    filename = image_ref.get_as(&format).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )
             }
@@ -143,7 +143,7 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: Vec<&Release>) ->
                     </div>
                 "#,
                 artists = list_artists(explicit_index, root_prefix, &release.artists),
-                cover = image(explicit_index, root_prefix, &release.cover),
+                cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
                 explicit_index = explicit_index,
                 permalink = release.permalink.slug,
                 root_prefix = root_prefix,
