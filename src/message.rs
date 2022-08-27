@@ -34,6 +34,15 @@ macro_rules! info_cache {
     };
 }
 
+macro_rules! info_decoding {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(magenta), "[DECODING] ", $format_str, color!(reset))
+            $(,$args)*
+        )
+    };
+}
+
 macro_rules! info_resizing {
     ($format_str:expr $(,$args:expr)*) => {
         println!(

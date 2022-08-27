@@ -33,6 +33,8 @@ pub struct AudioMeta {
 
 impl AudioMeta {
     pub fn extract(path: &Path, extension: &str) -> AudioMeta {
+        info_decoding!("{:?} (Generating waveform/reading metadata)", path);
+
         let lossless = match extension {
             "aiff" | "alac" | "flac" | "wav" => true,
             "aac" | "mp3" | "ogg" | "opus" => false,
