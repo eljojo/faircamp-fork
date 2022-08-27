@@ -443,10 +443,8 @@ impl Catalog {
     ) -> Track {
         let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
             artist_names.iter().map(|name| name.clone()).collect()
-        } else if let Some(name) = cached_assets.source_meta.artist.as_ref() {
-            vec![name.to_string()]
         } else {
-            vec![]
+            cached_assets.source_meta.artist.iter().map(|name| name.clone()).collect()
         };
         
         let source_file = path.to_path_buf();

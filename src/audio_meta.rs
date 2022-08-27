@@ -15,7 +15,7 @@ use crate::decode::{
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
-    pub artist: Option<String>,
+    pub artist: Vec<String>,
     pub duration_seconds: u32,
     pub lossless: bool,
     pub peaks: Option<Vec<f32>>,
@@ -40,27 +40,46 @@ impl AudioMeta {
                     ),
                     None => (0, None)
                 };
-                
+
                 if let Ok(tag) = metaflac::Tag::read_from_path(path) {
-                    let track_number = tag
-                        .get_vorbis("tracknumber")
-                        .map(|iter| iter.collect())
-                        .filter(|str: &String| str.parse::<u32>().is_ok())
-                        .map(|str: String| str.parse::<u32>().unwrap());
+                    let album = match tag.get_vorbis("album") {
+                        Some(fields) => fields.last().map(|field| field.to_string()),
+                        None => None
+                    };
+
+                    let artist = tag
+                        .get_vorbis("artist")
+                        .map(|fields|
+                            fields.map(|field| field.to_string()).collect()
+                        )
+                        .unwrap_or_else(|| Vec::new());
+
+                    let title = match tag.get_vorbis("title") {
+                        Some(fields) => fields.last().map(|field| field.to_string()),
+                        None => None
+                    };
+
+                    let track_number = match tag.get_vorbis("tracknumber") {
+                        Some(fields) => match fields.last() {
+                            Some(field) => field.parse::<u32>().ok(),
+                            None => None
+                        }
+                        None => None
+                    };
                     
                     AudioMeta {
-                        album: tag.get_vorbis("album").map(|iter| iter.collect()),
-                        artist: tag.get_vorbis("artist").map(|iter| iter.collect()),
+                        album,
+                        artist,
                         duration_seconds,
                         lossless,
                         peaks,
-                        title: tag.get_vorbis("title").map(|iter| iter.collect()),
+                        title,
                         track_number
                     }
                 } else {
                     AudioMeta {
                         album: None,
-                        artist: None,
+                        artist: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -79,9 +98,14 @@ impl AudioMeta {
                 };
                 
                 if let Ok(tag) = id3::Tag::read_from_path(path) {
+                    let artist = match tag.artist() {
+                        Some(artist) => vec![artist.to_string()],
+                        None => Vec::new()
+                    };
+
                     AudioMeta {
                         album: tag.album().map(|str| str.to_string()),
-                        artist: tag.artist().map(|str| str.to_string()),
+                        artist,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -91,7 +115,7 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        artist: None,
+                        artist: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -111,7 +135,7 @@ impl AudioMeta {
                 
                 AudioMeta {
                     album: None,
-                    artist: None,
+                    artist: Vec::new(),
                     duration_seconds,
                     lossless,
                     peaks,
@@ -130,7 +154,7 @@ impl AudioMeta {
                 
                 AudioMeta {
                     album: None,
-                    artist: None,
+                    artist: Vec::new(),
                     duration_seconds,
                     lossless,
                     peaks,
@@ -149,7 +173,7 @@ impl AudioMeta {
                 
                 AudioMeta {
                     album: None,
-                    artist: None,
+                    artist: Vec::new(),
                     duration_seconds,
                     lossless,
                     peaks,
@@ -160,7 +184,7 @@ impl AudioMeta {
             _ => {
                     AudioMeta {
                     album: None,
-                    artist: None,
+                    artist: Vec::new(),
                     duration_seconds: 0,
                     lossless,
                     peaks: None,
