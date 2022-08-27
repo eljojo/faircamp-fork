@@ -43,7 +43,7 @@ impl AudioMeta {
                 
                 if let Ok(tag) = metaflac::Tag::read_from_path(path) {
                     let track_number = tag
-                        .get_vorbis("track") // TODO: Unconfirmed if that key is correct/available ("guessed it" for now :))
+                        .get_vorbis("tracknumber")
                         .map(|iter| iter.collect())
                         .filter(|str: &String| str.parse::<u32>().is_ok())
                         .map(|str: String| str.parse::<u32>().unwrap());
