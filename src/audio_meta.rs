@@ -12,6 +12,14 @@ use crate::decode::{
     wav
 };
 
+/// Return None if the passed string is empty or all whitespace,
+/// otherwise pass Some(String) containing the trimmed input string. 
+fn trim_and_reject_empty(string: &str) -> Option<String> {
+    let trimmed = string.trim();
+    if trimmed.is_empty() { return None }
+    Some(trimmed.to_string())
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
@@ -42,8 +50,19 @@ impl AudioMeta {
                 };
 
                 if let Ok(tag) = metaflac::Tag::read_from_path(path) {
+                    // FLAC uses vorbis comments, which support multiple
+                    // fields with the same key. For the artist key
+                    // (where this makes sense) we make use of it. All other
+                    // keys use one the last found (and actually usable, i.e.
+                    // not empty) field value.
+
                     let album = match tag.get_vorbis("album") {
-                        Some(fields) => fields.last().map(|field| field.to_string()),
+                        Some(fields) => fields.fold(None, |result, field| {
+                            match trim_and_reject_empty(field) {
+                                Some(field) => Some(field),
+                                None => result
+                            }
+                        }),
                         None => None
                     };
 
@@ -55,15 +74,22 @@ impl AudioMeta {
                         .unwrap_or_else(|| Vec::new());
 
                     let title = match tag.get_vorbis("title") {
-                        Some(fields) => fields.last().map(|field| field.to_string()),
+                        Some(fields) => fields.fold(None, |result, field| {
+                            match trim_and_reject_empty(field) {
+                                Some(field) => Some(field),
+                                None => result
+                            }
+                        }),
                         None => None
                     };
 
                     let track_number = match tag.get_vorbis("tracknumber") {
-                        Some(fields) => match fields.last() {
-                            Some(field) => field.parse::<u32>().ok(),
-                            None => None
-                        }
+                        Some(fields) => fields.fold(None, |result, field| {
+                            match field.trim().parse::<u32>() {
+                                Ok(number) => Some(number),
+                                Err(_) => result
+                            }
+                        }),
                         None => None
                     };
                     
@@ -98,18 +124,31 @@ impl AudioMeta {
                 };
                 
                 if let Ok(tag) = id3::Tag::read_from_path(path) {
+                    let album = match tag.album() {
+                        Some(album) => trim_and_reject_empty(album),
+                        None => None
+                    };
+
                     let artist = match tag.artist() {
-                        Some(artist) => vec![artist.to_string()],
+                        Some(artist) => match trim_and_reject_empty(artist) {
+                            Some(artist) => vec![artist],
+                            None => Vec::new()
+                        },
                         None => Vec::new()
                     };
 
+                    let title = match tag.title() {
+                        Some(title) => trim_and_reject_empty(title),
+                        None => None
+                    };
+
                     AudioMeta {
-                        album: tag.album().map(|str| str.to_string()),
+                        album,
                         artist,
                         duration_seconds,
                         lossless,
                         peaks,
-                        title: tag.title().map(|str| str.to_string()),
+                        title,
                         track_number: tag.track()
                     }
                 } else {
