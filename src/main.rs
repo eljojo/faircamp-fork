@@ -118,7 +118,7 @@ fn main() {
             }
         }
 
-        let artist_html = render::artist::artist_html(&build, artist, &catalog);
+        let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
         let artist_ref = artist.borrow();
 
         fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
@@ -127,7 +127,7 @@ fn main() {
     
     // Render page for each release
     for release in &catalog.releases {
-        release.write_files(&mut build, &catalog);
+        release.borrow_mut().write_files(&mut build, &catalog);
     }
 
     // Render image descriptions page (when needed)

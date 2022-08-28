@@ -59,16 +59,18 @@ pub fn optimize_cache(
         optimize_track_assets(cached_assets, build);
     }
     
-    for release in catalog.releases.iter_mut() {
-        if let Some(image) = &mut release.cover {
+    for release in &catalog.releases {
+        let mut release_mut = release.borrow_mut();
+
+        if let Some(image) = &mut release_mut.cover {
             optimize_image_assets(&mut image.borrow_mut().cached_assets, build);
         }
         
-        for track in release.tracks.iter_mut() {
+        for track in release_mut.tracks.iter_mut() {
             optimize_track_assets(&mut track.cached_assets, build);
         }
         
-        optimize_release_assets(&mut release.cached_assets, build);
+        optimize_release_assets(&mut release_mut.cached_assets, build);
     }
 }
 
@@ -76,7 +78,7 @@ pub fn optimize_image_assets(cached_assets: &mut CachedImageAssets, build: &Buil
     let mut keep_container = false;
 
     for format in ImageFormat::ALL_FORMATS {
-        let cached_format = cached_assets.get_mut(&format);
+        let cached_format = cached_assets.get_mut(format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
@@ -103,7 +105,7 @@ pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &
     let mut keep_container = false;
     
     for format in AudioFormat::ALL_FORMATS {
-        let cached_format = cached_assets.get_mut(&format);
+        let cached_format = cached_assets.get_mut(format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
@@ -131,7 +133,7 @@ pub fn optimize_track_assets(cached_assets: &mut CachedTrackAssets, build: &Buil
     let mut keep_container = false;
     
     for format in AudioFormat::ALL_FORMATS {
-        let cached_format = cached_assets.get_mut(&format);
+        let cached_format = cached_assets.get_mut(format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
@@ -171,15 +173,17 @@ pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
     }
     
     for release in &catalog.releases {
-        if let Some(image) = &release.cover {
+        let release_ref = release.borrow();
+
+        if let Some(image) = &release_ref.cover {
             report_stale_image_assets(&image.borrow().cached_assets, &mut num_unused, &mut unused_bytesize);
         }
         
-        for track in &release.tracks {
+        for track in &release_ref.tracks {
             report_stale_track_assets(&track.cached_assets, &mut num_unused, &mut unused_bytesize);
         }
         
-        report_stale_release_assets(&release.cached_assets, &mut num_unused, &mut unused_bytesize);
+        report_stale_release_assets(&release_ref.cached_assets, &mut num_unused, &mut unused_bytesize);
     }
     
     if num_unused > 0 {

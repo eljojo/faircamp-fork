@@ -14,7 +14,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let root_prefix = "../../";
 
     let download_links = audio_format::sorted_and_annotated_for_download(&release.download_formats)
-        .iter()
+        .drain(..)
         .map(|(format, annotation)|
             formatdoc!(
                 r#"

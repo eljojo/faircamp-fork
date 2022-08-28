@@ -79,7 +79,7 @@ impl CachedReleaseAssets {
         }
     }
 
-    pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
+    pub fn get(&self, format: AudioFormat) -> &Option<Asset> {
         match format {
             AudioFormat::Aac => &self.aac,
             AudioFormat::Aiff => &self.aiff,
@@ -93,7 +93,7 @@ impl CachedReleaseAssets {
         }
     }
 
-    pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+    pub fn get_mut(&mut self, format: AudioFormat) -> &mut Option<Asset> {
         match format {
             AudioFormat::Aac => &mut self.aac,
             AudioFormat::Aiff => &mut self.aiff,
@@ -183,7 +183,7 @@ impl Release {
     pub fn write_download_archives(&mut self, build: &mut Build) {
         if self.download_option != DownloadOption::Disabled {
             for format in &self.download_formats {
-                let cached_format = self.cached_assets.get_mut(format);
+                let cached_format = self.cached_assets.get_mut(*format);
 
                 if cached_format.is_none() {
                     let target_filename = format!("{}.zip", util::uid());
@@ -219,7 +219,7 @@ impl Release {
                             title=track.title
                         );
 
-                        let download_track_asset = track.get_or_transcode_as(format, build, AssetIntent::Intermediate);
+                        let download_track_asset = track.get_or_transcode_as(*format, build, AssetIntent::Intermediate);
 
                         zip_writer.start_file(&filename, options).unwrap();
 
@@ -236,7 +236,7 @@ impl Release {
 
                     if let Some(cover) = &mut self.cover {
                         let mut cover_mut = cover.borrow_mut();
-                        let cover_asset = cover_mut.get_or_transcode_as(&ImageFormat::Cover, build, AssetIntent::Intermediate);
+                        let cover_asset = cover_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Intermediate);
 
                         zip_writer.start_file("cover.jpg", options).unwrap();
 

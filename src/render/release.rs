@@ -137,7 +137,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 "#,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
                 track_number = release.track_numbering.format(track_number),
-                track_src = track.get_as(&release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
+                track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = track.title,
                 waveform = waveform(track, track_number, track_duration_width_em)
             )

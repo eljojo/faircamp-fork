@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum AudioFormat {
     Aac,
     Aiff,
@@ -11,7 +11,7 @@ pub enum AudioFormat {
     Wav
 }
 
-pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) -> Vec<(&AudioFormat, Option<String>)> {
+pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) -> Vec<(AudioFormat, Option<String>)> {
     download_formats.clone().sort_by(|a, b| a.download_rank().cmp(&b.download_rank()));
     
     let mut recommendation_given = false;
@@ -26,13 +26,13 @@ pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) ->
                 None
             };
             
-            (format, annotation)
+            (*format, annotation)
         })
         .collect()
 }
 
 impl AudioFormat {
-    pub const ALL_FORMATS: &'static [AudioFormat] = &[
+    pub const ALL_FORMATS: [AudioFormat; 9] = [
         AudioFormat::Aac,
         AudioFormat::Aiff,
         AudioFormat::Flac,

@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ImageFormat {
     Artist,
     Background,
@@ -7,7 +7,7 @@ pub enum ImageFormat {
 }
 
 impl ImageFormat {
-    pub const ALL_FORMATS: &'static [ImageFormat] = &[
+    pub const ALL_FORMATS: [ImageFormat; 4] = [
         ImageFormat::Artist,
         ImageFormat::Background,
         ImageFormat::Cover,

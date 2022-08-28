@@ -7,7 +7,8 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         let channel_items = catalog.releases
             .iter()
             .map(|release| {
-                let artists_list = release.artists
+                let release_ref = release.borrow();
+                let artists_list = release_ref.artists
                     .iter()
                     .map(|artist| artist.borrow().name.clone())
                     .collect::<Vec<String>>()
@@ -16,8 +17,8 @@ pub fn generate(build: &Build, catalog: &Catalog) {
                 format!(
                     include_str!("templates/feed/item.xml"),
                     description=format!("A release by {}", artists_list),
-                    permalink=base_url.join(&release.permalink.slug).unwrap(),
-                    title=release.title,
+                    permalink=base_url.join(&release_ref.permalink.slug).unwrap(),
+                    title=release_ref.title,
                 )
             })
             .collect::<Vec<String>>()
@@ -37,7 +38,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
                 format!(
                     include_str!("templates/feed/image.xml"),
                     base_url=base_url,
-                    image_url=base_url.join(&channel_image.borrow().get_as(&ImageFormat::Feed).as_ref().unwrap().filename).unwrap(),
+                    image_url=base_url.join(&channel_image.borrow().get_as(ImageFormat::Feed).as_ref().unwrap().filename).unwrap(),
                     title=channel_title
                 )
             }

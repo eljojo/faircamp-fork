@@ -44,7 +44,7 @@ impl CachedImageAssets {
         }
     }
     
-    pub fn get(&self, format: &ImageFormat) -> &Option<Asset> {
+    pub fn get(&self, format: ImageFormat) -> &Option<Asset> {
         match format {
             ImageFormat::Artist => &self.artist,
             ImageFormat::Background => &self.background,
@@ -53,7 +53,7 @@ impl CachedImageAssets {
         }
     }
     
-    pub fn get_mut(&mut self, format: &ImageFormat) -> &mut Option<Asset> {
+    pub fn get_mut(&mut self, format: ImageFormat) -> &mut Option<Asset> {
         match format {
             ImageFormat::Artist => &mut self.artist,
             ImageFormat::Background => &mut self.background,
@@ -93,11 +93,11 @@ impl CachedImageAssets {
 }
 
 impl Image {
-    pub fn get_as(&self, format: &ImageFormat) -> &Option<Asset> {
+    pub fn get_as(&self, format: ImageFormat) -> &Option<Asset> {
         self.cached_assets.get(format)
     }
     
-    pub fn get_or_transcode_as(&mut self, format: &ImageFormat, build: &Build, asset_intent: AssetIntent) -> &mut Asset {
+    pub fn get_or_transcode_as(&mut self, format: ImageFormat, build: &Build, asset_intent: AssetIntent) -> &mut Asset {
         let cached_format = self.cached_assets.get_mut(format);
         
         match cached_format {

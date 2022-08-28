@@ -31,14 +31,14 @@ fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Imag
                 format!(
                     r#"<a href="{root_prefix}{filename}"><img alt="{alt}" src="{root_prefix}{filename}"></a>"#,
                     alt = description,
-                    filename = image_ref.get_as(&format).as_ref().unwrap().filename,
+                    filename = image_ref.get_as(format).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )
             } else {
                 format!(
                     r#"<a class="missing_image_description" href="{root_prefix}image-descriptions{explicit_index}"><span class="missing_image_description_overlay">Missing image description.<br>Click to learn more</span><img src="{root_prefix}{filename}"></a>"#,
                     explicit_index = explicit_index,
-                    filename = image_ref.get_as(&format).as_ref().unwrap().filename,
+                    filename = image_ref.get_as(format).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )
             }
@@ -119,11 +119,12 @@ fn list_artists(explicit_index: &str, root_prefix: &str, artists: &Vec<Rc<RefCel
         .join(", ")
 }
 
-fn releases(explicit_index: &str, root_prefix: &str, releases: Vec<&Release>) -> String {
+fn releases(explicit_index: &str, root_prefix: &str, releases: &Vec<Rc<RefCell<Release>>>) -> String {
     releases
         .iter()
         .map(|release| {
-            let track_snippets = release.tracks
+            let release_ref = release.borrow();
+            let track_snippets = release_ref.tracks
                 .iter()
                 .enumerate()
                 .map(|(index, track)| waveform_snippet(track, index, 2.0))
@@ -142,13 +143,13 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: Vec<&Release>) ->
                         </div>
                     </div>
                 "#,
-                artists = list_artists(explicit_index, root_prefix, &release.artists),
-                cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
+                artists = list_artists(explicit_index, root_prefix, &release_ref.artists),
+                cover = image(explicit_index, root_prefix, &release_ref.cover, ImageFormat::Cover),
                 explicit_index = explicit_index,
-                permalink = release.permalink.slug,
+                permalink = release_ref.permalink.slug,
                 root_prefix = root_prefix,
-                runtime = util::format_time(release.runtime),
-                title = release.title,
+                runtime = util::format_time(release_ref.runtime),
+                title = release_ref.title,
                 track_snippets = track_snippets.join("&nbsp;&nbsp;&nbsp;&nbsp;")
             )
         })

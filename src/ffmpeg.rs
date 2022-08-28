@@ -9,7 +9,7 @@ pub const FFMPEG_BINARY: &str = "ffmpeg";
 #[cfg(target_os = "windows")]
 pub const FFMPEG_BINARY: &str = "ffmpeg.exe";
 
-pub fn transcode(input_file: &Path, output_file: &Path, target_format: &AudioFormat) -> Result<(), String> {
+pub fn transcode(input_file: &Path, output_file: &Path, target_format: AudioFormat) -> Result<(), String> {
     let mut command = Command::new(FFMPEG_BINARY);
     
     command.arg("-y");

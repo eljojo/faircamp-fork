@@ -26,7 +26,7 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
             </div>
         "#,
         explicit_index = explicit_index,
-        releases = releases(explicit_index, root_prefix, catalog.releases.iter().collect()),
+        releases = releases(explicit_index, root_prefix, &catalog.releases),
         title = catalog_title
     );
 

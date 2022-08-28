@@ -115,7 +115,7 @@ pub fn generate(build: &Build) {
                         url({filename}) center / cover;
                 }}
             "#,
-            filename = background_image.borrow().get_as(&ImageFormat::Background).as_ref().unwrap().filename
+            filename = background_image.borrow().get_as(ImageFormat::Background).as_ref().unwrap().filename
         );
 
         css.push_str(&background_override);

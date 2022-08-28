@@ -56,7 +56,7 @@ impl CachedTrackAssets {
         }
     }
     
-    pub fn get(&self, format: &AudioFormat) -> &Option<Asset> {
+    pub fn get(&self, format: AudioFormat) -> &Option<Asset> {
         match format {
             AudioFormat::Aac => &self.aac,
             AudioFormat::Aiff => &self.aiff,
@@ -70,7 +70,7 @@ impl CachedTrackAssets {
         }
     }
     
-    pub fn get_mut(&mut self, format: &AudioFormat) -> &mut Option<Asset> {
+    pub fn get_mut(&mut self, format: AudioFormat) -> &mut Option<Asset> {
         match format {
             AudioFormat::Aac => &mut self.aac,
             AudioFormat::Aiff => &mut self.aiff,
@@ -121,11 +121,11 @@ impl CachedTrackAssets {
 }
 
 impl Track {
-    pub fn get_as(&self, format: &AudioFormat) -> &Option<Asset> {
+    pub fn get_as(&self, format: AudioFormat) -> &Option<Asset> {
         self.cached_assets.get(format)
     }
     
-    pub fn get_or_transcode_as(&mut self, format: &AudioFormat, build: &Build, asset_intent: AssetIntent) -> &mut Asset {
+    pub fn get_or_transcode_as(&mut self, format: AudioFormat, build: &Build, asset_intent: AssetIntent) -> &mut Asset {
         let cached_format = self.cached_assets.get_mut(format);
     
         match cached_format {

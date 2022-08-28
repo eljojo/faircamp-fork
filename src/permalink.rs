@@ -12,7 +12,7 @@ pub struct Permalink {
 
 pub enum PermalinkUsage<'a> {
     Artist(&'a Rc<RefCell<Artist>>),
-    Release(&'a Release)
+    Release(&'a Rc<RefCell<Release>>)
 }
 
 impl Permalink {

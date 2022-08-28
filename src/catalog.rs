@@ -36,7 +36,7 @@ pub struct Catalog {
     // Contains an absolute path to the file (validity is checked when reading manifests)
     pub feed_image: Option<Rc<RefCell<Image>>>,
     pub images: Vec<Rc<RefCell<Image>>>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
-    pub releases: Vec<Release>,
+    pub releases: Vec<Rc<RefCell<Release>>>,
     pub text: Option<String>,
     title: Option<String>
 }
@@ -76,19 +76,24 @@ impl Catalog {
 
     // TODO: Here or earlier ensure that the artist names don't collide
     fn map_artists(&mut self) {
-        for release in self.releases.iter_mut() {
-            for release_artist_to_map in release.artists_to_map.drain(..) {
+        for release in &self.releases {
+            let mut release_mut = release.borrow_mut();
+
+            let release_artists_to_map: Vec<String> = release_mut.artists_to_map.drain(..).collect(); // move out of release
+
+            for release_artist_to_map in release_artists_to_map {
                 let release_artist_to_map_lowercase = release_artist_to_map.to_lowercase();
                 let mut any_artist_found = false;
                 for artist in &self.artists {
-                    let artist_ref = artist.borrow();
-                    if artist_ref.name.to_lowercase() == release_artist_to_map_lowercase ||
-                        artist_ref.aliases.iter().any(|alias| alias.to_lowercase() == release_artist_to_map_lowercase) {
+                    let mut artist_mut = artist.borrow_mut();
+                    if artist_mut.name.to_lowercase() == release_artist_to_map_lowercase ||
+                        artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == release_artist_to_map_lowercase) {
                         any_artist_found = true;
 
                         // Only assign artist to release if it hasn't already been assigned to it
-                        if !release.artists.iter().any(|release_artist| Rc::ptr_eq(release_artist, artist)) {
-                            release.artists.push(artist.clone());
+                        if !release_mut.artists.iter().any(|release_artist| Rc::ptr_eq(release_artist, artist)) {
+                            artist_mut.releases.push(release.clone());
+                            release_mut.artists.push(artist.clone());
                         }
                     }
                 }
@@ -96,11 +101,11 @@ impl Catalog {
                 if !any_artist_found {
                     let new_artist = Rc::new(RefCell::new(Artist::new(&release_artist_to_map)));
                     self.artists.push(new_artist.clone());
-                    release.artists.push(new_artist.clone());
+                    release_mut.artists.push(new_artist);
                 }
             }
 
-            for track in release.tracks.iter_mut() {
+            for track in release_mut.tracks.iter_mut() {
                 for track_artist_to_map in track.artists_to_map.drain(..) {
                     let track_artist_to_map_lowercase = track_artist_to_map.to_lowercase();
                     let mut any_artist_found = false;
@@ -120,7 +125,7 @@ impl Catalog {
                     if !any_artist_found {
                         let new_artist = Rc::new(RefCell::new(Artist::new(&track_artist_to_map)));
                         self.artists.push(new_artist.clone());
-                        track.artists.push(new_artist.clone());
+                        track.artists.push(new_artist);
                     }
                 }
             }
@@ -150,23 +155,6 @@ impl Catalog {
         catalog.map_artists();
         
         if !catalog.validate_permalinks() { return Err(()); }
-
-        // Artists without images are assigned a cover image from one of their releases here
-        for artist in &catalog.artists {
-            if artist.borrow().image.is_none() {
-                for release in &catalog.releases {
-                    if let Some(cover) = &release.cover {
-                        if release.artists
-                            .iter()
-                            .find(|release_artist| Rc::ptr_eq(release_artist, artist))
-                            .is_some() {
-                            let mut artist_mut = artist.borrow_mut();
-                            artist_mut.image = Some(cover.clone());
-                        }
-                    }
-                }
-            }
-        }
         
         Ok(catalog)
     }
@@ -421,7 +409,7 @@ impl Catalog {
                 release_tracks
             );
 
-            self.releases.push(release);
+            self.releases.push(Rc::new(RefCell::new(release)));
         } else if !images.is_empty() {
             // TODO: Some future logic/configuration lookup for  associating images with an artist
             // TODO: Right now might as well drop these (artist images need to be directly assigned anyway currently)
@@ -474,7 +462,7 @@ impl Catalog {
             } else {
                 let label = match usage {
                     PermalinkUsage::Artist(artist) => format!("artist '{}'", artist.borrow().name),
-                    PermalinkUsage::Release(release) => format!("release '{}'", release.title)
+                    PermalinkUsage::Release(release) => format!("release '{}'", release.borrow().title)
                 };
 
                 if generated_permalinks.1.is_some() {
@@ -498,20 +486,23 @@ impl Catalog {
                     format!("the {} permalink of the artist '{}'", mode(&artist_ref.permalink), artist_ref.name)
                 }
                 PermalinkUsage::Release(release) => {
-                    format!("the {} permalink of the release '{}'", mode(&release.permalink), release.title)
+                    let release_ref = release.borrow();
+                    format!("the {} permalink of the release '{}'", mode(&release_ref.permalink), release_ref.title)
                 }
             }
         };
 
         for release in &self.releases {
-            if let Some(previous_usage) = used_permalinks.get(&release.permalink.slug) {
-                let message = format!("The {} permalink '{}' of the release '{}' conflicts with {}", mode(&release.permalink), release.permalink.slug, release.title, format_previous_usage(previous_usage));
+            let release_ref = release.borrow();
+
+            if let Some(previous_usage) = used_permalinks.get(&release_ref.permalink.slug) {
+                let message = format!("The {} permalink '{}' of the release '{}' conflicts with {}", mode(&release_ref.permalink), release_ref.permalink.slug, release_ref.title, format_previous_usage(previous_usage));
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
                 let usage = PermalinkUsage::Release(&release);
-                if release.permalink.generated { add_generated_usage(&usage); }
-                used_permalinks.insert(release.permalink.slug.to_string(), usage);
+                if release_ref.permalink.generated { add_generated_usage(&usage); }
+                used_permalinks.insert(release_ref.permalink.slug.to_string(), usage);
             }
         }
         
@@ -546,7 +537,7 @@ impl Catalog {
     pub fn write_assets(&mut self, build: &mut Build) {
         if let Some(background_image) = &build.theme.background_image {
             let mut background_image_mut = background_image.borrow_mut();
-            let image_asset = background_image_mut.get_or_transcode_as(&ImageFormat::Background, build, AssetIntent::Deliverable);
+            let image_asset = background_image_mut.get_or_transcode_as(ImageFormat::Background, build, AssetIntent::Deliverable);
             
             fs::copy(
                 build.cache_dir.join(&image_asset.filename),
@@ -560,7 +551,7 @@ impl Catalog {
 
         if let Some(feed_image) = &self.feed_image {
             let mut feed_image_mut = feed_image.borrow_mut();
-            let image_asset = feed_image_mut.get_or_transcode_as(&ImageFormat::Feed, build, AssetIntent::Deliverable);
+            let image_asset = feed_image_mut.get_or_transcode_as(ImageFormat::Feed, build, AssetIntent::Deliverable);
             
             fs::copy(
                 build.cache_dir.join(&image_asset.filename),
@@ -577,7 +568,7 @@ impl Catalog {
 
             if let Some(image) = &mut artist_mut.image {
                 let mut image_mut = image.borrow_mut();
-                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Artist, build, AssetIntent::Deliverable);
+                let image_asset = image_mut.get_or_transcode_as(ImageFormat::Artist, build, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build.cache_dir.join(&image_asset.filename),
@@ -590,10 +581,12 @@ impl Catalog {
             }
         }
 
-        for release in self.releases.iter_mut() {            
-            if let Some(image) = &mut release.cover {
+        for release in &self.releases {
+            let mut release_mut = release.borrow_mut();
+
+            if let Some(image) = &mut release_mut.cover {
                 let mut image_mut = image.borrow_mut();
-                let image_asset = image_mut.get_or_transcode_as(&ImageFormat::Cover, build, AssetIntent::Deliverable);
+                let image_asset = image_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build.cache_dir.join(&image_asset.filename),
@@ -605,8 +598,9 @@ impl Catalog {
                 image_mut.cached_assets.persist(&build.cache_dir);
             }
             
-            for track in release.tracks.iter_mut() {
-                let streaming_asset = track.get_or_transcode_as(&release.streaming_format, build, AssetIntent::Deliverable);
+            let streaming_format = release_mut.streaming_format;
+            for track in release_mut.tracks.iter_mut() {
+                let streaming_asset = track.get_or_transcode_as(streaming_format, build, AssetIntent::Deliverable);
                 
                 fs::copy(
                     build.cache_dir.join(&streaming_asset.filename),
@@ -618,7 +612,7 @@ impl Catalog {
                 track.cached_assets.persist(&build.cache_dir);
             }
             
-            release.write_download_archives(build);
+            release_mut.write_download_archives(build);
         }
     }
 }
