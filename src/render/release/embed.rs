@@ -17,7 +17,7 @@ use crate::{
 /// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
 fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T, title: &str) -> String {
     format!(
-        r#"<textarea class="embed_code" readonly="true">&lt;iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title}"&gt;&lt;/iframe&gt;</textarea>"#,
+        r#"<textarea class="embed_code" onfocus="this.select()" readonly="true">&lt;iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title}"&gt;&lt;/iframe&gt;</textarea>"#,
         base_url = base_url,
         permalink_slug = permalink_slug,
         postfix = postfix,

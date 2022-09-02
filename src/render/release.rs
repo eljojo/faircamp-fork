@@ -91,7 +91,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
     };
 
-    let embed_widget = if release.embedding {
+    let embed_widget = if release.embedding && build.base_url.is_some() {
         format!(
             r#"<a href="embed{explicit_index}">Embed</a>"#,
             explicit_index = explicit_index
