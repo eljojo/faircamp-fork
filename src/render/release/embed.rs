@@ -135,7 +135,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                     </div>
 
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                        <a class="track_play">
+                        <a class="big_play_button">
                             {play_icon}
                         </a>
                     </div>
@@ -235,7 +235,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
                     </div>
 
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                        <a class="track_play">
+                        <a class="big_play_button">
                             {play_icon}
                         </a>
                     </div>

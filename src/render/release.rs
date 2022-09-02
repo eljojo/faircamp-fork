@@ -132,6 +132,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         </a>
                         <div class="track_waveform">
                             <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
+                            <div class="track_progress_bar" data-max-width="{track_duration_width_em}"></div>
                             {waveform} <span class="track_duration">{track_duration}</span>
                         </div>
                     </div>
@@ -163,7 +164,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     </div>
 
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                        <a class="track_play">
+                        <a class="big_play_button">
                             {play_icon}
                         </a>
                     </div>
