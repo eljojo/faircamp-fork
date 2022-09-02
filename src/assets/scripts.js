@@ -48,37 +48,11 @@ function beginPlayback(container) {
     window.playing = { a, audio, container, controls, interval, svg };
 }
 
-function share(a) {
-    const notify = message => {
-        const prevNotification = a.parentElement.querySelector('.share_notification');
-        if (prevNotification) prevNotification.remove();
-            
-        const newNotification = document.createElement('span');
-        newNotification.classList.add('share_notification');
-        newNotification.innerHTML = message;
-        a.parentElement.appendChild(newNotification);
-    };
-    
-    navigator.clipboard
-        .writeText(window.location.href)
-        .then(() => notify(`${window.location.href} has been copied to your clipboard`))
-        .catch(err => notify(`Failed to copy ${window.location.href} to your clipboard (${err})`));
-};
-
 function updatePlayhead(audio, svg) {
     const factor = audio.currentTime / audio.duration;
     svg.querySelector('stop:nth-child(1)').setAttribute('offset', `${factor * 100}%`);
     svg.querySelector('stop:nth-child(2)').setAttribute('offset', `${(factor + 0.0001) * 100}%`);
 }
-
-window.addEventListener('DOMContentLoaded', event => {
-    const shareLink = document.querySelector('.share_link');
-
-    if (shareLink && navigator.clipboard) {
-        shareLink.classList.remove('disabled');
-        shareLink.removeAttribute('title');
-    }
-});
 
 // TODO: Clean/DRY up logic globally
 document.body.addEventListener('click', event => {
@@ -154,8 +128,5 @@ document.body.addEventListener('click', event => {
             audio.currentTime = factor * audio.duration;
             beginPlayback(container);
         }
-    } else if (event.target.classList.contains('share_link') && !event.target.classList.contains('disabled')) {
-        event.preventDefault();
-        share(event.target);
     }
 });

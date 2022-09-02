@@ -102,20 +102,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 	opacity: .4;
 	position: relative;
 }
-.share_notification {
-    animation: appear 3s linear;
-    color: var(--color-muted);
-    margin-left: .2em;
-    opacity: 0;
-    pointer-events: none;
-}
-@keyframes appear {
-  0% { opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { opacity: 0; }
-}
-.share_link.disabled { color: var(--color-muted); }
 .track {
     display: grid;
     grid-gap: 1em;

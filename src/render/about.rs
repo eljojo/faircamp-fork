@@ -3,7 +3,7 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    render::{SHARE_WIDGET, layout}
+    render::layout
 };
 
 pub fn about_html(build: &Build, catalog: &Catalog) -> String {
@@ -26,11 +26,8 @@ pub fn about_html(build: &Build, catalog: &Catalog) -> String {
                 <div class="vpad">
                     {text}
                 </div>
-
-                {share_widget}
             </div>
         "#,
-        share_widget = SHARE_WIDGET,
         text = text,
         title = catalog_title
     );

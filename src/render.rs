@@ -20,8 +20,6 @@ pub mod image_descriptions;
 pub mod release;
 pub mod releases;
 
-const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
-
 fn play_icon(root_prefix: &str) -> String {
     formatdoc!(
         r#"<img alt="Play" src="{root_prefix}play.svg">"#,

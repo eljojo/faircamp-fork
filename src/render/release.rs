@@ -6,7 +6,7 @@ use crate::{
     DownloadOption,
     ImageFormat,
     Release,
-    render::{SHARE_WIDGET, image, layout, list_artists, play_icon},
+    render::{image, layout, list_artists, play_icon},
     Track,
     util::format_time
 };
@@ -185,7 +185,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div>
                         {release_text}
                         {embed_widget}
-                        {share_widget}
                     </div>
                 </div>
             </div>
@@ -197,7 +196,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         play_icon = play_icon(root_prefix),
         release_text = release_text,
         release_title = release.title,
-        share_widget = SHARE_WIDGET,
         tracks_rendered = tracks_rendered
     );
 

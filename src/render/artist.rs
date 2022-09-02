@@ -5,7 +5,7 @@ use crate::{
     Build,
     Catalog,
     ImageFormat,
-    render::{SHARE_WIDGET, image, layout, releases}
+    render::{image, layout, releases}
 };
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
@@ -38,8 +38,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
                 {text}
 
-                {share_widget}
-
                 {releases}
             </div>
         "#,
@@ -48,7 +46,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, &artist.releases),
         root_prefix = root_prefix,
-        share_widget = SHARE_WIDGET,
         text = text
     );
 
