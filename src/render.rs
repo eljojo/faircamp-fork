@@ -22,6 +22,13 @@ pub mod releases;
 
 const SHARE_WIDGET: &str = include_str!("templates/share_widget.html");
 
+fn play_icon(root_prefix: &str) -> String {
+    formatdoc!(
+        r#"<img alt="Play" src="{root_prefix}play.svg">"#,
+        root_prefix = root_prefix
+    )
+}
+
 fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Image>>>, format: ImageFormat) -> String {
     match image {
         Some(image) => {

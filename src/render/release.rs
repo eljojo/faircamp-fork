@@ -6,7 +6,7 @@ use crate::{
     DownloadOption,
     ImageFormat,
     Release,
-    render::{SHARE_WIDGET, image, layout, list_artists},
+    render::{SHARE_WIDGET, image, layout, list_artists, play_icon},
     Track,
     util::format_time
 };
@@ -124,17 +124,20 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             formatdoc!(
                 r#"
-                    <div class="track_title_wrapper">
-                        <span class="track_number">{track_number}</span>
-                        <a class="track_title">
-                            {track_title} <span class="pause"></span>
+                    <div class="track">
+                        <a class="track_title_wrapper">
+                            <span class="track_controls">{play_icon}</span>
+                            <span class="track_number">{track_number}</span>
+                            <span class="track_title">{track_title}</span>
                         </a>
-                    </div>
-                    <div class="track_waveform">
-                        <audio controls preload="metadata" src="../{track_src}"></audio>
-                        {waveform} <span class="track_duration">{track_duration}</span>
+                        <div class="track_waveform">
+                            <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
+                            {waveform} <span class="track_duration">{track_duration}</span>
+                        </div>
                     </div>
                 "#,
+                play_icon = play_icon(root_prefix),
+                root_prefix = root_prefix,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
                 track_number = release.track_numbering.format(track_number),
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
@@ -161,16 +164,18 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
                         <a class="track_play">
-                            <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
+                            {play_icon}
                         </a>
                     </div>
                     <div style="margin: 0.4em 0 1em 0;">
                         <h1>{release_title}</h1>
                         <div>{artists}</div>
                     </div>
+                </div>
 
-                    {tracks_rendered}
+                {tracks_rendered}
 
+                <div class="align vpad">
                     <div></div>
                     <div>
                         {download_option_rendered}
@@ -189,6 +194,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
+        play_icon = play_icon(root_prefix),
         release_text = release_text,
         release_title = release.title,
         share_widget = SHARE_WIDGET,

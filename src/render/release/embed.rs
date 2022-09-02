@@ -6,7 +6,7 @@ use crate::{
     Catalog,
     ImageFormat,
     Release,
-    render::{image, layout, list_artists, release::waveform},
+    render::{image, layout, list_artists, play_icon, release::waveform},
     Track,
     util::format_time,
     WritingDirection
@@ -136,7 +136,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
 
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
                         <a class="track_play">
-                            <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
+                            {play_icon}
                         </a>
                     </div>
                     <div style="margin: 0.4em 0 1em 0;">
@@ -156,6 +156,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         base_url = base_url,
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         explicit_index = explicit_index,
+        play_icon = play_icon(root_prefix),
         release_title = release.title,
         root_prefix = root_prefix,
         tracks_rendered = tracks_rendered
@@ -235,7 +236,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
 
                     <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
                         <a class="track_play">
-                            <span style="transform: scaleX(80%) translate(9%, -5%) scale(90%);">▶</span>
+                            {play_icon}
                         </a>
                     </div>
                     <div style="margin: 0.4em 0 1em 0;">
@@ -255,6 +256,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         base_url = base_url,
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         explicit_index = explicit_index,
+        play_icon = play_icon(root_prefix),
         release_title = release.title,
         root_prefix = root_prefix,
         track_rendered = track_rendered

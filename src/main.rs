@@ -18,6 +18,7 @@ mod deploy;
 mod download_option;
 mod feed;
 mod ffmpeg;
+mod icons;
 mod image;
 mod image_format;
 mod localization;
@@ -141,6 +142,7 @@ fn main() {
     
     styles::generate(&build);
     feed::generate(&build, &catalog);
+    icons::generate(&build);
 
     if build.base_url.is_none() {
         if build.embeds_requested {
