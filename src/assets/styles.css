@@ -118,7 +118,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track {
     align-content: space-around;
     display: grid;
-    grid-gap: 1em;
+    grid-gap: .8em;
     grid-template-columns: 30% 70%;
     height: 1.9em;
 }
@@ -133,7 +133,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     opacity: .4;
 }
 .track_controls, .track_number {
-    margin-right: .4em;
+    margin-left: .6em;
     max-width: 1em;
 }
 .track_duration {
@@ -142,7 +142,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 	margin-left: .1em;
 	position: relative;
 }
-.track_number { color: hsl(var(--text-h), var(--text-s), var(--text-l), .4) }
+.track_number {
+    color: hsl(var(--text-h), var(--text-s), var(--text-l), .4);
+    min-width: 1em;
+}
 .track_number, .track_title {
     top: -.05em;
     position: relative;

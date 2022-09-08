@@ -126,9 +126,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 r#"
                     <div class="track">
                         <a class="track_title_wrapper">
+                            <span class="track_title">{track_title}</span>
                             <span class="track_controls">{play_icon}</span>
                             <span class="track_number">{track_number}</span>
-                            <span class="track_title">{track_title}</span>
                         </a>
                         <div class="track_waveform">
                             <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
