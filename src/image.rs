@@ -14,9 +14,9 @@ use crate::{
     util
 };
 
-const ARTIST_EDGE_SIZE: i32 = 320;
+const ARTIST_EDGE_SIZE: i32 = 420;
 const BACKGROUND_MAX_EDGE_SIZE: i32 = 1280;
-const COVER_EDGE_SIZE: i32 = 240;
+const COVER_EDGE_SIZE: i32 = 360;
 const FEED_MAX_EDGE_SIZE: i32 = 920;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -163,7 +163,7 @@ impl Image {
                 let options = ops::JpegsaveOptions {
                     interlace: true,
                     optimize_coding: true,
-                    q: 75,
+                    q: 80,
                     strip: true,
                     ..ops::JpegsaveOptions::default()
                 };
