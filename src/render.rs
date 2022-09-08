@@ -9,7 +9,7 @@ use crate::{
     Image,
     ImageFormat,
     Release,
-    util,
+    util::{format_time, html_escape_inside_attribute, html_escape_outside_attribute},
     WritingDirection
 };
 
@@ -38,7 +38,7 @@ fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Imag
                             <img alt="{alt}" loading="lazy" src="{root_prefix}{filename}">
                         </a>
                     "#,
-                    alt = description,
+                    alt = html_escape_inside_attribute(description),
                     filename = image_ref.get_as(format).as_ref().unwrap().filename,
                     root_prefix = root_prefix
                 )
@@ -104,14 +104,14 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
     format!(
         include_str!("templates/layout.html"),
         body = body,
-        catalog_title = catalog.title(),
+        catalog_title = html_escape_outside_attribute(&catalog.title()),
         dir_attribute = dir_attribute,
         explicit_index = if build.clean_urls { "/" } else { "/index.html" },
         feed_meta_link = feed_meta_link,
         feed_user_link = feed_user_link,
         root_prefix = root_prefix,
         theming_widget = theming_widget,
-        title = title
+        title = html_escape_outside_attribute(title)
     )
 }
 
@@ -123,7 +123,7 @@ fn list_artists(explicit_index: &str, root_prefix: &str, artists: &Vec<Rc<RefCel
             format!(
                 r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
                 explicit_index = explicit_index,
-                name = artist_ref.name,
+                name = html_escape_outside_attribute(&artist_ref.name),
                 permalink = artist_ref.permalink.slug,
                 root_prefix = root_prefix
             )
@@ -155,8 +155,8 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: &Vec<Rc<RefCell<R
                 explicit_index = explicit_index,
                 permalink = release_ref.permalink.slug,
                 root_prefix = root_prefix,
-                runtime = util::format_time(release_ref.runtime),
-                title = release_ref.title
+                runtime = format_time(release_ref.runtime),
+                title = html_escape_outside_attribute(&release_ref.title)
             )
         })
         .collect::<Vec<String>>()

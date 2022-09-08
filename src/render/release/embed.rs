@@ -8,7 +8,7 @@ use crate::{
     Release,
     render::{image, layout, list_artists, play_icon, release::waveform},
     Track,
-    util::format_time,
+    util::{format_time, html_escape_outside_attribute},
     WritingDirection
 };
 
@@ -46,7 +46,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                 "#,
                 embed_code = embed_code(base_url, &release.permalink.slug, track_number, "Audio player widget for one track"),
                 track_number = track_number,
-                track_title = track.title
+                track_title = html_escape_outside_attribute(&track.title)
             )
         })
         .collect::<Vec<String>>()
@@ -75,7 +75,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release"),
-        release_title = release.title,
+        release_title = html_escape_outside_attribute(&release.title),
         track_choices_rendered = track_choices_rendered
     );
 
@@ -119,7 +119,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
                 track_number = track_number,
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
-                track_title = track.title,
+                track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track, track_number, track_duration_width_em)
             )
         })
@@ -157,7 +157,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         explicit_index = explicit_index,
         play_icon = play_icon(root_prefix),
-        release_title = release.title,
+        release_title = html_escape_outside_attribute(&release.title),
         root_prefix = root_prefix,
         tracks_rendered = tracks_rendered
     );
@@ -190,13 +190,13 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
     format!(
         include_str!("../../templates/embed.html"),
         body = body,
-        catalog_title = catalog.title(),
+        catalog_title = html_escape_outside_attribute(&catalog.title()),
         dir_attribute = dir_attribute,
         explicit_index = explicit_index,
         feed_user_link = feed_user_link,
         root_prefix = root_prefix,
         theming_widget = theming_widget,
-        title = title
+        title = html_escape_outside_attribute(title)
     )
 }
 
@@ -222,7 +222,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         "#,
         track_duration = format_time(track_duration),
         track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
-        track_title = track.title,
+        track_title = html_escape_outside_attribute(&track.title),
         waveform = waveform(track, track_number, track_duration_width_em)
     );
 
@@ -257,7 +257,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         explicit_index = explicit_index,
         play_icon = play_icon(root_prefix),
-        release_title = release.title,
+        release_title = html_escape_outside_attribute(&release.title),
         root_prefix = root_prefix,
         track_rendered = track_rendered
     );

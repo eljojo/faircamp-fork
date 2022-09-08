@@ -3,7 +3,8 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    render::{layout, releases}
+    render::{layout, releases},
+    util::html_escape_outside_attribute
 };
 
 pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
@@ -27,7 +28,7 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
         "#,
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, &catalog.releases),
-        title = catalog_title
+        title = html_escape_outside_attribute(&catalog_title)
     );
 
     layout(root_prefix, &body, build, catalog, &catalog_title)

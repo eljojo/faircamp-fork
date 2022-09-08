@@ -3,7 +3,8 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    render::layout
+    render::layout,
+    util::html_escape_outside_attribute
 };
 
 pub fn about_html(build: &Build, catalog: &Catalog) -> String {
@@ -28,8 +29,8 @@ pub fn about_html(build: &Build, catalog: &Catalog) -> String {
                 </div>
             </div>
         "#,
-        text = text,
-        title = catalog_title
+        text = html_escape_outside_attribute(text),
+        title = html_escape_outside_attribute(&catalog_title)
     );
 
     layout(root_prefix, &body, build, catalog, &catalog_title)

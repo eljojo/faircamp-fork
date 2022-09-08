@@ -5,7 +5,8 @@ use crate::{
     Build,
     Catalog,
     ImageFormat,
-    render::{image, layout, releases}
+    render::{image, layout, releases},
+    util::html_escape_outside_attribute
 };
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
@@ -19,7 +20,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                     {text}
                 </div>
             "#,
-            text = text
+            text = html_escape_outside_attribute(text)
         )
     } else {
         String::new()
@@ -42,11 +43,11 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             </div>
         "#,
         artist_image = image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist),
-        artist_name = artist.name,
+        artist_name = html_escape_outside_attribute(&artist.name),
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, &artist.releases),
         root_prefix = root_prefix,
-        text = text
+        text = html_escape_outside_attribute(&text)
     );
 
     layout(root_prefix, &body, build, catalog, &artist.name)

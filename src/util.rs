@@ -43,6 +43,20 @@ pub fn format_time(seconds: u32) -> String {
     }
 }
 
+pub fn html_escape_inside_attribute(string: &str) -> String {
+    string.replace("&", "&amp")
+          .replace("<", "&lt;")
+          .replace(">", "&gt;")
+          .replace("\"", "&quot;")
+          .replace("'", "&#39;")
+}
+
+pub fn html_escape_outside_attribute(string: &str) -> String {
+    string.replace("&", "&amp")
+          .replace("<", "&lt;")
+          .replace(">", "&gt;")
+}
+
 pub fn markdown_to_html(markdown: &str) -> String {
     let parser = Parser::new(markdown);
     

@@ -6,7 +6,8 @@ use crate::{
     Catalog,
     ImageFormat,
     Release,
-    render::{image, layout, list_artists}
+    render::{image, layout, list_artists},
+    util::html_escape_outside_attribute
 };
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
@@ -42,7 +43,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
         download_links = download_links,
-        title = release.title
+        title = html_escape_outside_attribute(&release.title)
     );
 
     layout(root_prefix, &body, build, catalog, &release.title)

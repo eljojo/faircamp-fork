@@ -6,7 +6,8 @@ use crate::{
     ImageFormat,
     PaymentOption,
     Release,
-    render::{image, layout, list_artists}
+    render::{image, layout, list_artists},
+    util::html_escape_outside_attribute
 };
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
@@ -64,7 +65,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         payment_options = payment_options,
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
-        title = release.title
+        title = html_escape_outside_attribute(&release.title)
     );
 
     layout(root_prefix, &body, build, catalog, &release.title)

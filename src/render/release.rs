@@ -8,7 +8,7 @@ use crate::{
     Release,
     render::{image, layout, list_artists, play_icon},
     Track,
-    util::format_time
+    util::{format_time, html_escape_outside_attribute}
 };
 
 pub mod checkout;
@@ -106,7 +106,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let release_text = match &release.text {
-        Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
+        Some(text) => format!(r#"<div class="vpad">{}</div>"#, html_escape_outside_attribute(text)),
         None => String::new()
     };
 
@@ -148,7 +148,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 track_duration_width_em = track_duration_width_em,
                 track_number = release.track_numbering.format(track_number),
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
-                track_title = track.title,
+                track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track, track_number, track_duration_width_em)
             )
         })
@@ -201,8 +201,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         play_icon = play_icon(root_prefix),
-        release_text = release_text,
-        release_title = release.title,
+        release_text = html_escape_outside_attribute(&release_text),
+        release_title = html_escape_outside_attribute(&release.title),
         tracks_rendered = tracks_rendered
     );
 
