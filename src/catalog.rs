@@ -527,7 +527,7 @@ impl Catalog {
             (Some(first), None, None, 0) => warn!("The {} has no user-assigned permalink, it is recommended to assign one.", first),
             (Some(first), Some(second), None, 0) => warn!("The {} and the {} have no user-assigned permalinks, it is recommended to assign some.", first, second),
             (Some(first), Some(second), Some(third), 0) => warn!("The {}, the {} and the {} have no user-assigned permalinks, it is recommended to assign some.", first, second, third),
-            (Some(first), Some(second), Some(third), further) => warn!("The {}, the {}, the {} and {} other entities have no user-assigned permalinks, it is recommended to assign some.", first, second, third, further),
+            (Some(first), Some(second), Some(third), further) => warn!("The {}, the {}, the {} and {} other things have no user-assigned permalinks, it is recommended to assign some.", first, second, third, further),
             _ => unreachable!()
         }
 
