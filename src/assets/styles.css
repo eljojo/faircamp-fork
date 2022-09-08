@@ -137,7 +137,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     max-width: 1em;
 }
 .track_duration {
-	bottom: -.5em;
+	bottom: .9em;
 	font-size: .6em;
 	margin-left: .1em;
 	position: relative;
@@ -153,6 +153,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track_progress_bar {
     background-color: hsla(var(--hue), var(--link-s), var(--link-l), .05);
     height: 1.9em;
+    pointer-events: none;
     position: absolute;
 }
 .track_title {
@@ -170,14 +171,8 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     position: relative;
 }
 .vpad { margin: 1em 0; }
-.waveform {
-    bottom: .3em;
-    cursor: pointer;
-    height: .8em;
-    position: relative;
-    top: .3em;
-}
+.waveform { cursor: pointer; }
 .waveform path {
     fill: none;
-    stroke-width: 1px;
+    stroke-width: .04px;
 }

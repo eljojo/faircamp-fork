@@ -15,6 +15,11 @@ pub mod checkout;
 pub mod download;
 pub mod embed;
 
+const MAX_TRACK_DURATION_WIDTH_EM: f32 = 36.0;
+const TRACK_HEIGHT_EM: f32 = 1.9;
+const WAVEFORM_PADDING_EM: f32 = 0.6;
+const WAVEFORM_HEIGHT: f32 = TRACK_HEIGHT_EM - 2.0 * WAVEFORM_PADDING_EM;
+
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "../";
@@ -116,7 +121,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .enumerate()
         .map(|(index, track)| {
             let track_duration_width_em = if longest_track_duration > 0 {
-                36.0 * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
+                MAX_TRACK_DURATION_WIDTH_EM * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
             } else {
                 0.0
             };
@@ -140,6 +145,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 play_icon = play_icon(root_prefix),
                 root_prefix = root_prefix,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
+                track_duration_width_em = track_duration_width_em,
                 track_number = release.track_numbering.format(track_number),
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = track.title,
@@ -207,18 +213,21 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) ->
     let step = 1;
 
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
-        let height = 10;
-        let width = peaks.len();
+        let num_peaks = peaks.len();
+        let step_width = track_duration_width_em / num_peaks as f32;
 
         let mut enumerate_peaks = peaks.iter().step_by(step).enumerate();
 
-        let mut d = format!("M 0,{}", (1.0 - enumerate_peaks.next().unwrap().1) * height as f32);
+        let mut d = format!(
+            "M 0,{}",
+            WAVEFORM_PADDING_EM + (1.0 - enumerate_peaks.next().unwrap().1) * WAVEFORM_HEIGHT
+        );
 
         while let Some((index, peak)) = enumerate_peaks.next() {
             let command = format!(
                 " L {x},{y}",
-                x = index * step,
-                y = (1.0 - peak) * height as f32
+                x = index as f32 * step_width,
+                y = WAVEFORM_PADDING_EM + (1.0 - peak) * WAVEFORM_HEIGHT
             );
 
             d.push_str(&command);
@@ -227,9 +236,9 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) ->
         formatdoc!(
             r##"
                 <svg class="waveform"
-                     preserveAspectRatio="none"
-                     style="width: {track_duration_width_em}em;"
-                     viewBox="0 0 {width} {height}"
+                     height="{viewbox_height}em"
+                     viewBox="0 0 {viewbox_width} {viewbox_height}"
+                     width="{viewbox_width}em"
                      xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="progress_{track_number}">
@@ -244,10 +253,9 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) ->
                 </svg>
             "##,
             d = d,
-            height = height,
-            track_duration_width_em = track_duration_width_em,
             track_number = track_number,
-            width = width
+            viewbox_height = TRACK_HEIGHT_EM,
+            viewbox_width = track_duration_width_em
         )
     } else {
         String::new()
