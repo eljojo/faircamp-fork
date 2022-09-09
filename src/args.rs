@@ -35,7 +35,11 @@ pub struct Args {
     /// Pass this so only file paths that contain the specified pattern will get processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex.
     #[clap(long = "include")]
     pub include_patterns: Vec<String>,
-    
+
+    /// Generate full links, e.g. "/my-album/index.html" instead of "/my-album/". Creates a build that is fully browsable from your local disk without a webserver
+    #[clap(long = "no-clean-urls")]
+    pub no_clean_urls: bool,
+
     /// Reclaims disk space by removing all cached assets that were not used for the last build and exits (no build is performed)
     #[clap(long = "optimize-cache")]
     pub optimize_cache: bool,
