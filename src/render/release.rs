@@ -130,17 +130,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="track">
-                        <div></div>
-                        <div class="track_inner">
-                            <div class="track_header">
-                                <a class="track_controls">{play_icon}</a>
-                                <span class="track_number">{track_number}</span>
-                                <a class="track_title">{track_title} <span class="duration"><span class="track_time"></span>{duration}</span></a>
-                                <br>
-                            </div>
-                            <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
-                            {waveform}
-                        </div>
+                        <a class="track_controls">{play_icon}</a>
+                        <span class="track_number">{track_number}</span>
+                        <a class="track_title">{track_title} <span class="duration"><span class="track_time"></span>{duration}</span></a>
+                        <br>
+                        <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
+                        {waveform}
                     </div>
                 "#,
                 play_icon = play_icon(root_prefix),
@@ -183,7 +178,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 <br>
 
-                {tracks_rendered}
+                <div class="align">
+                    {tracks_rendered}
+                </div>
 
                 <br><br>
 

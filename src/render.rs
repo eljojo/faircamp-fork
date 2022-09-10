@@ -21,7 +21,7 @@ pub mod releases;
 
 fn play_icon(root_prefix: &str) -> String {
     formatdoc!(
-        r#"<img alt="Play" src="{root_prefix}play.svg">"#,
+        r#"<img alt="Play" src="{root_prefix}play.svg" style="max-width: 1em;">"#,
         root_prefix = root_prefix
     )
 }

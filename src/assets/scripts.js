@@ -3,8 +3,8 @@
 // Also the alt/text and markup for the play/pause icon could drift away
 // from how we write/implement it in our statically generated code.
 const rootPrefix = document.querySelector('script').getAttribute('src').replace('scripts.js', '');
-const pauseIcon = `<img alt="Pause" src="${rootPrefix}pause.svg">`;
-const playIcon = `<img alt="Play" src="${rootPrefix}play.svg">`;
+const pauseIcon = `<img alt="Pause" src="${rootPrefix}pause.svg" style="max-width: 1em;">`;
+const playIcon = `<img alt="Play" src="${rootPrefix}play.svg" style="max-width: 1em;">`;
 
 window.activeTrack = null;
 
