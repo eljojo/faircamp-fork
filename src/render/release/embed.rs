@@ -73,7 +73,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release"),
         release_title = html_escape_outside_attribute(&release.title),
         track_choices_rendered = track_choices_rendered
@@ -154,7 +154,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         base_url = base_url,
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         explicit_index = explicit_index,
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title),
@@ -254,7 +254,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
         base_url = base_url,
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         explicit_index = explicit_index,
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title),

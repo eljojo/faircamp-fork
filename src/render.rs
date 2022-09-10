@@ -9,7 +9,7 @@ use crate::{
     Image,
     ImageFormat,
     Release,
-    util::{format_time, html_escape_inside_attribute, html_escape_outside_attribute},
+    util::{html_escape_inside_attribute, html_escape_outside_attribute},
     WritingDirection
 };
 
@@ -26,21 +26,33 @@ fn play_icon(root_prefix: &str) -> String {
     )
 }
 
-fn image(explicit_index: &str, root_prefix: &str, image: &Option<Rc<RefCell<Image>>>, format: ImageFormat) -> String {
+fn image(
+    explicit_index: &str,
+    root_prefix: &str,
+    image: &Option<Rc<RefCell<Image>>>,
+    format: ImageFormat,
+    href_url: Option<&str>
+) -> String {
     match image {
         Some(image) => {
             let image_ref = image.borrow();
 
             if let Some(description) = &image_ref.description {
+                let src_url = format!(
+                    "{root_prefix}{filename}",
+                    filename = image_ref.get_as(format).as_ref().unwrap().filename,
+                    root_prefix = root_prefix
+                );
+
                 formatdoc!(
                     r#"
-                        <a class="image" href="{root_prefix}{filename}">
-                            <img alt="{alt}" loading="lazy" src="{root_prefix}{filename}">
+                        <a class="image" href="{href_url}">
+                            <img alt="{alt}" loading="lazy" src="{src_url}">
                         </a>
                     "#,
                     alt = html_escape_inside_attribute(description),
-                    filename = image_ref.get_as(format).as_ref().unwrap().filename,
-                    root_prefix = root_prefix
+                    href_url = href_url.unwrap_or(&src_url),
+                    src_url = src_url
                 )
             } else {
                 formatdoc!(
@@ -68,7 +80,7 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
                 root_prefix = root_prefix
             ),
             format!(
-                r#"<a href="{root_prefix}feed.rss">RSS</a>"#,
+                r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg"></a>"#,
                 root_prefix = root_prefix
             ),
         ),
@@ -138,24 +150,28 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: &Vec<Rc<RefCell<R
         .map(|release| {
             let release_ref = release.borrow();
 
+            let href = format!(
+                "{root_prefix}{permalink}{explicit_index}",
+                explicit_index = explicit_index,
+                permalink = release_ref.permalink.slug,
+                root_prefix = root_prefix
+            );
+
             formatdoc!(
                 r#"
-                    <div class="vpad" style="display: flex;">
-                        <a class="cover_listing" href="{root_prefix}{permalink}{explicit_index}">
+                    <div class="release">
+                        <div class="cover_listing">
                             {cover}
-                        </a>
+                        </div>
                         <div>
-                            <a class="large" href="{root_prefix}{permalink}{explicit_index}" style="color: #fff;">{title} <span class="runtime">{runtime}</span></a>
+                            <a href="{href}" style="color: #fff;">{title}</a>
                             <div>{artists}</div>
                         </div>
                     </div>
                 "#,
                 artists = list_artists(explicit_index, root_prefix, &release_ref.artists),
-                cover = image(explicit_index, root_prefix, &release_ref.cover, ImageFormat::Cover),
-                explicit_index = explicit_index,
-                permalink = release_ref.permalink.slug,
-                root_prefix = root_prefix,
-                runtime = format_time(release_ref.runtime),
+                cover = image(explicit_index, root_prefix, &release_ref.cover, ImageFormat::Cover, Some(&href)),
+                href = href,
                 title = html_escape_outside_attribute(&release_ref.title)
             )
         })

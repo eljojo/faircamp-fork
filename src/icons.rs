@@ -1,4 +1,4 @@
-//! Note that the files `play.svg` and `pause.svg` in `src/assets/` are
+//! Note that the files `[feed|play|pause].svg` in `src/assets/` are
 //! not actually included anywhere, their contents are **copy-pasted** inside
 //! the `generate` function inside this module. The reason the files exist is
 //! to allow conveniently modifying the icons with an editor (e.g. inkscape)
@@ -14,6 +14,24 @@ pub fn generate(build: &Build) {
         "hsl(0, 0%, {l}%)",
         l = build.theme.base.text_l
     );
+
+    if build.base_url.is_some() {   
+        let feed_svg = formatdoc!(
+            r#"
+                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="{fill}">
+                        <path d="m41.597 22.351c-8.6734-8.6734-20.213-13.45-32.496-13.45v9.0364c9.8677 0 19.139 3.8367 26.106 10.803 6.9666 6.9667 10.803 16.238 10.803 26.106h9.0364c-1.5e-4 -12.281-4.7769-23.823-13.45-32.496z"/>
+                        <path d="m9.0076 24.192v9.0364c11.92 0 21.618 9.6975 21.618 21.618h9.0364c0-16.902-13.751-30.654-30.654-30.654z"/>
+                        <circle cx="15.423" cy="48.625" r="6.4721"/>
+                    </g>
+                </svg>
+            "#,
+            fill = fill
+        );
+
+        fs::write(build.build_dir.join("feed.svg"), feed_svg).unwrap();
+    }
+
 
     let pause_svg = formatdoc!(
         r#"

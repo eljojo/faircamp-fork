@@ -152,54 +152,45 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="center_unconstrained">
+            <div class="center_release">
+                <div class="cover">
+                    {cover}
+                </div>
+
+                <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                    <a class="big_play_button">
+                        {play_icon}
+                    </a>
+                </div>
+
+                <div style="margin: 0.4em 0 1em 0;">
+                    <h1 style="margin-bottom: .2em;">{release_title}</h1>
+                    <div>{artists}</div>
+                </div>
+
+                <br>
+
+                {tracks_rendered}
+
+                <br><br>
+
+                <div>
+                    {download_option_rendered}
+                </div>
+
                 <!-- TODO: This one needs to be conditional depending on download/buy option-->
                 <!-- div>
                     <a href="#download_buy_todo">$</a>
                 </div -->
 
-                <div class="align vpad">
-                    <div></div>
-                    <div class="cover">
-                        {cover}
-                    </div>
-
-                    <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                        <a class="big_play_button">
-                            {play_icon}
-                        </a>
-                    </div>
-
-                    <div style="margin: 0.4em 0 1em 0;">
-                        <h1 style="margin-bottom: .2em;">{release_title}</h1>
-                        <div>{artists}</div>
-                    </div>
-                </div>
-
-                <br>
-
-                <div class="align">
-                    {tracks_rendered}
-                </div>
-
-                <br><br>
-
-                <div class="align vpad">
-                    <div></div>
-                    <div>
-                        {download_option_rendered}
-                    </div>
-
-                    <div></div>
-                    <div>
-                        {release_text}
-                        {embed_widget}
-                    </div>
+                <div>
+                    {release_text}
+                    {embed_widget}
                 </div>
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         play_icon = play_icon(root_prefix),

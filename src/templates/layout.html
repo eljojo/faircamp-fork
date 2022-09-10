@@ -12,12 +12,15 @@
     <body>
         <script>document.body.classList.add('js_enabled');</script>
         <div class="layout">
+            <nav>
+                <span>{catalog_title}</span>
+                <a href="{root_prefix}.{explicit_index}">Home</a>
+                <a href="{root_prefix}about{explicit_index}">About</a>
+                {feed_user_link}
+            </nav>
             <main>
                 {body}
             </main>
-            <footer>
-                <a href="{root_prefix}.{explicit_index}">Home</a> <a href="{root_prefix}about{explicit_index}">{catalog_title}</a> {feed_user_link}
-            </footer>
         </div>
         {theming_widget}
     </body>

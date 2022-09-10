@@ -42,7 +42,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                 {releases}
             </div>
         "#,
-        artist_image = image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist),
+        artist_image = image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist, None),
         artist_name = html_escape_outside_attribute(&artist.name),
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, &artist.releases),

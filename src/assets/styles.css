@@ -14,15 +14,6 @@ body {
     font-size: 18px;
     margin: 0;
 }
-footer {
-    bottom: 0;
-    color: var(--color-muted);
-    display: flex;
-    justify-content: center;
-    left: 0;
-    position: absolute;
-    width: 100%;
-}
 footer a { color: var(--color-muted); }
 footer > * { padding: .6em; }
 h1 {
@@ -35,11 +26,15 @@ img {
     max-width: 100%;
 }
 main { box-sizing: border-box; }
-svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
-.align {
-    max-width: 36em;
-    padding-left: calc(30% + .6em);
+nav {
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
+nav > * { margin: .5em 0 .5em .5em; }
+nav > *:last-child { margin-right: .8em; }
+svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .big_play_button,
 .big_play_button:hover {
     align-items: center;
@@ -61,6 +56,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-top: 8em;
     max-width: 40em;
 }
+.center_release {
+    margin: 3em auto;
+    max-width: 40em;
+}
 .center_unconstrained {
     margin: 0 auto;
     margin-top: 8em;
@@ -74,16 +73,20 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .cover_listing {
     background-color: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
     display: block;
-    display: none;
-    height: 10em;
-    margin-right: 1em;
-    width: 10em;
+    height: 15em;
+    margin-bottom: .5em;
+    width: 15em;
 }
 .duration {
     color: hsl(var(--text-h), var(--text-s), var(--text-l), .4);
     margin-left: .2em;
 }
 .embed_code { width: 10em; }
+.feed_icon {
+    position: relative;
+    top: .1em;
+    width: 1em;
+}
 .hsplit { display: flex; }
 .hsplit.apart { justify-content: space-between; }
 .image {
@@ -97,29 +100,26 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .js_enabled audio { display: none; }
 .justify { text-align: justify; }
-.large { font-size: 1.6em; }
 .layout {
     height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
 }
 .muted { color: var(--color-muted); }
+.release {
+    display:  flex;
+    flex-direction: column;
+}
 .release_grid {
     display: grid;
     grid-gap: .5em 1em;
     grid-template-columns: 30% 70%;
 }
 .releases {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    height: 100%;
-}
-.runtime {
-	bottom: .2em;
-	font-size: .5em;
-	opacity: .4;
-	position: relative;
+    display: grid;
+    grid-gap: 2em;
+    grid-template-columns: repeat(auto-fill, 15em);
+    margin: 3em;
 }
 .track {
     height: 3em;

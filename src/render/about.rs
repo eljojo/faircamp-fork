@@ -29,7 +29,7 @@ pub fn about_html(build: &Build, catalog: &Catalog) -> String {
                 </div>
             </div>
         "#,
-        text = html_escape_outside_attribute(text),
+        text = text,
         title = html_escape_outside_attribute(&catalog_title)
     );
 

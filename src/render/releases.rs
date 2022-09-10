@@ -15,15 +15,13 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
 
     let body = formatdoc!(
         r#"
-            <header class="center" style="display: flex; align-items: center; margin-top: 0;">
-                <a href=".{explicit_index}" style="color: #fff; font-size: 2em;">
+            <div class="releases">
+                {releases}
+            </div>
+            <div style="position: absolute; bottom: 0; padding; 3em; width: 100%; background-color: black;">
+                <a href=".{explicit_index}" style="color: #fff;">
                     {title}
                 </a>
-            </header>
-            <div class="center">
-                <div class="releases">
-                    {releases}
-                </div>
             </div>
         "#,
         explicit_index = explicit_index,

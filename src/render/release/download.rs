@@ -41,7 +41,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             {download_links}
         "#,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover),
+        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         download_links = download_links,
         title = html_escape_outside_attribute(&release.title)
     );
