@@ -37,7 +37,8 @@ img {
 main { box-sizing: border-box; }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .align {
-    padding-left: calc(30% + 1em);
+    max-width: 36em;
+    padding-left: calc(30% + .6em);
 }
 .big_play_button,
 .big_play_button:hover {
@@ -54,7 +55,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .big_play_button:hover { opacity: .8; }
 .big_play_button img { transform: scale(0.6); }
-.js_enabled .big_play_button { display: flex; }
+/*.js_enabled .big_play_button { display: flex; }*/
 .center {
     margin: 0 auto;
     margin-top: 8em;
@@ -78,6 +79,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-right: 1em;
     width: 10em;
 }
+.duration {
+    color: hsl(var(--text-h), var(--text-s), var(--text-l), .4);
+    margin-left: .2em;
+}
 .embed_code { width: 10em; }
 .hsplit { display: flex; }
 .hsplit.apart { justify-content: space-between; }
@@ -91,6 +96,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     width: 100%;
 }
 .js_enabled audio { display: none; }
+.justify { text-align: justify; }
 .large { font-size: 1.6em; }
 .layout {
     height: 100vh;
@@ -116,45 +122,33 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 	position: relative;
 }
 .track {
-    align-content: space-around;
     display: grid;
-    grid-gap: .8em;
+    grid-gap: .6em;
     grid-template-columns: 30% 70%;
-    height: 1.9em;
+    height: 3em;
+    margin-bottom: .2em;
 }
-.track:hover { background-color: hsla(var(--text-h), var(--text-s), var(--text-l), .03); }
-.track.playing .track_controls,
+/*.track:hover { background-color: hsla(var(--text-h), var(--text-s), var(--text-l), .03); }*/
+.track.active .track_controls,
 .track:hover .track_controls { display: flex; }
-.track.playing .track_number,
+.track.active .track_number,
 .track:hover .track_number { display: none; }
-.track.active { background-color: hsla(var(--text-h), var(--text-s), var(--text-l), .06); }
+/*.track.active { background-color: hsla(var(--text-h), var(--text-s), var(--text-l), .06); }*/
 .track_controls {
     display: none;
-    opacity: .4;
-}
-.track_controls, .track_number {
-    margin-left: .6em;
+    left: -1.5em;
+    max-height: 1.3em;
     max-width: 1em;
-}
-.track_duration {
-	bottom: .9em;
-	font-size: .6em;
-	margin-left: .1em;
-	position: relative;
+    position: absolute;
+    text-align: right;
+    top: .15em;
 }
 .track_number {
     color: hsl(var(--text-h), var(--text-s), var(--text-l), .4);
+    left: -1.5em;
     min-width: 1em;
-}
-.track_number, .track_title {
-    top: -.05em;
-    position: relative;
-}
-.track_progress_bar {
-    background-color: hsla(var(--hue), var(--link-s), var(--link-l), .05);
-    height: 1.9em;
-    pointer-events: none;
     position: absolute;
+    text-align: right;
 }
 .track_title {
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
@@ -162,17 +156,17 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track.playing .track_title { color: hsl(var(--hue), var(--link-s), var(--link-l)); }
 .track_title_wrapper {
-    align-items: center;
     display: flex;
     justify-self: end;
 }
-.track_waveform {
-    height: 1.9em;
+.track_inner {
     position: relative;
 }
 .vpad { margin: 1em 0; }
 .waveform { cursor: pointer; }
-.waveform path {
-    fill: none;
-    stroke-width: .04px;
+.waveform path { fill: none; }
+.waveform path.base {
+    stroke: hsl(0, 0%, var(--text-l));
+    stroke-width: .02px;
 }
+.waveform path.progress { stroke-width: .06px; }

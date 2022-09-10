@@ -11,10 +11,8 @@ use crate::Build;
 
 pub fn generate(build: &Build) {
     let fill = format!(
-        "hsl({h}, {s}%, {l}%)",
-        h = build.theme.hue,
-        l = build.theme.base.link_l,
-        s = build.theme.base.link_s
+        "hsl(0, 0%, {l}%)",
+        l = build.theme.base.text_l
     );
 
     let pause_svg = formatdoc!(

@@ -16,9 +16,9 @@ pub mod download;
 pub mod embed;
 
 const MAX_TRACK_DURATION_WIDTH_EM: f32 = 36.0;
-const TRACK_HEIGHT_EM: f32 = 1.9;
-const WAVEFORM_PADDING_EM: f32 = 0.6;
-const WAVEFORM_HEIGHT: f32 = TRACK_HEIGHT_EM - 2.0 * WAVEFORM_PADDING_EM;
+const TRACK_HEIGHT_EM: f32 = 1.5;
+const WAVEFORM_PADDING_EM: f32 = 0.3;
+const WAVEFORM_HEIGHT: f32 = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
@@ -106,7 +106,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let release_text = match &release.text {
-        Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
+        Some(text) => format!(r#"<div class="justify vpad">{}</div>"#, text),
         None => String::new()
     };
 
@@ -130,22 +130,22 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="track">
-                        <a class="track_title_wrapper">
-                            <span class="track_title">{track_title}</span>
-                            <span class="track_controls">{play_icon}</span>
-                            <span class="track_number">{track_number}</span>
-                        </a>
-                        <div class="track_waveform">
+                        <div></div>
+                        <div class="track_inner">
+                            <div class="track_header">
+                                <a class="track_controls">{play_icon}</a>
+                                <span class="track_number">{track_number}</span>
+                                <a class="track_title">{track_title} <span class="duration"><span class="track_time"></span>{duration}</span></a>
+                                <br>
+                            </div>
                             <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
-                            <div class="track_progress_bar" data-max-width="{track_duration_width_em}"></div>
-                            {waveform} <span class="track_duration">{track_duration}</span>
+                            {waveform}
                         </div>
                     </div>
                 "#,
                 play_icon = play_icon(root_prefix),
                 root_prefix = root_prefix,
-                track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
-                track_duration_width_em = track_duration_width_em,
+                duration = format_time(track.cached_assets.source_meta.duration_seconds),
                 track_number = release.track_numbering.format(track_number),
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = html_escape_outside_attribute(&track.title),
@@ -163,7 +163,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <a href="#download_buy_todo">$</a>
                 </div -->
 
-                <div class="release_grid vpad">
+                <div class="align vpad">
                     <div></div>
                     <div class="cover">
                         {cover}
@@ -174,13 +174,18 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             {play_icon}
                         </a>
                     </div>
+
                     <div style="margin: 0.4em 0 1em 0;">
-                        <h1>{release_title}</h1>
+                        <h1 style="margin-bottom: .2em;">{release_title}</h1>
                         <div>{artists}</div>
                     </div>
                 </div>
 
+                <br>
+
                 {tracks_rendered}
+
+                <br><br>
 
                 <div class="align vpad">
                     <div></div>
@@ -241,15 +246,16 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) ->
                      width="{viewbox_width}em"
                      xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="progress_{track_number}">
-                            <stop offset="0%" stop-color="hsl(var(--hue), var(--link-s), var(--link-l))" />
-                            <stop offset="0.000001%" stop-color="hsl(var(--text-h), var(--text-s), var(--text-l))" />
+                        <linearGradient id="progress_gradient_{track_number}">
+                            <stop offset="0%" stop-color="hsl(0, 0%, var(--text-l))" />
+                            <stop offset="0.000001%" stop-color="hsla(0, 0%, 0%, 0)" />
                         </linearGradient>
                     </defs>
                     <style>
-                        .levels_{track_number} {{ stroke: url(#progress_{track_number}); }}
+                        .progress_{track_number} {{ stroke: url(#progress_gradient_{track_number}); }}
                     </style>
-                    <path class="levels_{track_number}" d="{d}" />
+                    <path class="progress progress_{track_number}" d="{d}" />
+                    <path class="base" d="{d}" />
                 </svg>
             "##,
             d = d,
