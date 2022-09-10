@@ -106,7 +106,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let release_text = match &release.text {
-        Some(text) => format!(r#"<div class="vpad">{}</div>"#, html_escape_outside_attribute(text)),
+        Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
         None => String::new()
     };
 
@@ -201,7 +201,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         play_icon = play_icon(root_prefix),
-        release_text = html_escape_outside_attribute(&release_text),
+        release_text = release_text,
         release_title = html_escape_outside_attribute(&release.title),
         tracks_rendered = tracks_rendered
     );

@@ -20,7 +20,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                     {text}
                 </div>
             "#,
-            text = html_escape_outside_attribute(text)
+            text = text
         )
     } else {
         String::new()
@@ -47,7 +47,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         explicit_index = explicit_index,
         releases = releases(explicit_index, root_prefix, &artist.releases),
         root_prefix = root_prefix,
-        text = html_escape_outside_attribute(&text)
+        text = text
     );
 
     layout(root_prefix, &body, build, catalog, &artist.name)
