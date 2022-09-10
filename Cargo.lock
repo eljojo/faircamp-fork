@@ -351,7 +351,7 @@ dependencies = [
 [[package]]
 name = "enolib"
 version = "0.1.0"
-source = "git+https://codeberg.org/simonrepp/enolib-rs#a368b31276321326762524405899ce731f5d67af"
+source = "git+https://codeberg.org/simonrepp/enolib-rs#fdb3d6fa2184d3a19f32246e71451881358a3de5"
 
 [[package]]
 name = "faircamp"
