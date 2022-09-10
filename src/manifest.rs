@@ -554,7 +554,7 @@ pub fn apply_options(
             }
         }
 
-        if let Some(value) = optional_field_value(section, "text") {
+        if let Some(value) = optional_embed_value(section, "text") {
             overrides.release_text = Some(util::markdown_to_html(&value));
         }
 
