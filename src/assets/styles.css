@@ -136,10 +136,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     overflow-y: auto;
 }
 .split_side {
-    background-color: black;
+    background-color: hsl(0, 0%, var(--pane-l));
     box-sizing: border-box;
     padding: 3em;
-    width: 18em;
+    width: 20em;
 }
 @media (max-width: 800px) and (min-height: 921px) {
     .split { flex-direction: column; }

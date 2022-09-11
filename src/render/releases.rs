@@ -19,11 +19,21 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
         } else {
             let list = catalog.artists
                 .iter()
-                .map(|artist| format!("- {}", artist.borrow().name))
+                .map(|artist| {
+                    let artist_ref = artist.borrow();
+
+                    format!(
+                        r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
+                        explicit_index = explicit_index,
+                        name = artist_ref.name,
+                        permalink = artist_ref.permalink.slug,
+                        root_prefix = root_prefix,
+                    )
+                })
                 .collect::<Vec<String>>()
                 .join("<br>\n");
 
-            format!("Artists:<br>{}", list)
+            format!("<br><strong>Artists</strong><br>{}", list)
         };
 
         formatdoc!(

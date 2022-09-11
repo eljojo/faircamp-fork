@@ -75,6 +75,7 @@ pub fn generate(build: &Build) {
                 --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
                 --nav-s: calc({nav_s}% * (var(--tint-front) / 100));
                 --overlay-a: {overlay_a};
+                --pane-l: {pane_l}%;
                 --text-h: calc(var(--hue) + 1 * var(--hue-spread));
                 --text-l: {text_l}%;
                 --text-s: calc({text_s}% * (var(--tint-front) / 100));
@@ -97,6 +98,7 @@ pub fn generate(build: &Build) {
         muted_s = 35,
         nav_s = 17,
         overlay_a = theme.base.overlay_a,
+        pane_l = theme.base.pane_l,
         text_l = theme.base.text_l,
         text_s = 94,
         font_declaration = font_declaration,

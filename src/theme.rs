@@ -32,6 +32,7 @@ pub struct ThemeBase {
     pub link_hover_l: u8,
     pub muted_l: u8,
     pub overlay_a: u8,
+    pub pane_l: u8,
     pub text_l: u8
 }
 
@@ -67,6 +68,7 @@ impl ThemeBase {
         link_s: 62,
         muted_l: 23,
         overlay_a: 90,
+        pane_l: 4,
         text_l: 86
     };
 
@@ -78,6 +80,7 @@ impl ThemeBase {
         link_s: 100,
         muted_l: 68,
         overlay_a: 90,
+        pane_l: 96,
         text_l: 14
     };
     

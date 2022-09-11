@@ -30,20 +30,18 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .collect::<Vec<String>>()
         .join(", ");
 
-    let includes_text = format!("Available Formats: {}", formats_list);
-
     let download_option_rendered = match &release.download_option {
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free { download_page_uid } => formatdoc!(
             r#"
                 <div class="vpad">
-                    <a href="../download/{download_page_uid}{explicit_index}">Download Digital Release</a>
-                    <div>{includes_text}</div>
+                    <a href="../download/{download_page_uid}{explicit_index}">Download Release</a>
+                    <div>{formats_list}</div>
                 </div>
             "#,
             download_page_uid = download_page_uid,
             explicit_index = explicit_index,
-            includes_text = includes_text
+            formats_list = formats_list
         ),
         DownloadOption::Paid { checkout_page_uid, currency, range, .. } => {
             let price_label = if range.end == f32::INFINITY {
@@ -84,21 +82,21 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="vpad">
-                        <a href="../checkout/{checkout_page_uid}{explicit_index}">Buy Digital Release</a> {price_label}
-                        <div>{includes_text}</div>
+                        <a href="../checkout/{checkout_page_uid}{explicit_index}">Buy Release</a> {price_label}
+                        <div>{formats_list}</div>
                     </div>
                 "#,
-                checkout_page_uid=checkout_page_uid,
+                checkout_page_uid = checkout_page_uid,
                 explicit_index = explicit_index,
-                includes_text=includes_text,
-                price_label=price_label
+                formats_list = formats_list,
+                price_label = price_label
             )
         }
     };
 
     let embed_widget = if release.embedding && build.base_url.is_some() {
         format!(
-            r#"<a href="embed{explicit_index}">Embed</a>"#,
+            r#"<a href="embed{explicit_index}">Embed Release/Tracks</a>"#,
             explicit_index = explicit_index
         )
     } else {
@@ -152,40 +150,51 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="center_release">
-                <div class="cover">
-                    {cover}
+            <div class="split">
+                <div class="split_main">
+                    <div class="center_release">
+                        <div class="cover">
+                            {cover}
+                        </div>
+
+                        <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                            <a class="big_play_button">
+                                {play_icon}
+                            </a>
+                        </div>
+
+                        <div style="margin: 0.4em 0 1em 0;">
+                            <h1 style="margin-bottom: .2em;">{release_title}</h1>
+                            <div>{artists}</div>
+                        </div>
+
+                        <br>
+
+                        {tracks_rendered}
+                    </div>
                 </div>
+                <div class="split_side">
+                    <!-- TODO: This one needs to be conditional depending on download/buy option-->
+                    <!-- div>
+                        <a href="#download_buy_todo">$</a>
+                    </div -->
 
-                <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                    <a class="big_play_button">
-                        {play_icon}
-                    </a>
-                </div>
+                    <div>
+                        <div style="margin-bottom: .2em;">{release_title}</div>
+                        <div>{artists}</div>
+                    </div>
 
-                <div style="margin: 0.4em 0 1em 0;">
-                    <h1 style="margin-bottom: .2em;">{release_title}</h1>
-                    <div>{artists}</div>
-                </div>
+                    <div>
+                        {download_option_rendered}
+                    </div>
 
-                <br>
+                    <div>
+                        {embed_widget}
+                    </div>
 
-                {tracks_rendered}
-
-                <br><br>
-
-                <div>
-                    {download_option_rendered}
-                </div>
-
-                <!-- TODO: This one needs to be conditional depending on download/buy option-->
-                <!-- div>
-                    <a href="#download_buy_todo">$</a>
-                </div -->
-
-                <div>
-                    {release_text}
-                    {embed_widget}
+                    <div>
+                        {release_text}
+                    </div>
                 </div>
             </div>
         "##,
