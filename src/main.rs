@@ -100,11 +100,6 @@ fn main() {
 
     catalog.write_assets(&mut build);
     
-    // Render about page
-    let about_html = render::about::about_html(&build, &catalog);
-    fs::create_dir(build.build_dir.join("about")).unwrap();
-    fs::write(build.build_dir.join("about/index.html"), about_html).unwrap();
-    
     // Render page for all releases (= root index)
     let releases_html = render::releases::releases_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), releases_html).unwrap();

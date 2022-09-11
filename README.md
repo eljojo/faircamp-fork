@@ -140,7 +140,7 @@ Note that the `text` field supports markdown.
 #### Catalog
 
 Here you can set the global site title (which appears at the title of browser
-tabs, inside the RSS feed, etc.), the base url (required for generation of embeds and the RSS feed), an optional RSS feed image, as well as an about page text for your catalog.
+tabs, inside the RSS feed, etc.), the base url (required for generation of embeds and the RSS feed), an optional RSS feed image, as well as a description text for your catalog.
 
 ```eno
 # catalog

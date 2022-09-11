@@ -8,7 +8,7 @@
 .undescribed_icon img { width: 1.5em; }
 .undescribed_overlay {
     align-items: center;
-    background-color: hsla(var(--cover-h), var(--cover-s), var(--cover-l), .5);
+    background-color: hsla(var(--cover-h), var(--cover-s), var(--cover-l), .8);
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
     display: none;
     height: 100%;

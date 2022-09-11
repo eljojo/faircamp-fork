@@ -1,5 +1,7 @@
 :root {
-  --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
+    --color-cover: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
+    --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
+    --color-text: hsl(var(--text-h), var(--text-s), var(--text-l));
 }
 a {
     color: hsl(var(--hue), var(--link-s), var(--link-l));
@@ -10,12 +12,10 @@ a:hover { color: hsl(var(--hue), var(--link-s), var(--link-hover-l)); }
 a * { pointer-events: none; }
 body {
     background-color: hsl(var(--background-h), var(--background-s), var(--background-l));
-    color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    color: var(--color-text);
     font-size: 18px;
     margin: 0;
 }
-footer a { color: var(--color-muted); }
-footer > * { padding: .6em; }
 h1 {
     font-size: 1.8em;
     font-weight: 400;
@@ -31,14 +31,18 @@ nav {
     position: absolute;
     right: 0;
     top: 0;
+    z-index: 9;
 }
-nav > * { margin: .5em 0 .5em .5em; }
-nav > *:last-child { margin-right: .8em; }
+nav > a {
+    color: var(--color-text);
+    margin: .5em 0 .5em .5em;
+}
+nav > a:last-child { margin-right: .8em; }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .big_play_button,
 .big_play_button:hover {
     align-items: center;
-    background-color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    background-color: var(--color-text);
     bottom: 2px;
     color: var(--color-muted);
     display: none;
@@ -65,23 +69,29 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-top: 8em;
 }
 .cover {
-    background-color: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
+    background-color: var(--color-cover);
     display: block;
     height: 20em;
     width: 20em;
 }
 .cover_listing {
-    background-color: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
+    background-color: var(--color-cover);
     display: block;
-    height: 15em;
     margin-bottom: .5em;
-    width: 15em;
 }
 .duration {
-    color: hsl(var(--text-h), var(--text-s), var(--text-l), .4);
+    color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);
     margin-left: .2em;
 }
-.embed_code { width: 10em; }
+.embed_code {
+    background-color: var(--color-cover);
+    border: 0;
+    border-radius: .2em;
+    color: var(--color-text);
+    height: 3em;
+    padding: .5em;
+    width: 100%;
+}
 .feed_icon {
     position: relative;
     top: .1em;
@@ -110,16 +120,34 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display:  flex;
     flex-direction: column;
 }
-.release_grid {
-    display: grid;
-    grid-gap: .5em 1em;
-    grid-template-columns: 30% 70%;
-}
 .releases {
+    align-content: start;
     display: grid;
     grid-gap: 2em;
-    grid-template-columns: repeat(auto-fill, 15em);
-    margin: 3em;
+    grid-template-columns: repeat(auto-fill, minmax(10em, 1fr));
+    padding: 3em;
+}
+.split {
+    display: flex;
+    height: 100%;
+}
+.split_main {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+.split_side {
+    background-color: black;
+    box-sizing: border-box;
+    padding: 3em;
+    width: 18em;
+}
+@media (max-width: 800px) and (min-height: 921px) {
+    .split { flex-direction: column; }
+    .split_side { width: 100%; }
+}
+@media (max-width: 800px) and (max-height: 920px) {
+    .split { display: block; }
+    .split_side { width: 100%; }
 }
 .track {
     height: 3em;
@@ -134,7 +162,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: none;
     top: .15em;
 }
-.track_number { color: hsl(var(--text-h), var(--text-s), var(--text-l), .4); }
+.track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
 .track_controls, .track_number {
     padding-right: .5em;
     position: absolute;
@@ -142,7 +170,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     text-align: right;
 }
 .track_title {
-    color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    color: var(--color-text);
     user-select: none;
 }
 .track.playing .track_title { color: hsl(var(--hue), var(--link-s), var(--link-l)); }

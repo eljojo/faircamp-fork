@@ -36,11 +36,9 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
             let track_number = index + 1;
             formatdoc!(
                 r#"
-                    <div class="track_title_wrapper">
+                    <div>
                         <span class="track_number">{track_number:02}</span>
-                        <a class="track_title">
-                            {track_title} <span class="pause"></span>
-                        </a>
+                        <span>{track_title}</span><br><br>
                         {embed_code}
                     </div>
                 "#,
@@ -50,26 +48,26 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
             )
         })
         .collect::<Vec<String>>()
-        .join("\n");
+        .join("<br><br>\n");
 
     let body = formatdoc!(
         r##"
-            <div class="center_unconstrained">
-                <div class="release_grid vpad">
-                    <div class="cover">
-                        {cover}
-                    </div>
-
-                    <div style="margin: 0.4em 0 1em 0;">
-                        <h1>{release_title}</h1>
-                        <div>{artists}</div>
-                    </div>
-
-                    Embed the entire release
-                    {embed_code}
-
-                    {track_choices_rendered}
+            <div class="center_release">
+                <div class="cover">
+                    {cover}
                 </div>
+
+                <div style="margin: 0.4em 0 1em 0;">
+                    <h1>{release_title}</h1>
+                    <div>{artists}</div>
+                </div>
+
+                Embed the entire release<br><br>
+                {embed_code}
+
+                <br><br><br>
+
+                {track_choices_rendered}
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &release.artists),
@@ -129,7 +127,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
     let body = formatdoc!(
         r##"
             <div class="center_unconstrained">
-                <div class="release_grid vpad">
+                <div class="vpad">
                     <div class="cover">
                         {cover}
                     </div>
@@ -166,25 +164,9 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
 }
 
 fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
-    
-    let feed_user_link = match &build.base_url.is_some() {
-        true => format!(
-            r#"<a href="{root_prefix}feed.rss">RSS</a>"#,
-            root_prefix = root_prefix
-        ),
-        false => String::new()
-    };
-
     let dir_attribute = match build.localization.writing_direction {
         WritingDirection::Ltr => "",
         WritingDirection::Rtl => "dir=\"rtl\""
-    };
-
-    let theming_widget = if build.theming_widget {
-        include_str!("../../templates/theming_widget.html")
-    } else {
-        ""
     };
 
     format!(
@@ -192,10 +174,7 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
         body = body,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         dir_attribute = dir_attribute,
-        explicit_index = explicit_index,
-        feed_user_link = feed_user_link,
         root_prefix = root_prefix,
-        theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)
     )
 }
@@ -229,7 +208,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
     let body = formatdoc!(
         r##"
             <div class="center_unconstrained">
-                <div class="release_grid vpad">
+                <div class="vpad">
                     <div class="cover">
                         {cover}
                     </div>

@@ -13,7 +13,6 @@ use crate::{
     WritingDirection
 };
 
-pub mod about;
 pub mod artist;
 pub mod image_descriptions;
 pub mod release;
