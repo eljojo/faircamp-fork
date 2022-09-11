@@ -37,13 +37,13 @@ fn image(
         Some(image) => {
             let image_ref = image.borrow();
 
-            if let Some(description) = &image_ref.description {
-                let src_url = format!(
-                    "{root_prefix}{filename}",
-                    filename = image_ref.get_as(format).as_ref().unwrap().filename,
-                    root_prefix = root_prefix
-                );
+            let src_url = format!(
+                "{root_prefix}{filename}",
+                filename = image_ref.get_as(format).as_ref().unwrap().filename,
+                root_prefix = root_prefix
+            );
 
+            if let Some(description) = &image_ref.description {
                 formatdoc!(
                     r#"
                         <a class="image" href="{href_url}">
@@ -57,13 +57,21 @@ fn image(
             } else {
                 formatdoc!(
                     r#"
-                        <a class="image missing_image_description" href="{root_prefix}image-descriptions{explicit_index}">
-                            <span class="missing_image_description_overlay">Missing image description.<br>Click to learn more</span>
-                            <img loading="lazy" src="{root_prefix}{filename}">
-                        </a>
+                        <div class="undescribed_wrapper">
+                            <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                                <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+                            </a>
+                            <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                                <span>Missing image description.<br>Click to learn more</span>
+                            </a>
+                            <a class="image" href="{href_url}">
+                                <img loading="lazy" src="{root_prefix}{filename}">
+                            </a>
+                        </div>
                     "#,
                     explicit_index = explicit_index,
                     filename = image_ref.get_as(format).as_ref().unwrap().filename,
+                    href_url = href_url.unwrap_or(&src_url),
                     root_prefix = root_prefix
                 )
             }
