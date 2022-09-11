@@ -1,14 +1,21 @@
+.undescribed_corner_tag {
+    bottom: 0;
+    position: absolute;
+    right: 0;
+    z-index: 2;
+}
+.undescribed_corner_tag img { width: 4em; }
 .undescribed_icon {
     bottom: 0;
     padding: .5em;
     position: absolute;
     right: 0;
-    z-index: 2;
+    z-index: 3;
 }
 .undescribed_icon img { width: 1.5em; }
 .undescribed_overlay {
     align-items: center;
-    background-color: hsla(var(--cover-h), var(--cover-s), var(--cover-l), .8);
+    background-color: hsla(0, 0%, var(--pane-l), .8);
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
     display: none;
     height: 100%;

@@ -57,6 +57,9 @@ fn image(
                 formatdoc!(
                     r#"
                         <div class="undescribed_wrapper">
+                            <div class="undescribed_corner_tag">
+                                <img src="{root_prefix}corner_tag.svg">
+                            </div>
                             <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
                                 <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
                             </a>
