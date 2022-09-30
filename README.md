@@ -139,14 +139,27 @@ Note that the `text` field supports markdown.
 
 #### Catalog
 
-Here you can set the global site title (which appears at the title of browser
-tabs, inside the RSS feed, etc.), the base url (required for generation of embeds and the RSS feed), an optional RSS feed image, as well as a description text for your catalog.
+By default faircamp operates in "single artist mode", i.e. it will lay out and
+render the pages in a way that best fits a single artist/band presenting
+their works, meaning it will automatically take the artist associated
+with the highest number of releases/tracks and name the catalog after them,
+make the catalog description the description of that artist, etc..
+
+The `label_mode` flag can be used if one wants to present multiple artists
+on a single faircamp site. This adds an additional layer of information to the
+page that differentiates the artists, gives them each their own page, etc.
+
+Asides this main mode toggle you can set the global site title (which appears
+at the title of browser tabs, inside the RSS feed, etc.), the base url
+(required for generation of embeds and the RSS feed), an optional RSS feed
+image, as well as a description text for your catalog here.
 
 ```eno
 # catalog
 
 base_url: https://myawesomemusic.site/
 feed_image: exported_logo_v3.jpg
+label_mode
 title: My awesome music
 
 -- text

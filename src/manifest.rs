@@ -320,7 +320,6 @@ pub fn apply_options(
             }
         }
 
-
         if let Some((relative_path, line)) = optional_field_value_with_line(section, "feed_image"){
             if let Some(previous) = &catalog.feed_image {
                 warn_global_set_repeatedly!("catalog.feed_image", previous.borrow().source_file.display(), relative_path);
@@ -335,6 +334,10 @@ pub fn apply_options(
             } else {
                 error!("Ignoring invalid catalog.feed_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
             }
+        }
+
+        if optional_flag_present(section, "label_mode") {
+            catalog.label_mode = true;
         }
 
         if let Some(value) = optional_field_value(section, "title") {

@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    cmp::Ordering,
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
@@ -32,10 +33,13 @@ const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the 
 
 #[derive(Debug)]
 pub struct Catalog {
+    /// Stores the primary artist for "single artist" catalogs
+    pub artist: Option<Rc<RefCell<Artist>>>,
     pub artists: Vec<Rc<RefCell<Artist>>>,
-    // Contains an absolute path to the file (validity is checked when reading manifests)
+    /// Contains an absolute path to the file (validity is checked when reading manifests)
     pub feed_image: Option<Rc<RefCell<Image>>>,
     pub images: Vec<Rc<RefCell<Image>>>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
+    pub label_mode: bool,
     pub releases: Vec<Rc<RefCell<Release>>>,
     pub text: Option<String>,
     title: Option<String>
@@ -134,9 +138,11 @@ impl Catalog {
     
     pub fn new() -> Catalog {
         Catalog {
+            artist: None,
             artists: Vec::new(),
             feed_image: None,
             images: Vec::new(),
+            label_mode: false,
             releases: Vec::new(),
             text: None,
             title: None
@@ -153,6 +159,10 @@ impl Catalog {
         }
 
         catalog.map_artists();
+
+        if !catalog.label_mode {
+            catalog.set_artist();
+        }
         
         if !catalog.validate_permalinks() { return Err(()); }
         
@@ -443,13 +453,60 @@ impl Catalog {
         
         Track::new(artists_to_map, cached_assets, source_file, title)
     }
+
+    fn set_artist(&mut self) {
+        let mut releases_and_tracks_per_artist = self.artists
+            .iter()
+            .map(|artist| {
+                let mut num_releases = 0;
+                let mut num_tracks = 0;
+                for release in &self.releases {
+                    let release_ref = release.borrow();
+                    if release_ref.artists
+                        .iter()
+                        .any(|release_artist| Rc::ptr_eq(release_artist, artist)) {
+                        num_releases += 1;
+                    }
+                    for track in &release_ref.tracks {
+                        if track.artists
+                            .iter()
+                            .any(|track_artist| Rc::ptr_eq(track_artist, artist)) {
+                            num_tracks += 1;
+                        }
+                    }
+                }
+                (artist.clone(), num_releases, num_tracks)
+            })
+            .collect::<Vec<(Rc<RefCell<Artist>>, usize, usize)>>();
+
+        releases_and_tracks_per_artist.sort_by(|a, b|
+            match a.1.cmp(&b.1) {
+                Ordering::Equal => a.2.cmp(&b.2).reverse(),
+                ordering => ordering.reverse()
+            }
+        );
+
+        if let Some(most_featured_artist) = releases_and_tracks_per_artist.first() {
+            self.artist = Some(most_featured_artist.0.clone());
+        }
+    }
     
     pub fn set_title(&mut self, title: String) -> Option<String> {
         self.title.replace(title)
     }
     
     pub fn title(&self) -> String {
-        self.title.as_ref().cloned().unwrap_or(String::from("Faircamp catalog"))
+        if let Some(catalog_title) = &self.title {
+            return catalog_title.to_string()
+        }
+
+        if !self.label_mode {
+            if let Some(artist) = &self.artist {
+                return artist.borrow().name.clone()
+            }
+        }
+
+        String::from("Faircamp")
     }
 
      fn validate_permalinks(&mut self) -> bool {
@@ -601,7 +658,7 @@ impl Catalog {
             let streaming_format = release_mut.streaming_format;
             for track in release_mut.tracks.iter_mut() {
                 let streaming_asset = track.get_or_transcode_as(streaming_format, build, AssetIntent::Deliverable);
-                
+
                 fs::copy(
                     build.cache_dir.join(&streaming_asset.filename),
                     build.build_dir.join(&streaming_asset.filename)
@@ -611,7 +668,7 @@ impl Catalog {
                 
                 track.cached_assets.persist(&build.cache_dir);
             }
-            
+
             release_mut.write_download_archives(build);
         }
     }
