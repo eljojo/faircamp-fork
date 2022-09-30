@@ -15,8 +15,8 @@
 .undescribed_icon img { width: 1.5em; }
 .undescribed_overlay {
     align-items: center;
-    background-color: hsla(0, 0%, var(--pane-l), .8);
-    color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    background-color: var(--color-text);
+    color: hsl(0, 0%, var(--pane-l));
     display: none;
     height: 100%;
     justify-content: center;

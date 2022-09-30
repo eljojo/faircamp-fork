@@ -70,14 +70,14 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                 {track_choices_rendered}
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release"),
         release_title = html_escape_outside_attribute(&release.title),
         track_choices_rendered = track_choices_rendered
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title)
+    layout(root_prefix, &body, build, catalog, &release.title, None)
 }
 
 pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
@@ -150,7 +150,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                 </div>
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         base_url = base_url,
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         explicit_index = explicit_index,
@@ -231,7 +231,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
                 </div>
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         base_url = base_url,
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         explicit_index = explicit_index,

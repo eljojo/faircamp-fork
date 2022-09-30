@@ -13,10 +13,8 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
     
     let catalog_title = catalog.title();
 
-    let catalog_pane = if let Some(text) = &catalog.text {
-        let artists = if catalog.artists.is_empty() {
-            String::new()
-        } else {
+    let more = if let Some(text) = &catalog.text {
+        let artists = if catalog.label_mode && !catalog.artists.is_empty()  {
             let list = catalog.artists
                 .iter()
                 .map(|artist| {
@@ -33,19 +31,29 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
                 .collect::<Vec<String>>()
                 .join("<br>\n");
 
-            format!("<br><strong>Artists</strong><br>{}", list)
+            formatdoc!(
+                r#"
+                    <div style="max-width: 36em;">
+                        <strong>Artists</strong><br>
+                        {list}
+                    </div>
+                "#,
+                list = list
+            )
+        } else {
+            String::new()
         };
 
         formatdoc!(
             r#"
-                <div class="split_side">
-                    <div style="max-width: 36em; text-align: justify;">
+                <div class="additional" id="more">
+                    <div style="max-width: 36em;">
                         <a href=".{explicit_index}" style="color: #fff;">
                             {title}
                         </a>
                         {text}
-                        {artists}
                     </div>
+                    {artists}
                 </div>
             "#,
             artists = artists,
@@ -59,16 +67,29 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
 
     let body = formatdoc!(
         r#"
-            <div class="split">
-                <div class="releases split_main">
-                    {releases}
-                </div>
-                {catalog_pane}
+            <div class="releases {releases_full_height}" id="releases">
+                {releases}
             </div>
+            {more}
         "#,
-        catalog_pane = catalog_pane,
-        releases = releases(explicit_index, root_prefix, &catalog.releases)
+        more = more,
+        releases = releases(explicit_index, root_prefix, &catalog, &catalog.releases, catalog.label_mode),
+        releases_full_height = if more.is_empty() { "releases_full_height" } else { "" }
     );
 
-    layout(root_prefix, &body, build, catalog, &catalog_title)
+    let links = if more.is_empty() {
+        None
+    } else {
+        Some(
+            formatdoc!(
+                r#"
+                    <a href=".{explicit_index}#top" style="border-bottom: 1px solid #ccc;">Releases</a>
+                    <a href=".{explicit_index}#more">More</a>
+                "#,
+                explicit_index = explicit_index
+            )
+        )
+    };
+
+    layout(root_prefix, &body, build, catalog, &catalog_title, links)
 }

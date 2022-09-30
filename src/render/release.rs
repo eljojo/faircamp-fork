@@ -15,7 +15,7 @@ pub mod checkout;
 pub mod download;
 pub mod embed;
 
-const MAX_TRACK_DURATION_WIDTH_EM: f32 = 36.0;
+const MAX_TRACK_DURATION_WIDTH_EM: f32 = 20.0;
 const TRACK_HEIGHT_EM: f32 = 1.5;
 const WAVEFORM_PADDING_EM: f32 = 0.3;
 const WAVEFORM_HEIGHT: f32 = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
@@ -35,7 +35,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Free { download_page_uid } => formatdoc!(
             r#"
                 <div class="vpad">
-                    <a href="../download/{download_page_uid}{explicit_index}">Download Release</a>
+                    <a href="../download/{download_page_uid}{explicit_index}">Download</a>
                     <div>{formats_list}</div>
                 </div>
             "#,
@@ -96,7 +96,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let embed_widget = if release.embedding && build.base_url.is_some() {
         format!(
-            r#"<a href="embed{explicit_index}">Embed Release/Tracks</a>"#,
+            r#"<a href="embed{explicit_index}">Embed</a>"#,
             explicit_index = explicit_index
         )
     } else {
@@ -104,7 +104,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let release_text = match &release.text {
-        Some(text) => format!(r#"<div class="justify vpad">{}</div>"#, text),
+        Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
         None => String::new()
     };
 
@@ -148,40 +148,39 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .collect::<Vec<String>>()
         .join("\n");
 
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+
     let body = formatdoc!(
         r##"
-            <div class="split">
-                <div class="split_main">
-                    <div class="center_release">
-                        <div class="cover">
-                            {cover}
-                        </div>
-
-                        <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
-                            <a class="big_play_button">
-                                {play_icon}
-                            </a>
-                        </div>
-
-                        <div style="margin: 0.4em 0 1em 0;">
-                            <h1 style="margin-bottom: .2em;">{release_title}</h1>
-                            <div>{artists}</div>
-                        </div>
-
-                        <br>
-
-                        {tracks_rendered}
-                    </div>
+            <div class="center_release">
+                <div class="cover">
+                    {cover}
                 </div>
-                <div class="split_side">
+
+                <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                    <a class="big_play_button">
+                        {play_icon}
+                    </a>
+                </div>
+
+                <div style="margin: 0.4em 0 1em 0;">
+                    <h1 style="margin-bottom: .2em;">{release_title}</h1>
+                    <div>{artists}</div>
+                </div>
+
+                <br>
+
+                {tracks_rendered}
+            </div>
+            <div class="additional" id="more">
+                <div class="center_release">
                     <!-- TODO: This one needs to be conditional depending on download/buy option-->
                     <!-- div>
                         <a href="#download_buy_todo">$</a>
                     </div -->
 
                     <div>
-                        <div style="margin-bottom: .2em;">{release_title}</div>
-                        <div>{artists}</div>
+                        {release_text}
                     </div>
 
                     <div>
@@ -191,24 +190,28 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div>
                         {embed_widget}
                     </div>
-
-                    <div>
-                        {release_text}
-                    </div>
                 </div>
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         play_icon = play_icon(root_prefix),
         release_text = release_text,
-        release_title = html_escape_outside_attribute(&release.title),
+        release_title = release_title_escaped,
         tracks_rendered = tracks_rendered
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title)
+    let links = formatdoc!(
+        r#"
+            <a href=".{explicit_index}#top">Listen</a>
+            <a href=".{explicit_index}#more">More</a>
+        "#,
+        explicit_index = explicit_index
+    );
+
+    layout(root_prefix, &body, build, catalog, &release.title, Some(links))
 }
 
 fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) -> String {

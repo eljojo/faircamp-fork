@@ -82,7 +82,14 @@ fn image(
     }
 }
 
-fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
+fn layout(
+    root_prefix: &str,
+    body: &str,
+    build: &Build,
+    catalog: &Catalog,
+    title: &str,
+    links: Option<String>
+) -> String {
     let (feed_meta_link, feed_user_link) = match &build.base_url.is_some() {
         true => (
             format!(
@@ -92,7 +99,7 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
             format!(
                 r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg"></a>"#,
                 root_prefix = root_prefix
-            ),
+            )
         ),
         false => (String::new(), String::new())
     };
@@ -123,6 +130,8 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
         String::new()
     };
 
+    let links = links.unwrap_or(String::new());
+
     format!(
         include_str!("templates/layout.html"),
         body = body,
@@ -131,30 +140,57 @@ fn layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title
         explicit_index = if build.clean_urls { "/" } else { "/index.html" },
         feed_meta_link = feed_meta_link,
         feed_user_link = feed_user_link,
+        links = links,
         root_prefix = root_prefix,
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)
     )
 }
 
-fn list_artists(explicit_index: &str, root_prefix: &str, artists: &Vec<Rc<RefCell<Artist>>>) -> String {
+fn list_artists(
+    explicit_index: &str,
+    root_prefix: &str,
+    catalog: &Catalog,
+    artists: &Vec<Rc<RefCell<Artist>>>
+) -> String {
     artists
         .iter()
         .map(|artist| {
             let artist_ref = artist.borrow();
-            format!(
-                r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
-                explicit_index = explicit_index,
-                name = html_escape_outside_attribute(&artist_ref.name),
-                permalink = artist_ref.permalink.slug,
-                root_prefix = root_prefix
-            )
+            if catalog.label_mode {
+                return format!(
+                    r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
+                    explicit_index = explicit_index,
+                    name = html_escape_outside_attribute(&artist_ref.name),
+                    permalink = artist_ref.permalink.slug,
+                    root_prefix = root_prefix
+                );
+            }
+
+            if let Some(catalog_artist) = &catalog.artist {
+                if Rc::ptr_eq(artist, catalog_artist) {
+                    return format!(
+                        r#"<a href="{root_prefix}.{explicit_index}">{name}</a>"#,
+                        explicit_index = explicit_index,
+                        name = html_escape_outside_attribute(&artist_ref.name),
+                        root_prefix = root_prefix
+                    );
+                }
+            }
+
+            html_escape_outside_attribute(&artist_ref.name)
         })
         .collect::<Vec<String>>()
         .join(", ")
 }
 
-fn releases(explicit_index: &str, root_prefix: &str, releases: &Vec<Rc<RefCell<Release>>>) -> String {
+fn releases(
+    explicit_index: &str,
+    root_prefix: &str,
+    catalog: &Catalog,
+    releases: &Vec<Rc<RefCell<Release>>>,
+    show_artists: bool
+) -> String {
     releases
         .iter()
         .map(|release| {
@@ -166,6 +202,15 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: &Vec<Rc<RefCell<R
                 permalink = release_ref.permalink.slug,
                 root_prefix = root_prefix
             );
+
+            let artists = if show_artists {
+                format!(
+                    "<div>{}</div>",
+                    list_artists(explicit_index, root_prefix, &catalog, &release_ref.artists)
+                )
+            } else {
+                String::new()
+            };
 
             formatdoc!(
                 r#"
@@ -179,7 +224,7 @@ fn releases(explicit_index: &str, root_prefix: &str, releases: &Vec<Rc<RefCell<R
                         </div>
                     </div>
                 "#,
-                artists = list_artists(explicit_index, root_prefix, &release_ref.artists),
+                artists = artists,
                 cover = image(explicit_index, root_prefix, &release_ref.cover, ImageFormat::Cover, Some(&href)),
                 href = href,
                 title = html_escape_outside_attribute(&release_ref.title)

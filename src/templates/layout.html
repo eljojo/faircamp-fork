@@ -11,13 +11,17 @@
     </head>
     <body>
         <script>document.body.classList.add('js_enabled');</script>
-        <div class="layout">
-            <nav>
+        <a name="top"></a>
+        <nav>
+            <span>
                 <a href="{root_prefix}.{explicit_index}">{catalog_title}</a>
                 {feed_user_link}
-            </nav>
-            {body}
-        </div>
+            </span>
+            <span>
+                {links}
+            </span>
+        </nav>
+        {body}
         {theming_widget}
     </body>
 </html>

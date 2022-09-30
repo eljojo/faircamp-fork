@@ -28,13 +28,11 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let body = formatdoc!(
         r#"
-            <div class="split">
-                <div class="split_main">
-                    <div class="center">
-                        {releases}
-                    </div>
-                </div>
-                <div class="split_side">
+            <div class="center">
+                {releases}
+            </div>
+            <div class="additional">
+                <div class="center">
                     <div class="cover">
                         {artist_image}
                     </div>
@@ -49,9 +47,9 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         "#,
         artist_image = image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist, None),
         artist_name = html_escape_outside_attribute(&artist.name),
-        releases = releases(explicit_index, root_prefix, &artist.releases),
+        releases = releases(explicit_index, root_prefix, &catalog, &artist.releases, false),
         text = text
     );
 
-    layout(root_prefix, &body, build, catalog, &artist.name)
+    layout(root_prefix, &body, build, catalog, &artist.name, None)
 }

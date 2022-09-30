@@ -41,5 +41,5 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
         title = TITLE
     );
 
-    layout(root_prefix, &body, build, catalog, TITLE)
+    layout(root_prefix, &body, build, catalog, TITLE, None)
 }

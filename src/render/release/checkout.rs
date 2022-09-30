@@ -18,7 +18,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         .iter()
         .map(|option|
             match &option {
-                PaymentOption::Custom(html) => {
+                PaymentOption::Custom(message) => {
                     format!(
                         r#"
                             <div>
@@ -28,7 +28,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
                         "#,
                         download_page_uid=download_page_uid,
                         explicit_index = explicit_index,
-                        message=html.to_string()
+                        message=message
                     )
                 },
                 PaymentOption::Liberapay(account_name) => {
@@ -62,11 +62,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
 
             {payment_options}
         "#,
-        artists = list_artists(explicit_index, root_prefix, &release.artists),
+        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         payment_options = payment_options,
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         title = html_escape_outside_attribute(&release.title)
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title)
+    layout(root_prefix, &body, build, catalog, &release.title, None)
 }
