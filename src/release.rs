@@ -188,6 +188,8 @@ impl Release {
                 if cached_format.is_none() {
                     let target_filename = format!("{}.zip", util::uid());
 
+                    info_zipping!("Creating download archives for release '{}' ({})", self.title, &format);
+
                     let zip_file = File::create(
                         build.cache_dir.join(&target_filename)
                     ).unwrap();

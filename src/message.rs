@@ -70,6 +70,15 @@ macro_rules! info_transcoding {
     };
 }
 
+macro_rules! info_zipping {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(blue), "[ZIPPING] ", $format_str, color!(reset))
+            $(,$args)*
+        )
+    };
+}
+
 macro_rules! warn {
     ($format_str:expr $(,$args:expr)*) => {
         println!(
