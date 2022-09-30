@@ -50,6 +50,7 @@ pub struct Overrides {
     pub release_text: Option<String>,
     pub release_title: Option<String>,
     pub release_track_numbering: TrackNumbering,
+    pub rewrite_tags: bool,
     pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>
 }
@@ -74,6 +75,7 @@ impl Overrides {
             release_text: None,
             release_title: None,
             release_track_numbering: TrackNumbering::Arabic,
+            rewrite_tags: true,
             streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
             track_artists: None
         }
@@ -554,6 +556,14 @@ pub fn apply_options(
                     local_options.release_permalink = Some(permalink);
                 },
                 Err(err) => error!("Ignoring invalid release.permalink value '{}' in {}:{} ({})", slug, path.display(), line, err)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "rewrite_tags") {
+            match value.as_str() {
+                "yes" => overrides.rewrite_tags = true,
+                "no" => overrides.rewrite_tags = false,
+                other => error!("Ignoring invalid release.rewrite_tags value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
             }
         }
 

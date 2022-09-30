@@ -42,6 +42,7 @@ use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
 use catalog::Catalog;
 use download_option::DownloadOption;
+use ffmpeg::TagMapping;
 use image::{CachedImageAssets, Image};
 use image_format::ImageFormat;
 use localization::{Localization, WritingDirection};

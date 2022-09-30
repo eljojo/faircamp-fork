@@ -17,6 +17,7 @@ use crate::{
     CacheManifest,
     ffmpeg,
     SourceFileSignature,
+    TagMapping,
     util
 };
 
@@ -125,7 +126,13 @@ impl Track {
         self.cached_assets.get(format)
     }
     
-    pub fn get_or_transcode_as(&mut self, format: AudioFormat, build: &Build, asset_intent: AssetIntent) -> &mut Asset {
+    pub fn get_or_transcode_as(
+        &mut self,
+        format: AudioFormat,
+        build: &Build,
+        asset_intent: AssetIntent,
+        tag_mapping_option: &Option<TagMapping>
+    ) -> &mut Asset {
         let cached_format = self.cached_assets.get_mut(format);
     
         match cached_format {
@@ -137,7 +144,8 @@ impl Track {
                 ffmpeg::transcode(
                     &self.source_file,
                     &build.cache_dir.join(&target_filename),
-                    format
+                    format,
+                    tag_mapping_option
                 ).unwrap();
             
                 cached_format.replace(Asset::new(build, target_filename, asset_intent));

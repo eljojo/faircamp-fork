@@ -9,12 +9,44 @@ pub const FFMPEG_BINARY: &str = "ffmpeg";
 #[cfg(target_os = "windows")]
 pub const FFMPEG_BINARY: &str = "ffmpeg.exe";
 
-pub fn transcode(input_file: &Path, output_file: &Path, target_format: AudioFormat) -> Result<(), String> {
+pub struct TagMapping {
+    pub album: Option<String>,
+    pub album_artist: Option<String>,
+    pub artist: Option<String>,
+    pub title: Option<String>
+}
+
+pub fn transcode(
+    input_file: &Path,
+    output_file: &Path,
+    target_format: AudioFormat,
+    tag_mapping_option: &Option<TagMapping>
+) -> Result<(), String> {
     let mut command = Command::new(FFMPEG_BINARY);
     
     command.arg("-y");
     command.arg("-i").arg(input_file);
-    
+
+    if let Some(tag_mapping) = tag_mapping_option {
+        command.arg("-map_metadata").arg("-1");
+
+        if let Some(album) = &tag_mapping.album {
+            command.arg("-metadata").arg(format!("album={}", album));
+        }
+
+        if let Some(album_artist) = &tag_mapping.album_artist {
+            command.arg("-metadata").arg(format!("album_artist={}", album_artist));
+        }
+
+        if let Some(artist) = &tag_mapping.artist {
+            command.arg("-metadata").arg(format!("artist={}", artist));
+        }
+
+        if let Some(title) = &tag_mapping.title {
+            command.arg("-metadata").arg(format!("title={}", title));
+        }
+    }
+
     match target_format {
         AudioFormat::Mp3VbrV0 => {
             command.arg("-codec:a").arg("libmp3lame");

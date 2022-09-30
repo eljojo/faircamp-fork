@@ -25,6 +25,7 @@ use crate::{
     Permalink,
     render,
     SourceFileSignature,
+    TagMapping,
     Track,
     util
 };
@@ -55,6 +56,7 @@ pub struct Release {
     pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
+    pub rewrite_tags: bool,
     pub runtime: u32,
     pub streaming_format: AudioFormat,
     pub text: Option<String>,
@@ -171,6 +173,7 @@ impl Release {
             embedding: manifest_overrides.embedding,
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
+            rewrite_tags: manifest_overrides.rewrite_tags,
             runtime,
             streaming_format: manifest_overrides.streaming_format.clone(),
             text: manifest_overrides.release_text.clone(),
@@ -200,6 +203,27 @@ impl Release {
 
                     let mut buffer = Vec::new();
 
+                    let mut tag_mapping_option = if self.rewrite_tags {
+                        Some(TagMapping {
+                            album: Some(self.title.clone()),
+                            album_artist: if self.artists.is_empty() {
+                                None
+                            } else {
+                                Some(
+                                    self.artists
+                                    .iter()
+                                    .map(|artist| artist.borrow().name.clone())
+                                    .collect::<Vec<String>>()
+                                    .join(", ")
+                                )
+                            },
+                            artist: None,
+                            title: None,
+                        })
+                    } else {
+                        None
+                    };
+
                     for (index, track) in self.tracks.iter_mut().enumerate() {
                         if format.lossless() && !track.cached_assets.source_meta.lossless {
                             warn_discouraged!(
@@ -221,7 +245,25 @@ impl Release {
                             title=track.title
                         );
 
-                        let download_track_asset = track.get_or_transcode_as(*format, build, AssetIntent::Intermediate);
+                        if let Some(tag_mapping) = &mut tag_mapping_option {
+                            if !track.artists.is_empty() {
+                                tag_mapping.artist = Some(
+                                    track.artists
+                                    .iter()
+                                    .map(|artist| artist.borrow().name.clone())
+                                    .collect::<Vec<String>>()
+                                    .join(", ")
+                                );
+                            }
+                            tag_mapping.title = Some(track.title.clone());
+                        }
+
+                        let download_track_asset = track.get_or_transcode_as(
+                            *format,
+                            build,
+                            AssetIntent::Intermediate,
+                            &tag_mapping_option
+                        );
 
                         zip_writer.start_file(&filename, options).unwrap();
 

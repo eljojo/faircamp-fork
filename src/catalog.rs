@@ -20,6 +20,7 @@ use crate::{
     PermalinkUsage,
     Release,
     manifest,
+    TagMapping,
     Track,
     util
 };
@@ -657,8 +658,48 @@ impl Catalog {
             }
             
             let streaming_format = release_mut.streaming_format;
+
+            let mut tag_mapping_option = if release_mut.rewrite_tags {
+                Some(TagMapping {
+                    album: Some(release_mut.title.clone()),
+                    album_artist: if release_mut.artists.is_empty() {
+                        None
+                    } else {
+                        Some(
+                            release_mut.artists
+                            .iter()
+                            .map(|artist| artist.borrow().name.clone())
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                        )
+                    },
+                    artist: None,
+                    title: None,
+                })
+            } else {
+                None
+            };
+
             for track in release_mut.tracks.iter_mut() {
-                let streaming_asset = track.get_or_transcode_as(streaming_format, build, AssetIntent::Deliverable);
+                if let Some(tag_mapping) = &mut tag_mapping_option {
+                     if !track.artists.is_empty() {
+                        tag_mapping.artist = Some(
+                            track.artists
+                            .iter()
+                            .map(|artist| artist.borrow().name.clone())
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                        );
+                    }
+                    tag_mapping.title = Some(track.title.clone());
+                }
+
+                let streaming_asset = track.get_or_transcode_as(
+                    streaming_format,
+                    build,
+                    AssetIntent::Deliverable,
+                    &tag_mapping_option
+                );
 
                 fs::copy(
                     build.cache_dir.join(&streaming_asset.filename),

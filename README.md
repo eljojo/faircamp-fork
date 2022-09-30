@@ -19,7 +19,7 @@ audio files will  be presented as *releases* (think albums, singles and
 playlists) with their own page. Faircamp will automatically gather metadata from
 your audio files and make good use of it - if your audio files are properly
 tagged and there are cover images within each release directory you will likely
-get an end result that is pretty much perfect the first time you run faircamp.
+get an end result that is pretty much spot-on the first time you run faircamp.
 
 ### Configuration
 
@@ -267,11 +267,19 @@ however as you will possibly want to provide a textual description or tweak
 the displayed title and artists for display in the browser, such data can
 be provided through the manifests.
 
+By default faircamp strips all metadata off the audio files that you supply
+when it transcodes them for streaming and downloading, only adding back
+those tags that it needs and manages itself, i.e. the title, artist(s),
+release artist(s) and release title. The `rewrite_tags` option lets you
+control this: Set it to 'no' and faircamp will transfer all tags 1:1 from
+the source files onto the transcoded files, as you provided them.
+
 ```eno
 # release
 
 artist: Heston Exchange
 permalink: ape-affairs-bonus-track-edition
+rewrite_tags: no
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
 
