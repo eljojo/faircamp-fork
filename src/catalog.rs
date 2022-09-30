@@ -104,6 +104,7 @@ impl Catalog {
 
                 if !any_artist_found {
                     let new_artist = Rc::new(RefCell::new(Artist::new(&release_artist_to_map)));
+                    new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     release_mut.artists.push(new_artist);
                 }
