@@ -118,7 +118,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .iter()
         .enumerate()
         .map(|(index, track)| {
-            let track_duration_width_em = if longest_track_duration > 0 {
+            let track_duration_width_rem = if longest_track_duration > 0 {
                 MAX_TRACK_DURATION_WIDTH_EM * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
             } else {
                 0.0
@@ -142,7 +142,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 track_number = release.track_numbering.format(track_number),
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = html_escape_outside_attribute(&track.title),
-                waveform = waveform(track, track_number, track_duration_width_em)
+                waveform = waveform(track, track_number, track_duration_width_rem)
             )
         })
         .collect::<Vec<String>>()
@@ -157,14 +157,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     {cover}
                 </div>
 
-                <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
                     <a class="big_play_button">
                         {play_icon}
                     </a>
                 </div>
 
-                <div style="margin: 0.4em 0 1em 0;">
-                    <h1 style="margin-bottom: .2em;">{release_title}</h1>
+                <div style="margin: .4rem 0 1rem 0;">
+                    <h1 style="margin-bottom: .2rem;">{release_title}</h1>
                     <div>{artists}</div>
                 </div>
 
@@ -214,12 +214,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     layout(root_prefix, &body, build, catalog, &release.title, Some(links))
 }
 
-fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) -> String {
+fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -> String {
     let step = 1;
 
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
         let num_peaks = peaks.len();
-        let step_width = track_duration_width_em / num_peaks as f32;
+        let step_width = track_duration_width_rem / num_peaks as f32;
 
         let mut enumerate_peaks = peaks.iter().step_by(step).enumerate();
 
@@ -241,9 +241,9 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) ->
         formatdoc!(
             r##"
                 <svg class="waveform"
-                     height="{viewbox_height}em"
+                     height="{viewbox_height}rem"
                      viewBox="0 0 {viewbox_width} {viewbox_height}"
-                     width="{viewbox_width}em"
+                     width="{viewbox_width}rem"
                      xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="progress_gradient_{track_number}">
@@ -261,7 +261,7 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_em: f32) ->
             d = d,
             track_number = track_number,
             viewbox_height = TRACK_HEIGHT_EM,
-            viewbox_width = track_duration_width_em
+            viewbox_width = track_duration_width_rem
         )
     } else {
         String::new()

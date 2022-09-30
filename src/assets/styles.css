@@ -13,12 +13,14 @@ a * { pointer-events: none; }
 body {
     background-color: hsl(var(--background-h), var(--background-s), var(--background-l));
     color: var(--color-text);
-    font-size: 18px;
     margin: 0;
 }
-html { scroll-behavior: smooth; }
+html {
+    font-size: 18px;
+    scroll-behavior: smooth;
+}
 h1 {
-    font-size: 1.8em;
+    font-size: 1.8rem;
     font-weight: 400;
     margin: 0;
 }
@@ -30,12 +32,12 @@ main { box-sizing: border-box; }
 nav {
     align-items: center;
     background-color: hsla(0, 0%, var(--pane-l), .5);
-    box-shadow: 0 0 .5em hsla(0, 0%, 0%, 0.2);
+    box-shadow: 0 0 .5rem hsla(0, 0%, 0%, 0.2);
     box-sizing: border-box;
     display: flex;
-    height: 2.5em;
+    height: 2.5rem;
     justify-content: space-between;
-    padding: 0 .8em;
+    padding: 0 .8rem;
     position: sticky;
     top: 0;
     width: 100%;
@@ -43,7 +45,7 @@ nav {
 }
 nav span { display: flex; }
 nav a { color: var(--color-text); }
-nav a:not(:first-child) { margin-left: .5em; }
+nav a:not(:first-child) { margin-left: .5rem; }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .additional {
     align-items: center;
@@ -51,8 +53,8 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     box-sizing: border-box;
     display: flex;
     justify-content: space-around;
-    min-height: calc(50vh - 1.25em);
-    padding: 3em;
+    min-height: calc(50vh - 1.25rem);
+    padding: 3rem;
 }
 .big_play_button,
 .big_play_button:hover {
@@ -61,56 +63,56 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     bottom: 2px;
     color: var(--color-muted);
     display: none;
-    font-size: 2em;
-    height: 1.4em;
+    font-size: 2rem;
+    height: 1.4rem;
     justify-content: center;
     position: relative;
-    width: 1.4em;
+    width: 1.4rem;
 }
 .big_play_button:hover { opacity: .8; }
 .big_play_button img { transform: scale(0.6); }
 /*.js_enabled .big_play_button { display: flex; }*/
 .center {
     margin: 0 auto;
-    margin-top: 8em;
-    max-width: 23em;
+    margin-top: 8rem;
+    max-width: 23rem;
 }
 .center_release {
-    margin: 3em auto;
-    max-width: 23em;
+    margin: 3rem auto;
+    max-width: 23rem;
 }
 .center_unconstrained {
     margin: 0 auto;
-    margin-top: 8em;
+    margin-top: 8rem;
 }
 .cover {
     background-color: var(--color-cover);
     display: block;
-    height: 20em;
-    width: 20em;
+    height: 20rem;
+    width: 20rem;
 }
 .cover_listing {
     background-color: var(--color-cover);
     display: block;
-    margin-bottom: .5em;
+    margin-bottom: .5rem;
 }
 .duration {
     color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);
-    margin-left: .2em;
+    margin-left: .2rem;
 }
 .embed_code {
     background-color: var(--color-cover);
     border: 0;
-    border-radius: .2em;
+    border-radius: .2rem;
     color: var(--color-text);
-    height: 3em;
-    padding: .5em;
+    height: 3rem;
+    padding: .5rem;
     width: 100%;
 }
 .feed_icon {
     position: relative;
-    top: .2em;
-    width: 1em;
+    top: .2rem;
+    width: 1rem;
 }
 .image {
     display: block;
@@ -132,13 +134,13 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     box-sizing: border-box;
     display: grid;
     flex-basis: 100%;
-    grid-gap: 2em;
-    grid-template-columns: repeat(auto-fit, minmax(10em, 12em));
+    grid-gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 12rem));
     justify-content: center;
-    min-height: calc(50vh - 1.25em);
-    padding: 3em;
+    min-height: calc(50vh - 1.25rem);
+    padding: 3rem;
 }
-.releases_full_height { min-height: calc(100vh - 2.5em); }
+.releases_full_height { min-height: calc(100vh - 2.5rem); }
 @media (max-width: 800px) and (min-height: 921px) {
     .split { flex-direction: column; }
     .split_side { width: 100%; }
@@ -148,8 +150,8 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     .split_side { width: 100%; }
 }
 .track {
-    height: 3em;
-    margin-bottom: .2em;
+    height: 3rem;
+    margin-bottom: .2rem;
     position: relative;
 }
 .track.active .track_controls,
@@ -158,11 +160,11 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track:hover .track_number { display: none; }
 .track_controls {
     display: none;
-    top: .15em;
+    top: .15rem;
 }
 .track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
 .track_controls, .track_number {
-    padding-right: .5em;
+    padding-right: .5rem;
     position: absolute;
     right: calc(100%);
     text-align: right;
@@ -176,7 +178,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: flex;
     justify-self: end;
 }
-.vpad { margin: 1em 0; }
+.vpad { margin: 1rem 0; }
 .waveform { cursor: pointer; }
 .waveform path { fill: none; }
 .waveform path.base {

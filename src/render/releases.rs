@@ -33,7 +33,7 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
 
             formatdoc!(
                 r#"
-                    <div style="max-width: 36em;">
+                    <div style="max-width: 36rem;">
                         <strong>Artists</strong><br>
                         {list}
                     </div>
@@ -47,7 +47,7 @@ pub fn releases_html(build: &Build, catalog: &Catalog) -> String {
         formatdoc!(
             r#"
                 <div class="additional" id="more">
-                    <div style="max-width: 36em;">
+                    <div style="max-width: 36rem;">
                         <a href=".{explicit_index}" style="color: #fff;">
                             {title}
                         </a>

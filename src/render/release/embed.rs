@@ -57,7 +57,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                     {cover}
                 </div>
 
-                <div style="margin: 0.4em 0 1em 0;">
+                <div style="margin: 0.4rem 0 1rem 0;">
                     <h1>{release_title}</h1>
                     <div>{artists}</div>
                 </div>
@@ -94,7 +94,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         .iter()
         .enumerate()
         .map(|(index, track)| {
-            let track_duration_width_em = if longest_track_duration > 0 {
+            let track_duration_width_rem = if longest_track_duration > 0 {
                 36.0 * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
             } else {
                 0.0
@@ -118,7 +118,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                 track_number = track_number,
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = html_escape_outside_attribute(&track.title),
-                waveform = waveform(track, track_number, track_duration_width_em)
+                waveform = waveform(track, track_number, track_duration_width_rem)
             )
         })
         .collect::<Vec<String>>()
@@ -132,12 +132,12 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                         {cover}
                     </div>
 
-                    <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                    <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
                         <a class="big_play_button">
                             {play_icon}
                         </a>
                     </div>
-                    <div style="margin: 0.4em 0 1em 0;">
+                    <div style="margin: .4rem 0 1rem 0;">
                         <h1>{release_title}</h1>
                         <div>{artists}</div>
                     </div>
@@ -184,7 +184,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
     let root_prefix = "../../../";
 
     let track_duration = track.cached_assets.source_meta.duration_seconds;
-    let track_duration_width_em = if track_duration > 0 { 36.0 } else { 0.0 };
+    let track_duration_width_rem = if track_duration > 0 { 36.0 } else { 0.0 };
 
     let track_rendered = formatdoc!(
         r#"
@@ -202,7 +202,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         track_duration = format_time(track_duration),
         track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
         track_title = html_escape_outside_attribute(&track.title),
-        waveform = waveform(track, track_number, track_duration_width_em)
+        waveform = waveform(track, track_number, track_duration_width_rem)
     );
 
     let body = formatdoc!(
@@ -213,12 +213,12 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
                         {cover}
                     </div>
 
-                    <div style="justify-self: end; align-self: end; margin: 0.4em 0 1em 0;">
+                    <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
                         <a class="big_play_button">
                             {play_icon}
                         </a>
                     </div>
-                    <div style="margin: 0.4em 0 1em 0;">
+                    <div style="margin: .4rem 0 1rem 0;">
                         <h1>{release_title}</h1>
                         <div>{artists}</div>
                     </div>
