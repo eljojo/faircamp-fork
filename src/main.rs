@@ -102,29 +102,31 @@ fn main() {
     catalog.write_assets(&mut build);
     
     // Render page for all releases (= root index)
-    let releases_html = render::releases::releases_html(&build, &catalog);
-    fs::write(build.build_dir.join("index.html"), releases_html).unwrap();
-    
-    // Render page for each artist
-    for artist in &catalog.artists {
-        let artist_ref = artist.borrow();
-        if let Some(image) = &artist_ref.image {
-            if image.borrow().description.is_none() {
-                warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
-                build.missing_image_descriptions = true;
-            }
-        }
-
-        let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
-        let artist_ref = artist.borrow();
-
-        fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
-        fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
-    }
+    let index_html = render::index::index_html(&build, &catalog);
+    fs::write(build.build_dir.join("index.html"), index_html).unwrap();
     
     // Render page for each release
     for release in &catalog.releases {
         release.borrow_mut().write_files(&mut build, &catalog);
+    }
+
+    if catalog.label_mode {
+        // Render page for each artist
+        for artist in &catalog.artists {
+            let artist_ref = artist.borrow();
+            if let Some(image) = &artist_ref.image {
+                if image.borrow().description.is_none() {
+                    warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
+                    build.missing_image_descriptions = true;
+                }
+            }
+
+            let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
+            let artist_ref = artist.borrow();
+
+            fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
+            fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
+        }
     }
 
     // Render image descriptions page (when needed)

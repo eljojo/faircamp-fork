@@ -15,8 +15,8 @@ use crate::{
 
 pub mod artist;
 pub mod image_descriptions;
+pub mod index;
 pub mod release;
-pub mod releases;
 
 fn play_icon(root_prefix: &str) -> String {
     formatdoc!(
