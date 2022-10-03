@@ -74,7 +74,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         "#,
         more = more,
         releases = releases(explicit_index, root_prefix, &catalog, &catalog.releases, catalog.label_mode),
-        releases_full_height = if more.is_empty() { "index_full_height" } else { "" }
+        releases_full_height = if more.is_empty() { "releases_full_height" } else { "" }
     );
 
     let links = if more.is_empty() {
