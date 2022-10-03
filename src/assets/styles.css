@@ -96,6 +96,24 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: block;
     margin-bottom: .5rem;
 }
+.download_button {
+    background-color: var(--color-text);
+    border-radius: .2rem;
+    color: hsl(var(--background-h), var(--background-s), var(--background-l));
+    display: inline-block;
+    padding: .8rem;
+}
+.download_option {
+    max-width: 14rem;
+    overflow-x: hidden;
+    position: relative;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.download_options td { text-align: center; }
+.download_options th { vertical-align: top; }
+.download_options th:not(:first-child) { padding-left: .8rem; }
 .duration {
     color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);
     margin-left: .2rem;
@@ -114,6 +132,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     top: .2rem;
     width: 1rem;
 }
+.format_hint { margin-top: .8rem; }
 .image {
     display: block;
     height: 100%;

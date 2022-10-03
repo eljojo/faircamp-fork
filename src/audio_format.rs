@@ -11,24 +11,41 @@ pub enum AudioFormat {
     Wav
 }
 
-pub fn sorted_and_annotated_for_download(download_formats: &Vec<AudioFormat>) -> Vec<(AudioFormat, Option<String>)> {
-    download_formats.clone().sort_by(|a, b| a.download_rank().cmp(&b.download_rank()));
+/// Returns a tuple with ...
+/// - .0 => Primary audio format and whether it is recommended
+/// - .1 => Audio formats sorted by relevance for a non-expert listener, the recommended one marked as such 
+/// Careful this does not support being called with an empty list of formats.
+pub fn prioritized_for_download(
+    download_formats: &Vec<AudioFormat>
+) -> ((AudioFormat, bool), Vec<(AudioFormat, bool)>) {
+    let mut sorted_formats = download_formats.clone();
     
+    sorted_formats.sort_by(|a, b| a.download_rank().cmp(&b.download_rank()));
+    
+    let mut recommended_format = None;
     let mut recommendation_given = false;
-    
-    download_formats
+    let prioritized_formats: Vec<(AudioFormat, bool)> = sorted_formats
         .iter()
         .map(|format| {
-            let annotation = if !recommendation_given && format.recommended_download() {
+            if !recommendation_given && format.recommended_download() {
+                recommended_format = Some(*format);
                 recommendation_given = true;
-                Some(String::from(" - Recommended Format"))
+                (*format, true)
             } else {
-                None
-            };
-            
-            (*format, annotation)
+                (*format, false)
+            }
         })
-        .collect()
+        .collect();
+
+    let primary_format = match recommended_format {
+        Some(format) => (format, true),
+        None => *prioritized_formats.first().unwrap()
+    };
+
+    (
+        primary_format,
+        prioritized_formats
+    )
 }
 
 impl AudioFormat {
@@ -43,8 +60,24 @@ impl AudioFormat {
         AudioFormat::Opus128Kbps,
         AudioFormat::Wav
     ];
+    pub const DEFAULT_DOWNLOAD_FORMAT: AudioFormat = AudioFormat::Opus128Kbps;
     pub const FRUGAL_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus48Kbps;
     pub const STANDARD_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus96Kbps;
+
+    /// A one-liner describing the format for someone unfamiliar with audio formats
+    pub fn description(&self) -> &str {
+        match self {
+            AudioFormat::Aac => "Average encoding quality – appropriate if your player does not support better formats",
+            AudioFormat::Aiff => "Uncompressed large files – appropriate only for audio production",
+            AudioFormat::Flac => "Lossless and compressed – best choice for archival",
+            AudioFormat::Mp3VbrV0 => "Inferior encoding quality – appropriate if compatibility with older devices is needed",
+            AudioFormat::OggVorbis => "Average encoding quality – appropriate if your player does not support better formats",
+            AudioFormat::Opus48Kbps => "State-of-the-art encoding quality at 48Kbps – best choice for high-demand streaming",
+            AudioFormat::Opus96Kbps => "State-of-the-art encoding quality at 96Kbps – best choice for streaming",
+            AudioFormat::Opus128Kbps => "State-of-the-art encoding quality at 128Kbps – best choice for offline listening",
+            AudioFormat::Wav => "Uncompressed large files – appropriate only for audio production"
+        }
+    }
 
     pub fn download_rank(&self) -> u8 {
         match self {
@@ -120,17 +153,17 @@ impl AudioFormat {
         }
     }
     
-    // A more verbose, user-facing description (e.g. for a download button)
+    /// A more verbose, user-facing description (e.g. for a download button)
     pub fn user_label(&self) -> &str {
         match self {
             AudioFormat::Aac => "AAC",
             AudioFormat::Aiff => "AIFF",
             AudioFormat::Flac => "FLAC",
-            AudioFormat::Mp3VbrV0 => "MP3 (VBR/V0)",
+            AudioFormat::Mp3VbrV0 => "MP3",
             AudioFormat::OggVorbis => "Ogg Vorbis",
-            AudioFormat::Opus48Kbps => "Opus (48Kbps)",
-            AudioFormat::Opus96Kbps => "Opus (96Kbps)",
-            AudioFormat::Opus128Kbps => "Opus (128Kbps)",
+            AudioFormat::Opus48Kbps => "Opus 48Kbps",
+            AudioFormat::Opus96Kbps => "Opus 96Kbps",
+            AudioFormat::Opus128Kbps => "Opus 128Kbps",
             AudioFormat::Wav => "WAV"
         }
     }

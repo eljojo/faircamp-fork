@@ -41,8 +41,8 @@ pub struct LocalOptions {
 
 #[derive(Clone)]
 pub struct Overrides {
-    pub download_option: DownloadOption,
     pub download_formats: Vec<AudioFormat>,
+    pub download_option: DownloadOption,
     pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
@@ -66,10 +66,10 @@ impl LocalOptions {
 impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
+            download_formats: vec![AudioFormat::DEFAULT_DOWNLOAD_FORMAT],
             download_option: DownloadOption::Disabled,
-            download_formats: Vec::with_capacity(5),  // assuming e.g. Opus 128 + Opus 96 + MP3 + AAC + FLAC as a reasonably frequent choice
             embedding: true,
-            payment_options: Vec::with_capacity(5),   // assuming e.g. Liberapay + Patreon + PayPal + SEPA + Custom option as a reasonable complex assumption
+            payment_options: Vec::new(),
             release_artists: None,
             release_cover: None,
             release_text: None,

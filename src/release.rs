@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use sanitize_filename::sanitize;
 use serde_derive::{Serialize, Deserialize};
 use std::{
     cell::RefCell,
@@ -189,7 +190,24 @@ impl Release {
                 let cached_format = self.cached_assets.get_mut(*format);
 
                 if cached_format.is_none() {
-                    let target_filename = format!("{}.zip", util::uid());
+                    let artists = if self.artists.is_empty() {
+                        format!("")
+                    } else {
+                        let list = self.artists
+                            .iter()
+                            .map(|artist| sanitize(&artist.borrow().name))
+                            .collect::<Vec<String>>()
+                            .join(", ");
+
+                        format!("{} - ", list)
+                    };
+
+                    let target_filename = format!(
+                        "{artists}{title} ({format_label}).zip",
+                        artists = artists,
+                        format_label = format.user_label(),
+                        title = sanitize(&self.title)
+                    );
 
                     info_zipping!("Creating download archives for release '{}' ({})", self.title, &format);
 
@@ -236,13 +254,13 @@ impl Release {
                             "{track_number:02} {artists}{separator}{title}{extension}",
                             artists=track.artists
                                 .iter()
-                                .map(|artist| artist.borrow().name.clone())
+                                .map(|artist| sanitize(&artist.borrow().name))
                                 .collect::<Vec<String>>()
                                 .join(", "),
                             extension=format.extension(),
                             separator=if track.artists.is_empty() { "" } else { " - " },
                             track_number=index + 1,
-                            title=track.title
+                            title=sanitize(&track.title)
                         );
 
                         if let Some(tag_mapping) = &mut tag_mapping_option {
@@ -261,9 +279,18 @@ impl Release {
                         let download_track_asset = track.get_or_transcode_as(
                             *format,
                             build,
-                            AssetIntent::Intermediate,
+                            AssetIntent::Deliverable,
                             &tag_mapping_option
                         );
+
+                        // TODO: Track might already have been copied (?) (if streaming format is identical)
+                        fs::copy(
+                            build.cache_dir.join(&download_track_asset.filename),
+                            build.build_dir.join(&download_track_asset.filename)
+                        ).unwrap();
+
+                        // TODO: Track might already have been added (?) (if streaming format is identical)
+                        build.stats.add_track(download_track_asset.filesize_bytes);
 
                         zip_writer.start_file(&filename, options).unwrap();
 
