@@ -174,11 +174,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
             <div class="additional" id="more">
                 <div class="center_release">
-                    <!-- TODO: This one needs to be conditional depending on download/buy option-->
-                    <!-- div>
-                        <a href="#download_buy_todo">$</a>
-                    </div -->
-
                     <div>
                         {release_text}
                     </div>

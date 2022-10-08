@@ -54,7 +54,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         .map(|(index, (format, recommended))|
             formatdoc!(
                 r#"
-                    <div class="format_hint">
+                    <div class="format_hint small_type">
                         <sup>{number}</sup> {label}: {description}{recommendation}
                     </div>
                 "#,
@@ -112,7 +112,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             <div class="center">
                 {cover}
 
-                <h1>Download {title}</h1>
+                <h1>{title}</h1>
                 <div>{artists}</div>
 
                 <br><br>
@@ -120,9 +120,11 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <a class="download_button" 
                    download
                    href="{root_prefix}{primary_download_filename}">
-                    <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
-                    Download Entire Release<br>
-                    {primary_download_format}{primary_download_format_recommendation}
+                    <img alt="Download" class="download_icon" src="{root_prefix}download_inverted.svg">
+                    <div>
+                        <span class="large_type">Download Entire Release</span><br>
+                        <span class="small_type">{primary_download_format}{primary_download_format_recommendation}</span>
+                    </div>
                 </a>
 
                 <br><br>
@@ -150,7 +152,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
         primary_download_filename = release.cached_assets.get(primary_format.0).as_ref().unwrap().filename,
         primary_download_format = primary_format.0.user_label(),
-        primary_download_format_recommendation = if primary_format.1 { " (Reommended Format)" } else { "" },
+        primary_download_format_recommendation = if primary_format.1 { " (Recommended Format)" } else { "" },
         release_download_columns = release_download_columns,
         root_prefix = root_prefix,
         title = html_escape_outside_attribute(&release.title),
