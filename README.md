@@ -389,6 +389,12 @@ With its default settings, faircamp will create a `.faircamp_build` and a `.fair
 
 Run `faircamp -h` to get some help on command line options (there are a few already).
 
+If you tried out previous versions of faircamp before and find that running an
+updated version crashes when you tried to re-build a previously built site, this
+is most likely due to incompatible cache data - simply delete the `.faircamp_cache`
+folder and try again. If the problem persists do open an issue, I'm happy to figure
+it out together with you and improve stability for all users.
+
 To get faircamp off your system again, simply run:
 
 ```bash
