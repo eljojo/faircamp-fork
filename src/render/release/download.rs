@@ -33,8 +33,14 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_download_columns = sorted_formats
         .iter()
         .map(|(format, _recommended)|
-            format!(
-                r#"<td><a download href="{root_prefix}{filename}">⭳</a></td>"#,
+            formatdoc!(
+                r#"
+                    <td>
+                        <a download href="{root_prefix}{filename}">
+                            <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
+                        </a>
+                    </td>
+                "#,
                 filename = release.cached_assets.get(*format).as_ref().unwrap().filename,
                 root_prefix = root_prefix
             )
@@ -68,8 +74,14 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             let track_download_columns = sorted_formats
                 .iter()
                 .map(|(format, _annotation)|
-                    format!(
-                        r#"<td><a download href="{root_prefix}{filename}">⭳</a></td>"#,
+                    formatdoc!(
+                        r#"
+                            <td>
+                                <a download href="{root_prefix}{filename}">
+                                    <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
+                                </a>
+                            </td>
+                        "#,
                         filename = track.cached_assets.get(*format).as_ref().unwrap().filename,
                         root_prefix = root_prefix
                     )
@@ -105,10 +117,10 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 <br><br>
 
-                <!-- TODO: Download icon on button -->
                 <a class="download_button" 
                    download
                    href="{root_prefix}{primary_download_filename}">
+                    <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
                     Download Entire Release<br>
                     {primary_download_format}{primary_download_format_recommendation}
                 </a>

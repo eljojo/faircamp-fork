@@ -103,6 +103,13 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: inline-block;
     padding: .8rem;
 }
+.download_button:hover {
+    color: hsl(var(--background-h), var(--background-s), var(--background-l));
+    opacity: .8;
+}
+.download_icon {
+    width: 1rem;
+}
 .download_option {
     max-width: 14rem;
     overflow-x: hidden;
@@ -111,9 +118,14 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.download_options td { text-align: center; }
+.download_options {
+    border-spacing: 0rem .5rem;
+}
+.download_options td {
+    display: flex;
+    justify-content: center;
+}
 .download_options th { vertical-align: top; }
-.download_options th:not(:first-child) { padding-left: .8rem; }
 .duration {
     color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);
     margin-left: .2rem;
