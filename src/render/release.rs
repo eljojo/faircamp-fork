@@ -210,10 +210,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 }
 
 fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -> String {
-    let step = 1;
+    let step = (MAX_TRACK_DURATION_WIDTH_EM / track_duration_width_rem).floor() as usize;
 
     if let Some(peaks) = &track.cached_assets.source_meta.peaks {
-        let num_peaks = peaks.len();
+        let num_peaks = peaks.len() / step;
         let step_width = track_duration_width_rem / num_peaks as f32;
 
         let mut enumerate_peaks = peaks.iter().step_by(step).enumerate();

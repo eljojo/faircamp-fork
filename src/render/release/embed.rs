@@ -6,7 +6,8 @@ use crate::{
     Catalog,
     ImageFormat,
     Release,
-    render::{image, layout, list_artists, play_icon, release::waveform},
+    render::{image, layout, list_artists, play_icon},
+    render::release::{MAX_TRACK_DURATION_WIDTH_EM, waveform},
     Track,
     util::{format_time, html_escape_outside_attribute},
     WritingDirection
@@ -95,7 +96,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         .enumerate()
         .map(|(index, track)| {
             let track_duration_width_rem = if longest_track_duration > 0 {
-                36.0 * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
+                MAX_TRACK_DURATION_WIDTH_EM * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
             } else {
                 0.0
             };
@@ -184,7 +185,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
     let root_prefix = "../../../";
 
     let track_duration = track.cached_assets.source_meta.duration_seconds;
-    let track_duration_width_rem = if track_duration > 0 { 36.0 } else { 0.0 };
+    let track_duration_width_rem = if track_duration > 0 { MAX_TRACK_DURATION_WIDTH_EM } else { 0.0 };
 
     let track_rendered = formatdoc!(
         r#"
