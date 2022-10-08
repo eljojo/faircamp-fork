@@ -184,163 +184,177 @@ impl Release {
         }
     }
 
-    pub fn write_download_archives(&mut self, build: &mut Build) {
-        if self.download_option != DownloadOption::Disabled {
-            for format in &self.download_formats {
-                let cached_format = self.cached_assets.get_mut(*format);
+    pub fn write_downloadable_files(&mut self, build: &mut Build) {
+        let mut tag_mapping_option = if self.rewrite_tags {
+            Some(TagMapping {
+                album: Some(self.title.clone()),
+                album_artist: if self.artists.is_empty() {
+                    None
+                } else {
+                    Some(
+                        self.artists
+                        .iter()
+                        .map(|artist| artist.borrow().name.clone())
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                    )
+                },
+                artist: None,
+                title: None,
+            })
+        } else {
+            None
+        };
 
-                if cached_format.is_none() {
-                    let artists = if self.artists.is_empty() {
-                        format!("")
-                    } else {
-                        let list = self.artists
+        for format in &self.download_formats {
+            for track in self.tracks.iter_mut() {
+                let cached_track_asset = track.cached_assets.get_mut(*format);
+
+                if cached_track_asset.is_none() {
+                    if format.lossless() && !track.cached_assets.source_meta.lossless {
+                        warn_discouraged!(
+                            "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
+                            &track.source_file.display()
+                        );
+                    }
+
+                    if let Some(tag_mapping) = &mut tag_mapping_option {
+                        tag_mapping.artist = if track.artists.is_empty() {
+                            None
+                        } else {
+                             Some(
+                                track.artists
+                                .iter()
+                                .map(|artist| artist.borrow().name.clone())
+                                .collect::<Vec<String>>()
+                                .join(", ")
+                            )
+                        };
+                        tag_mapping.title = Some(track.title.clone());
+                    }
+
+                    track.get_or_transcode_as(
+                        *format,
+                        build,
+                        AssetIntent::Deliverable,
+                        &tag_mapping_option
+                    );
+
+                    track.cached_assets.persist(&build.cache_dir);
+                }
+
+                let download_track_asset = track.cached_assets.get_mut(*format).as_mut().unwrap();
+
+                download_track_asset.unmark_stale();
+
+                // TODO: Track might already have been copied (?) (if streaming format is identical)
+                fs::copy(
+                    build.cache_dir.join(&download_track_asset.filename),
+                    build.build_dir.join(&download_track_asset.filename)
+                ).unwrap();
+
+                // TODO: Track might already have been added (?) (if streaming format is identical)
+                build.stats.add_track(download_track_asset.filesize_bytes);
+            }
+
+            let cached_archive_asset = self.cached_assets.get_mut(*format);
+
+            if cached_archive_asset.is_none() {
+                let artists = if self.artists.is_empty() {
+                    format!("")
+                } else {
+                    let list = self.artists
+                        .iter()
+                        .map(|artist| sanitize(&artist.borrow().name))
+                        .collect::<Vec<String>>()
+                        .join(", ");
+
+                    format!("{} - ", list)
+                };
+
+                let target_filename = format!(
+                    "{artists}{title} ({format_label}).zip",
+                    artists = artists,
+                    format_label = format.user_label(),
+                    title = sanitize(&self.title)
+                );
+
+                info_zipping!("Creating download archive for release '{}' ({})", self.title, &format);
+
+                let zip_file = File::create(
+                    build.cache_dir.join(&target_filename)
+                ).unwrap();
+                let mut zip_writer = ZipWriter::new(zip_file);
+                let options = FileOptions::default()
+                    .compression_method(CompressionMethod::Deflated)
+                    .unix_permissions(0o755);
+
+                let mut buffer = Vec::new();
+
+                for (index, track) in self.tracks.iter_mut().enumerate() {
+                    let filename = format!(
+                        "{track_number:02} {artists}{separator}{title}{extension}",
+                        artists=track.artists
                             .iter()
                             .map(|artist| sanitize(&artist.borrow().name))
                             .collect::<Vec<String>>()
-                            .join(", ");
-
-                        format!("{} - ", list)
-                    };
-
-                    let target_filename = format!(
-                        "{artists}{title} ({format_label}).zip",
-                        artists = artists,
-                        format_label = format.user_label(),
-                        title = sanitize(&self.title)
+                            .join(", "),
+                        extension=format.extension(),
+                        separator=if track.artists.is_empty() { "" } else { " - " },
+                        track_number=index + 1,
+                        title=sanitize(&track.title)
                     );
 
-                    info_zipping!("Creating download archives for release '{}' ({})", self.title, &format);
+                    let download_track_asset = track.get_as(*format).as_ref().unwrap();
 
-                    let zip_file = File::create(
-                        build.cache_dir.join(&target_filename)
+                    zip_writer.start_file(&filename, options).unwrap();
+
+                    let mut zip_inner_file = File::open(
+                        &build.cache_dir.join(&download_track_asset.filename)
                     ).unwrap();
-                    let mut zip_writer = ZipWriter::new(zip_file);
-                    let options = FileOptions::default()
-                        .compression_method(CompressionMethod::Deflated)
-                        .unix_permissions(0o755);
 
-                    let mut buffer = Vec::new();
+                    zip_inner_file.read_to_end(&mut buffer).unwrap();
+                    zip_writer.write_all(&*buffer).unwrap();
+                    buffer.clear();
 
-                    let mut tag_mapping_option = if self.rewrite_tags {
-                        Some(TagMapping {
-                            album: Some(self.title.clone()),
-                            album_artist: if self.artists.is_empty() {
-                                None
-                            } else {
-                                Some(
-                                    self.artists
-                                    .iter()
-                                    .map(|artist| artist.borrow().name.clone())
-                                    .collect::<Vec<String>>()
-                                    .join(", ")
-                                )
-                            },
-                            artist: None,
-                            title: None,
-                        })
-                    } else {
-                        None
-                    };
-
-                    for (index, track) in self.tracks.iter_mut().enumerate() {
-                        if format.lossless() && !track.cached_assets.source_meta.lossless {
-                            warn_discouraged!(
-                                "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
-                                &track.source_file.display()
-                            );
-                        }
-
-                        let filename = format!(
-                            "{track_number:02} {artists}{separator}{title}{extension}",
-                            artists=track.artists
-                                .iter()
-                                .map(|artist| sanitize(&artist.borrow().name))
-                                .collect::<Vec<String>>()
-                                .join(", "),
-                            extension=format.extension(),
-                            separator=if track.artists.is_empty() { "" } else { " - " },
-                            track_number=index + 1,
-                            title=sanitize(&track.title)
-                        );
-
-                        if let Some(tag_mapping) = &mut tag_mapping_option {
-                            if !track.artists.is_empty() {
-                                tag_mapping.artist = Some(
-                                    track.artists
-                                    .iter()
-                                    .map(|artist| artist.borrow().name.clone())
-                                    .collect::<Vec<String>>()
-                                    .join(", ")
-                                );
-                            }
-                            tag_mapping.title = Some(track.title.clone());
-                        }
-
-                        let download_track_asset = track.get_or_transcode_as(
-                            *format,
-                            build,
-                            AssetIntent::Deliverable,
-                            &tag_mapping_option
-                        );
-
-                        // TODO: Track might already have been copied (?) (if streaming format is identical)
-                        fs::copy(
-                            build.cache_dir.join(&download_track_asset.filename),
-                            build.build_dir.join(&download_track_asset.filename)
-                        ).unwrap();
-
-                        // TODO: Track might already have been added (?) (if streaming format is identical)
-                        build.stats.add_track(download_track_asset.filesize_bytes);
-
-                        zip_writer.start_file(&filename, options).unwrap();
-
-                        let mut zip_inner_file = File::open(
-                            &build.cache_dir.join(&download_track_asset.filename)
-                        ).unwrap();
-
-                        zip_inner_file.read_to_end(&mut buffer).unwrap();
-                        zip_writer.write_all(&*buffer).unwrap();
-                        buffer.clear();
-
-                        track.cached_assets.persist(&build.cache_dir);
-                    }
-
-                    if let Some(cover) = &mut self.cover {
-                        let mut cover_mut = cover.borrow_mut();
-                        let cover_asset = cover_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Intermediate);
-
-                        zip_writer.start_file("cover.jpg", options).unwrap();
-
-                        let mut zip_inner_file = File::open(
-                            &build.cache_dir.join(&cover_asset.filename)
-                        ).unwrap();
-
-                        zip_inner_file.read_to_end(&mut buffer).unwrap();
-                        zip_writer.write_all(&*buffer).unwrap();
-                        buffer.clear();
-
-                        cover_mut.cached_assets.persist(&build.cache_dir);
-                    }
-
-                    match zip_writer.finish() {
-                        Ok(_) => cached_format.replace(Asset::new(build, target_filename, AssetIntent::Deliverable)),
-                        Err(err) => panic!("{}", err)
-                    };
+                    track.cached_assets.persist(&build.cache_dir);
                 }
 
-                let download_archive_asset = cached_format.as_mut().unwrap();
+                if let Some(cover) = &mut self.cover {
+                    let mut cover_mut = cover.borrow_mut();
+                    let cover_asset = cover_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Intermediate);
 
-                download_archive_asset.unmark_stale();
+                    zip_writer.start_file("cover.jpg", options).unwrap();
 
-                fs::copy(
-                    build.cache_dir.join(&download_archive_asset.filename),
-                    build.build_dir.join(&download_archive_asset.filename)
-                ).unwrap();
+                    let mut zip_inner_file = File::open(
+                        &build.cache_dir.join(&cover_asset.filename)
+                    ).unwrap();
 
-                build.stats.add_archive(download_archive_asset.filesize_bytes);
+                    zip_inner_file.read_to_end(&mut buffer).unwrap();
+                    zip_writer.write_all(&*buffer).unwrap();
+                    buffer.clear();
 
-                self.cached_assets.persist(&build.cache_dir);
+                    cover_mut.cached_assets.persist(&build.cache_dir);
+                }
+
+                match zip_writer.finish() {
+                    Ok(_) => cached_archive_asset.replace(Asset::new(build, target_filename, AssetIntent::Deliverable)),
+                    Err(err) => panic!("{}", err)
+                };
             }
+
+            let download_archive_asset = cached_archive_asset.as_mut().unwrap();
+
+            download_archive_asset.unmark_stale();
+
+            fs::copy(
+                build.cache_dir.join(&download_archive_asset.filename),
+                build.build_dir.join(&download_archive_asset.filename)
+            ).unwrap();
+
+            build.stats.add_archive(download_archive_asset.filesize_bytes);
+
+            self.cached_assets.persist(&build.cache_dir);
         }
     }
 

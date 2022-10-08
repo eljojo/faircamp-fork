@@ -13,6 +13,7 @@ use crate::{
     Build,
     CacheManifest,
     CachedTrackAssets,
+    DownloadOption,
     Image,
     ImageFormat,
     manifest::{LocalOptions, Overrides},
@@ -682,15 +683,17 @@ impl Catalog {
 
             for track in release_mut.tracks.iter_mut() {
                 if let Some(tag_mapping) = &mut tag_mapping_option {
-                     if !track.artists.is_empty() {
-                        tag_mapping.artist = Some(
+                    tag_mapping.artist = if track.artists.is_empty() {
+                        None
+                    } else {
+                        Some(
                             track.artists
                             .iter()
                             .map(|artist| artist.borrow().name.clone())
                             .collect::<Vec<String>>()
                             .join(", ")
-                        );
-                    }
+                        )
+                    };
                     tag_mapping.title = Some(track.title.clone());
                 }
 
@@ -711,7 +714,9 @@ impl Catalog {
                 track.cached_assets.persist(&build.cache_dir);
             }
 
-            release_mut.write_download_archives(build);
+            if release_mut.download_option != DownloadOption::Disabled {
+                release_mut.write_downloadable_files(build);
+            }
         }
     }
 }
