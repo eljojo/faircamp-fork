@@ -5,7 +5,7 @@ use crate::{
     Build,
     Catalog,
     ImageFormat,
-    render::{image, layout, releases},
+    render::{artist_image, layout, releases},
     util::html_escape_outside_attribute
 };
 
@@ -45,7 +45,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                 </div>
             </div>
         "#,
-        artist_image = image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist, None),
+        artist_image = artist_image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist, None),
         artist_name = html_escape_outside_attribute(&artist.name),
         releases = releases(explicit_index, root_prefix, &catalog, &artist.releases, false),
         text = text

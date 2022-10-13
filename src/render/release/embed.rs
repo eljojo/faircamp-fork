@@ -4,9 +4,8 @@ use url::Url;
 use crate::{
     Build,
     Catalog,
-    ImageFormat,
     Release,
-    render::{image, layout, list_artists, play_icon},
+    render::{cover_image, layout, list_artists, play_icon},
     render::release::{MAX_TRACK_DURATION_WIDTH_EM, waveform},
     Track,
     util::{format_time, html_escape_outside_attribute},
@@ -18,11 +17,7 @@ use crate::{
 /// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
 fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T, title: &str) -> String {
     format!(
-        r#"<textarea class="embed_code" onfocus="this.select()" readonly="true">&lt;iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title}"&gt;&lt;/iframe&gt;</textarea>"#,
-        base_url = base_url,
-        permalink_slug = permalink_slug,
-        postfix = postfix,
-        title = title
+        r#"<textarea class="embed_code" onfocus="this.select()" readonly="true">&lt;iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title}"&gt;&lt;/iframe&gt;</textarea>"#
     )
 }
 
@@ -44,12 +39,16 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                     </div>
                 "#,
                 embed_code = embed_code(base_url, &release.permalink.slug, track_number, "Audio player widget for one track"),
-                track_number = track_number,
                 track_title = html_escape_outside_attribute(&track.title)
             )
         })
         .collect::<Vec<String>>()
         .join("<br><br>\n");
+
+    let release_prefix = format!(
+        "{root_prefix}{permalink}/",
+        permalink = release.permalink.slug
+    );
 
     let body = formatdoc!(
         r##"
@@ -72,10 +71,9 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
+        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
         embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release"),
-        release_title = html_escape_outside_attribute(&release.title),
-        track_choices_rendered = track_choices_rendered
+        release_title = html_escape_outside_attribute(&release.title)
     );
 
     layout(root_prefix, &body, build, catalog, &release.title, None)
@@ -116,7 +114,6 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                     </div>
                 "#,
                 track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
-                track_number = track_number,
                 track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track, track_number, track_duration_width_rem)
@@ -124,6 +121,11 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         })
         .collect::<Vec<String>>()
         .join("\n");
+
+    let release_prefix = format!(
+        "{root_prefix}{permalink}/",
+        permalink = release.permalink.slug
+    );
 
     let body = formatdoc!(
         r##"
@@ -152,13 +154,9 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        base_url = base_url,
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
-        explicit_index = explicit_index,
+        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
         play_icon = play_icon(root_prefix),
-        release_title = html_escape_outside_attribute(&release.title),
-        root_prefix = root_prefix,
-        tracks_rendered = tracks_rendered
+        release_title = html_escape_outside_attribute(&release.title)
     );
 
     embed_layout(root_prefix, &body, build, catalog, &release.title)
@@ -206,6 +204,11 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         waveform = waveform(track, track_number, track_duration_width_rem)
     );
 
+    let release_prefix = format!(
+        "{root_prefix}{permalink}/",
+        permalink = release.permalink.slug
+    );
+
     let body = formatdoc!(
         r##"
             <div class="center_unconstrained">
@@ -233,13 +236,9 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        base_url = base_url,
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
-        explicit_index = explicit_index,
+        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
         play_icon = play_icon(root_prefix),
-        release_title = html_escape_outside_attribute(&release.title),
-        root_prefix = root_prefix,
-        track_rendered = track_rendered
+        release_title = html_escape_outside_attribute(&release.title)
     );
 
     embed_layout(root_prefix, &body, build, catalog, &release.title)

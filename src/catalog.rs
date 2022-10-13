@@ -1,3 +1,4 @@
+use sanitize_filename::sanitize;
 use std::{
     cell::RefCell,
     cmp::Ordering,
@@ -74,6 +75,58 @@ fn pick_best_cover_image(images: Vec<Rc<RefCell<Image>>>) -> Option<Rc<RefCell<I
 }
 
 impl Catalog {
+    /// Use the metadata we gathered for tracks and releases to compute
+    /// the folder and file names we are going to create in our build
+    /// directory.
+    pub fn compute_asset_basenames(&mut self) {
+        for release in &self.releases {
+            let mut release_mut = release.borrow_mut();
+
+            let release_artists = if release_mut.artists.is_empty() {
+                format!("")
+            } else {
+                let list = release_mut.artists
+                    .iter()
+                    .map(|artist| sanitize(&artist.borrow().name))
+                    .collect::<Vec<String>>()
+                    .join(", ");
+
+                format!("{} - ", list)
+            };
+
+            let download_basename = format!(
+                "{artists}{title}",
+                artists = release_artists,
+                title = sanitize(&release_mut.title)
+            );
+
+            release_mut.asset_basename = Some(download_basename);
+
+            for (index, track) in release_mut.tracks.iter_mut().enumerate() {
+                let track_artists = if track.artists.is_empty() {
+                    format!("")
+                } else {
+                    let list = track.artists
+                        .iter()
+                        .map(|artist| sanitize(&artist.borrow().name))
+                        .collect::<Vec<String>>()
+                        .join(", ");
+
+                    format!("{} - ", list)
+                };
+
+                let track_basename = format!(
+                    "{number:02} {artists}{title}",
+                    artists = track_artists,
+                    number = index + 1,
+                    title = sanitize(&track.title)
+                );
+
+                track.asset_basename = Some(track_basename);
+            }
+        }
+    }
+
     pub fn create_artist(&mut self, name: &str) -> Rc<RefCell<Artist>> {
         let artist = Rc::new(RefCell::new(Artist::new(name)));
         self.artists.push(artist.clone());
@@ -168,6 +221,8 @@ impl Catalog {
         }
         
         if !catalog.validate_permalinks() { return Err(()); }
+
+        catalog.compute_asset_basenames();
         
         Ok(catalog)
     }
@@ -601,7 +656,7 @@ impl Catalog {
             
             fs::copy(
                 build.cache_dir.join(&image_asset.filename),
-                build.build_dir.join(&image_asset.filename)
+                build.build_dir.join("background.jpg")
             ).unwrap();
             
             build.stats.add_image(image_asset.filesize_bytes);
@@ -615,7 +670,7 @@ impl Catalog {
             
             fs::copy(
                 build.cache_dir.join(&image_asset.filename),
-                build.build_dir.join(&image_asset.filename)
+                build.build_dir.join("feed.jpg")
             ).unwrap();
             
             build.stats.add_image(image_asset.filesize_bytes);
@@ -644,13 +699,22 @@ impl Catalog {
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
 
+            let release_dir = build.build_dir.join(&release_mut.permalink.slug);
+
+            util::ensure_dir(&release_dir);
+
             if let Some(image) = &mut release_mut.cover {
                 let mut image_mut = image.borrow_mut();
                 let image_asset = image_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Deliverable);
                 
+                let cover_filename = format!(
+                    "cover{extension}",
+                    extension = ImageFormat::Cover.extension()
+                );
+
                 fs::copy(
                     build.cache_dir.join(&image_asset.filename),
-                    build.build_dir.join(&image_asset.filename)
+                    release_dir.join(cover_filename)
                 ).unwrap();
                 
                 build.stats.add_image(image_asset.filesize_bytes);
@@ -681,6 +745,12 @@ impl Catalog {
                 None
             };
 
+            let streaming_format_dir = build.build_dir
+                .join(&release_mut.permalink.slug)
+                .join(streaming_format.asset_dirname());
+
+            util::ensure_dir(&streaming_format_dir);
+
             for track in release_mut.tracks.iter_mut() {
                 if let Some(tag_mapping) = &mut tag_mapping_option {
                     tag_mapping.artist = if track.artists.is_empty() {
@@ -697,6 +767,12 @@ impl Catalog {
                     tag_mapping.title = Some(track.title.clone());
                 }
 
+                let track_filename = format!(
+                    "{basename}{extension}",
+                    basename = track.asset_basename.as_ref().unwrap(),
+                    extension = streaming_format.extension()
+                );
+
                 let streaming_asset = track.get_or_transcode_as(
                     streaming_format,
                     build,
@@ -706,7 +782,7 @@ impl Catalog {
 
                 fs::copy(
                     build.cache_dir.join(&streaming_asset.filename),
-                    build.build_dir.join(&streaming_asset.filename)
+                    streaming_format_dir.join(track_filename)
                 ).unwrap();
                 
                 build.stats.add_track(streaming_asset.filesize_bytes);

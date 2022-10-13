@@ -4,9 +4,8 @@ use crate::{
     Build,
     Catalog,
     DownloadOption,
-    ImageFormat,
     Release,
-    render::{image, layout, list_artists, play_icon},
+    render::{cover_image, layout, list_artists, play_icon},
     Track,
     util::{format_time, html_escape_outside_attribute}
 };
@@ -132,15 +131,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         <span class="track_number">{track_number}</span>
                         <a class="track_title">{track_title} <span class="duration"><span class="track_time"></span>{duration}</span></a>
                         <br>
-                        <audio controls preload="metadata" src="{root_prefix}{track_src}"></audio>
+                        <audio controls preload="metadata" src="{streaming_format_dir}/{basename}{streaming_format_extension}"></audio>
                         {waveform}
                     </div>
                 "#,
+                basename = track.asset_basename.as_ref().unwrap(),
                 play_icon = play_icon(root_prefix),
-                root_prefix = root_prefix,
                 duration = format_time(track.cached_assets.source_meta.duration_seconds),
+                streaming_format_dir = release.streaming_format.asset_dirname(),
+                streaming_format_extension = release.streaming_format.extension(),
                 track_number = release.track_numbering.format(track_number),
-                track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
                 track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track, track_number, track_duration_width_rem)
             )
@@ -189,7 +189,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
+        cover = cover_image(explicit_index, "", root_prefix, &release.cover, None),
         download_option_rendered = download_option_rendered,
         embed_widget = embed_widget,
         play_icon = play_icon(root_prefix),

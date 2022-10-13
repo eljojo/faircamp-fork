@@ -4,9 +4,8 @@ use crate::{
     audio_format::prioritized_for_download,
     Build,
     Catalog,
-    ImageFormat,
     Release,
-    render::{image, layout, list_artists},
+    render::{cover_image, layout, list_artists},
     util::html_escape_outside_attribute
 };
 
@@ -36,13 +35,14 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             formatdoc!(
                 r#"
                     <td>
-                        <a download href="{root_prefix}{filename}">
+                        <a download href="{root_prefix}{permalink}/{format}/{basename}.zip">
                             <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
                         </a>
                     </td>
                 "#,
-                filename = release.cached_assets.get(*format).as_ref().unwrap().filename,
-                root_prefix = root_prefix
+                basename = release.asset_basename.as_ref().unwrap(),
+                format = format.asset_dirname(),
+                permalink = &release.permalink.slug
             )
         )
         .collect::<Vec<String>>()
@@ -77,13 +77,15 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     formatdoc!(
                         r#"
                             <td>
-                                <a download href="{root_prefix}{filename}">
+                                <a download href="{root_prefix}{slug}/{format}/{basename}{extension}">
                                     <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
                                 </a>
                             </td>
                         "#,
-                        filename = track.cached_assets.get(*format).as_ref().unwrap().filename,
-                        root_prefix = root_prefix
+                        basename = track.asset_basename.as_ref().unwrap(),
+                        extension = format.extension(),
+                        format = format.asset_dirname(),
+                        slug = &release.permalink.slug
                     )
                 )
                 .collect::<Vec<String>>()
@@ -100,12 +102,16 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     </tr>
                 "#,
                 number = release.track_numbering.format(index + 1),
-                title = html_escape_outside_attribute(&track.title),
-                track_download_columns = track_download_columns
+                title = html_escape_outside_attribute(&track.title)
             )
         })
         .collect::<Vec<String>>()
         .join("\n");
+
+    let release_prefix = format!(
+        "{root_prefix}{permalink}/",
+        permalink = release.permalink.slug
+    );
 
     let body = formatdoc!(
         r#"
@@ -119,7 +125,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 <a class="download_button" 
                    download
-                   href="{root_prefix}{primary_download_filename}">
+                   href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_basename}.zip">
                     <img alt="Download" class="download_icon" src="{root_prefix}download_inverted.svg">
                     <div>
                         <span class="large_type">Download Entire Release</span><br>
@@ -149,14 +155,13 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
-        primary_download_filename = release.cached_assets.get(primary_format.0).as_ref().unwrap().filename,
+        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
+        primary_download_basename = release.asset_basename.as_ref().unwrap(),
         primary_download_format = primary_format.0.user_label(),
+        primary_download_format_dirname = primary_format.0.asset_dirname(),
         primary_download_format_recommendation = if primary_format.1 { " (Recommended Format)" } else { "" },
-        release_download_columns = release_download_columns,
-        root_prefix = root_prefix,
-        title = html_escape_outside_attribute(&release.title),
-        track_download_rows = track_download_rows
+        permalink = &release.permalink.slug,
+        title = html_escape_outside_attribute(&release.title)
     );
 
     layout(root_prefix, &body, build, catalog, &release.title, None)

@@ -3,10 +3,9 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    ImageFormat,
     PaymentOption,
     Release,
-    render::{image, layout, list_artists},
+    render::{cover_image, layout, list_artists},
     util::html_escape_outside_attribute
 };
 
@@ -53,6 +52,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         .collect::<Vec<String>>()
         .join("\n");
 
+    let release_prefix = format!(
+        "{root_prefix}{permalink}/",
+        permalink = release.permalink.slug
+    );
+
     let body = formatdoc!(
         r#"
             {cover}
@@ -64,7 +68,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         "#,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         payment_options = payment_options,
-        cover = image(explicit_index, root_prefix, &release.cover, ImageFormat::Cover, None),
+        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
         title = html_escape_outside_attribute(&release.title)
     );
 

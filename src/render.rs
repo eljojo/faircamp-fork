@@ -25,7 +25,7 @@ fn play_icon(root_prefix: &str) -> String {
     )
 }
 
-fn image(
+fn artist_image(
     explicit_index: &str,
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>,
@@ -79,6 +79,55 @@ fn image(
             }
         },
         None => String::from(r#"<div></div>"#)
+    }
+}
+
+fn cover_image(
+    explicit_index: &str,
+    release_prefix: &str,
+    root_prefix: &str,
+    image: &Option<Rc<RefCell<Image>>>,
+    href_url: Option<&str>
+) -> String {
+    if image.is_none() { return format!("<div></div>"); }
+
+    let image_ref = image.as_ref().unwrap().borrow();
+
+    // Might need this real soon for getting multiple sizes:
+    // filename = image_ref.get_as(format).as_ref().unwrap().filename,
+
+    let src_url = format!("{release_prefix}cover.jpg");
+
+    let href_or_src_url = href_url.unwrap_or(&src_url);
+
+    if let Some(description) = &image_ref.description {
+        formatdoc!(
+            r#"
+                <a class="image" href="{href_or_src_url}">
+                    <img alt="{alt}" loading="lazy" src="{src_url}">
+                </a>
+            "#,
+            alt = html_escape_inside_attribute(description)
+        )
+    } else {
+        formatdoc!(
+            r#"
+                <div class="undescribed_wrapper">
+                    <div class="undescribed_corner_tag">
+                        <img src="{root_prefix}corner_tag.svg">
+                    </div>
+                    <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                        <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+                    </a>
+                    <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                        <span>Missing image description.<br>Click to learn more</span>
+                    </a>
+                    <a class="image" href="{href_or_src_url}">
+                        <img loading="lazy" src="{src_url}">
+                    </a>
+                </div>
+            "#
+        )
     }
 }
 
@@ -198,9 +247,7 @@ fn releases(
 
             let href = format!(
                 "{root_prefix}{permalink}{explicit_index}",
-                explicit_index = explicit_index,
-                permalink = release_ref.permalink.slug,
-                root_prefix = root_prefix
+                permalink = release_ref.permalink.slug
             );
 
             let artists = if show_artists {
@@ -211,6 +258,11 @@ fn releases(
             } else {
                 String::new()
             };
+
+            let release_prefix = format!(
+                "{root_prefix}{permalink}/",
+                permalink = release_ref.permalink.slug
+            );
 
             formatdoc!(
                 r#"
@@ -224,9 +276,7 @@ fn releases(
                         </div>
                     </div>
                 "#,
-                artists = artists,
-                cover = image(explicit_index, root_prefix, &release_ref.cover, ImageFormat::Cover, Some(&href)),
-                href = href,
+                cover = cover_image(explicit_index, &release_prefix, root_prefix, &release_ref.cover, Some(&href)),
                 title = html_escape_outside_attribute(&release_ref.title)
             )
         })

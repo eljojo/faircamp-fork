@@ -64,6 +64,22 @@ impl AudioFormat {
     pub const FRUGAL_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus48Kbps;
     pub const STANDARD_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus96Kbps;
 
+    /// Assets for each format are rendered into their own directory in order
+    /// to avoid filename collisions and this returns the dirname for a format.
+    pub fn asset_dirname(&self) -> &str {
+        match self {
+            AudioFormat::Aac => "aac",
+            AudioFormat::Aiff => "aiff",
+            AudioFormat::Flac => "flac",
+            AudioFormat::Mp3VbrV0 => "mp3",
+            AudioFormat::OggVorbis => "ogg",
+            AudioFormat::Opus48Kbps => "opus-48",
+            AudioFormat::Opus96Kbps => "opus-96",
+            AudioFormat::Opus128Kbps => "opus-128",
+            AudioFormat::Wav => "wav"
+        }
+    }
+
     /// A one-liner describing the format for someone unfamiliar with audio formats
     pub fn description(&self) -> &str {
         match self {
@@ -106,6 +122,7 @@ impl AudioFormat {
             AudioFormat::Wav => ".wav"
         }
     }
+
     pub fn from_manifest_key(key: &str) -> Option<AudioFormat> {
         match key {
             "aac" => Some(AudioFormat::Aac),

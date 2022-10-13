@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use sanitize_filename::sanitize;
 use serde_derive::{Serialize, Deserialize};
 use std::{
     cell::RefCell,
@@ -50,6 +49,9 @@ pub struct CachedReleaseAssets {
 pub struct Release {
     pub artists: Vec<Rc<RefCell<Artist>>>,
     pub artists_to_map: Vec<String>,
+    /// Generated when we gathered all artist and title metadata.
+    /// Used to compute the download asset filenames.
+    pub asset_basename: Option<String>,
     pub cached_assets: CachedReleaseAssets,
     pub cover: Option<Rc<RefCell<Image>>>,
     pub download_formats: Vec<AudioFormat>,
@@ -167,6 +169,7 @@ impl Release {
         Release {
             artists: Vec::new(),
             artists_to_map,
+            asset_basename: None,
             cached_assets,
             cover,
             download_formats: manifest_overrides.download_formats.clone(),
@@ -206,7 +209,13 @@ impl Release {
             None
         };
 
+        let release_dir = build.build_dir.join(&self.permalink.slug);
+
         for format in &self.download_formats {
+            let format_dir = release_dir.join(format.asset_dirname());
+
+            util::ensure_dir(&format_dir);
+
             for track in self.tracks.iter_mut() {
                 let cached_track_asset = track.cached_assets.get_mut(*format);
 
@@ -247,10 +256,16 @@ impl Release {
 
                 download_track_asset.unmark_stale();
 
+                let track_filename = format!(
+                    "{basename}{extension}",
+                    basename = track.asset_basename.as_ref().unwrap(),
+                    extension = format.extension()
+                );
+
                 // TODO: Track might already have been copied (?) (if streaming format is identical)
                 fs::copy(
                     build.cache_dir.join(&download_track_asset.filename),
-                    build.build_dir.join(&download_track_asset.filename)
+                    format_dir.join(track_filename)
                 ).unwrap();
 
                 // TODO: Track might already have been added (?) (if streaming format is identical)
@@ -258,31 +273,13 @@ impl Release {
             }
 
             let cached_archive_asset = self.cached_assets.get_mut(*format);
-
             if cached_archive_asset.is_none() {
-                let artists = if self.artists.is_empty() {
-                    format!("")
-                } else {
-                    let list = self.artists
-                        .iter()
-                        .map(|artist| sanitize(&artist.borrow().name))
-                        .collect::<Vec<String>>()
-                        .join(", ");
-
-                    format!("{} - ", list)
-                };
-
-                let target_filename = format!(
-                    "{artists}{title} ({format_label}).zip",
-                    artists = artists,
-                    format_label = format.user_label(),
-                    title = sanitize(&self.title)
-                );
+                let cached_archive_filename = format!("{}.zip", util::uid());
 
                 info_zipping!("Creating download archive for release '{}' ({})", self.title, &format);
 
                 let zip_file = File::create(
-                    build.cache_dir.join(&target_filename)
+                    build.cache_dir.join(&cached_archive_filename)
                 ).unwrap();
                 let mut zip_writer = ZipWriter::new(zip_file);
                 let options = FileOptions::default()
@@ -291,21 +288,14 @@ impl Release {
 
                 let mut buffer = Vec::new();
 
-                for (index, track) in self.tracks.iter_mut().enumerate() {
-                    let filename = format!(
-                        "{track_number:02} {artists}{separator}{title}{extension}",
-                        artists=track.artists
-                            .iter()
-                            .map(|artist| sanitize(&artist.borrow().name))
-                            .collect::<Vec<String>>()
-                            .join(", "),
-                        extension=format.extension(),
-                        separator=if track.artists.is_empty() { "" } else { " - " },
-                        track_number=index + 1,
-                        title=sanitize(&track.title)
-                    );
-
+                for track in self.tracks.iter_mut() {
                     let download_track_asset = track.get_as(*format).as_ref().unwrap();
+
+                    let filename = format!(
+                        "{basename}{extension}",
+                        basename = track.asset_basename.as_ref().unwrap(),
+                        extension = format.extension()
+                    );
 
                     zip_writer.start_file(&filename, options).unwrap();
 
@@ -338,7 +328,7 @@ impl Release {
                 }
 
                 match zip_writer.finish() {
-                    Ok(_) => cached_archive_asset.replace(Asset::new(build, target_filename, AssetIntent::Deliverable)),
+                    Ok(_) => cached_archive_asset.replace(Asset::new(build, cached_archive_filename, AssetIntent::Deliverable)),
                     Err(err) => panic!("{}", err)
                 };
             }
@@ -347,9 +337,14 @@ impl Release {
 
             download_archive_asset.unmark_stale();
 
+            let archive_filename = format!(
+                "{basename}.zip",
+                basename = self.asset_basename.as_ref().unwrap()
+            );
+
             fs::copy(
                 build.cache_dir.join(&download_archive_asset.filename),
-                build.build_dir.join(&download_archive_asset.filename)
+                format_dir.join(&archive_filename)
             ).unwrap();
 
             build.stats.add_archive(download_archive_asset.filesize_bytes);

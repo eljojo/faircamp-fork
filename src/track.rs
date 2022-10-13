@@ -44,6 +44,9 @@ pub struct Track {
     pub artists: Vec<Rc<RefCell<Artist>>>,
     /// Names/aliases that should be mapped to this track, coming from the audio file metadata or from manifest overrides. Only relevant as an intermediate step before actual mapping.
     pub artists_to_map: Vec<String>,
+    /// Generated when we gathered all artist and title metadata.
+    /// Used to compute the download/stream asset filenames.
+    pub asset_basename: Option<String>,
     pub cached_assets: CachedTrackAssets,
     pub source_file: PathBuf,
     pub title: String
@@ -164,6 +167,7 @@ impl Track {
         Track {
             artists: Vec::new(),
             artists_to_map,
+            asset_basename: None,
             cached_assets,
             source_file,
             title
