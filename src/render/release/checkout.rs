@@ -11,40 +11,36 @@ use crate::{
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, download_page_uid: &str) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
-    let root_prefix = "../../";
+    let root_prefix = "../../../";
 
     let payment_options = &release.payment_options
         .iter()
         .map(|option|
             match &option {
                 PaymentOption::Custom(message) => {
-                    format!(
+                    formatdoc!(
                         r#"
                             <div>
                                 <div>{message}</div>
-                                <a href="../../download/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
+                                <a href="{root_prefix}download/{permalink}/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
                             </div>
                         "#,
-                        download_page_uid=download_page_uid,
-                        explicit_index = explicit_index,
-                        message=message
+                        permalink = release.permalink.slug
                     )
                 },
                 PaymentOption::Liberapay(account_name) => {
                     let liberapay_url = format!("https://liberapay.com/{}", account_name);
 
-                    format!(
+                    formatdoc!(
                         r#"
                             <div>
                                 <div>
                                     Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a>
                                 </div>
-                                <a href="../../download/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
+                                <a href="{root_prefix}download/{permalink}/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
                             </div>
                         "#,
-                        download_page_uid=download_page_uid,
-                        explicit_index = explicit_index,
-                        liberapay_url=liberapay_url
+                        permalink = release.permalink.slug
                     )
                 }
             }

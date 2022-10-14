@@ -34,13 +34,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Free { download_page_uid } => formatdoc!(
             r#"
                 <div class="vpad">
-                    <a href="../download/{download_page_uid}{explicit_index}">Download</a>
+                    <a href="{root_prefix}download/{permalink}/{download_page_uid}{explicit_index}">Download</a>
                     <div>{formats_list}</div>
                 </div>
             "#,
-            download_page_uid = download_page_uid,
-            explicit_index = explicit_index,
-            formats_list = formats_list
+            permalink = release.permalink.slug
         ),
         DownloadOption::Paid { checkout_page_uid, currency, range, .. } => {
             let price_label = if range.end == f32::INFINITY {
@@ -81,14 +79,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="vpad">
-                        <a href="../checkout/{checkout_page_uid}{explicit_index}">Buy Release</a> {price_label}
+                        <a href="{root_prefix}checkout/{permalink}/{checkout_page_uid}{explicit_index}">Buy Release</a> {price_label}
                         <div>{formats_list}</div>
                     </div>
                 "#,
-                checkout_page_uid = checkout_page_uid,
-                explicit_index = explicit_index,
-                formats_list = formats_list,
-                price_label = price_label
+                permalink = release.permalink.slug
             )
         }
     };

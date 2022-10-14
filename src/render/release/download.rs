@@ -13,7 +13,7 @@ const DOWNLOAD_LABEL_SEPARATOR: &str = " <span style=\"font-size: .8rem\">_</spa
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
-    let root_prefix = "../../";
+    let root_prefix = "../../../";
 
     let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
 
