@@ -15,6 +15,17 @@ A catalog may have the following explicitly defined artists next to each other:
 This allows both "Alice" and "Bob" to exist and be assigned to a track with
 metadata storing an artist "Alice (feat. Bob)".
 
+## Hotlinking countermeasures – NOT YET IMPLEMENTED
+
+Faircamp does not generally try to obfuscate anything about the site/url
+hierarchy it generates - it would be technically pointless, and faircamp
+rather aims to provide a site that is highly serviceable and easy to study
+and understand on a technical level. However, if an artist or a label faces
+blatant cases of hotlinking, e.g. publicly circulating direct download urls
+to not-for-free releases, faircamp provides mechanisms for changing/rotating
+parts of the asset download urls with a new deployment, thereby rendering
+any already circulating hotlinks to downloads dysfunctional.
+
 ## Image descriptions are brought to the fore
 
 Barriers that the blind or weak-sighted face on the web are most often
