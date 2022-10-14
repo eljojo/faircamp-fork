@@ -1,4 +1,5 @@
 :root {
+    --color-background: hsl(var(--background-h), var(--background-s), var(--background-l));
     --color-cover: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
     --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
     --color-text: hsl(var(--text-h), var(--text-s), var(--text-l));
@@ -11,7 +12,7 @@ a {
 a:hover { color: hsl(var(--hue), var(--link-s), var(--link-hover-l)); }
 a * { pointer-events: none; }
 body {
-    background-color: hsl(var(--background-h), var(--background-s), var(--background-l));
+    background-color: var(--color-background);
     color: var(--color-text);
     margin: 0;
 }
@@ -101,34 +102,22 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .download_button {
     background-color: var(--color-text);
     border-radius: .2rem;
-    color: hsl(var(--background-h), var(--background-s), var(--background-l));
+    color: var(--color-background);
     display: inline-flex;
-    padding: .8rem;
-    padding-right: 1.2rem;
+    padding: .8rem 1.2rem .8rem 1rem;
 }
 .download_button:hover {
-    color: hsl(var(--background-h), var(--background-s), var(--background-l));
+    color: var(--color-background);
     opacity: .8;
 }
 .download_button .download_icon {
     margin-right: .8rem;
     width: 2rem;
 }
+.download_formats { margin-left: .1rem; }
 .download_icon { width: 1rem; }
-.download_option {
-    max-width: 14rem;
-    overflow-x: hidden;
-    position: relative;
-    text-align: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.download_options { border-spacing: 0rem .5rem; }
-.download_options td {
-    display: flex;
-    justify-content: center;
-}
-.download_options th { vertical-align: top; }
+.download_hints > *:not(:first-child) { margin-top: .8rem; }
+.download_options div { margin-bottom: .5rem; }
 .duration {
     color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);
     margin-left: .2rem;
@@ -147,7 +136,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     top: .2rem;
     width: 1rem;
 }
-.format_hint { margin-top: .8rem; }
 .image {
     display: block;
     height: 100%;
@@ -190,6 +178,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: none;
     top: .15rem;
 }
+.track_download_option { position: relative; }
 .track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
 .track_controls, .track_number {
     padding-right: .5rem;

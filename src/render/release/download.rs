@@ -9,97 +9,93 @@ use crate::{
     util::html_escape_outside_attribute
 };
 
+const DOWNLOAD_LABEL_SEPARATOR: &str = " <span style=\"font-size: .8rem\">_</span> ";
+
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "../../";
 
     let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
 
-    let download_column_headers = sorted_formats
-        .iter()
-        .enumerate()
-        .map(|(index, (format, recommended))|
-            format!(
-                "<th>{name}&nbsp;<sup>{number}</sup>{recommendation}</th>",
-                name = format.user_label(),
-                number = index + 1,
-                recommendation = if *recommended { "<br>(Recommended)" } else { "" }
-            )
-        )
-        .collect::<Vec<String>>()
-        .join("\n");
-
-    let release_download_columns = sorted_formats
-        .iter()
-        .map(|(format, _recommended)|
-            formatdoc!(
-                r#"
-                    <td>
-                        <a download href="{root_prefix}{permalink}/{format}/{basename}.zip">
-                            <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
+    let cover_download = if release.cover.is_some() {
+        formatdoc!(
+            r#"
+                <div>
+                    <span>Cover Image</span>
+                    <span class="download_formats">
+                        <a download href="{root_prefix}{permalink}/cover.jpg">
+                            JPEG
                         </a>
-                    </td>
-                "#,
-                basename = release.asset_basename.as_ref().unwrap(),
-                format = format.asset_dirname(),
-                permalink = &release.permalink.slug
-            )
+                    </span>
+                </div>
+            "#,
+            permalink = &release.permalink.slug
         )
-        .collect::<Vec<String>>()
-        .join("\n");
+    } else {
+        String::new()
+    };
 
-    let download_format_hints = sorted_formats
+    let download_hints = sorted_formats
         .iter()
-        .enumerate()
-        .map(|(index, (format, recommended))|
+        .map(|(format, recommended)|
             formatdoc!(
                 r#"
-                    <div class="format_hint small_type">
-                        <sup>{number}</sup> {label}: {description}{recommendation}
+                    <div>
+                        {user_label}{download_label} – {description}{recommendation}
                     </div>
                 "#,
                 description = format.description(),
-                label = format.user_label(),
-                number = index + 1,
+                download_label = if format.download_label() == format.user_label() { String::new() } else { format!(r#" ({})"#, format.download_label()) },
+                user_label = format.user_label(),
                 recommendation = if *recommended { " (Recommended Format)" } else { "" }
             )
         )
         .collect::<Vec<String>>()
         .join("\n");
 
-    let track_download_rows = release.tracks
+    let release_downloads = sorted_formats
+        .iter()
+        .map(|(format, _recommended)|
+            formatdoc!(
+                r#"<a download href="{root_prefix}{permalink}/{format_dir}/{basename}.zip">{format_label}</a>"#,
+                basename = release.asset_basename.as_ref().unwrap(),
+                format_dir = format.asset_dirname(),
+                format_label = format.download_label(),
+                permalink = &release.permalink.slug
+            )
+        )
+        .collect::<Vec<String>>()
+        .join(DOWNLOAD_LABEL_SEPARATOR);
+
+    let track_downloads = release.tracks
         .iter()
         .enumerate()
         .map(|(index, track)| {
             let track_download_columns = sorted_formats
                 .iter()
                 .map(|(format, _annotation)|
-                    formatdoc!(
-                        r#"
-                            <td>
-                                <a download href="{root_prefix}{slug}/{format}/{basename}{extension}">
-                                    <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
-                                </a>
-                            </td>
-                        "#,
+                    format!(
+                        r#"<a download href="{root_prefix}{slug}/{format_dir}/{basename}{extension}">{format_label}</a>"#,
                         basename = track.asset_basename.as_ref().unwrap(),
                         extension = format.extension(),
-                        format = format.asset_dirname(),
+                        format_dir = format.asset_dirname(),
+                        format_label = format.download_label(),
                         slug = &release.permalink.slug
                     )
                 )
                 .collect::<Vec<String>>()
-                .join("\n");
+                .join(DOWNLOAD_LABEL_SEPARATOR);
 
             formatdoc!(
                 r#"
-                    <tr>
-                        <th class="download_option"
-                            title="{number} {title}">
+                    <div>
+                        <span class="track_download_option">
                             <span class="track_number">{number}</span> {title}
-                        </th>
-                        {track_download_columns}
-                    </tr>
+                        </span>
+                        <span class="download_formats">
+                            {track_download_columns}
+                        </span>
+                    </div>
                 "#,
                 number = release.track_numbering.format(index + 1),
                 title = html_escape_outside_attribute(&track.title)
@@ -114,7 +110,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     );
 
     let body = formatdoc!(
-        r#"
+        r##"
             <div class="center">
                 {cover}
 
@@ -126,34 +122,39 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <a class="download_button" 
                    download
                    href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_basename}.zip">
-                    <img alt="Download" class="download_icon" src="{root_prefix}download_inverted.svg">
+                    <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
                     <div>
-                        <span class="large_type">Download Entire Release</span><br>
+                        <span class="large_type">Entire Release</span><br>
                         <span class="small_type">{primary_download_format}{primary_download_format_recommendation}</span>
                     </div>
                 </a>
 
                 <br><br>
 
-                <h2>Other options</h2>
+                <p>
+                    Single track downloads or downloads in other formats are
+                    available below. Not sure what format to pick? See the <a
+                    href="#hints">hints</a> below.
+                </p>
 
-                <table class="download_options">
-                    <tr>
-                        <th></th>
-                        {download_column_headers}
-                    </tr>
-                    <tr>
-                        <th class="download_option">Entire Release (.zip)</th>
-                        {release_download_columns}
-                    </tr>
-                    {track_download_rows}
-                </table>
+                <div class="download_options">
+                    <div>
+                        <span>Entire Release</span>
+                        <span class="download_formats">{release_downloads}</span>
+                    </div>
+                    {cover_download}
+                    {track_downloads}
+                </div>
 
                 <br><br>
 
-                {download_format_hints}
+                <div class="download_hints" id="hints">
+                    {download_hints}
+                </div>
+
+                <br><br><br>
             </div>
-        "#,
+        "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
         primary_download_basename = release.asset_basename.as_ref().unwrap(),

@@ -35,15 +35,9 @@ pub fn generate(build: &Build) {
     // TODO: Conditionally build only when there are downloads?
     let download_svg = format!(
         include_str!("icons/download.svg"),
-        color = text_color
-    );
-    fs::write(build.build_dir.join("download.svg"), download_svg).unwrap();
-
-    let download_inverted_svg = format!(
-        include_str!("icons/download.svg"),
         color = pane_color
     );
-    fs::write(build.build_dir.join("download_inverted.svg"), download_inverted_svg).unwrap();
+    fs::write(build.build_dir.join("download.svg"), download_svg).unwrap();
 
     let pause_svg = format!(
         include_str!("icons/pause.svg"),

@@ -95,6 +95,21 @@ impl AudioFormat {
         }
     }
 
+    /// Abbreviated labels for use as clickable download links on the Downloads page
+    pub fn download_label(&self) -> &str {
+        match self {
+            AudioFormat::Aac => "AAC",
+            AudioFormat::Aiff => "AIFF",
+            AudioFormat::Flac => "FLAC",
+            AudioFormat::Mp3VbrV0 => "MP3",
+            AudioFormat::OggVorbis => "Ogg Vorbis",
+            AudioFormat::Opus48Kbps => "Opus 48",
+            AudioFormat::Opus96Kbps => "Opus 96",
+            AudioFormat::Opus128Kbps => "Opus 128",
+            AudioFormat::Wav => "WAV"
+        }
+    }
+
     pub fn download_rank(&self) -> u8 {
         match self {
             AudioFormat::Opus128Kbps => 1,
