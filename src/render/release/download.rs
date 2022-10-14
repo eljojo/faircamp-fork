@@ -112,9 +112,14 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let body = formatdoc!(
         r##"
             <div class="center">
-                {cover}
+                <h1>Download Release</h1>
 
-                <h1>{title}</h1>
+                <br><br>
+
+                <div class="cover_listing" style="max-width: 12rem">
+                    {cover}
+                </div>
+                <div>{title}</div>
                 <div>{artists}</div>
 
                 <br><br>

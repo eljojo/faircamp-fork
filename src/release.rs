@@ -362,13 +362,21 @@ impl Release {
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
             DownloadOption::Paid { checkout_page_uid, download_page_uid, .. } => {
-                let checkout_page_dir = build.build_dir.join("checkout").join(&self.permalink.slug).join(checkout_page_uid);
-                let checkout_html = render::release::checkout::checkout_html(build, catalog, self, download_page_uid);
-                util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
+                if self.payment_options.is_empty() {
+                    warn!(
+                        "No payment options specified for release '{}', no purchase/download option will be displayed for this release.",
+                        self.title
+                    );
+                } else {
+                    let checkout_page_dir = build.build_dir.join("checkout").join(&self.permalink.slug).join(checkout_page_uid);
+                    let checkout_html = render::release::checkout::checkout_html(build, catalog, self, download_page_uid);
+                    util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
 
-                let download_page_dir = build.build_dir.join("download").join(&self.permalink.slug).join(download_page_uid);
-                let download_html = render::release::download::download_html(build, catalog, self);
-                util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                    let download_page_dir = build.build_dir.join("download").join(&self.permalink.slug).join(download_page_uid);
+                    let download_html = render::release::download::download_html(build, catalog, self);
+                    util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                }
+
             }
         }
         

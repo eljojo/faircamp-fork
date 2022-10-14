@@ -25,7 +25,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let formats_list = release.download_formats
         .iter()
-        .map(|format| format.to_string())
+        .map(|format| format.user_label().to_string())
         .collect::<Vec<String>>()
         .join(", ");
 
@@ -41,50 +41,54 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             permalink = release.permalink.slug
         ),
         DownloadOption::Paid { checkout_page_uid, currency, range, .. } => {
-            let price_label = if range.end == f32::INFINITY {
-                if range.start > 0.0 {
+            if release.payment_options.is_empty() {
+                String::new()
+            } else {
+                let price_label = if range.end == f32::INFINITY {
+                    if range.start > 0.0 {
+                        format!(
+                            "{currency_symbol}{min_price} {currency_code} or more",
+                            currency_code=currency.code(),
+                            currency_symbol=currency.symbol(),
+                            min_price=range.start
+                        )
+                    } else {
+                        format!("Name Your Price ({})", currency.code())
+                    }
+                } else if range.start == range.end {
                     format!(
-                        "{currency_symbol}{min_price} {currency_code} or more",
+                        "{currency_symbol}{price} {currency_code}",
                         currency_code=currency.code(),
                         currency_symbol=currency.symbol(),
+                        price=range.start
+                    )
+                } else if range.start > 0.0 {
+                    format!(
+                        "{currency_symbol}{min_price}-{currency_symbol}{max_price} {currency_code}",
+                        currency_code=currency.code(),
+                        currency_symbol=currency.symbol(),
+                        max_price=range.end,
                         min_price=range.start
                     )
                 } else {
-                    format!("Name Your Price ({})", currency.code())
-                }
-            } else if range.start == range.end {
-                format!(
-                    "{currency_symbol}{price} {currency_code}",
-                    currency_code=currency.code(),
-                    currency_symbol=currency.symbol(),
-                    price=range.start
-                )
-            } else if range.start > 0.0 {
-                format!(
-                    "{currency_symbol}{min_price}-{currency_symbol}{max_price} {currency_code}",
-                    currency_code=currency.code(),
-                    currency_symbol=currency.symbol(),
-                    max_price=range.end,
-                    min_price=range.start
-                )
-            } else {
-                format!(
-                    "Up to {currency_symbol}{max_price} {currency_code}",
-                    currency_code=currency.code(),
-                    currency_symbol=currency.symbol(),
-                    max_price=range.end
-                )
-            };
+                    format!(
+                        "Up to {currency_symbol}{max_price} {currency_code}",
+                        currency_code=currency.code(),
+                        currency_symbol=currency.symbol(),
+                        max_price=range.end
+                    )
+                };
 
-            formatdoc!(
-                r#"
-                    <div class="vpad">
-                        <a href="{root_prefix}checkout/{permalink}/{checkout_page_uid}{explicit_index}">Buy Release</a> {price_label}
-                        <div>{formats_list}</div>
-                    </div>
-                "#,
-                permalink = release.permalink.slug
-            )
+                formatdoc!(
+                    r#"
+                        <div class="vpad">
+                            <a href="{root_prefix}checkout/{permalink}/{checkout_page_uid}{explicit_index}">Buy Release</a> {price_label}
+                            <div>{formats_list}</div>
+                        </div>
+                    "#,
+                    permalink = release.permalink.slug
+                )
+            }
         }
     };
 

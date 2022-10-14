@@ -32,7 +32,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
             let track_number = index + 1;
             formatdoc!(
                 r#"
-                    <div>
+                    <div style="position: relative;">
                         <span class="track_number">{track_number:02}</span>
                         <span>{track_title}</span><br><br>
                         {embed_code}
@@ -53,14 +53,18 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
     let body = formatdoc!(
         r##"
             <div class="center_release">
-                <div class="cover">
+                <h1>Embed Release</h1>
+
+                <br><br>
+
+                <div class="cover_listing" style="max-width: 12rem;">
                     {cover}
                 </div>
 
-                <div style="margin: 0.4rem 0 1rem 0;">
-                    <h1>{release_title}</h1>
-                    <div>{artists}</div>
-                </div>
+                <div>{release_title}</div>
+                <div>{artists}</div>
+
+                <br><br>
 
                 Embed the entire release<br><br>
                 {embed_code}
