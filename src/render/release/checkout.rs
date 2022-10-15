@@ -119,7 +119,6 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release, downlo
         "#,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
-        payment_options = payment_options,
         permalink = release.permalink.slug,
         title = html_escape_outside_attribute(&release.title)
     );

@@ -93,10 +93,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let embed_widget = if release.embedding && build.base_url.is_some() {
-        format!(
-            r#"<a href="embed{explicit_index}">Embed</a>"#,
-            explicit_index = explicit_index
-        )
+        format!(r#"<a href="embed{explicit_index}">Embed</a>"#)
     } else {
         String::new()
     };
@@ -163,7 +160,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
 
                 <div style="margin: .4rem 0 1rem 0;">
-                    <h1 style="margin-bottom: .2rem;">{release_title}</h1>
+                    <h1 style="margin-bottom: .2rem;">{release_title_escaped}</h1>
                     <div>{artists}</div>
                 </div>
 
@@ -189,21 +186,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = cover_image(explicit_index, "", root_prefix, &release.cover, None),
-        download_option_rendered = download_option_rendered,
-        embed_widget = embed_widget,
-        play_icon = play_icon(root_prefix),
-        release_text = release_text,
-        release_title = release_title_escaped,
-        tracks_rendered = tracks_rendered
+        play_icon = play_icon(root_prefix)
     );
 
-    let links = formatdoc!(
-        r#"
-            <a href=".{explicit_index}#top">Listen</a>
-            <a href=".{explicit_index}#more">More</a>
-        "#,
-        explicit_index = explicit_index
-    );
+    let links = formatdoc!(r#"
+        <a href=".{explicit_index}#top">Listen</a>
+        <a href=".{explicit_index}#more">More</a>
+    "#);
 
     layout(root_prefix, &body, build, catalog, &release.title, Some(links))
 }
@@ -232,31 +221,25 @@ fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -
             d.push_str(&command);
         }
 
-        formatdoc!(
-            r##"
-                <svg class="waveform"
-                     height="{viewbox_height}rem"
-                     viewBox="0 0 {viewbox_width} {viewbox_height}"
-                     width="{viewbox_width}rem"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="progress_gradient_{track_number}">
-                            <stop offset="0%" stop-color="hsl(0, 0%, var(--text-l))" />
-                            <stop offset="0.000001%" stop-color="hsla(0, 0%, 0%, 0)" />
-                        </linearGradient>
-                    </defs>
-                    <style>
-                        .progress_{track_number} {{ stroke: url(#progress_gradient_{track_number}); }}
-                    </style>
-                    <path class="progress progress_{track_number}" d="{d}" />
-                    <path class="base" d="{d}" />
-                </svg>
-            "##,
-            d = d,
-            track_number = track_number,
-            viewbox_height = TRACK_HEIGHT_EM,
-            viewbox_width = track_duration_width_rem
-        )
+        formatdoc!(r#"
+            <svg class="waveform"
+                 height="{TRACK_HEIGHT_EM}rem"
+                 viewBox="0 0 {track_duration_width_rem} {TRACK_HEIGHT_EM}"
+                 width="{track_duration_width_rem}rem"
+                 xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="progress_gradient_{track_number}">
+                        <stop offset="0%" stop-color="hsl(0, 0%, var(--text-l))" />
+                        <stop offset="0.000001%" stop-color="hsla(0, 0%, 0%, 0)" />
+                    </linearGradient>
+                </defs>
+                <style>
+                    .progress_{track_number} {{ stroke: url(#progress_gradient_{track_number}); }}
+                </style>
+                <path class="progress progress_{track_number}" d="{d}" />
+                <path class="base" d="{d}" />
+            </svg>
+        "#)
     } else {
         String::new()
     }

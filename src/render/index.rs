@@ -19,48 +19,37 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 .iter()
                 .map(|artist| {
                     let artist_ref = artist.borrow();
+                    let name = &artist_ref.name;
+                    let permalink = &artist_ref.permalink.slug;
 
-                    format!(
-                        r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
-                        explicit_index = explicit_index,
-                        name = artist_ref.name,
-                        permalink = artist_ref.permalink.slug,
-                        root_prefix = root_prefix,
-                    )
+                    format!(r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#)
                 })
                 .collect::<Vec<String>>()
                 .join("<br>\n");
 
-            formatdoc!(
-                r#"
-                    <div style="max-width: 36rem;">
-                        <strong>Artists</strong><br>
-                        {list}
-                    </div>
-                "#,
-                list = list
-            )
+            formatdoc!(r#"
+                <div style="max-width: 36rem;">
+                    <strong>Artists</strong><br>
+                    {list}
+                </div>
+            "#)
         } else {
             String::new()
         };
 
-        formatdoc!(
-            r#"
-                <div class="additional" id="more">
-                    <div style="max-width: 36rem;">
-                        <a href=".{explicit_index}" style="color: #fff;">
-                            {title}
-                        </a>
-                        {text}
-                    </div>
-                    {artists}
+        let title_escaped = html_escape_outside_attribute(&catalog_title);
+
+        formatdoc!(r#"
+            <div class="additional" id="more">
+                <div style="max-width: 36rem;">
+                    <a href=".{explicit_index}" style="color: #fff;">
+                        {title_escaped}
+                    </a>
+                    {text}
                 </div>
-            "#,
-            artists = artists,
-            explicit_index = explicit_index,
-            text = text,
-            title = html_escape_outside_attribute(&catalog_title)
-        )
+                {artists}
+            </div>
+        "#)
     } else {
         String::new()
     };
@@ -72,7 +61,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             </div>
             {more}
         "#,
-        more = more,
         releases = releases(explicit_index, root_prefix, &catalog, &catalog.releases, catalog.label_mode),
         releases_full_height = if more.is_empty() { "releases_full_height" } else { "" }
     );
@@ -81,13 +69,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None
     } else {
         Some(
-            formatdoc!(
-                r#"
-                    <a href=".{explicit_index}#top" style="border-bottom: 1px solid #ccc;">Releases</a>
-                    <a href=".{explicit_index}#more">More</a>
-                "#,
-                explicit_index = explicit_index
-            )
+            formatdoc!(r#"
+                <a href=".{explicit_index}#top" style="border-bottom: 1px solid #ccc;">Releases</a>
+                <a href=".{explicit_index}#more">More</a>
+            "#)
         )
     };
 

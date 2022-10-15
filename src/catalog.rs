@@ -91,16 +91,13 @@ impl Catalog {
                     .collect::<Vec<String>>()
                     .join(", ");
 
-                format!("{} - ", list)
+                format!("{list} - ")
             };
+            let release_title = sanitize(&release_mut.title);
 
-            let download_basename = format!(
-                "{artists}{title}",
-                artists = release_artists,
-                title = sanitize(&release_mut.title)
-            );
+            let release_basename = format!("{release_artists}{release_title}");
 
-            release_mut.asset_basename = Some(download_basename);
+            release_mut.asset_basename = Some(release_basename);
 
             for (index, track) in release_mut.tracks.iter_mut().enumerate() {
                 let track_artists = if track.artists.is_empty() {
@@ -114,13 +111,10 @@ impl Catalog {
 
                     format!("{} - ", list)
                 };
+                let track_number = index + 1;
+                let track_title = sanitize(&track.title);
 
-                let track_basename = format!(
-                    "{number:02} {artists}{title}",
-                    artists = track_artists,
-                    number = index + 1,
-                    title = sanitize(&track.title)
-                );
+                let track_basename = format!("{track_number:02} {track_artists}{track_title}");
 
                 track.asset_basename = Some(track_basename);
             }

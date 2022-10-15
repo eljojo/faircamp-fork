@@ -12,19 +12,15 @@ pub fn generate(build: &Build) {
 
             fs::copy(path, build.build_dir.join(&filename)).unwrap();
             
-            formatdoc!(
-                r#"
-                    @font-face {{
-                        font-family: 'Custom';
-                        font-style: normal;
-                        font-weight: 400;
-                        src: url('{filename}') format('{extension}');
-                    }}
-                    body {{ font-family: 'Custom'; }}
-                "#,
-                extension = extension,
-                filename = filename
-            )
+            formatdoc!(r#"
+                @font-face {{
+                    font-family: 'Custom';
+                    font-style: normal;
+                    font-weight: 400;
+                    src: url('{filename}') format('{extension}');
+                }}
+                body {{ font-family: 'Custom'; }}
+            "#)
         }
         ThemeFont::Default => {
             fs::write(
@@ -101,7 +97,6 @@ pub fn generate(build: &Build) {
         pane_l = theme.base.pane_l,
         text_l = theme.base.text_l,
         text_s = 94,
-        font_declaration = font_declaration,
         included_static_css = include_str!("assets/styles.css")
     );
 

@@ -19,10 +19,7 @@ pub mod index;
 pub mod release;
 
 fn play_icon(root_prefix: &str) -> String {
-    formatdoc!(
-        r#"<img alt="Play" src="{root_prefix}play.svg" style="max-width: 1rem;">"#,
-        root_prefix = root_prefix
-    )
+    format!(r#"<img alt="Play" src="{root_prefix}play.svg" style="max-width: 1rem;">"#)
 }
 
 fn artist_image(
@@ -32,53 +29,40 @@ fn artist_image(
     format: ImageFormat,
     href_url: Option<&str>
 ) -> String {
-    match image {
-        Some(image) => {
-            let image_ref = image.borrow();
+    if image.is_none() { return format!("<div></div>"); }
 
-            let src_url = format!(
-                "{root_prefix}{filename}",
-                filename = image_ref.get_as(format).as_ref().unwrap().filename,
-                root_prefix = root_prefix
-            );
+    let image_ref = image.as_ref().unwrap().borrow();
 
-            if let Some(description) = &image_ref.description {
-                formatdoc!(
-                    r#"
-                        <a class="image" href="{href_url}">
-                            <img alt="{alt}" loading="lazy" src="{src_url}">
-                        </a>
-                    "#,
-                    alt = html_escape_inside_attribute(description),
-                    href_url = href_url.unwrap_or(&src_url),
-                    src_url = src_url
-                )
-            } else {
-                formatdoc!(
-                    r#"
-                        <div class="undescribed_wrapper">
-                            <div class="undescribed_corner_tag">
-                                <img src="{root_prefix}corner_tag.svg">
-                            </div>
-                            <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
-                                <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
-                            </a>
-                            <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
-                                <span>Missing image description.<br>Click to learn more</span>
-                            </a>
-                            <a class="image" href="{href_url}">
-                                <img loading="lazy" src="{root_prefix}{filename}">
-                            </a>
-                        </div>
-                    "#,
-                    explicit_index = explicit_index,
-                    filename = image_ref.get_as(format).as_ref().unwrap().filename,
-                    href_url = href_url.unwrap_or(&src_url),
-                    root_prefix = root_prefix
-                )
-            }
-        },
-        None => String::from(r#"<div></div>"#)
+    let filename = &image_ref.get_as(format).as_ref().unwrap().filename;
+
+    let src_url = format!("{root_prefix}{filename}");
+    let href_or_src_url = href_url.unwrap_or(&src_url);
+
+    if let Some(description) = &image_ref.description {
+        let alt = html_escape_inside_attribute(description);
+
+        formatdoc!(r#"
+            <a class="image" href="{href_or_src_url}">
+                <img alt="{alt}" loading="lazy" src="{src_url}">
+            </a>
+        "#)
+    } else {
+        formatdoc!(r#"
+            <div class="undescribed_wrapper">
+                <div class="undescribed_corner_tag">
+                    <img src="{root_prefix}corner_tag.svg">
+                </div>
+                <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                    <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+                </a>
+                <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                    <span>Missing image description.<br>Click to learn more</span>
+                </a>
+                <a class="image" href="{href_or_src_url}">
+                    <img loading="lazy" src="{src_url}">
+                </a>
+            </div>
+        "#)
     }
 }
 
@@ -101,33 +85,30 @@ fn cover_image(
     let href_or_src_url = href_url.unwrap_or(&src_url);
 
     if let Some(description) = &image_ref.description {
-        formatdoc!(
-            r#"
-                <a class="image" href="{href_or_src_url}">
-                    <img alt="{alt}" loading="lazy" src="{src_url}">
-                </a>
-            "#,
-            alt = html_escape_inside_attribute(description)
-        )
+        let alt = html_escape_inside_attribute(description);
+
+        formatdoc!(r#"
+            <a class="image" href="{href_or_src_url}">
+                <img alt="{alt}" loading="lazy" src="{src_url}">
+            </a>
+        "#)
     } else {
-        formatdoc!(
-            r#"
-                <div class="undescribed_wrapper">
-                    <div class="undescribed_corner_tag">
-                        <img src="{root_prefix}corner_tag.svg">
-                    </div>
-                    <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
-                        <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
-                    </a>
-                    <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
-                        <span>Missing image description.<br>Click to learn more</span>
-                    </a>
-                    <a class="image" href="{href_or_src_url}">
-                        <img loading="lazy" src="{src_url}">
-                    </a>
+        formatdoc!(r#"
+            <div class="undescribed_wrapper">
+                <div class="undescribed_corner_tag">
+                    <img src="{root_prefix}corner_tag.svg">
                 </div>
-            "#
-        )
+                <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                    <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+                </a>
+                <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                    <span>Missing image description.<br>Click to learn more</span>
+                </a>
+                <a class="image" href="{href_or_src_url}">
+                    <img loading="lazy" src="{src_url}">
+                </a>
+            </div>
+        "#)
     }
 }
 
@@ -141,14 +122,8 @@ fn layout(
 ) -> String {
     let (feed_meta_link, feed_user_link) = match &build.base_url.is_some() {
         true => (
-            format!(
-                r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#,
-                root_prefix = root_prefix
-            ),
-            format!(
-                r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg"></a>"#,
-                root_prefix = root_prefix
-            )
+            format!(r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#),
+            format!(r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg"></a>"#)
         ),
         false => (String::new(), String::new())
     };
@@ -206,28 +181,20 @@ fn list_artists(
         .iter()
         .map(|artist| {
             let artist_ref = artist.borrow();
+            let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+
             if catalog.label_mode {
-                return format!(
-                    r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#,
-                    explicit_index = explicit_index,
-                    name = html_escape_outside_attribute(&artist_ref.name),
-                    permalink = artist_ref.permalink.slug,
-                    root_prefix = root_prefix
-                );
+                let permalink = &artist_ref.permalink.slug;
+                return format!(r#"<a href="{root_prefix}{permalink}{explicit_index}">{name_escaped}</a>"#);
             }
 
             if let Some(catalog_artist) = &catalog.artist {
                 if Rc::ptr_eq(artist, catalog_artist) {
-                    return format!(
-                        r#"<a href="{root_prefix}.{explicit_index}">{name}</a>"#,
-                        explicit_index = explicit_index,
-                        name = html_escape_outside_attribute(&artist_ref.name),
-                        root_prefix = root_prefix
-                    );
+                    return format!(r#"<a href="{root_prefix}.{explicit_index}">{name_escaped}</a>"#);
                 }
             }
 
-            html_escape_outside_attribute(&artist_ref.name)
+            name_escaped
         })
         .collect::<Vec<String>>()
         .join(", ")
@@ -244,41 +211,33 @@ fn releases(
         .iter()
         .map(|release| {
             let release_ref = release.borrow();
+            let permalink = &release_ref.permalink.slug;
 
-            let href = format!(
-                "{root_prefix}{permalink}{explicit_index}",
-                permalink = release_ref.permalink.slug
-            );
+            let href = format!("{root_prefix}{permalink}{explicit_index}");
 
             let artists = if show_artists {
-                format!(
-                    "<div>{}</div>",
-                    list_artists(explicit_index, root_prefix, &catalog, &release_ref.artists)
-                )
+                let list = list_artists(explicit_index, root_prefix, &catalog, &release_ref.artists);
+                format!("<div>{list}</div>")
             } else {
                 String::new()
             };
 
-            let release_prefix = format!(
-                "{root_prefix}{permalink}/",
-                permalink = release_ref.permalink.slug
-            );
+            let release_prefix = format!("{root_prefix}{permalink}/");
 
-            formatdoc!(
-                r#"
-                    <div class="release">
-                        <div class="cover_listing">
-                            {cover}
-                        </div>
-                        <div>
-                            <a href="{href}" style="color: #fff;">{title}</a>
-                            <div>{artists}</div>
-                        </div>
+            let cover = cover_image(explicit_index, &release_prefix, root_prefix, &release_ref.cover, Some(&href));
+            let release_title = html_escape_outside_attribute(&release_ref.title);
+
+            formatdoc!(r#"
+                <div class="release">
+                    <div class="cover_listing">
+                        {cover}
                     </div>
-                "#,
-                cover = cover_image(explicit_index, &release_prefix, root_prefix, &release_ref.cover, Some(&href)),
-                title = html_escape_outside_attribute(&release_ref.title)
-            )
+                    <div>
+                        <a href="{href}" style="color: #fff;">{release_title}</a>
+                        <div>{artists}</div>
+                    </div>
+                </div>
+            "#)
         })
         .collect::<Vec<String>>()
         .join("\n")
