@@ -363,10 +363,14 @@ any new builds for a while.
 
 ## Build
 
-Faircamp compiles on recent stable rust, its only *runtime* requirement is that
-you have *FFmpeg* installed, such that `ffmpeg -version` called in a terminal
-at any location confirms ffmpeg being available. On Linux you can use your distro's
-package manager to install `ffmpeg`, it's readily available on all major distros.
+Faircamp compiles on recent stable rust, there are two external dependencies
+you need to install (if not already present on your system): 
+
+- For compilation to succeed you need `libvips` on your system. On debian
+  based systems (Debian, Ubuntu, etc.) you can run `sudo apt install libvips-dev` to install it.
+- As a purely *runtime* dependency, *FFmpeg* needs to be installed, such that `ffmpeg -version` called in a terminal
+  at any location confirms ffmpeg being available. On Linux you can use your distro's
+  package manager to install `ffmpeg`, it's readily available on all major distros.
 
 Faircamp has so far only been tested on Linux - architecturally there should be
 no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
