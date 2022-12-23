@@ -407,7 +407,7 @@ cargo uninstall faircamp
 
 ## License
 
-Faircamp is licensed under the [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.html).
+Faircamp is licensed under the [AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later.html).
 
 Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fonts/barlow/) font, licensed under the [OFL 1.1](src/assets/OFL.txt)
 
