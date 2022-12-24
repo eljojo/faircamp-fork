@@ -110,9 +110,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 <br><br>
 
-                <input autofocus class="unlock_code" placeholder="Enter code here" type="text"> <button name="unlock">Unlock</button>
+                <form id="unlock">
+                    <input autofocus class="unlock_code" placeholder="Enter code here" type="text">
+                    <button name="unlock">Unlock</button>
+                </form>
                 <script>
-                    document.querySelector('[name=unlock]').addEventListener('click', () => {{
+                    document.querySelector('#unlock').addEventListener('submit', event => {{
+                        event.preventDefault();
                         const code = document.querySelector('.unlock_code').value;
                         const url = `../../download/${{code}}{explicit_index}`;
                         fetch(url, {{ method: 'HEAD', mode: 'no-cors' }})
