@@ -97,11 +97,10 @@ fn main() {
     };
 
     util::ensure_empty_dir(&build.build_dir);
-    util::ensure_dir(&build.build_dir.join("download"));
 
     catalog.write_assets(&mut build);
     
-    // Render page for all releases (= root index)
+    // Render page for all releases (homepage/index)
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
     

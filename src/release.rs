@@ -262,10 +262,23 @@ impl Release {
                     extension = format.extension()
                 );
 
+                let hash = build.hash(
+                    &self.permalink.slug,
+                    format.asset_dirname(),
+                    &track_filename
+                );
+
+                // TODO: We should calculate this earlier and persist it so we can reuse it for copying
+                // and for rendering the hrefs that point to it, however we need to figure out where 
+                // (or on what) to store it - that's a bit tricky. (applies in a few places)
+                let hash_dir = format_dir.join(hash);
+
+                util::ensure_dir(&hash_dir);
+
                 // TODO: Track might already have been copied (?) (if streaming format is identical)
                 fs::copy(
                     build.cache_dir.join(&download_track_asset.filename),
-                    format_dir.join(track_filename)
+                    hash_dir.join(track_filename)
                 ).unwrap();
 
                 // TODO: Track might already have been added (?) (if streaming format is identical)
@@ -342,9 +355,19 @@ impl Release {
                 basename = self.asset_basename.as_ref().unwrap()
             );
 
+            let hash = build.hash(
+                &self.permalink.slug,
+                format.asset_dirname(),
+                &archive_filename
+            );
+
+            let hash_dir = format_dir.join(hash);
+
+            util::ensure_dir(&hash_dir);
+
             fs::copy(
                 build.cache_dir.join(&download_archive_asset.filename),
-                format_dir.join(&archive_filename)
+                hash_dir.join(&archive_filename)
             ).unwrap();
 
             build.stats.add_archive(download_archive_asset.filesize_bytes);
@@ -355,9 +378,31 @@ impl Release {
 
     pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
+            DownloadOption::Code { checkout_page_uid, codes } => {
+                let checkout_page_dir = build.build_dir
+                    .join(&self.permalink.slug)
+                    .join("checkout")
+                    .join(checkout_page_uid);
+
+                let checkout_html = render::release::checkout::checkout_html(build, catalog, self);
+                util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
+
+                let download_dir = build.build_dir
+                    .join(&self.permalink.slug)
+                    .join("download");
+
+                let download_html = render::release::download::download_html(build, catalog, self);
+
+                for code in codes {
+                    // TODO: We will need to limit the code character set to url safe characters.
+                    //       Needs to be validated when reading the input directory.
+                    let download_page_dir = download_dir.join(code);
+                    util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                }
+            }
             DownloadOption::Disabled => (),
             DownloadOption::Free { download_page_uid }  => {
-                let download_page_dir = build.build_dir.join("download").join(&self.permalink.slug).join(download_page_uid);
+                let download_page_dir = build.build_dir.join(&self.permalink.slug).join("download").join(download_page_uid);
                 let download_html = render::release::download::download_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
@@ -368,15 +413,14 @@ impl Release {
                         self.title
                     );
                 } else {
-                    let checkout_page_dir = build.build_dir.join("checkout").join(&self.permalink.slug).join(checkout_page_uid);
-                    let checkout_html = render::release::checkout::checkout_html(build, catalog, self, download_page_uid);
+                    let checkout_page_dir = build.build_dir.join(&self.permalink.slug).join("checkout").join(checkout_page_uid);
+                    let checkout_html = render::release::checkout::checkout_html(build, catalog, self);
                     util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
 
-                    let download_page_dir = build.build_dir.join("download").join(&self.permalink.slug).join(download_page_uid);
+                    let download_page_dir = build.build_dir.join(&self.permalink.slug).join("download").join(download_page_uid);
                     let download_html = render::release::download::download_html(build, catalog, self);
                     util::ensure_dir_and_write_index(&download_page_dir, &download_html);
                 }
-
             }
         }
         

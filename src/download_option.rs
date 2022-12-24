@@ -5,6 +5,10 @@ use crate::util;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum DownloadOption {
+    Code {
+        checkout_page_uid: String,
+        codes: Vec<String>
+    },
     Disabled,
     Free {
         download_page_uid: String
@@ -30,6 +34,13 @@ impl DownloadOption {
             currency,
             download_page_uid: util::uid(),
             range
+        }
+    }
+
+    pub fn new_codes(codes: Vec<String>) -> DownloadOption {
+        DownloadOption::Code {
+            checkout_page_uid: util::uid(),
+            codes
         }
     }
 }

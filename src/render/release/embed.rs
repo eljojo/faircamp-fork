@@ -45,10 +45,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
         .collect::<Vec<String>>()
         .join("<br><br>\n");
 
-    let release_prefix = format!(
-        "{root_prefix}{permalink}/",
-        permalink = release.permalink.slug
-    );
+    let release_prefix = "../";
 
     let body = formatdoc!(
         r##"
@@ -126,10 +123,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         .collect::<Vec<String>>()
         .join("\n");
 
-    let release_prefix = format!(
-        "{root_prefix}{permalink}/",
-        permalink = release.permalink.slug
-    );
+    let release_prefix = "../../";
 
     let body = formatdoc!(
         r##"
@@ -208,10 +202,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         waveform = waveform(track, track_number, track_duration_width_rem)
     );
 
-    let release_prefix = format!(
-        "{root_prefix}{permalink}/",
-        permalink = release.permalink.slug
-    );
+    let release_prefix = "../../";
 
     let body = formatdoc!(
         r##"

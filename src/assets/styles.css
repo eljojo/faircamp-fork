@@ -20,6 +20,7 @@ html {
     font-size: 18px;
     scroll-behavior: smooth;
 }
+input, button { font-size: 1rem; }
 h1 {
     font-size: 1.8rem;
     font-weight: 400;
@@ -185,11 +186,13 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track_download_option { position: relative; }
 .track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
-.track_controls, .track_number {
-    padding-right: .5rem;
-    position: absolute;
-    right: calc(100%);
-    text-align: right;
+.track_controls, .track_number { padding-right: .5rem; }
+@media (min-width: 468px) {
+    .track_controls, .track_number {
+        position: absolute;
+        right: calc(100%);
+        text-align: right;
+    }
 }
 .track_title {
     color: var(--color-text);
@@ -200,6 +203,16 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: flex;
     justify-self: end;
 }
+.unlock_code {
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--color-text);
+    color: var(--color-text);
+    font
+}
+.js_enabled .unlock_manual { display: none; }
+.unlock_scripted { display: none; }
+.js_enabled .unlock_scripted { display: unset; }
 .vpad { margin: 1rem 0; }
 .waveform { cursor: pointer; }
 .waveform path { fill: none; }

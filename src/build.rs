@@ -1,7 +1,18 @@
+use base64::{
+    alphabet::URL_SAFE,
+    encode_engine,
+    engine::fast_portable::{FastPortable, NO_PAD}
+};
 use chrono::{DateTime, Utc};
 use libvips::VipsApp;
-use std::{env, path::PathBuf};
+use std::{
+    collections::hash_map::DefaultHasher,
+    env,
+    hash::{Hash, Hasher},
+    path::PathBuf
+};
 use url::Url;
+
 
 use crate::{
     Args,
@@ -22,6 +33,7 @@ pub struct Build {
     pub deploy_destination: Option<String>,
     pub embeds_requested: bool,
     pub exclude_patterns: Vec<String>,
+    hash_engine: FastPortable,
     pub include_patterns: Vec<String>,
     pub localization: Localization,
     pub libvips_app: VipsApp,
@@ -32,6 +44,15 @@ pub struct Build {
     pub stats: Stats,
     pub theme: Theme,
     pub theming_widget: bool,
+    /// Most asset urls contain a deterministically random (=hashed) path
+    /// segment. Out of the box, a static default string is used as a salt
+    /// for hashing, which means that initially all urls remain stable
+    /// between deployments. Faircamp's configuration allows to either
+    /// override the salt manually(thereby keeping urls valid until a
+    /// different salt is set), or let it be automatically randomized on each
+    /// deployment, thereby invalidating all download asset urls on each
+    /// deployment.
+    pub url_salt: String,
     pub verbose: bool
 }
 
@@ -52,6 +73,22 @@ pub struct Stats {
 }
 
 impl Build {
+    pub fn hash (
+        &self,
+        release_slug: &str,
+        format_dir: &str,
+        filename: &str
+    ) -> String {
+        let mut hasher = DefaultHasher::new();
+        
+        release_slug.hash(&mut hasher);
+        format_dir.hash(&mut hasher);
+        filename.hash(&mut hasher);
+        self.url_salt.hash(&mut hasher);
+
+        encode_engine(hasher.finish().to_le_bytes(), &self.hash_engine)
+    }
+
     pub fn new(args: &Args) -> Build {
         let catalog_dir = args.catalog_dir
             .as_ref()
@@ -87,6 +124,7 @@ impl Build {
             deploy_destination: args.deploy_destination.clone(),
             embeds_requested: false,
             exclude_patterns: args.exclude_patterns.clone(),
+            hash_engine: FastPortable::from(&URL_SAFE, NO_PAD),
             include_patterns: args.include_patterns.clone(),
             libvips_app,
             localization: Localization::defaults(),
@@ -95,6 +133,7 @@ impl Build {
             stats: Stats::new(),
             theme: Theme::new(),
             theming_widget: args.theming_widget,
+            url_salt: String::from(""), // changing this can invalidate urls of already deployed faircamp sites, handle with care
             verbose: args.verbose
         }
     }

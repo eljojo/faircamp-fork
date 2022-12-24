@@ -154,6 +154,23 @@ at the title of browser tabs, inside the RSS feed, etc.), the base url
 (required for generation of embeds and the RSS feed), an optional RSS feed
 image, as well as a description text for your catalog here.
 
+Lastly, the `rotate_download_urls` flag can be specified to let faircamp
+generate new download urls on each deployment (rendering invalid all
+previously existing urls), which helps you to fight blatant hotlinking to
+your downloads, should it ever occur. Similarly, you can specify
+`freeze_download_urls: [put-any-text-here]`, to manually control the
+invalidation of download urls: Whatever text you put on the right is used to
+generate unique download urls on each deployment (note that the text itself
+never shows up in the urls themselves, it is merely used for randomization).
+The download urls stay valid as long as the text does not change. Any time
+you update the text, all download urls are refreshed, and thereby all old
+ones invalidated. Practically speaking, it makes sense to use some kind of
+(current) calendar data as the text on the right, that way e.g.
+`freeze_download_urls: 1 April 2022` could tell you that your current download
+urls have been valid since that day. You could also use "October 2022" or
+even just the year, given that one usually will not manually invalidate the
+urls on a daily basis.
+
 ```eno
 # catalog
 
@@ -172,19 +189,84 @@ Nice of you to stop by!
 
 #### Download
 
-By default only streaming is enabled, so you need to specify the `free` or `price` option to enable downloading.
+By default your visitors can only stream your releases. There are three
+mutually exclusive download modes you can enable for your releases:
+
+1. `free` – Free download
+
+    For example, to enable free downloads in Opus format:
+
+    ```eno
+    # download
+
+    free
+
+    format: opus
+    ```
+
+2. `code` or `codes` – An unlock code (like a coupon/token) needs to entered to access downloads
+
+    For example, enabling FLAC and Opus downloads for people who received your download code "crowdfunding2023!" for backing you:
+
+    ```eno
+    # download
+
+    code: crowdfunding2023!
+
+    formats:
+    - flac
+    - opus
+    ```
+
+    Or for example, if you have subscribers in multiple tiers, you can configure access with multiple codes:
+
+    ```eno
+    # download
+
+    codes:
+    - GOLDsupporter
+    - SILVERsupporter
+
+    formats:
+    - mp3
+    - opus
+    ```
+
+3. `price` – A soft (i.e. not technically enforced) paycurtain needs to be passed before downloading
+
+    For example in order to ask for 4€ for accessing the FLAC downloads on a release:
+
+    ```eno
+    # download
+
+    format: flac
+
+    price: EUR 4+
+    ```
+
+    The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+
+    - `USD 0+` (Name your price, including zero dollars as a valid option)
+    - `3.50 GBP` (Exactly 3.50 Pounds)
+    - `KRW 9080` (Exactly 9080 south korean won)
+    - `INR 230+` (230 indian rupees or more)
+    - `JPY 400-800` (Between 400 and 800 japanese yen)
+
+    In conjunction with this mode you will also need to specify at least one payment option, see the readme section on "Payment" below.
+
+4. `disabled` – Disable downloads for specific releases when they have been enabled in a manifest above in the hierarchy
+
+    ```eno
+    # download
+
+    disabled
+    ```
+
+Lastly here's a listing of all download formats you can currently enable. In
+practice a minimal lossless/lossy combination is recommended, e.g. `flac` and
+`opus`. Note that `opus` is an alias for `opus_128`.
 
 ```eno
-# download
-
-> Use this to disable downloading for specific releases when it has been enabled in a manifest above in the hierarchy
-disabled
-
-> This enables downloading unconditionally without asking for recompensation
-free
-
-> All shown for demonstration purposes – in practice a minimal lossless/lossy combination is recommended, e.g. flac and opus
-> (Note that opus is an alias for opus_128)
 formats:
 - aac
 - aiff
@@ -196,19 +278,7 @@ formats:
 - opus_96
 - opus_128
 - wav
-
-> This enables downloads behind a soft (i.e. not technically enforced) paycurtain
-price: RUB 700+
 ```
-
-The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
-- `USD 0+` (Name your price, including zero dollars as a valid option)
-- `3.50 EUR` (Exactly 3.50 euros)
-- `KRW 9080` (Exactly 9080 south korean won)
-- `INR 230+` (230 indian rupees or more)
-- `JPY 400-800` (Between 400 and 800 japanese yen)
-
-Note that in practice you won't use `disabled`, `free` and `price` in the same manifest because these options mutually exclude each other, they are just shown here together for demonstration purposes.
 
 #### Embedding
 

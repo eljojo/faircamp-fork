@@ -745,6 +745,8 @@ impl Catalog {
 
             util::ensure_dir(&streaming_format_dir);
 
+            let release_slug = release_mut.permalink.slug.clone();
+
             for track in release_mut.tracks.iter_mut() {
                 if let Some(tag_mapping) = &mut tag_mapping_option {
                     tag_mapping.artist = if track.artists.is_empty() {
@@ -774,9 +776,19 @@ impl Catalog {
                     &tag_mapping_option
                 );
 
+                let hash = build.hash(
+                    &release_slug,
+                    streaming_format.asset_dirname(),
+                    &track_filename
+                );
+
+                let hash_dir = streaming_format_dir.join(hash);
+
+                util::ensure_dir(&hash_dir);
+
                 fs::copy(
                     build.cache_dir.join(&streaming_asset.filename),
-                    streaming_format_dir.join(track_filename)
+                    hash_dir.join(track_filename)
                 ).unwrap();
                 
                 build.stats.add_track(streaming_asset.filesize_bytes);

@@ -30,16 +30,19 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .join(", ");
 
     let download_option_rendered = match &release.download_option {
+        DownloadOption::Code { checkout_page_uid, .. } => formatdoc!(r#"
+            <div class="vpad">
+                <a href="checkout/{checkout_page_uid}{explicit_index}">Download with unlock code</a>
+                <div>{formats_list}</div>
+            </div>
+        "#),
         DownloadOption::Disabled => String::new(),
-        DownloadOption::Free { download_page_uid } => formatdoc!(
-            r#"
-                <div class="vpad">
-                    <a href="{root_prefix}download/{permalink}/{download_page_uid}{explicit_index}">Download</a>
-                    <div>{formats_list}</div>
-                </div>
-            "#,
-            permalink = release.permalink.slug
-        ),
+        DownloadOption::Free { download_page_uid } => formatdoc!(r#"
+            <div class="vpad">
+                <a href="download/{download_page_uid}{explicit_index}">Download</a>
+                <div>{formats_list}</div>
+            </div>
+        "#),
         DownloadOption::Paid { checkout_page_uid, currency, range, .. } => {
             if release.payment_options.is_empty() {
                 String::new()
@@ -79,15 +82,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     )
                 };
 
-                formatdoc!(
-                    r#"
-                        <div class="vpad">
-                            <a href="{root_prefix}checkout/{permalink}/{checkout_page_uid}{explicit_index}">Buy Release</a> {price_label}
-                            <div>{formats_list}</div>
-                        </div>
-                    "#,
-                    permalink = release.permalink.slug
-                )
+                formatdoc!(r#"
+                    <div class="vpad">
+                        <a href="checkout/{checkout_page_uid}{explicit_index}">Buy</a> {price_label}
+                        <div>{formats_list}</div>
+                    </div>
+                "#)
             }
         }
     };
@@ -120,6 +120,18 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             };
             let track_number = index + 1;
 
+            let track_filename = format!(
+                "{basename}{extension}",
+                basename = track.asset_basename.as_ref().unwrap(),
+                extension = release.streaming_format.extension()
+            ); 
+
+            let track_hash = build.hash(
+                &release.permalink.slug,
+                release.streaming_format.asset_dirname(),
+                &track_filename
+            );
+
             formatdoc!(
                 r#"
                     <div class="track">
@@ -127,15 +139,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         <span class="track_number">{track_number}</span>
                         <a class="track_title">{track_title} <span class="duration"><span class="track_time"></span>{duration}</span></a>
                         <br>
-                        <audio controls preload="metadata" src="{streaming_format_dir}/{basename}{streaming_format_extension}"></audio>
+                        <audio controls preload="metadata" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
                         {waveform}
                     </div>
                 "#,
-                basename = track.asset_basename.as_ref().unwrap(),
                 play_icon = play_icon(root_prefix),
                 duration = format_time(track.cached_assets.source_meta.duration_seconds),
                 streaming_format_dir = release.streaming_format.asset_dirname(),
-                streaming_format_extension = release.streaming_format.extension(),
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track, track_number, track_duration_width_rem)

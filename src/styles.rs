@@ -3,6 +3,10 @@ use std::fs;
 
 use crate::{Build, theme::ThemeFont};
 
+/// Might need adjustment at a later point in development, if we don't use
+/// button/input anymore we can drop that again.
+const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
+
 pub fn generate(build: &Build) {
     let theme = &build.theme;
     
@@ -19,7 +23,7 @@ pub fn generate(build: &Build) {
                     font-weight: 400;
                     src: url('{filename}') format('{extension}');
                 }}
-                body {{ font-family: 'Custom'; }}
+                {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Custom'; }}
             "#)
         }
         ThemeFont::Default => {
@@ -35,17 +39,17 @@ pub fn generate(build: &Build) {
                     font-weight: 400;
                     src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
                 }}
-                body {{ font-family: 'Barlow'; }}
+                {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow'; }}
             "#)
         }
         ThemeFont::SystemMono => {
-            String::from(r#"body { font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }"#)
+            format!(r#"{FONT_ELEMENTS_SELECTOR} {{ font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }}"#)
         }
         ThemeFont::SystemSans => {
-            String::from(r#"body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }"#)
+            format!(r#"{FONT_ELEMENTS_SELECTOR} {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }}"#)
         }
         ThemeFont::System(fonts) => {
-            format!("body {{ font-family: {}; }}", fonts)
+            format!("{FONT_ELEMENTS_SELECTOR} {{ font-family: {}; }}", fonts)
         }
     };
     

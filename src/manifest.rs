@@ -322,6 +322,14 @@ pub fn apply_options(
             }
         }
 
+        if optional_flag_present(section, "rotate_download_urls") {
+            build.url_salt = util::uid();
+        }
+
+        if let Some(value) = optional_field_value(section, "freeze_download_urls") {
+            build.url_salt = value;
+        }
+
         if let Some((relative_path, line)) = optional_field_value_with_line(section, "feed_image"){
             if let Some(previous) = &catalog.feed_image {
                 warn_global_set_repeatedly!("catalog.feed_image", previous.borrow().source_file.display(), relative_path);
@@ -358,6 +366,19 @@ pub fn apply_options(
     }
 
     if let Some(section) = optional_section(&document, "download", path) {
+        if let Some(value) = optional_field_value(section, "code") {
+            overrides.download_option = DownloadOption::new_codes(vec![value]);
+        }
+        optional_field_with_items(section, "codes", &mut |items: &[Item]| {
+            let codes: Vec<String> = items
+                    .iter()
+                    .filter_map(|item| item.required_value().ok())
+                    .collect();
+
+            if !codes.is_empty() {
+                overrides.download_option = DownloadOption::new_codes(codes);  
+            }
+        });
         if optional_flag_present(section, "disabled") {
             overrides.download_option = DownloadOption::Disabled;
         }
