@@ -367,12 +367,31 @@ pub fn apply_options(
 
     if let Some(section) = optional_section(&document, "download", path) {
         if let Some(value) = optional_field_value(section, "code") {
-            overrides.download_option = DownloadOption::Codes(vec![value]);
+            match Permalink::new(&value) {
+                Ok(_) => {
+                    overrides.download_option = DownloadOption::Codes(vec![value]);
+                }
+                Err(err) => {
+                    error!("Ignoring invalid download.code value '{}' ({}) in {}", value, err, path.display())
+                }
+            };
         }
         optional_field_with_items(section, "codes", &mut |items: &[Item]| {
             let codes: Vec<String> = items
                     .iter()
-                    .filter_map(|item| item.required_value().ok())
+                    .filter_map(|item| {
+                        if let Ok(value) = item.required_value::<String>() {
+                            match Permalink::new(&value) {
+                                Ok(_) => Some(value),
+                                Err(err) => {
+                                    error!("Ignoring invalid download.codes value '{}' ({}) in {}", value, err, path.display());
+                                    None
+                                }
+                            }
+                        } else {
+                            None
+                        }
+                    })
                     .collect();
 
             if !codes.is_empty() {
