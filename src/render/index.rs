@@ -40,7 +40,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         let title_escaped = html_escape_outside_attribute(&catalog_title);
 
         formatdoc!(r#"
-            <div class="additional" id="more">
+            <div class="additional">
                 <div style="max-width: 36rem;">
                     <a href=".{explicit_index}" style="color: #fff;">
                         {title_escaped}
@@ -65,16 +65,5 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         releases_full_height = if more.is_empty() { "releases_full_height" } else { "" }
     );
 
-    let links = if more.is_empty() {
-        None
-    } else {
-        Some(
-            formatdoc!(r#"
-                <a href=".{explicit_index}#top" style="border-bottom: 1px solid #ccc;">Releases</a>
-                <a href=".{explicit_index}#more">More</a>
-            "#)
-        )
-    };
-
-    layout(root_prefix, &body, build, catalog, &catalog_title, links)
+    layout(root_prefix, &body, build, catalog, &catalog_title, None)
 }

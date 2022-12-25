@@ -178,7 +178,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 {tracks_rendered}
             </div>
-            <div class="additional" id="more">
+            <div class="additional">
                 <div class="center_release">
                     <div>
                         {release_text}
@@ -199,12 +199,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         play_icon = play_icon(root_prefix)
     );
 
-    let links = formatdoc!(r#"
-        <a href=".{explicit_index}#top">Listen</a>
-        <a href=".{explicit_index}#more">More</a>
-    "#);
-
-    layout(root_prefix, &body, build, catalog, &release.title, Some(links))
+    layout(root_prefix, &body, build, catalog, &release.title, None)
 }
 
 fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -> String {
