@@ -73,7 +73,7 @@ pub struct Stats {
 }
 
 impl Build {
-    pub fn hash (
+    pub fn hash(
         &self,
         release_slug: &str,
         format_dir: &str,
@@ -84,6 +84,21 @@ impl Build {
         release_slug.hash(&mut hasher);
         format_dir.hash(&mut hasher);
         filename.hash(&mut hasher);
+        self.url_salt.hash(&mut hasher);
+
+        encode_engine(hasher.finish().to_le_bytes(), &self.hash_engine)
+    }
+
+    pub fn hash_generic(
+        &self,
+        inputs: &[&str]
+    ) -> String {
+        let mut hasher = DefaultHasher::new();
+
+        for input in inputs {
+            input.hash(&mut hasher);
+        }
+
         self.url_salt.hash(&mut hasher);
 
         encode_engine(hasher.finish().to_le_bytes(), &self.hash_engine)

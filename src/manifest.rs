@@ -367,7 +367,7 @@ pub fn apply_options(
 
     if let Some(section) = optional_section(&document, "download", path) {
         if let Some(value) = optional_field_value(section, "code") {
-            overrides.download_option = DownloadOption::new_codes(vec![value]);
+            overrides.download_option = DownloadOption::Codes(vec![value]);
         }
         optional_field_with_items(section, "codes", &mut |items: &[Item]| {
             let codes: Vec<String> = items
@@ -376,7 +376,7 @@ pub fn apply_options(
                     .collect();
 
             if !codes.is_empty() {
-                overrides.download_option = DownloadOption::new_codes(codes);  
+                overrides.download_option = DownloadOption::Codes(codes);
             }
         });
         if optional_flag_present(section, "disabled") {
@@ -407,7 +407,7 @@ pub fn apply_options(
                     .collect();
         });
         if optional_flag_present(section, "free") {
-            overrides.download_option = DownloadOption::init_free();
+            overrides.download_option = DownloadOption::Free;
         }
         if let Some((value, line)) = optional_field_value_with_line(section, "price") {
             let mut split_by_whitespace = value.split_ascii_whitespace();
@@ -418,7 +418,7 @@ pub fn apply_options(
 
                     if recombined.ends_with("+") {
                         if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
-                            overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
+                            overrides.download_option = DownloadOption::Paid(currency, amount_parsed..f32::INFINITY);
                         } else {
                             error!("Ignoring download.price option '{}' with malformed minimum price in {}:{}", value, path.display(), line);
                         }
@@ -428,12 +428,12 @@ pub fn apply_options(
                         if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
                             if let Some(max_amount) = split_by_dash.next() {
                                 if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
-                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
+                                    overrides.download_option = DownloadOption::Paid(currency, amount_parsed..max_amount_parsed);
                                 } else {
                                     error!("Ignoring download.price option '{}' with malformed maximum price in {}:{}", value, path.display(), line);
                                 }
                             } else {
-                                overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
+                                overrides.download_option = DownloadOption::Paid(currency, amount_parsed..amount_parsed);
                             }
                         } else {
                             error!("Ignoring download.price option '{}' with malformed price in {}:{}", value, path.display(), line);
@@ -446,7 +446,7 @@ pub fn apply_options(
                         // TODO: DRY - exact copy from above
                         if recombined.ends_with("+") {
                             if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
-                                overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..f32::INFINITY);
+                                overrides.download_option = DownloadOption::Paid(currency, amount_parsed..f32::INFINITY);
                             } else {
                                 error!("Ignoring download.price option '{}' with malformed minimum price in {}:{}", value, path.display(), line);
                             }
@@ -456,12 +456,12 @@ pub fn apply_options(
                             if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
                                 if let Some(max_amount) = split_by_dash.next() {
                                     if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
-                                        overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..max_amount_parsed);
+                                        overrides.download_option = DownloadOption::Paid(currency, amount_parsed..max_amount_parsed);
                                     } else {
                                         error!("Ignoring download.price option '{}' with malformed maximum price in {}:{}", value, path.display(), line);
                                     }
                                 } else {
-                                    overrides.download_option = DownloadOption::init_paid(currency, amount_parsed..amount_parsed);
+                                    overrides.download_option = DownloadOption::Paid(currency, amount_parsed..amount_parsed);
                                 }
                             } else {
                                 error!("Ignoring download.price option '{}' with malformed price in {}:{}", value, path.display(), line);

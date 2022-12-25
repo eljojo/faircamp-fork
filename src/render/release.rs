@@ -30,20 +30,28 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .join(", ");
 
     let download_option_rendered = match &release.download_option {
-        DownloadOption::Code { checkout_page_uid, .. } => formatdoc!(r#"
-            <div class="vpad">
-                <a href="checkout/{checkout_page_uid}{explicit_index}">Download with unlock code</a>
-                <div>{formats_list}</div>
-            </div>
-        "#),
+        DownloadOption::Codes(_) => {
+            let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
+
+            formatdoc!(r#"
+                <div class="vpad">
+                    <a href="checkout/{page_hash}{explicit_index}">Download with unlock code</a>
+                    <div>{formats_list}</div>
+                </div>
+            "#)
+        },
         DownloadOption::Disabled => String::new(),
-        DownloadOption::Free { download_page_uid } => formatdoc!(r#"
-            <div class="vpad">
-                <a href="download/{download_page_uid}{explicit_index}">Download</a>
-                <div>{formats_list}</div>
-            </div>
-        "#),
-        DownloadOption::Paid { checkout_page_uid, currency, range, .. } => {
+        DownloadOption::Free => {
+            let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
+
+            formatdoc!(r#"
+                <div class="vpad">
+                    <a href="download/{page_hash}{explicit_index}">Download</a>
+                    <div>{formats_list}</div>
+                </div>
+            "#)
+        },
+        DownloadOption::Paid(currency, range) => {
             if release.payment_options.is_empty() {
                 String::new()
             } else {
@@ -82,9 +90,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     )
                 };
 
+                let checkout_page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
+
                 formatdoc!(r#"
                     <div class="vpad">
-                        <a href="checkout/{checkout_page_uid}{explicit_index}">Buy</a> {price_label}
+                        <a href="checkout/{checkout_page_hash}{explicit_index}">Buy</a> {price_label}
                         <div>{formats_list}</div>
                     </div>
                 "#)

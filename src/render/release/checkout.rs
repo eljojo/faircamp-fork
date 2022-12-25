@@ -15,7 +15,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
-    let content = if let DownloadOption::Paid { currency, download_page_uid, range, .. } = &release.download_option {
+    let (content, heading) = if let DownloadOption::Paid(currency, range) = &release.download_option {
          let price = if range.end == f32::INFINITY {
             if range.start > 0.0 {
                 format!(
@@ -84,7 +84,9 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .collect::<Vec<String>>()
             .join("\n");
 
-            formatdoc!(r#"
+            let download_page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
+
+            let content = formatdoc!(r#"
                 {price}
 
                 <br><br>
@@ -93,10 +95,12 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 <br><br>
 
-                <a href="{release_prefix}download/{download_page_uid}{explicit_index}">I have made the payment — Continue</a>
-            "#)
-    } else if let DownloadOption::Code { .. } = &release.download_option {
-        formatdoc!(r#"
+                <a href="{release_prefix}download/{download_page_hash}{explicit_index}">I have made the payment — Continue</a>
+            "#);
+
+            (content, "Buy Release")
+    } else if let DownloadOption::Codes(_) = &release.download_option {
+        let content = formatdoc!(r#"
             <div class="unlock_scripted">
                 Downloads for this release are available by entering an unlock
                 code. If you don't already have a code you need to obtain one
@@ -145,7 +149,9 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 looks like this - /checkout/[some-random-letters]{explicit_index} -
                 with /download/[your-unlock-code]{explicit_index} and then press Enter.
             </div>
-        "#)
+        "#);
+
+        (content, "Enter Code")
     } else {
         unreachable!();
     };
@@ -156,7 +162,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let body = formatdoc!(r#"
         <div class="center">
-            <h1>Buy/Unlock Release</h1>
+            <h1>{heading}</h1>
 
             <br><br>
 

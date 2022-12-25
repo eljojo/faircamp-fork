@@ -378,11 +378,13 @@ impl Release {
 
     pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
-            DownloadOption::Code { checkout_page_uid, codes } => {
+            DownloadOption::Codes(codes) => {
+                let page_hash = build.hash_generic(&[&self.permalink.slug, "checkout"]);
+
                 let checkout_page_dir = build.build_dir
                     .join(&self.permalink.slug)
                     .join("checkout")
-                    .join(checkout_page_uid);
+                    .join(page_hash);
 
                 let checkout_html = render::release::checkout::checkout_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
@@ -396,28 +398,46 @@ impl Release {
                 for code in codes {
                     // TODO: We will need to limit the code character set to url safe characters.
                     //       Needs to be validated when reading the input directory.
-                    let download_page_dir = download_dir.join(code);
-                    util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                    let code_dir = download_dir.join(code);
+                    util::ensure_dir_and_write_index(&code_dir, &download_html);
                 }
             }
             DownloadOption::Disabled => (),
-            DownloadOption::Free { download_page_uid }  => {
-                let download_page_dir = build.build_dir.join(&self.permalink.slug).join("download").join(download_page_uid);
+            DownloadOption::Free  => {
+                let page_hash = build.hash_generic(&[&self.permalink.slug, "download"]);
+
+                let download_page_dir = build.build_dir
+                    .join(&self.permalink.slug)
+                    .join("download")
+                    .join(page_hash);
+
                 let download_html = render::release::download::download_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
-            DownloadOption::Paid { checkout_page_uid, download_page_uid, .. } => {
+            DownloadOption::Paid(_currency, _ranges) => {
                 if self.payment_options.is_empty() {
                     warn!(
                         "No payment options specified for release '{}', no purchase/download option will be displayed for this release.",
                         self.title
                     );
                 } else {
-                    let checkout_page_dir = build.build_dir.join(&self.permalink.slug).join("checkout").join(checkout_page_uid);
+                    let checkout_page_hash = build.hash_generic(&[&self.permalink.slug, "checkout"]);
+
+                    let checkout_page_dir = build.build_dir
+                        .join(&self.permalink.slug)
+                        .join("checkout")
+                        .join(checkout_page_hash);
+
                     let checkout_html = render::release::checkout::checkout_html(build, catalog, self);
                     util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
 
-                    let download_page_dir = build.build_dir.join(&self.permalink.slug).join("download").join(download_page_uid);
+                    let download_page_hash = build.hash_generic(&[&self.permalink.slug, "download"]);
+
+                    let download_page_dir = build.build_dir
+                        .join(&self.permalink.slug)
+                        .join("download")
+                        .join(download_page_hash);
+
                     let download_html = render::release::download::download_html(build, catalog, self);
                     util::ensure_dir_and_write_index(&download_page_dir, &download_html);
                 }
