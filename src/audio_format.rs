@@ -86,7 +86,7 @@ impl AudioFormat {
             AudioFormat::Aac => "Average encoding quality – appropriate if your player does not support better formats",
             AudioFormat::Aiff => "Uncompressed large files – appropriate only for audio production",
             AudioFormat::Flac => "Lossless and compressed – best choice for archival",
-            AudioFormat::Mp3VbrV0 => "Inferior encoding quality – appropriate if compatibility with older devices is needed",
+            AudioFormat::Mp3VbrV0 => "Inferior encoding quality – appropriate if compatibility with older players is needed",
             AudioFormat::OggVorbis => "Average encoding quality – appropriate if your player does not support better formats",
             AudioFormat::Opus48Kbps => "State-of-the-art encoding quality at 48Kbps – best choice for high-demand streaming",
             AudioFormat::Opus96Kbps => "State-of-the-art encoding quality at 96Kbps – best choice for streaming",

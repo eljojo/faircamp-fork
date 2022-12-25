@@ -40,9 +40,9 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         .map(|(format, recommended)|
             formatdoc!(
                 r#"
-                    <div>
-                        {user_label}{download_label} – {description}{recommendation}
-                    </div>
+                    <small>
+                        {user_label}{download_label}: {description}{recommendation}
+                    </small>
                 "#,
                 description = format.description(),
                 download_label = if format.download_label() == format.user_label() { String::new() } else { format!(r#" ({})"#, format.download_label()) },
@@ -139,7 +139,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let body = formatdoc!(
         r##"
-            <div class="center">
+            <div class="center_release">
                 <h1>Download Release</h1>
 
                 <br><br>
@@ -182,6 +182,8 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <br><br>
 
                 <div class="download_hints" id="hints">
+                    <small>Format Guide:</small>
+
                     {download_hints}
                 </div>
 

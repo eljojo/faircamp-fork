@@ -118,7 +118,8 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .download_formats { margin-left: .1rem; }
 .download_icon { width: 1rem; }
-.download_hints > *:not(:first-child) { margin-top: .8rem; }
+.download_hints > small { display: block; }
+.download_hints > small:not(:first-child) { margin-top: .8rem; }
 .download_options div { margin-bottom: .5rem; }
 .duration {
     color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);

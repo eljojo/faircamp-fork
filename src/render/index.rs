@@ -42,9 +42,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         formatdoc!(r#"
             <div class="additional">
                 <div style="max-width: 36rem;">
-                    <a href=".{explicit_index}" style="color: #fff;">
+                    <h1 style="color: #fff;">
                         {title_escaped}
-                    </a>
+                    </h1>
                     {text}
                 </div>
                 {artists}
