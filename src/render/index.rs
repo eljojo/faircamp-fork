@@ -13,7 +13,19 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     
     let catalog_title = catalog.title();
 
-    let more = if let Some(text) = &catalog.text {
+    let more = if build.base_url.is_none() && catalog.text.is_none() {
+        String::new()
+    } else {
+        let feed_link = match &build.base_url.is_some() {
+            true => format!(r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg"> RSS Feed</a>"#),
+            false => String::new()
+        };
+
+        let catalog_text = match &catalog.text {
+            Some(text) => text.clone(),
+            None => String::new()
+        };
+
         let artists = if catalog.label_mode && !catalog.artists.is_empty()  {
             let list = catalog.artists
                 .iter()
@@ -45,13 +57,12 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                     <h1 style="color: #fff;">
                         {title_escaped}
                     </h1>
-                    {text}
+                    {catalog_text}
+                    {artists}
+                    {feed_link}
                 </div>
-                {artists}
             </div>
         "#)
-    } else {
-        String::new()
     };
 
     let body = formatdoc!(
@@ -65,5 +76,5 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         releases_full_height = if more.is_empty() { "releases_full_height" } else { "" }
     );
 
-    layout(root_prefix, &body, build, catalog, &catalog_title, None)
+    layout(root_prefix, &body, build, catalog, &catalog_title, &[])
 }

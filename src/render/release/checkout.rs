@@ -158,7 +158,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists);
     let cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None);
-    let title = html_escape_outside_attribute(&release.title);
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
 
     let body = formatdoc!(r#"
         <div class="center">
@@ -169,7 +169,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             <div class="cover_listing" style="max-width: 12rem">
                 {cover}
             </div>
-            <div>{title}</div>
+            <div>{release_title_escaped}</div>
             <div>{artists}</div>
 
             <br><br>
@@ -178,5 +178,10 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         </div>
     "#);
 
-    layout(root_prefix, &body, build, catalog, &release.title, None)
+    let breadcrumbs = &[
+        format!(r#"<a href="..{explicit_index}">{release_title_escaped}</a>"#),
+        format!("<span>{heading}</span>")
+    ];
+
+    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }

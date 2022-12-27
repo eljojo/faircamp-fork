@@ -137,6 +137,8 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         &primary_download_filename
     );
 
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+
     let body = formatdoc!(
         r##"
             <div class="center_release">
@@ -147,7 +149,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <div class="cover_listing" style="max-width: 12rem">
                     {cover}
                 </div>
-                <div>{title}</div>
+                <div>{release_title_escaped}</div>
                 <div>{artists}</div>
 
                 <br><br>
@@ -195,9 +197,13 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         primary_download_format = primary_format.0.user_label(),
         primary_download_format_dirname = primary_format.0.asset_dirname(),
         primary_download_format_recommendation = if primary_format.1 { " (Recommended Format)" } else { "" },
-        permalink = &release.permalink.slug,
-        title = html_escape_outside_attribute(&release.title)
+        permalink = &release.permalink.slug
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title, None)
+    let breadcrumbs = &[
+        format!(r#"<a href="..{explicit_index}">{release_title_escaped}</a>"#),
+        format!("<span>Download</span>")
+    ];
+
+    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }

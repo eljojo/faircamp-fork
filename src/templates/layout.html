@@ -12,13 +12,9 @@
     <body>
         <script>document.body.classList.add('js_enabled');</script>
         <nav>
-            <span>
-                <a href="{root_prefix}.{explicit_index}">{catalog_title}</a>
-            </span>
-            <span>
-                {links}
-                {feed_user_link}
-            </span>
+            <img src="{root_prefix}logo.svg" style="height: 100%"/>
+            <a href="{root_prefix}.{explicit_index}">{catalog_title}</a>
+            {breadcrumbs}
         </nav>
         {body}
         {theming_widget}

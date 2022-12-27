@@ -34,21 +34,20 @@ img {
 main { box-sizing: border-box; }
 nav {
     align-items: center;
-    background-color: hsla(0, 0%, var(--pane-l), .5);
+    background-color: hsla(0, 0%, var(--pane-l), .92);
     box-shadow: 0 0 .5rem hsla(0, 0%, 0%, 0.2);
     box-sizing: border-box;
     display: flex;
     height: 2.5rem;
-    justify-content: space-between;
-    padding: 0 .8rem;
+    justify-content: flex-start;
     position: sticky;
     top: 0;
     width: 100%;
     z-index: 9;
 }
-nav span { display: flex; }
 nav a { color: var(--color-text); }
-nav a:not(:first-child) { margin-left: .5rem; }
+nav > *:not(:first-child) { margin-right: .4rem }
+nav > *:first-child { margin-right: .8rem }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .additional {
     align-items: center;

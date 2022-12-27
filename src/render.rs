@@ -118,14 +118,11 @@ fn layout(
     build: &Build,
     catalog: &Catalog,
     title: &str,
-    links: Option<String>
+    breadcrumbs: &[String]
 ) -> String {
-    let (feed_meta_link, feed_user_link) = match &build.base_url.is_some() {
-        true => (
-            format!(r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#),
-            format!(r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg"></a>"#)
-        ),
-        false => (String::new(), String::new())
+    let feed_meta_link = match &build.base_url.is_some() {
+        true => format!(r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#),
+        false => String::new()
     };
 
     let dir_attribute = match build.localization.writing_direction {
@@ -154,7 +151,11 @@ fn layout(
         String::new()
     };
 
-    let links = links.unwrap_or(String::new());
+    let breadcrumbs = breadcrumbs
+        .iter()
+        .map(|link| format!(" <span>›</span> {link}"))
+        .collect::<Vec<String>>()
+        .join("");
 
     format!(
         include_str!("templates/layout.html"),
@@ -163,8 +164,7 @@ fn layout(
         dir_attribute = dir_attribute,
         explicit_index = if build.clean_urls { "/" } else { "/index.html" },
         feed_meta_link = feed_meta_link,
-        feed_user_link = feed_user_link,
-        links = links,
+        breadcrumbs = breadcrumbs,
         root_prefix = root_prefix,
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)

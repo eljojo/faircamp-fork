@@ -38,5 +38,5 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
         </div>
     "#);
 
-    layout(root_prefix, &body, build, catalog, TITLE, None)
+    layout(root_prefix, &body, build, catalog, TITLE, &[])
 }

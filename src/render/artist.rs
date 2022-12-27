@@ -23,6 +23,8 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         String::new()
     };
 
+    let artist_name_escaped = html_escape_outside_attribute(&artist.name);
+
     let body = formatdoc!(
         r#"
             <div class="center">
@@ -34,7 +36,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                         {artist_image}
                     </div>
 
-                    {artist_name}
+                    {artist_name_escaped}
 
                     <br><br>
 
@@ -43,9 +45,12 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             </div>
         "#,
         artist_image = artist_image(explicit_index, root_prefix, &artist.image, ImageFormat::Artist, None),
-        artist_name = html_escape_outside_attribute(&artist.name),
         releases = releases(explicit_index, root_prefix, &catalog, &artist.releases, false)
     );
 
-    layout(root_prefix, &body, build, catalog, &artist.name, None)
+    let breadcrumbs = &[
+        format!(r#"<a href=".{explicit_index}">{artist_name_escaped}</a>"#)
+    ];
+
+    layout(root_prefix, &body, build, catalog, &artist.name, breadcrumbs)
 }

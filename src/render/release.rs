@@ -209,7 +209,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         play_icon = play_icon(root_prefix)
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title, None)
+    let breadcrumbs = &[
+        format!(r#"<a href=".{explicit_index}">{release_title_escaped}</a>"#)
+    ];
+
+    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }
 
 fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -> String {

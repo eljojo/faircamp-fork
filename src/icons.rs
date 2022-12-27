@@ -39,6 +39,12 @@ pub fn generate(build: &Build) {
     );
     fs::write(build.build_dir.join("download.svg"), download_svg).unwrap();
 
+    let logo_svg = format!(
+        include_str!("icons/logo.svg"),
+        text_color = text_color
+    );
+    fs::write(build.build_dir.join("logo.svg"), logo_svg).unwrap();
+
     let pause_svg = format!(
         include_str!("icons/pause.svg"),
         text_color = text_color

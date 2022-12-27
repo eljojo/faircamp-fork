@@ -47,6 +47,8 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
 
     let release_prefix = "../";
 
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+
     let body = formatdoc!(
         r##"
             <div class="center_release">
@@ -58,7 +60,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
                     {cover}
                 </div>
 
-                <div>{release_title}</div>
+                <div>{release_title_escaped}</div>
                 <div>{artists}</div>
 
                 <br><br>
@@ -73,11 +75,15 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
-        embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release"),
-        release_title = html_escape_outside_attribute(&release.title)
+        embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release")
     );
 
-    layout(root_prefix, &body, build, catalog, &release.title, None)
+    let breadcrumbs = &[
+        format!(r#"<a href="..{explicit_index}">{release_title_escaped}</a>"#),
+        format!("<span>Embed</span>")
+    ];
+
+    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }
 
 pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
