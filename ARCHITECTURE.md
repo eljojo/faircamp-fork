@@ -15,7 +15,7 @@ A catalog may have the following explicitly defined artists next to each other:
 This allows both "Alice" and "Bob" to exist and be assigned to a track with
 metadata storing an artist "Alice (feat. Bob)".
 
-## Hotlinking countermeasures – NOT YET IMPLEMENTED
+## Hotlinking countermeasures
 
 Faircamp does not generally try to obfuscate anything about the site/url
 hierarchy it generates - it would be technically pointless, and faircamp
