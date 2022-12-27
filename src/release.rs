@@ -276,10 +276,10 @@ impl Release {
                 util::ensure_dir(&hash_dir);
 
                 // TODO: Track might already have been copied (?) (if streaming format is identical)
-                fs::copy(
+                util::hard_link_or_copy(
                     build.cache_dir.join(&download_track_asset.filename),
                     hash_dir.join(track_filename)
-                ).unwrap();
+                );
 
                 // TODO: Track might already have been added (?) (if streaming format is identical)
                 build.stats.add_track(download_track_asset.filesize_bytes);
@@ -365,10 +365,10 @@ impl Release {
 
             util::ensure_dir(&hash_dir);
 
-            fs::copy(
+            util::hard_link_or_copy(
                 build.cache_dir.join(&download_archive_asset.filename),
                 hash_dir.join(&archive_filename)
-            ).unwrap();
+            );
 
             build.stats.add_archive(download_archive_asset.filesize_bytes);
 

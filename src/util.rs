@@ -43,6 +43,19 @@ pub fn format_time(seconds: u32) -> String {
     }
 }
 
+/// Media that require heavy precomputation (image, audio) are stored in the
+/// cache directory, and then copied to the build directory during
+/// generation. In order to prevent double space usage, inside the build
+/// directory we try to create hard links instead of copies. If hard links
+/// can not be created (e.g. because cache and build directory are on
+/// different file systems) we just silently fall back to regular copying.
+pub fn hard_link_or_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) {
+    fs::hard_link(&from, &to)
+        .unwrap_or_else(|_| {
+            fs::copy(&from, &to).unwrap();
+        });
+}
+
 pub fn html_escape_inside_attribute(string: &str) -> String {
     string.replace("&", "&amp")
           .replace("<", "&lt;")

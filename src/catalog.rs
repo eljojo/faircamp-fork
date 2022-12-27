@@ -3,7 +3,6 @@ use std::{
     cell::RefCell,
     cmp::Ordering,
     collections::HashMap,
-    fs,
     path::{Path, PathBuf},
     rc::Rc
 };
@@ -648,10 +647,10 @@ impl Catalog {
             let mut background_image_mut = background_image.borrow_mut();
             let image_asset = background_image_mut.get_or_transcode_as(ImageFormat::Background, build, AssetIntent::Deliverable);
             
-            fs::copy(
+            util::hard_link_or_copy(
                 build.cache_dir.join(&image_asset.filename),
                 build.build_dir.join("background.jpg")
-            ).unwrap();
+            );
             
             build.stats.add_image(image_asset.filesize_bytes);
             
@@ -662,10 +661,10 @@ impl Catalog {
             let mut feed_image_mut = feed_image.borrow_mut();
             let image_asset = feed_image_mut.get_or_transcode_as(ImageFormat::Feed, build, AssetIntent::Deliverable);
             
-            fs::copy(
+            util::hard_link_or_copy(
                 build.cache_dir.join(&image_asset.filename),
                 build.build_dir.join("feed.jpg")
-            ).unwrap();
+            );
             
             build.stats.add_image(image_asset.filesize_bytes);
             
@@ -679,10 +678,10 @@ impl Catalog {
                 let mut image_mut = image.borrow_mut();
                 let image_asset = image_mut.get_or_transcode_as(ImageFormat::Artist, build, AssetIntent::Deliverable);
                 
-                fs::copy(
+                util::hard_link_or_copy(
                     build.cache_dir.join(&image_asset.filename),
                     build.build_dir.join(&image_asset.filename)
-                ).unwrap();
+                );
                 
                 build.stats.add_image(image_asset.filesize_bytes);
                 
@@ -706,10 +705,10 @@ impl Catalog {
                     extension = ImageFormat::Cover.extension()
                 );
 
-                fs::copy(
+                util::hard_link_or_copy(
                     build.cache_dir.join(&image_asset.filename),
                     release_dir.join(cover_filename)
-                ).unwrap();
+                );
                 
                 build.stats.add_image(image_asset.filesize_bytes);
                 
@@ -786,10 +785,10 @@ impl Catalog {
 
                 util::ensure_dir(&hash_dir);
 
-                fs::copy(
+                util::hard_link_or_copy(
                     build.cache_dir.join(&streaming_asset.filename),
                     hash_dir.join(track_filename)
-                ).unwrap();
+                );
                 
                 build.stats.add_track(streaming_asset.filesize_bytes);
                 
