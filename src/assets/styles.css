@@ -42,6 +42,7 @@ nav {
     justify-content: flex-start;
     position: sticky;
     top: 0;
+    white-space: nowrap;
     width: 100%;
     z-index: 9;
 }
@@ -84,6 +85,12 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     flex-grow: 1;
     margin: 3rem auto;
     max-width: 23rem;
+}
+@media (max-width: 30rem) {
+    .center_release {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }
 .center_unconstrained {
     margin: 0 auto;
@@ -174,6 +181,9 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track.active .track_controls,
 .track:hover .track_controls { display: flex; }
+@media (max-width: 467px) {
+    .track:hover .track_controls { display: inline-flex; }
+}
 .track.active .track_number,
 .track:hover .track_number { display: none; }
 .track_controls {
