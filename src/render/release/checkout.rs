@@ -179,7 +179,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     "#);
 
     let breadcrumbs = &[
-        format!(r#"<a href="..{explicit_index}">{release_title_escaped}</a>"#),
+        format!(r#"<a href="../..{explicit_index}">{release_title_escaped}</a>"#),
         format!("<span>{heading}</span>")
     ];
 
