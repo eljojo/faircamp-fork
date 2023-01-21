@@ -141,6 +141,21 @@ fn main() {
     feed::generate(&build, &catalog);
     icons::generate(&build);
 
+    fs::write(
+        build.build_dir.join("favicon.svg"),
+        include_bytes!("assets/favicon.svg")
+    ).unwrap();
+
+    fs::write(
+        build.build_dir.join("favicon_dark.png"),
+        include_bytes!("assets/favicon_dark.png")
+    ).unwrap();
+
+    fs::write(
+        build.build_dir.join("favicon_light.png"),
+        include_bytes!("assets/favicon_light.png")
+    ).unwrap();
+
     if build.base_url.is_none() {
         if build.embeds_requested {
             warn!("No catalog.base_url specified, embeds for releases and the RSS feed were not generated");
