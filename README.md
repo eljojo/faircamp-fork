@@ -1,6 +1,6 @@
 # Faircamp (codename)
 
-A self-hostable, statically generated bandcamp alternative — *[see screenshots/posts on mastodon](https://post.lurk.org/@freebliss/105685776449364587)*
+A self-hostable, statically generated bandcamp alternative — *[see screenshots at simonrepp.com/faircamp](https://simonrepp.com/faircamp)*
 
 ## Concept Overview
 
