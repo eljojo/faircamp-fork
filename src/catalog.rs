@@ -708,15 +708,16 @@ impl Catalog {
                 let image_mut = image.borrow_mut();
                 let mut image_assets_mut = image_mut.assets.borrow_mut();
                 let image_version_assets = image_assets_mut.cover_asset(build, AssetIntent::Deliverable);
-                let image_asset = &image_version_assets.versions[0];                
 
-                util::hard_link_or_copy(
-                    build.cache_dir.join(&image_asset.filename),
-                    release_dir.join("cover.jpg")
-                );
-                
-                build.stats.add_image(image_asset.filesize_bytes);
-                
+                for (index, version) in image_version_assets.versions.iter().enumerate() {
+                    util::hard_link_or_copy(
+                        build.cache_dir.join(&version.filename),
+                        release_dir.join(format!("cover_{index}.jpg"))
+                    );
+
+                    build.stats.add_image(version.filesize_bytes);
+                }
+
                 image_assets_mut.persist_to_cache(&build.cache_dir);
             }
             

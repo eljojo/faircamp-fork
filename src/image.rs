@@ -21,6 +21,7 @@ use crate::{
 const ARTIST_EDGE_SIZE: i32 = 420;
 const BACKGROUND_MAX_EDGE_SIZE: i32 = 1280;
 const COVER_EDGE_SIZE: i32 = 360;
+const DOWNLOAD_COVER_EDGE_SIZE: i32 = 1080;
 const FEED_MAX_EDGE_SIZE: i32 = 920;
 
 /// Associates image assets with an image description
@@ -47,8 +48,8 @@ pub struct ImageAssets {
 pub struct ImageVersion {
     pub filename: String,
     pub filesize_bytes: u64,
-    pub height: usize,
-    pub width: usize 
+    pub height: i32,
+    pub width: i32
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -66,7 +67,7 @@ fn resize(
     build: &Build,
     path: &PathBuf,
     resize_mode: ResizeMode
-) -> String {
+) -> (String, (i32, i32)) {
     let image = VipsImage::new_from_file(&build.catalog_dir.join(path).to_string_lossy()).unwrap();
 
     let height = image.get_height();
@@ -103,8 +104,6 @@ fn resize(
         }
     };
 
-    let target_filename = format!("{}.jpg", util::uid());
-
     let options = ops::JpegsaveOptions {
         interlace: true,
         optimize_coding: true,
@@ -112,6 +111,10 @@ fn resize(
         strip: true,
         ..ops::JpegsaveOptions::default()
     };
+
+    let target_filename = format!("{}.jpg", util::uid());
+
+    let result_dimensions = (transformed.get_width(), transformed.get_height());
 
     match ops::jpegsave_with_opts(
         &transformed,
@@ -122,7 +125,7 @@ fn resize(
         Err(_) => println!("error: {}", build.libvips_app.error_buffer().unwrap())
     }
 
-    target_filename
+    (target_filename, result_dimensions)
 }
 
 impl CoverImageVersions {
@@ -173,7 +176,7 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let filename = resize(
+            let (filename, _dimensions) = resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CropSquare(ARTIST_EDGE_SIZE)
@@ -195,7 +198,7 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let filename = resize(
+            let (filename, _dimensions) = resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CropWithin(BACKGROUND_MAX_EDGE_SIZE)
@@ -217,25 +220,46 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let filename = resize(
+            let mut versions = Vec::new();
+
+            let (filename_hires, dimensions_hires) = resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CropSquare(COVER_EDGE_SIZE)
             );
 
-            let image_version = ImageVersion {
-                filename: filename,
-                filesize_bytes: 666, // TODO: Implement
-                height: 666,
-                width: 666
-            };
+            let metadata_hires = fs::metadata(&build.cache_dir.join(&filename_hires)).unwrap();
+
+            versions.push(ImageVersion {
+                filename: filename_hires,
+                filesize_bytes: metadata_hires.len(),
+                height: dimensions_hires.1,
+                width: dimensions_hires.0
+            });
+
+            if dimensions_hires.0 as f32 > (COVER_EDGE_SIZE as f32 * 0.75) {
+                let (filename_lores, dimensions_lores) = resize(
+                    build,
+                    &self.source_file_signature.path,
+                    ResizeMode::CropSquare(COVER_EDGE_SIZE / 2)
+                );
+
+                let metadata_lores = fs::metadata(&build.cache_dir.join(&filename_lores)).unwrap();
+
+                versions.push(ImageVersion {
+                    filename: filename_lores,
+                    filesize_bytes: metadata_lores.len(),
+                    height: dimensions_lores.1,
+                    width: dimensions_lores.0
+                });
+            }
 
             let cover_image_versions = CoverImageVersions {
                 marked_stale: match asset_intent {
                     AssetIntent::Deliverable => None,
                     AssetIntent::Intermediate => Some(build.build_begin)
                 },
-                versions: vec![image_version]
+                versions
             };
 
             self.cover.replace(cover_image_versions);
@@ -261,10 +285,10 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let filename = resize(
+            let (filename, _dimensions) = resize(
                 build,
                 &self.source_file_signature.path,
-                ResizeMode::CropSquare(COVER_EDGE_SIZE)
+                ResizeMode::CropSquare(DOWNLOAD_COVER_EDGE_SIZE)
             );
 
             self.download_cover.replace(Asset::new(build, filename, asset_intent));
@@ -283,7 +307,7 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let filename = resize(
+            let (filename, _dimensions) = resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CropWithin(FEED_MAX_EDGE_SIZE)

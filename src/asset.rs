@@ -19,7 +19,7 @@ pub enum AssetIntent {
 
 impl Asset {
     pub fn new(build: &Build, filename: String, intent: AssetIntent) -> Asset {
-        let metadata = fs::metadata(build.cache_dir.join(&filename)).expect("Could not access asset");
+        let metadata = fs::metadata(build.cache_dir.join(&filename)).unwrap();
         
         Asset {
             filename,

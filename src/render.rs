@@ -75,11 +75,25 @@ fn cover_image(
     if image.is_none() { return format!("<div></div>"); }
 
     let image_ref = image.as_ref().unwrap().borrow();
+    let image_assets = image_ref.assets.borrow();
 
-    // Might need this real soon for getting multiple sizes:
-    // filename = image_ref.get_as(format).as_ref().unwrap().filename,
+    let mut srcset_entries = Vec::new();
+    let mut sizes_entries = Vec::new();
 
-    let src_url = format!("{release_prefix}cover.jpg");
+    for (index, version) in image_assets.cover.as_ref().unwrap().versions.iter().enumerate().rev() {
+        srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, index, version.width));
+
+        if index > 0 {
+            sizes_entries.push(format!("(max-width: {}px) {}px", version.width, version.width));
+        } else {
+            sizes_entries.push(format!("{}px", version.width));
+        }
+    }
+
+    let srcset = srcset_entries.join(",");
+    let sizes = sizes_entries.join(",");
+
+    let src_url = format!("{release_prefix}cover_0.jpg");
 
     let href_or_src_url = href_url.unwrap_or(&src_url);
 
@@ -88,7 +102,7 @@ fn cover_image(
 
         formatdoc!(r#"
             <a class="image" href="{href_or_src_url}">
-                <img alt="{alt}" loading="lazy" src="{src_url}">
+                <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src_url}" srcset="{srcset}">
             </a>
         "#)
     } else {
@@ -104,7 +118,7 @@ fn cover_image(
                     <span>Missing image description.<br>Click to learn more</span>
                 </a>
                 <a class="image" href="{href_or_src_url}">
-                    <img loading="lazy" src="{src_url}">
+                    <img loading="lazy" sizes="{sizes}" src="{src_url}" srcset="{srcset}">
                 </a>
             </div>
         "#)
