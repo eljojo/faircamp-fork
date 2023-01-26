@@ -1,7 +1,6 @@
 use base64::{
-    alphabet::URL_SAFE,
-    encode_engine,
-    engine::fast_portable::{FastPortable, NO_PAD}
+    engine::general_purpose::{GeneralPurpose, URL_SAFE_NO_PAD},
+    Engine
 };
 use chrono::{DateTime, Utc};
 use libvips::VipsApp;
@@ -23,6 +22,7 @@ use crate::{
 };
 
 pub struct Build {
+    base64_engine: GeneralPurpose,
     pub base_url: Option<Url>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
@@ -33,7 +33,6 @@ pub struct Build {
     pub deploy_destination: Option<String>,
     pub embeds_requested: bool,
     pub exclude_patterns: Vec<String>,
-    hash_engine: FastPortable,
     pub include_patterns: Vec<String>,
     pub localization: Localization,
     pub libvips_app: VipsApp,
@@ -86,7 +85,7 @@ impl Build {
         filename.hash(&mut hasher);
         self.url_salt.hash(&mut hasher);
 
-        encode_engine(hasher.finish().to_le_bytes(), &self.hash_engine)
+        self.base64_engine.encode(hasher.finish().to_le_bytes())
     }
 
     pub fn hash_generic(
@@ -101,7 +100,7 @@ impl Build {
 
         self.url_salt.hash(&mut hasher);
 
-        encode_engine(hasher.finish().to_le_bytes(), &self.hash_engine)
+        self.base64_engine.encode(hasher.finish().to_le_bytes())
     }
 
     pub fn new(args: &Args) -> Build {
@@ -130,6 +129,7 @@ impl Build {
 
         Build {
             base_url: None,
+            base64_engine: URL_SAFE_NO_PAD,
             build_begin: Utc::now(),
             build_dir,
             cache_dir,
@@ -139,7 +139,6 @@ impl Build {
             deploy_destination: args.deploy_destination.clone(),
             embeds_requested: false,
             exclude_patterns: args.exclude_patterns.clone(),
-            hash_engine: FastPortable::from(&URL_SAFE, NO_PAD),
             include_patterns: args.include_patterns.clone(),
             libvips_app,
             localization: Localization::defaults(),
