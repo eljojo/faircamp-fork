@@ -21,23 +21,6 @@ use crate::{
     util
 };
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CachedTrackAssets {
-    pub aac: Option<Asset>,
-    pub aiff: Option<Asset>,
-    pub flac: Option<Asset>,
-    pub mp3: Option<Asset>,
-    pub ogg_vorbis: Option<Asset>,
-    pub opus_48: Option<Asset>,
-    pub opus_96: Option<Asset>,
-    pub opus_128: Option<Asset>,
-    // TODO: There is overlap between this and track.source_file - probably implications for model changes that could/should be made
-    pub source_file_signature: SourceFileSignature,
-    pub source_meta: AudioMeta,
-    pub uid: String,
-    pub wav: Option<Asset>
-}
-
 #[derive(Debug)]
 pub struct Track {
     /// The final mapped artists (including metadata). Used in assembling the final page.
@@ -47,15 +30,74 @@ pub struct Track {
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download/stream asset filenames.
     pub asset_basename: Option<String>,
-    pub cached_assets: CachedTrackAssets,
-    pub source_file: PathBuf,
+    pub assets: Rc<RefCell<TrackAssets>>,
     pub title: String
 }
 
-impl CachedTrackAssets {
-    pub fn deserialize(path: &Path) -> Option<CachedTrackAssets> {
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TrackAssets {
+    pub aac: Option<Asset>,
+    pub aiff: Option<Asset>,
+    pub flac: Option<Asset>,
+    pub mp3: Option<Asset>,
+    pub ogg_vorbis: Option<Asset>,
+    pub opus_48: Option<Asset>,
+    pub opus_96: Option<Asset>,
+    pub opus_128: Option<Asset>,
+    pub source_file_signature: SourceFileSignature,
+    pub source_meta: AudioMeta,
+    pub uid: String,
+    pub wav: Option<Asset>
+}
+
+impl Track {
+    pub fn transcode_as(
+        &mut self,
+        format: AudioFormat,
+        build: &Build,
+        asset_intent: AssetIntent,
+        tag_mapping_option: &Option<TagMapping>
+    ) {
+        let mut assets_mut = self.assets.borrow_mut();
+
+        if let Some(asset) = assets_mut.get_mut(format) {
+            if asset_intent == AssetIntent::Deliverable {
+                asset.unmark_stale();
+            }
+        } else {
+            let target_filename = format!("{}{}", util::uid(), format.extension());
+        
+            info_transcoding!("{:?} to {}", assets_mut.source_file_signature.path, format);
+            ffmpeg::transcode(
+                &build.catalog_dir.join(&assets_mut.source_file_signature.path),
+                &build.cache_dir.join(&target_filename),
+                format,
+                tag_mapping_option
+            ).unwrap();
+
+            assets_mut.get_mut(format).replace(Asset::new(build, target_filename, asset_intent));
+        }
+    }
+    
+    pub fn new(
+        artists_to_map: Vec<String>,
+        assets: Rc<RefCell<TrackAssets>>,
+        title: String
+    ) -> Track {
+        Track {
+            artists: Vec::new(),
+            artists_to_map,
+            asset_basename: None,
+            assets,
+            title
+        }
+    }
+}
+
+impl TrackAssets {
+    pub fn deserialize_cached(path: &Path) -> Option<TrackAssets> {
         match fs::read(path) {
-            Ok(bytes) => bincode::deserialize::<CachedTrackAssets>(&bytes).ok(),
+            Ok(bytes) => bincode::deserialize::<TrackAssets>(&bytes).ok(),
             Err(_) => None
         }
     }
@@ -101,8 +143,8 @@ impl CachedTrackAssets {
         }
     }
 
-    pub fn new(source_file_signature: SourceFileSignature, source_meta: AudioMeta) -> CachedTrackAssets {
-        CachedTrackAssets {
+    pub fn new(source_file_signature: SourceFileSignature, source_meta: AudioMeta) -> TrackAssets {
+        TrackAssets {
             aac: None,
             aiff: None,
             flac: None,
@@ -118,59 +160,8 @@ impl CachedTrackAssets {
         }
     }
     
-    pub fn persist(&self, cache_dir: &Path) {
+    pub fn persist_to_cache(&self, cache_dir: &Path) {
         let serialized = bincode::serialize(self).unwrap();
         fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
-    }
-}
-
-impl Track {
-    pub fn get_as(&self, format: AudioFormat) -> &Option<Asset> {
-        self.cached_assets.get(format)
-    }
-    
-    pub fn get_or_transcode_as(
-        &mut self,
-        format: AudioFormat,
-        build: &Build,
-        asset_intent: AssetIntent,
-        tag_mapping_option: &Option<TagMapping>
-    ) -> &mut Asset {
-        let cached_format = self.cached_assets.get_mut(format);
-    
-        match cached_format {
-            Some(asset) => if asset_intent == AssetIntent::Deliverable { asset.unmark_stale(); }
-            None => {
-                let target_filename = format!("{}{}", util::uid(), format.extension());
-            
-                info_transcoding!("{:?} to {}", self.source_file, format);
-                ffmpeg::transcode(
-                    &self.source_file,
-                    &build.cache_dir.join(&target_filename),
-                    format,
-                    tag_mapping_option
-                ).unwrap();
-            
-                cached_format.replace(Asset::new(build, target_filename, asset_intent));
-            }
-        }
-        
-        cached_format.as_mut().unwrap()
-    }
-    
-    pub fn new(
-        artists_to_map: Vec<String>,
-        cached_assets: CachedTrackAssets,
-        source_file: PathBuf,
-        title: String
-    ) -> Track {
-        Track {
-            artists: Vec::new(),
-            artists_to_map,
-            asset_basename: None,
-            cached_assets,
-            source_file,
-            title
-        }
     }
 }

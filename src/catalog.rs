@@ -12,10 +12,8 @@ use crate::{
     AssetIntent,
     Build,
     CacheManifest,
-    CachedTrackAssets,
     DownloadOption,
     Image,
-    ImageFormat,
     manifest::{LocalOptions, Overrides},
     Permalink,
     PermalinkUsage,
@@ -23,6 +21,7 @@ use crate::{
     manifest,
     TagMapping,
     Track,
+    TrackAssets,
     util
 };
 
@@ -54,7 +53,10 @@ fn pick_best_cover_image(images: Vec<Rc<RefCell<Image>>>) -> Option<Rc<RefCell<I
     let mut cover_candidate_option: Option<(usize, _)> = None;
 
     for image in images {
-        let priority = match image.borrow().source_file.file_stem().unwrap().to_str().unwrap() {
+        let priority = match image.borrow()
+            .assets.borrow()
+            .source_file_signature
+            .path.file_stem().unwrap().to_str().unwrap() {
             "cover" => 1,
             "front" => 2,
             "album" => 3,
@@ -368,13 +370,15 @@ impl Catalog {
         }
         
         for (track_path, extension) in &track_paths {
+            let path_relative_to_catalog = track_path.strip_prefix(&build.catalog_dir).unwrap();
+
             if build.verbose {
-                info!("Reading track {}", track_path.display());
+                info!("Reading track {}", path_relative_to_catalog.display());
             }
             
-            let cached_assets = cache_manifest.take_or_create_track_assets(track_path, extension);
+            let assets = cache_manifest.get_or_create_track_assets(build, path_relative_to_catalog, extension);
             
-            if let Some(release_title) = &cached_assets.source_meta.album {
+            if let Some(release_title) = &assets.borrow().source_meta.album {
                 if let Some(metric) = &mut release_title_metrics
                     .iter_mut()
                     .find(|(_count, title)| title == release_title) {
@@ -387,28 +391,30 @@ impl Catalog {
             let track = self.read_track(
                 track_path,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
-                cached_assets
+                assets
             );
             
             release_tracks.push(track);
         }
         
         for image_path in &image_paths {
+            let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
+
             if build.verbose {
-                info!("Reading image {}", image_path.display());
+                info!("Reading image {}", path_relative_to_catalog.display());
             }
             
-            let cached_assets = cache_manifest.take_or_create_image_assets(image_path);
+            let assets = cache_manifest.get_or_create_image_assets(build, path_relative_to_catalog);
             
-            images.push(Rc::new(RefCell::new(Image::new(cached_assets, None, image_path))));
+            images.push(Rc::new(RefCell::new(Image::new(assets, None))));
         }
         
         if !release_tracks.is_empty() {
-            let cached_assets = cache_manifest.take_or_create_release_assets(&release_tracks);
+            let assets = cache_manifest.get_or_create_release_assets(&release_tracks);
             
             release_tracks.sort_by(|a, b|
-                a.cached_assets.source_meta.track_number.cmp(
-                    &b.cached_assets.source_meta.track_number
+                a.assets.borrow().source_meta.track_number.cmp(
+                    &b.assets.borrow().source_meta.track_number
                 )
             );
             release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0)); // sort most often occuring title to the end of the Vec
@@ -462,7 +468,7 @@ impl Catalog {
             
             let release = Release::new(
                 release_artists_to_map,
-                cached_assets,
+                assets,
                 cover,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 local_options.release_permalink,
@@ -488,21 +494,20 @@ impl Catalog {
         &mut self,
         path: &Path,
         overrides: &Overrides,
-        cached_assets: CachedTrackAssets
+        assets: Rc<RefCell<TrackAssets>>
     ) -> Track {
         let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
             artist_names.iter().map(|name| name.clone()).collect()
         } else {
-            cached_assets.source_meta.artist.iter().map(|name| name.clone()).collect()
+            assets.borrow().source_meta.artist.iter().map(|name| name.clone()).collect()
         };
         
-        let source_file = path.to_path_buf();
-        let title = cached_assets.source_meta.title
+        let title = assets.borrow().source_meta.title
             .as_ref()
             .map(|title| title.clone())
             .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
         
-        Track::new(artists_to_map, cached_assets, source_file, title)
+        Track::new(artists_to_map, assets, title)
     }
 
     fn set_artist(&mut self) {
@@ -644,8 +649,9 @@ impl Catalog {
     
     pub fn write_assets(&mut self, build: &mut Build) {
         if let Some(background_image) = &build.theme.background_image {
-            let mut background_image_mut = background_image.borrow_mut();
-            let image_asset = background_image_mut.get_or_transcode_as(ImageFormat::Background, build, AssetIntent::Deliverable);
+            let background_image_mut = background_image.borrow_mut();
+            let mut background_image_assets_mut = background_image_mut.assets.borrow_mut();
+            let image_asset = background_image_assets_mut.background_asset(build, AssetIntent::Deliverable);
             
             util::hard_link_or_copy(
                 build.cache_dir.join(&image_asset.filename),
@@ -654,12 +660,13 @@ impl Catalog {
             
             build.stats.add_image(image_asset.filesize_bytes);
             
-            background_image_mut.cached_assets.persist(&build.cache_dir);
+            background_image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
         if let Some(feed_image) = &self.feed_image {
-            let mut feed_image_mut = feed_image.borrow_mut();
-            let image_asset = feed_image_mut.get_or_transcode_as(ImageFormat::Feed, build, AssetIntent::Deliverable);
+            let feed_image_mut = feed_image.borrow_mut();
+            let mut feed_image_assets_mut = feed_image_mut.assets.borrow_mut();
+            let image_asset = feed_image_assets_mut.feed_asset(build, AssetIntent::Deliverable);
             
             util::hard_link_or_copy(
                 build.cache_dir.join(&image_asset.filename),
@@ -668,15 +675,16 @@ impl Catalog {
             
             build.stats.add_image(image_asset.filesize_bytes);
             
-            feed_image_mut.cached_assets.persist(&build.cache_dir);
+            feed_image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
         for artist in self.artists.iter_mut() {
             let mut artist_mut = artist.borrow_mut();
 
             if let Some(image) = &mut artist_mut.image {
-                let mut image_mut = image.borrow_mut();
-                let image_asset = image_mut.get_or_transcode_as(ImageFormat::Artist, build, AssetIntent::Deliverable);
+                let image_mut = image.borrow_mut();
+                let mut image_assets_mut = image_mut.assets.borrow_mut();
+                let image_asset = image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
                 
                 util::hard_link_or_copy(
                     build.cache_dir.join(&image_asset.filename),
@@ -685,7 +693,7 @@ impl Catalog {
                 
                 build.stats.add_image(image_asset.filesize_bytes);
                 
-                image_mut.cached_assets.persist(&build.cache_dir);
+                image_assets_mut.persist_to_cache(&build.cache_dir);
             }
         }
 
@@ -697,22 +705,19 @@ impl Catalog {
             util::ensure_dir(&release_dir);
 
             if let Some(image) = &mut release_mut.cover {
-                let mut image_mut = image.borrow_mut();
-                let image_asset = image_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Deliverable);
-                
-                let cover_filename = format!(
-                    "cover{extension}",
-                    extension = ImageFormat::Cover.extension()
-                );
+                let image_mut = image.borrow_mut();
+                let mut image_assets_mut = image_mut.assets.borrow_mut();
+                let image_version_assets = image_assets_mut.cover_asset(build, AssetIntent::Deliverable);
+                let image_asset = &image_version_assets.versions[0];                
 
                 util::hard_link_or_copy(
                     build.cache_dir.join(&image_asset.filename),
-                    release_dir.join(cover_filename)
+                    release_dir.join("cover.jpg")
                 );
                 
                 build.stats.add_image(image_asset.filesize_bytes);
                 
-                image_mut.cached_assets.persist(&build.cache_dir);
+                image_assets_mut.persist_to_cache(&build.cache_dir);
             }
             
             let streaming_format = release_mut.streaming_format;
@@ -762,17 +767,17 @@ impl Catalog {
                     tag_mapping.title = Some(track.title.clone());
                 }
 
-                let track_filename = format!(
-                    "{basename}{extension}",
-                    basename = track.asset_basename.as_ref().unwrap(),
-                    extension = streaming_format.extension()
-                );
-
-                let streaming_asset = track.get_or_transcode_as(
+                track.transcode_as(
                     streaming_format,
                     build,
                     AssetIntent::Deliverable,
                     &tag_mapping_option
+                );
+
+                let track_filename = format!(
+                    "{basename}{extension}",
+                    basename = track.asset_basename.as_ref().unwrap(),
+                    extension = streaming_format.extension()
                 );
 
                 let hash = build.hash(
@@ -785,6 +790,9 @@ impl Catalog {
 
                 util::ensure_dir(&hash_dir);
 
+                let track_assets_ref = track.assets.borrow();
+                let streaming_asset = track_assets_ref.get(streaming_format).as_ref().unwrap();
+
                 util::hard_link_or_copy(
                     build.cache_dir.join(&streaming_asset.filename),
                     hash_dir.join(track_filename)
@@ -792,7 +800,7 @@ impl Catalog {
                 
                 build.stats.add_track(streaming_asset.filesize_bytes);
                 
-                track.cached_assets.persist(&build.cache_dir);
+                track.assets.borrow().persist_to_cache(&build.cache_dir);
             }
 
             if release_mut.download_option != DownloadOption::Disabled {

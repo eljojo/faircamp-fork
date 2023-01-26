@@ -115,7 +115,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let longest_track_duration = release.tracks
         .iter()
-        .map(|track| track.cached_assets.source_meta.duration_seconds)
+        .map(|track| track.assets.borrow().source_meta.duration_seconds)
         .max()
         .unwrap();
 
@@ -124,7 +124,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .enumerate()
         .map(|(index, track)| {
             let track_duration_width_rem = if longest_track_duration > 0 {
-                MAX_TRACK_DURATION_WIDTH_EM * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
+                MAX_TRACK_DURATION_WIDTH_EM * (track.assets.borrow().source_meta.duration_seconds as f32 / longest_track_duration as f32)
             } else {
                 0.0
             };
@@ -154,7 +154,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     </div>
                 "#,
                 play_icon = play_icon(root_prefix),
-                duration = format_time(track.cached_assets.source_meta.duration_seconds),
+                duration = format_time(track.assets.borrow().source_meta.duration_seconds),
                 streaming_format_dir = release.streaming_format.asset_dirname(),
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
@@ -219,7 +219,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -> String {
     let step = (MAX_TRACK_DURATION_WIDTH_EM / track_duration_width_rem).floor() as usize;
 
-    if let Some(peaks) = &track.cached_assets.source_meta.peaks {
+    if let Some(peaks) = &track.assets.borrow().source_meta.peaks {
         let num_peaks = peaks.len() / step;
         let step_width = track_duration_width_rem / num_peaks as f32;
 

@@ -20,7 +20,6 @@ mod feed;
 mod ffmpeg;
 mod icons;
 mod image;
-mod image_format;
 mod localization;
 mod manifest;
 mod payment_option;
@@ -43,14 +42,13 @@ use build::{Build, PostBuildAction};
 use catalog::Catalog;
 use download_option::DownloadOption;
 use ffmpeg::TagMapping;
-use image::{CachedImageAssets, Image};
-use image_format::ImageFormat;
+use image::{CoverImageVersions, Image, ImageAssets};
 use localization::{Localization, WritingDirection};
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
-use release::{CachedReleaseAssets, Release};
+use release::{Release, ReleaseAssets};
 use theme::Theme;
-use track::{CachedTrackAssets, Track};
+use track::{Track, TrackAssets};
 
 fn main() {
     let args: Args = Args::parse();

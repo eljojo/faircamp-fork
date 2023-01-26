@@ -7,7 +7,7 @@ use crate::{Build, CacheOptimization};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Asset {
     pub filename: String,
-    pub filesize_bytes: u64, 
+    pub filesize_bytes: u64,
     pub marked_stale: Option<DateTime<Utc>>
 }
 

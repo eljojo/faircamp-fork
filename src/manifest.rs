@@ -254,8 +254,8 @@ pub fn apply_options(
 
                 if let Some(field) = optional_field(section, "image", path) {
                     match required_attribute_value_with_line(&field, "file") {
-                        Some((relative_path, line)) => {
-                            let absolute_path = path.parent().unwrap().join(&relative_path);
+                        Some((path_relative_to_manifest, line)) => {
+                            let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
                             if absolute_path.exists() {
                                 // TODO: Print errors, refactor
                                 let description = match field.required_attribute("description") {
@@ -266,12 +266,12 @@ pub fn apply_options(
                                     _ => None
                                 };
 
-                                // TODO: Images should be fetched from cache, but not removed (taken) from there when that happens (which is the current behaviour)
-                                let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+                                let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
+                                let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
 
-                                artist_mut.image = Some(Rc::new(RefCell::new(Image::new(cached_assets, description, &absolute_path))));
+                                artist_mut.image = Some(Rc::new(RefCell::new(Image::new(assets, description))));
                             } else {
-                                error!("Ignoring invalid artist.image.file setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+                                error!("Ignoring invalid artist.image.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
                             }
                         }
                         None => ()
@@ -330,19 +330,20 @@ pub fn apply_options(
             build.url_salt = value;
         }
 
-        if let Some((relative_path, line)) = optional_field_value_with_line(section, "feed_image"){
+        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image"){
             if let Some(previous) = &catalog.feed_image {
-                warn_global_set_repeatedly!("catalog.feed_image", previous.borrow().source_file.display(), relative_path);
+                warn_global_set_repeatedly!("catalog.feed_image", previous.borrow().assets.borrow().source_file_signature.path.display(), path_relative_to_manifest);
             }
 
-            let absolute_path = path.parent().unwrap().join(&relative_path);
+            let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
             if absolute_path.exists() {
-                let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+                let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
+                let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
 
                 // TODO: Double check if the RSS feed image can specify an image description somehow
-                catalog.feed_image = Some(Rc::new(RefCell::new(Image::new(cached_assets, None, &absolute_path))));
+                catalog.feed_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
             } else {
-                error!("Ignoring invalid catalog.feed_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+                error!("Ignoring invalid catalog.feed_image setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
             }
         }
 
@@ -564,8 +565,8 @@ pub fn apply_options(
 
         if let Some(field) = optional_field(section, "cover", path) {
             match required_attribute_value_with_line(&field, "file") {
-                Some((relative_path, line)) => {
-                    let absolute_path = path.parent().unwrap().join(&relative_path);
+                Some((path_relative_to_manifest, line)) => {
+                    let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
                     if absolute_path.exists() {
                         // TODO: Print errors, refactor
                         let description = match field.required_attribute("description") {
@@ -576,11 +577,12 @@ pub fn apply_options(
                             _ => None
                         };
 
-                        let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+                        let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
+                        let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
 
-                        overrides.release_cover = Some(Rc::new(RefCell::new(Image::new(cached_assets, description, &absolute_path))));
+                        overrides.release_cover = Some(Rc::new(RefCell::new(Image::new(assets, description))));
                     } else {
-                        error!("Ignoring invalid release.cover.file setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+                        error!("Ignoring invalid release.cover.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
                     }
                 }
                 None => ()
@@ -640,15 +642,16 @@ pub fn apply_options(
 
         build.theme.customized = true;
 
-        if let Some((relative_path, line)) = optional_field_value_with_line(section, "background_image") {
-            let absolute_path = path.parent().unwrap().join(&relative_path);
+        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "background_image") {
+            let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
             if absolute_path.exists() {
-                let cached_assets = cache_manifest.take_or_create_image_assets(&absolute_path);
+                let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
+                let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
 
                 // TODO: Double check if the background image can specify an image description somehow
-                build.theme.background_image = Some(Rc::new(RefCell::new(Image::new(cached_assets, None, &absolute_path))));
+                build.theme.background_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
             } else {
-                error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", relative_path, path.display(), line)
+                error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
             }
         }
 

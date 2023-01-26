@@ -1,27 +1,32 @@
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::time::SystemTime;
+use std::{
+    cell::RefCell,
+    fs,
+    path::{Path, PathBuf},
+    rc::Rc,
+    time::SystemTime
+};
 
 use crate::{
+    Asset,
     AudioFormat,
     AudioMeta,
     Build,
-    CachedImageAssets,
-    CachedReleaseAssets,
-    CachedTrackAssets,
     Catalog,
-    ImageFormat,
+    CoverImageVersions,
+    ImageAssets,
+    ReleaseAssets,
     Track,
+    TrackAssets,
     util
 };
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub struct CacheManifest {
-    pub images: Vec<CachedImageAssets>,
-    pub releases: Vec<CachedReleaseAssets>,
-    pub tracks: Vec<CachedTrackAssets>
+    pub images: Vec<Rc<RefCell<ImageAssets>>>,
+    pub releases: Vec<Rc<RefCell<ReleaseAssets>>>,
+    pub tracks: Vec<Rc<RefCell<TrackAssets>>>
 }
 
 #[derive(PartialEq)]
@@ -38,6 +43,9 @@ pub enum CacheOptimization {
 pub struct SourceFileSignature {
     pub hash: String,
     pub modified: SystemTime,
+    /// The path is relative to the catalog_dir root. This ensures
+    /// that we can correctly re-associate files on each build, even
+    /// if the catalog directory moves around on disk. 
     pub path: PathBuf,
     pub size: u64
 }
@@ -47,65 +55,97 @@ pub fn optimize_cache(
     cache_manifest: &mut CacheManifest,
     catalog: &mut Catalog
 ) {
-    for cached_assets in cache_manifest.images.iter_mut() {
-        optimize_image_assets(cached_assets, build);
+    for assets in cache_manifest.images.iter_mut() {
+        optimize_image_assets(assets, build);
     }
     
-    for cached_assets in cache_manifest.releases.iter_mut() {
-        optimize_release_assets(cached_assets, build);
+    for assets in cache_manifest.releases.iter_mut() {
+        optimize_release_assets(assets, build);
     }
     
-    for cached_assets in cache_manifest.tracks.iter_mut() {
-        optimize_track_assets(cached_assets, build);
+    for assets in cache_manifest.tracks.iter_mut() {
+        optimize_track_assets(assets, build);
     }
     
     for release in &catalog.releases {
         let mut release_mut = release.borrow_mut();
 
         if let Some(image) = &mut release_mut.cover {
-            optimize_image_assets(&mut image.borrow_mut().cached_assets, build);
+            optimize_image_assets(&mut image.borrow_mut().assets, build);
         }
         
         for track in release_mut.tracks.iter_mut() {
-            optimize_track_assets(&mut track.cached_assets, build);
+            optimize_track_assets(&mut track.assets, build);
         }
         
-        optimize_release_assets(&mut release_mut.cached_assets, build);
+        optimize_release_assets(&mut release_mut.assets, build);
     }
 }
 
-pub fn optimize_image_assets(cached_assets: &mut CachedImageAssets, build: &Build) {
+pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Build) {
+    let mut assets_mut = assets.borrow_mut();
     let mut keep_container = false;
 
-    for format in ImageFormat::ALL_FORMATS {
-        let cached_format = cached_assets.get_mut(format);
-        
-        match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
-            Some(true) => {
-                util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
-                info_cache!(
-                    "Removed cached image asset ({}) for {}.",
-                    format,
-                    cached_assets.source_file_signature.path.display()
-                );
+    let path = assets_mut.source_file_signature.path.display().to_string();
+
+    {
+        let mut optimize = |asset_option: &mut Option<Asset>, format: &str, path: &str| {
+            match asset_option.as_ref().map(|asset| asset.obsolete(build)) {
+                Some(true) => {
+                    util::remove_file(&build.cache_dir.join(asset_option.take().unwrap().filename));
+                    info_cache!(
+                        "Removed cached image asset ({}) for {}.",
+                        format,
+                        path
+                    );
+                }
+                Some(false) => keep_container = true,
+                None => ()
             }
-            Some(false) => keep_container = true,
-            None => ()
-        }
+        };
+
+        optimize(&mut assets_mut.artist, "artist", &path);
+        optimize(&mut assets_mut.background, "background", &path);
+        optimize(&mut assets_mut.download_cover, "download_cover", &path);
+        optimize(&mut assets_mut.feed, "feed", &path);
+    }
+
+    {
+        let mut optimize_multiple = |civ_option: &mut Option<CoverImageVersions>, format: &str, path: &str| {
+            match civ_option.as_ref().map(|asset| asset.obsolete(build)) {
+                Some(true) => {
+                    for version in civ_option.take().unwrap().versions {
+                        util::remove_file(&build.cache_dir.join(version.filename));
+                        info_cache!(
+                            "Removed cached image asset ({}) for {} {}x{}.",
+                            format,
+                            path,
+                            version.width,
+                            version.height
+                        );
+                    }
+                }
+                Some(false) => keep_container = true,
+                None => ()
+            }
+        };
+
+        optimize_multiple(&mut assets_mut.cover, "cover", &path);
     }
 
     if keep_container {
-        cached_assets.persist(&build.cache_dir);
+        assets_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&cached_assets.manifest_path(&build.cache_dir));
+        util::remove_file(&assets_mut.manifest_path(&build.cache_dir));
     }
 }
 
-pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &Build) {
+pub fn optimize_release_assets(assets: &mut Rc<RefCell<ReleaseAssets>>, build: &Build) {
+    let mut assets_mut = assets.borrow_mut();
     let mut keep_container = false;
     
     for format in AudioFormat::ALL_FORMATS {
-        let cached_format = cached_assets.get_mut(format);
+        let cached_format = assets_mut.get_mut(format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
@@ -113,8 +153,8 @@ pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &
                 info_cache!(
                     "Removed cached release asset ({}) for archive with {} tracks.",
                     format,
-                    cached_assets.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
-                                                                //       Possibly indication that Release + CachedReleaseAssets should be merged together (?) (and same story with Image/Track)
+                    assets_mut.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
+                                                             //       Possibly indication that Release + ReleaseAssets should be merged together (?) (and same story with Image/Track)
                 );
             }
             Some(false) => keep_container = true,
@@ -123,17 +163,18 @@ pub fn optimize_release_assets(cached_assets: &mut CachedReleaseAssets, build: &
     }
     
     if keep_container {
-        cached_assets.persist(&build.cache_dir);
+        assets_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&cached_assets.manifest_path(&build.cache_dir));
+        util::remove_file(&assets_mut.manifest_path(&build.cache_dir));
     }
 }
 
-pub fn optimize_track_assets(cached_assets: &mut CachedTrackAssets, build: &Build) {
+pub fn optimize_track_assets(assets: &mut Rc<RefCell<TrackAssets>>, build: &Build) {
+    let mut assets_mut = assets.borrow_mut();
     let mut keep_container = false;
     
     for format in AudioFormat::ALL_FORMATS {
-        let cached_format = cached_assets.get_mut(format);
+        let cached_format = assets_mut.get_mut(format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
@@ -141,7 +182,7 @@ pub fn optimize_track_assets(cached_assets: &mut CachedTrackAssets, build: &Buil
                 info_cache!(
                     "Removed cached track asset ({}) for {}.",
                     format,
-                    cached_assets.source_file_signature.path.display()
+                    assets_mut.source_file_signature.path.display()
                 );
             }
             Some(false) => keep_container = true,
@@ -150,9 +191,9 @@ pub fn optimize_track_assets(cached_assets: &mut CachedTrackAssets, build: &Buil
     }
     
     if keep_container {
-        cached_assets.persist(&build.cache_dir);
+        assets_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&cached_assets.manifest_path(&build.cache_dir));
+        util::remove_file(&assets_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -160,30 +201,30 @@ pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
     let mut num_unused = 0;
     let mut unused_bytesize = 0;
     
-    for cached_assets in &cache_manifest.images {
-        report_stale_image_assets(cached_assets, &mut num_unused, &mut unused_bytesize);
+    for assets in &cache_manifest.images {
+        report_stale_image_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
-    for cached_assets in &cache_manifest.releases {
-        report_stale_release_assets(cached_assets, &mut num_unused, &mut unused_bytesize);
+    for assets in &cache_manifest.releases {
+        report_stale_release_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
-    for cached_assets in &cache_manifest.tracks {
-        report_stale_track_assets(cached_assets, &mut num_unused, &mut unused_bytesize);
+    for assets in &cache_manifest.tracks {
+        report_stale_track_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
     for release in &catalog.releases {
         let release_ref = release.borrow();
 
         if let Some(image) = &release_ref.cover {
-            report_stale_image_assets(&image.borrow().cached_assets, &mut num_unused, &mut unused_bytesize);
+            report_stale_image_assets(&image.borrow().assets, &mut num_unused, &mut unused_bytesize);
         }
         
         for track in &release_ref.tracks {
-            report_stale_track_assets(&track.cached_assets, &mut num_unused, &mut unused_bytesize);
+            report_stale_track_assets(&track.assets, &mut num_unused, &mut unused_bytesize);
         }
         
-        report_stale_release_assets(&release_ref.cached_assets, &mut num_unused, &mut unused_bytesize);
+        report_stale_release_assets(&release_ref.assets, &mut num_unused, &mut unused_bytesize);
     }
     
     if num_unused > 0 {
@@ -197,9 +238,50 @@ pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
     }
 }
 
-pub fn report_stale_image_assets(cached_assets: &CachedImageAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
-    for format in ImageFormat::ALL_FORMATS {
-        if let Some(filesize_bytes) = cached_assets
+pub fn report_stale_image_assets(
+    assets: &Rc<RefCell<ImageAssets>>,
+    num_unused: &mut u32,
+    unused_bytesize: &mut u64
+) {
+    let assets_ref = assets.borrow();
+
+    let mut report = |asset_option: &Option<Asset>| {
+        if let Some(filesize_bytes) = asset_option
+            .as_ref()
+            .filter(|asset| asset.marked_stale.is_some())
+            .map(|asset| asset.filesize_bytes) {
+            *num_unused += 1;
+            *unused_bytesize += filesize_bytes;
+        }
+    };
+
+    report(&assets_ref.artist);
+    report(&assets_ref.background);
+    report(&assets_ref.download_cover);
+    report(&assets_ref.feed);
+
+    let mut report_multiple = |civ_option: &Option<CoverImageVersions>| {
+        if let Some(versions) = civ_option
+            .as_ref()
+            .filter(|civ| civ.marked_stale.is_some())
+            .map(|civ| &civ.versions) {
+            for version in versions {
+                *num_unused += 1;
+                *unused_bytesize += version.filesize_bytes;
+            }
+        }
+    };
+
+    report_multiple(&assets_ref.cover);
+}
+
+pub fn report_stale_release_assets(
+    assets: &Rc<RefCell<ReleaseAssets>>,
+    num_unused: &mut u32,
+    unused_bytesize: &mut u64) {
+    for format in AudioFormat::ALL_FORMATS {
+        if let Some(filesize_bytes) = assets
+            .borrow()
             .get(format)
             .as_ref()
             .filter(|asset| asset.marked_stale.is_some())
@@ -210,22 +292,14 @@ pub fn report_stale_image_assets(cached_assets: &CachedImageAssets, num_unused: 
     }
 }
 
-pub fn report_stale_release_assets(cached_assets: &CachedReleaseAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
+pub fn report_stale_track_assets(
+    assets: &Rc<RefCell<TrackAssets>>,
+    num_unused: &mut u32,
+    unused_bytesize: &mut u64
+) {
     for format in AudioFormat::ALL_FORMATS {
-        if let Some(filesize_bytes) = cached_assets
-            .get(format)
-            .as_ref()
-            .filter(|asset| asset.marked_stale.is_some())
-            .map(|asset| asset.filesize_bytes) {
-            *num_unused += 1;
-            *unused_bytesize += filesize_bytes;
-        }
-    }
-}
-
-pub fn report_stale_track_assets(cached_assets: &CachedTrackAssets, num_unused: &mut u32, unused_bytesize: &mut u64) {
-    for format in AudioFormat::ALL_FORMATS {
-        if let Some(filesize_bytes) = cached_assets
+        if let Some(filesize_bytes) = assets
+            .borrow()
             .get(format)
             .as_ref()
             .filter(|asset| asset.marked_stale.is_some())
@@ -248,19 +322,19 @@ impl CacheManifest {
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for cached_assets in self.images.iter_mut() {
-            cached_assets.mark_all_stale(timestamp);
+        for assets in self.images.iter_mut() {
+            assets.borrow_mut().mark_all_stale(timestamp);
         }
         
-        for cached_assets in self.releases.iter_mut() {
-            cached_assets.mark_all_stale(timestamp);
+        for assets in self.releases.iter_mut() {
+            assets.borrow_mut().mark_all_stale(timestamp);
         }
         
-        for cached_assets in self.tracks.iter_mut() {
-            cached_assets.mark_all_stale(timestamp);
+        for assets in self.tracks.iter_mut() {
+            assets.borrow_mut().mark_all_stale(timestamp);
         }
     }
-        
+
     pub fn retrieve(cache_dir: &Path) -> CacheManifest {
         CacheManifest {
             images: CacheManifest::retrieve_images(cache_dir),
@@ -268,17 +342,60 @@ impl CacheManifest {
             tracks: CacheManifest::retrieve_tracks(cache_dir)
         }
     }
-    
+
     // TODO: Should probably not quietly ignore everything that can go wrong here (here and elsewhere)
-    // TODO: Also very boilerplatey (up your generics game here?)
-    pub fn retrieve_images(cache_dir: &Path) -> Vec<CachedImageAssets> {      
+    pub fn retrieve_images(cache_dir: &Path) -> Vec<Rc<RefCell<ImageAssets>>> {
         let mut images = Vec::new();
           
         if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(cached_assets) = CachedImageAssets::deserialize(&dir_entry.path()) {
-                        images.push(cached_assets);
+                    if let Some(mut assets) = ImageAssets::deserialize_cached(&dir_entry.path()) {
+                        if let Some(artist_image) = &assets.artist {
+                            if !cache_dir.join(&artist_image.filename).exists() {
+                                assets.artist = None;
+                            }
+                        }
+
+                        if let Some(background_image) = &assets.background {
+                            if !cache_dir.join(&background_image.filename).exists() {
+                                assets.background = None;
+                            }
+                        }
+
+                        if let Some(cover_image) = assets.cover.as_mut() {
+                            for version in cover_image.versions.iter() {
+                                if !cache_dir.join(&version.filename).exists() {
+                                    // If a single version is in a corrupt state (cached file missing)
+                                    // we delete all other versions and remove the cache entry altogether.
+
+                                    for version_to_delete in cover_image.versions.iter() {
+                                        if cache_dir.join(&version_to_delete.filename).exists() {
+                                            util::remove_file(&cache_dir.join(&version_to_delete.filename));
+                                        }
+                                    }
+
+                                    assets.cover = None;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if let Some(feed_image) = &assets.feed {
+                            if !cache_dir.join(&feed_image.filename).exists() {
+                                assets.feed = None;
+                            }
+                        }
+
+                        if assets.artist.is_some() ||
+                            assets.background.is_some() ||
+                            assets.cover.is_some() ||
+                            assets.feed.is_some() {
+                            images.push(Rc::new(RefCell::new(assets)));
+                        } else {
+                            // No actual cached files present, can throw away serialized metadata too
+                            util::remove_file(&dir_entry.path());
+                        }
                     }
                 }
             }
@@ -287,14 +404,14 @@ impl CacheManifest {
         images
     }
     
-    pub fn retrieve_releases(cache_dir: &Path) -> Vec<CachedReleaseAssets> {
+    pub fn retrieve_releases(cache_dir: &Path) -> Vec<Rc<RefCell<ReleaseAssets>>> {
         let mut releases = Vec::new();
              
         if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(cached_assets) = CachedReleaseAssets::deserialize(&dir_entry.path()) {
-                        releases.push(cached_assets);
+                    if let Some(assets) = ReleaseAssets::deserialize_cached(&dir_entry.path()) {
+                        releases.push(Rc::new(RefCell::new(assets)));
                     }
                 }
             }
@@ -303,14 +420,14 @@ impl CacheManifest {
         releases
     }
     
-    pub fn retrieve_tracks(cache_dir: &Path) -> Vec<CachedTrackAssets> {  
+    pub fn retrieve_tracks(cache_dir: &Path) -> Vec<Rc<RefCell<TrackAssets>>> {  
         let mut tracks = Vec::new();
            
         if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(cached_assets) = CachedTrackAssets::deserialize(&dir_entry.path()) {
-                        tracks.push(cached_assets);
+                    if let Some(assets) = TrackAssets::deserialize_cached(&dir_entry.path()) {
+                        tracks.push(Rc::new(RefCell::new(assets)));
                     }
                 }
             }
@@ -319,46 +436,67 @@ impl CacheManifest {
         tracks
     }
     
-    pub fn take_or_create_image_assets(&mut self, source_path: &Path) -> CachedImageAssets {
-        let source_file_signature = SourceFileSignature::init(source_path);
+    pub fn get_or_create_image_assets(
+        &mut self,
+        build: &Build,
+        source_path: &Path
+    ) -> Rc<RefCell<ImageAssets>> {
+        let source_file_signature = SourceFileSignature::new(build, source_path);
         
-        match self.images.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
-            Some(index) => self.images.swap_remove(index),
-            None => CachedImageAssets::new(source_file_signature)
-        }
-    }
-    
-    pub fn take_or_create_release_assets(&mut self, tracks: &Vec<Track>) -> CachedReleaseAssets {
-        match self.releases
-            .iter()
-            .position(|cached_assets| {
-                tracks
-                    .iter()
-                    .zip(cached_assets.source_file_signatures.iter())
-                    .all(|(track, source_file_signature)| {
-                        &track.cached_assets.source_file_signature == source_file_signature
-                    })
-            }) {
-            Some(index) => self.releases.swap_remove(index),
+        match self.images.iter().find(|assets|
+            assets.borrow().source_file_signature == source_file_signature
+        ) {
+            Some(assets) => assets.clone(),
             None => {
-                CachedReleaseAssets::new(
-                    tracks
-                        .iter()
-                        .map(|track| track.cached_assets.source_file_signature.clone())
-                        .collect()
-                )
+                let assets = Rc::new(RefCell::new(ImageAssets::new(source_file_signature)));
+                self.images.push(assets.clone());
+                assets
             }
         }
     }
     
-    pub fn take_or_create_track_assets(&mut self, source_path: &Path, extension: &str) -> CachedTrackAssets {
-        let source_file_signature = SourceFileSignature::init(source_path);
-        
-        match self.tracks.iter().position(|cached_assets| cached_assets.source_file_signature == source_file_signature) {
-            Some(index) => self.tracks.swap_remove(index),
+    pub fn get_or_create_release_assets(&mut self, tracks: &Vec<Track>) -> Rc<RefCell<ReleaseAssets>> {
+        match self.releases
+            .iter()
+            .find(|assets| {
+                tracks
+                    .iter()
+                    .zip(assets.borrow().source_file_signatures.iter())
+                    .all(|(track, source_file_signature)| {
+                        &track.assets.borrow().source_file_signature == source_file_signature
+                    })
+            }) {
+            Some(assets) => assets.clone(),
             None => {
-                let source_meta = AudioMeta::extract(source_path, extension);
-                CachedTrackAssets::new(source_file_signature, source_meta)
+                let assets = Rc::new(RefCell::new(ReleaseAssets::new(
+                    tracks
+                        .iter()
+                        .map(|track| track.assets.borrow().source_file_signature.clone())
+                        .collect()
+                )));
+                self.releases.push(assets.clone());
+                assets
+            }
+        }
+    }
+    
+    pub fn get_or_create_track_assets(
+        &mut self,
+        build: &Build,
+        source_path:&Path,
+        extension: &str
+    ) -> Rc<RefCell<TrackAssets>> {
+        let source_file_signature = SourceFileSignature::new(build, source_path);
+        
+        match self.tracks.iter().find(|assets|
+            assets.borrow().source_file_signature == source_file_signature
+        ) {
+            Some(assets) => assets.clone(),
+            None => {
+                let source_meta = AudioMeta::extract(&build.catalog_dir.join(&source_path), extension);
+                let assets = Rc::new(RefCell::new(TrackAssets::new(source_file_signature, source_meta)));
+                self.tracks.push(assets.clone());
+                assets
             }
         }
     }
@@ -391,13 +529,14 @@ impl std::fmt::Display for CacheOptimization {
 }
 
 impl SourceFileSignature {
-    pub fn init(file: &Path) -> SourceFileSignature {
-        let metadata = fs::metadata(file).expect("Could not access source file");
+    pub fn new(build: &Build, path: &Path) -> SourceFileSignature {
+        let metadata = fs::metadata(build.catalog_dir.join(path))
+            .expect("Could not access source file");
         
         SourceFileSignature {
-            hash: String::new(),
+            hash: String::new(), // TODO: Implement somewhere, somehow (maybe on demand rather?)
             modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
-            path: file.to_path_buf(),
+            path: path.to_path_buf(),
             size: metadata.len()
         }
     }

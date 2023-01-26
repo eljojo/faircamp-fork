@@ -19,7 +19,6 @@ use crate::{
     Catalog,
     DownloadOption,
     Image,
-    ImageFormat,
     manifest::Overrides,
     PaymentOption,
     Permalink,
@@ -30,21 +29,6 @@ use crate::{
     util
 };
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CachedReleaseAssets {
-    pub aac: Option<Asset>,
-    pub aiff: Option<Asset>,
-    pub flac: Option<Asset>,
-    pub mp3: Option<Asset>,
-    pub ogg_vorbis: Option<Asset>,
-    pub opus_48: Option<Asset>,
-    pub opus_96: Option<Asset>,
-    pub opus_128: Option<Asset>,
-    pub source_file_signatures: Vec<SourceFileSignature>,
-    pub uid: String,
-    pub wav: Option<Asset>
-}
-
 #[derive(Debug)]
 pub struct Release {
     pub artists: Vec<Rc<RefCell<Artist>>>,
@@ -52,7 +36,7 @@ pub struct Release {
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download asset filenames.
     pub asset_basename: Option<String>,
-    pub cached_assets: CachedReleaseAssets,
+    pub assets: Rc<RefCell<ReleaseAssets>>,
     pub cover: Option<Rc<RefCell<Image>>>,
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
@@ -68,6 +52,21 @@ pub struct Release {
     pub tracks: Vec<Track>
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ReleaseAssets {
+    pub aac: Option<Asset>,
+    pub aiff: Option<Asset>,
+    pub flac: Option<Asset>,
+    pub mp3: Option<Asset>,
+    pub ogg_vorbis: Option<Asset>,
+    pub opus_48: Option<Asset>,
+    pub opus_96: Option<Asset>,
+    pub opus_128: Option<Asset>,
+    pub source_file_signatures: Vec<SourceFileSignature>,
+    pub uid: String,
+    pub wav: Option<Asset>
+}
+
 #[derive(Clone, Debug)]
 pub enum TrackNumbering {
     Disabled,
@@ -76,81 +75,10 @@ pub enum TrackNumbering {
     Roman
 }
 
-impl CachedReleaseAssets {
-    pub fn deserialize(path: &Path) -> Option<CachedReleaseAssets> {
-        match fs::read(path) {
-            Ok(bytes) => bincode::deserialize::<CachedReleaseAssets>(&bytes).ok(),
-            Err(_) => None
-        }
-    }
-
-    pub fn get(&self, format: AudioFormat) -> &Option<Asset> {
-        match format {
-            AudioFormat::Aac => &self.aac,
-            AudioFormat::Aiff => &self.aiff,
-            AudioFormat::Flac => &self.flac,
-            AudioFormat::Mp3VbrV0 => &self.mp3,
-            AudioFormat::OggVorbis => &self.ogg_vorbis,
-            AudioFormat::Opus48Kbps => &self.opus_48,
-            AudioFormat::Opus96Kbps => &self.opus_96,
-            AudioFormat::Opus128Kbps => &self.opus_128,
-            AudioFormat::Wav => &self.wav
-        }
-    }
-
-    pub fn get_mut(&mut self, format: AudioFormat) -> &mut Option<Asset> {
-        match format {
-            AudioFormat::Aac => &mut self.aac,
-            AudioFormat::Aiff => &mut self.aiff,
-            AudioFormat::Flac => &mut self.flac,
-            AudioFormat::Mp3VbrV0 => &mut self.mp3,
-            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
-            AudioFormat::Opus48Kbps => &mut self.opus_48,
-            AudioFormat::Opus96Kbps => &mut self.opus_96,
-            AudioFormat::Opus128Kbps => &mut self.opus_128,
-            AudioFormat::Wav => &mut self.wav
-        }
-    }
-
-    pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
-        let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).join(filename)
-    }
-
-    pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for format in AudioFormat::ALL_FORMATS {
-            if let Some(asset) = self.get_mut(format) {
-                asset.mark_stale(timestamp);
-            }
-        }
-    }
-
-    pub fn new(source_file_signatures: Vec<SourceFileSignature>) -> CachedReleaseAssets {
-        CachedReleaseAssets {
-            aac: None,
-            aiff: None,
-            flac: None,
-            mp3: None,
-            ogg_vorbis: None,
-            opus_48: None,
-            opus_96: None,
-            opus_128: None,
-            source_file_signatures,
-            uid: util::uid(),
-            wav: None
-        }
-    }
-
-    pub fn persist(&self, cache_dir: &Path) {
-        let serialized = bincode::serialize(self).unwrap();
-        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
-    }
-}
-
 impl Release {
     pub fn new(
         artists_to_map: Vec<String>,
-        cached_assets: CachedReleaseAssets,
+        assets: Rc<RefCell<ReleaseAssets>>,
         cover: Option<Rc<RefCell<Image>>>,
         manifest_overrides: &Overrides,
         permalink_option: Option<Permalink>,
@@ -161,7 +89,7 @@ impl Release {
 
         let runtime = tracks
             .iter()
-            .map(|track| track.cached_assets.source_meta.duration_seconds)
+            .map(|track| track.assets.borrow().source_meta.duration_seconds)
             .sum();
 
         let permalink = permalink_option.unwrap_or_else(|| Permalink::generate(&title));
@@ -170,7 +98,7 @@ impl Release {
             artists: Vec::new(),
             artists_to_map,
             asset_basename: None,
-            cached_assets,
+            assets,
             cover,
             download_formats: manifest_overrides.download_formats.clone(),
             download_option: manifest_overrides.download_option.clone(),
@@ -217,13 +145,11 @@ impl Release {
             util::ensure_dir(&format_dir);
 
             for track in self.tracks.iter_mut() {
-                let cached_track_asset = track.cached_assets.get_mut(*format);
-
-                if cached_track_asset.is_none() {
-                    if format.lossless() && !track.cached_assets.source_meta.lossless {
+                if track.assets.borrow().get(*format).is_none() {
+                    if format.lossless() && !track.assets.borrow().source_meta.lossless {
                         warn_discouraged!(
                             "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
-                            &track.source_file.display()
+                            &track.assets.borrow().source_file_signature.path.display()
                         );
                     }
 
@@ -242,17 +168,21 @@ impl Release {
                         tag_mapping.title = Some(track.title.clone());
                     }
 
-                    track.get_or_transcode_as(
+                    track.transcode_as(
                         *format,
                         build,
                         AssetIntent::Deliverable,
                         &tag_mapping_option
                     );
 
-                    track.cached_assets.persist(&build.cache_dir);
+                    track.assets.borrow().persist_to_cache(&build.cache_dir);
                 }
 
-                let download_track_asset = track.cached_assets.get_mut(*format).as_mut().unwrap();
+                let mut download_track_assets_mut = track.assets.borrow_mut();
+                let download_track_asset = download_track_assets_mut
+                    .get_mut(*format)
+                    .as_mut()
+                    .unwrap();
 
                 download_track_asset.unmark_stale();
 
@@ -285,7 +215,9 @@ impl Release {
                 build.stats.add_track(download_track_asset.filesize_bytes);
             }
 
-            let cached_archive_asset = self.cached_assets.get_mut(*format);
+            let mut release_assets_mut = self.assets.borrow_mut();
+            let cached_archive_asset = release_assets_mut.get_mut(*format);
+
             if cached_archive_asset.is_none() {
                 let cached_archive_filename = format!("{}.zip", util::uid());
 
@@ -302,7 +234,8 @@ impl Release {
                 let mut buffer = Vec::new();
 
                 for track in self.tracks.iter_mut() {
-                    let download_track_asset = track.get_as(*format).as_ref().unwrap();
+                    let assets_ref = track.assets.borrow();
+                    let download_track_asset = assets_ref.get(*format).as_ref().unwrap();
 
                     let filename = format!(
                         "{basename}{extension}",
@@ -320,12 +253,13 @@ impl Release {
                     zip_writer.write_all(&*buffer).unwrap();
                     buffer.clear();
 
-                    track.cached_assets.persist(&build.cache_dir);
+                    track.assets.borrow().persist_to_cache(&build.cache_dir);
                 }
 
                 if let Some(cover) = &mut self.cover {
-                    let mut cover_mut = cover.borrow_mut();
-                    let cover_asset = cover_mut.get_or_transcode_as(ImageFormat::Cover, build, AssetIntent::Intermediate);
+                    let cover_mut = cover.borrow_mut();
+                    let mut assets_mut = cover_mut.assets.borrow_mut();
+                    let cover_asset = assets_mut.download_cover_asset(build, AssetIntent::Intermediate);
 
                     zip_writer.start_file("cover.jpg", options).unwrap();
 
@@ -337,7 +271,7 @@ impl Release {
                     zip_writer.write_all(&*buffer).unwrap();
                     buffer.clear();
 
-                    cover_mut.cached_assets.persist(&build.cache_dir);
+                    assets_mut.persist_to_cache(&build.cache_dir);
                 }
 
                 match zip_writer.finish() {
@@ -372,7 +306,7 @@ impl Release {
 
             build.stats.add_archive(download_archive_asset.filesize_bytes);
 
-            self.cached_assets.persist(&build.cache_dir);
+            release_assets_mut.persist_to_cache(&build.cache_dir);
         }
     }
 
@@ -473,6 +407,77 @@ impl Release {
                 }
             }
         }
+    }
+}
+
+impl ReleaseAssets {
+    pub fn deserialize_cached(path: &Path) -> Option<ReleaseAssets> {
+        match fs::read(path) {
+            Ok(bytes) => bincode::deserialize::<ReleaseAssets>(&bytes).ok(),
+            Err(_) => None
+        }
+    }
+
+    pub fn get(&self, format: AudioFormat) -> &Option<Asset> {
+        match format {
+            AudioFormat::Aac => &self.aac,
+            AudioFormat::Aiff => &self.aiff,
+            AudioFormat::Flac => &self.flac,
+            AudioFormat::Mp3VbrV0 => &self.mp3,
+            AudioFormat::OggVorbis => &self.ogg_vorbis,
+            AudioFormat::Opus48Kbps => &self.opus_48,
+            AudioFormat::Opus96Kbps => &self.opus_96,
+            AudioFormat::Opus128Kbps => &self.opus_128,
+            AudioFormat::Wav => &self.wav
+        }
+    }
+
+    pub fn get_mut(&mut self, format: AudioFormat) -> &mut Option<Asset> {
+        match format {
+            AudioFormat::Aac => &mut self.aac,
+            AudioFormat::Aiff => &mut self.aiff,
+            AudioFormat::Flac => &mut self.flac,
+            AudioFormat::Mp3VbrV0 => &mut self.mp3,
+            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
+            AudioFormat::Opus48Kbps => &mut self.opus_48,
+            AudioFormat::Opus96Kbps => &mut self.opus_96,
+            AudioFormat::Opus128Kbps => &mut self.opus_128,
+            AudioFormat::Wav => &mut self.wav
+        }
+    }
+
+    pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
+        let filename = format!("{}.bincode", self.uid);
+        cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).join(filename)
+    }
+
+    pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
+        for format in AudioFormat::ALL_FORMATS {
+            if let Some(asset) = self.get_mut(format) {
+                asset.mark_stale(timestamp);
+            }
+        }
+    }
+
+    pub fn new(source_file_signatures: Vec<SourceFileSignature>) -> ReleaseAssets {
+        ReleaseAssets {
+            aac: None,
+            aiff: None,
+            flac: None,
+            mp3: None,
+            ogg_vorbis: None,
+            opus_48: None,
+            opus_96: None,
+            opus_128: None,
+            source_file_signatures,
+            uid: util::uid(),
+            wav: None
+        }
+    }
+
+    pub fn persist_to_cache(&self, cache_dir: &Path) {
+        let serialized = bincode::serialize(self).unwrap();
+        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
     }
 }
 

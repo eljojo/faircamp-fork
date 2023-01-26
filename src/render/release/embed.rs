@@ -92,7 +92,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
 
     let longest_track_duration = release.tracks
         .iter()
-        .map(|track| track.cached_assets.source_meta.duration_seconds)
+        .map(|track| track.assets.borrow().source_meta.duration_seconds)
         .max()
         .unwrap();
 
@@ -101,7 +101,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         .enumerate()
         .map(|(index, track)| {
             let track_duration_width_rem = if longest_track_duration > 0 {
-                MAX_TRACK_DURATION_WIDTH_EM * (track.cached_assets.source_meta.duration_seconds as f32 / longest_track_duration as f32)
+                MAX_TRACK_DURATION_WIDTH_EM * (track.assets.borrow().source_meta.duration_seconds as f32 / longest_track_duration as f32)
             } else {
                 0.0
             };
@@ -120,8 +120,8 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                         {waveform} <span class="track_duration">{track_duration}</span>
                     </div>
                 "#,
-                track_duration = format_time(track.cached_assets.source_meta.duration_seconds),
-                track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
+                track_duration = format_time(track.assets.borrow().source_meta.duration_seconds),
+                track_src = track.assets.borrow().get(release.streaming_format).as_ref().unwrap().filename,
                 track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track, track_number, track_duration_width_rem)
             )
@@ -186,7 +186,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "../../../";
 
-    let track_duration = track.cached_assets.source_meta.duration_seconds;
+    let track_duration = track.assets.borrow().source_meta.duration_seconds;
     let track_duration_width_rem = if track_duration > 0 { MAX_TRACK_DURATION_WIDTH_EM } else { 0.0 };
 
     let track_rendered = formatdoc!(
@@ -203,7 +203,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
             </div>
         "#,
         track_duration = format_time(track_duration),
-        track_src = track.get_as(release.streaming_format).as_ref().unwrap().filename,  // TODO: get_in_build(...) or such to differentate this from an intermediate cache asset request
+        track_src = track.assets.borrow().get(release.streaming_format).as_ref().unwrap().filename,
         track_title = html_escape_outside_attribute(&track.title),
         waveform = waveform(track, track_number, track_duration_width_rem)
     );

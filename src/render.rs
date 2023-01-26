@@ -7,7 +7,6 @@ use crate::{
     Build,
     Catalog,
     Image,
-    ImageFormat,
     Release,
     util::{html_escape_inside_attribute, html_escape_outside_attribute},
     WritingDirection
@@ -26,14 +25,14 @@ fn artist_image(
     explicit_index: &str,
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>,
-    format: ImageFormat,
     href_url: Option<&str>
 ) -> String {
     if image.is_none() { return format!("<div></div>"); }
 
     let image_ref = image.as_ref().unwrap().borrow();
 
-    let filename = &image_ref.get_as(format).as_ref().unwrap().filename;
+    let assets = image_ref.assets.borrow();
+    let filename = &assets.artist.as_ref().unwrap().filename;
 
     let src_url = format!("{root_prefix}{filename}");
     let href_or_src_url = href_url.unwrap_or(&src_url);
