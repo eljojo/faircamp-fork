@@ -494,9 +494,16 @@ impl CacheManifest {
             Some(assets) => assets.clone(),
             None => {
                 let source_meta = AudioMeta::extract(&build.catalog_dir.join(&source_path), extension);
-                let assets = Rc::new(RefCell::new(TrackAssets::new(source_file_signature, source_meta)));
-                self.tracks.push(assets.clone());
-                assets
+                let track_assets = TrackAssets::new(source_file_signature, source_meta);
+
+                // We already extracted the AudioMeta for this track - which is costly
+                // to compute - therefore we already persist the track assets to the 
+                // cache, even if there are no transcoded artifacts yet.
+                track_assets.persist_to_cache(&build.cache_dir);
+
+                let track_assets_rc = Rc::new(RefCell::new(track_assets));
+                self.tracks.push(track_assets_rc.clone());
+                track_assets_rc
             }
         }
     }
