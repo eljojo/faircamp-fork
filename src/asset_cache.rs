@@ -23,7 +23,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-pub struct CacheManifest {
+pub struct Cache {
     pub images: Vec<Rc<RefCell<ImageAssets>>>,
     pub releases: Vec<Rc<RefCell<ReleaseAssets>>>,
     pub tracks: Vec<Rc<RefCell<TrackAssets>>>
@@ -38,7 +38,8 @@ pub enum CacheOptimization {
     Wipe
 }
 
-// TODO: PartialEq should be extended to a custom logic probably (first check path + size + modified, alternatively hash, etc.)
+// TODO: PartialEq should be extended to a custom logic probably (first check
+//       path + size + modified, alternatively hash, etc.)
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SourceFileSignature {
     pub hash: String,
@@ -52,19 +53,19 @@ pub struct SourceFileSignature {
     
 pub fn optimize_cache(
     build: &Build,
-    cache_manifest: &mut CacheManifest,
+    cache: &mut Cache,
     catalog: &mut Catalog
 ) {
-    for assets in cache_manifest.images.iter_mut() {
-        optimize_image_assets(assets, build);
+    for image_assets in cache.images.iter_mut() {
+        optimize_image_assets(image_assets, build);
     }
     
-    for assets in cache_manifest.releases.iter_mut() {
-        optimize_release_assets(assets, build);
+    for release_assets in cache.releases.iter_mut() {
+        optimize_release_assets(release_assets, build);
     }
     
-    for assets in cache_manifest.tracks.iter_mut() {
-        optimize_track_assets(assets, build);
+    for track_assets in cache.tracks.iter_mut() {
+        optimize_track_assets(track_assets, build);
     }
     
     for release in &catalog.releases {
@@ -197,19 +198,19 @@ pub fn optimize_track_assets(assets: &mut Rc<RefCell<TrackAssets>>, build: &Buil
     }
 }
 
-pub fn report_stale(cache_manifest: &CacheManifest, catalog: &Catalog) {
+pub fn report_stale(cache: &Cache, catalog: &Catalog) {
     let mut num_unused = 0;
     let mut unused_bytesize = 0;
     
-    for assets in &cache_manifest.images {
+    for assets in &cache.images {
         report_stale_image_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
-    for assets in &cache_manifest.releases {
+    for assets in &cache.releases {
         report_stale_release_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
-    for assets in &cache_manifest.tracks {
+    for assets in &cache.tracks {
         report_stale_track_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
@@ -310,15 +311,15 @@ pub fn report_stale_track_assets(
     }
 }
 
-impl CacheManifest {
+impl Cache {
     pub const MANIFEST_IMAGES_DIR: &'static str = "manifest/images";
     pub const MANIFEST_RELEASES_DIR: &'static str = "manifest/releases";
     pub const MANIFEST_TRACKS_DIR: &'static str = "manifest/tracks";
     
     pub fn ensure_dirs(cache_dir: &Path) {
-        util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR));
-        util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR));
-        util::ensure_dir(&cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR));
+        util::ensure_dir(&cache_dir.join(Cache::MANIFEST_IMAGES_DIR));
+        util::ensure_dir(&cache_dir.join(Cache::MANIFEST_RELEASES_DIR));
+        util::ensure_dir(&cache_dir.join(Cache::MANIFEST_TRACKS_DIR));
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
@@ -335,11 +336,11 @@ impl CacheManifest {
         }
     }
 
-    pub fn retrieve(cache_dir: &Path) -> CacheManifest {
-        CacheManifest {
-            images: CacheManifest::retrieve_images(cache_dir),
-            releases: CacheManifest::retrieve_releases(cache_dir),
-            tracks: CacheManifest::retrieve_tracks(cache_dir)
+    pub fn retrieve(cache_dir: &Path) -> Cache {
+        Cache {
+            images: Cache::retrieve_images(cache_dir),
+            releases: Cache::retrieve_releases(cache_dir),
+            tracks: Cache::retrieve_tracks(cache_dir)
         }
     }
 
@@ -347,7 +348,7 @@ impl CacheManifest {
     pub fn retrieve_images(cache_dir: &Path) -> Vec<Rc<RefCell<ImageAssets>>> {
         let mut images = Vec::new();
           
-        if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR).read_dir() {
+        if let Ok(dir_entries) = cache_dir.join(Cache::MANIFEST_IMAGES_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(mut assets) = ImageAssets::deserialize_cached(&dir_entry.path()) {
@@ -407,7 +408,7 @@ impl CacheManifest {
     pub fn retrieve_releases(cache_dir: &Path) -> Vec<Rc<RefCell<ReleaseAssets>>> {
         let mut releases = Vec::new();
              
-        if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).read_dir() {
+        if let Ok(dir_entries) = cache_dir.join(Cache::MANIFEST_RELEASES_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(assets) = ReleaseAssets::deserialize_cached(&dir_entry.path()) {
@@ -423,7 +424,7 @@ impl CacheManifest {
     pub fn retrieve_tracks(cache_dir: &Path) -> Vec<Rc<RefCell<TrackAssets>>> {  
         let mut tracks = Vec::new();
            
-        if let Ok(dir_entries) = cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR).read_dir() {
+        if let Ok(dir_entries) = cache_dir.join(Cache::MANIFEST_TRACKS_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(assets) = TrackAssets::deserialize_cached(&dir_entry.path()) {

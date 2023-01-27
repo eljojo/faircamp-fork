@@ -35,7 +35,7 @@ mod util;
 use args::Args;
 use artist::Artist;
 use asset::{Asset, AssetIntent};
-use asset_cache::{CacheManifest, CacheOptimization, SourceFileSignature};
+use asset_cache::{Cache, CacheOptimization, SourceFileSignature};
 use audio_format::AudioFormat;
 use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
@@ -59,18 +59,18 @@ fn main() {
         return;
     }
     
-    CacheManifest::ensure_dirs(&build.cache_dir);
-    let mut cache_manifest = CacheManifest::retrieve(&build.cache_dir);
+    Cache::ensure_dirs(&build.cache_dir);
+    let mut cache = Cache::retrieve(&build.cache_dir);
     
     if args.analyze_cache {
         build.cache_optimization = CacheOptimization::Immediate;
-        asset_cache::report_stale(&cache_manifest, &Catalog::new());
+        asset_cache::report_stale(&cache, &Catalog::new());
         return;
     }
     
     if args.optimize_cache {
         build.cache_optimization = CacheOptimization::Immediate;
-        asset_cache::optimize_cache(&build, &mut cache_manifest, &mut Catalog::new());
+        asset_cache::optimize_cache(&build, &mut cache, &mut Catalog::new());
         return;
     }
     
@@ -87,9 +87,9 @@ fn main() {
         return;
     }
     
-    cache_manifest.mark_all_stale(&build.build_begin);
+    cache.mark_all_stale(&build.build_begin);
     
-    let mut catalog = match Catalog::read(&mut build, &mut cache_manifest) {
+    let mut catalog = match Catalog::read(&mut build, &mut cache) {
         Ok(catalog) => catalog,
         Err(()) => return
     };
@@ -166,9 +166,9 @@ fn main() {
         CacheOptimization::Default |
         CacheOptimization::Delayed |
         CacheOptimization::Immediate =>
-            asset_cache::optimize_cache(&build, &mut cache_manifest, &mut catalog),
+            asset_cache::optimize_cache(&build, &mut cache, &mut catalog),
         CacheOptimization::Manual =>
-            asset_cache::report_stale(&cache_manifest, &catalog),
+            asset_cache::report_stale(&cache, &catalog),
         CacheOptimization::Wipe => {
             util::remove_dir(&build.cache_dir);
             info_cache!("Wiped cache");

@@ -11,7 +11,7 @@ use crate::{
     Artist,
     AssetIntent,
     Build,
-    CacheManifest,
+    Cache,
     DownloadOption,
     Image,
     manifest::{LocalOptions, Overrides},
@@ -200,10 +200,10 @@ impl Catalog {
         }
     }
     
-    pub fn read(build: &mut Build, cache_manifest: &mut CacheManifest) -> Result<Catalog, ()> {
+    pub fn read(build: &mut Build, cache: &mut Cache) -> Result<Catalog, ()> {
         let mut catalog = Catalog::new();
         
-        catalog.read_dir(&build.catalog_dir.clone(), build, cache_manifest, &Overrides::default()).unwrap();
+        catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default()).unwrap();
         
         if let Some(markdown) = catalog.text.take() {
             catalog.text = Some(util::markdown_to_html(&markdown));
@@ -226,7 +226,7 @@ impl Catalog {
         &mut self,
         dir: &Path,
         build: &mut Build,
-        cache_manifest: &mut CacheManifest,
+        cache: &mut Cache,
         parent_overrides: &Overrides
     ) -> Result<(), String> {
         let dir_canonicalized = dir.canonicalize().unwrap();
@@ -362,7 +362,7 @@ impl Catalog {
             manifest::apply_options(
                 meta_path,
                 build,
-                cache_manifest,
+                cache,
                 self,
                 &mut local_options,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
@@ -376,7 +376,7 @@ impl Catalog {
                 info!("Reading track {}", path_relative_to_catalog.display());
             }
             
-            let assets = cache_manifest.get_or_create_track_assets(build, path_relative_to_catalog, extension);
+            let assets = cache.get_or_create_track_assets(build, path_relative_to_catalog, extension);
             
             if let Some(release_title) = &assets.borrow().source_meta.album {
                 if let Some(metric) = &mut release_title_metrics
@@ -404,13 +404,13 @@ impl Catalog {
                 info!("Reading image {}", path_relative_to_catalog.display());
             }
             
-            let assets = cache_manifest.get_or_create_image_assets(build, path_relative_to_catalog);
+            let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
             
             images.push(Rc::new(RefCell::new(Image::new(assets, None))));
         }
         
         if !release_tracks.is_empty() {
-            let assets = cache_manifest.get_or_create_release_assets(&release_tracks);
+            let assets = cache.get_or_create_release_assets(&release_tracks);
             
             release_tracks.sort_by(|a, b|
                 a.assets.borrow().source_meta.track_number.cmp(
@@ -484,7 +484,7 @@ impl Catalog {
         }
         
         for dir_path in &dir_paths {
-            self.read_dir(dir_path, build, cache_manifest, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
+            self.read_dir(dir_path, build, cache, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
         }
 
         Ok(())

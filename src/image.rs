@@ -12,7 +12,7 @@ use crate::{
     Asset,
     AssetIntent,
     Build,
-    CacheManifest,
+    Cache,
     CacheOptimization,
     SourceFileSignature,
     util
@@ -321,7 +321,7 @@ impl ImageAssets {
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(CacheManifest::MANIFEST_IMAGES_DIR).join(filename)
+        cache_dir.join(Cache::MANIFEST_IMAGES_DIR).join(filename)
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {

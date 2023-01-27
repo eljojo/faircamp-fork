@@ -11,7 +11,7 @@ use url::Url;
 use crate::{
     AudioFormat,
     Build,
-    CacheManifest,
+    Cache,
     CacheOptimization,
     Catalog,
     DownloadOption,
@@ -85,7 +85,7 @@ impl Overrides {
 pub fn apply_options(
     path: &Path,
     build: &mut Build,
-    cache_manifest: &mut CacheManifest,
+    cache: &mut Cache,
     catalog: &mut Catalog,
     local_options: &mut LocalOptions,
     overrides: &mut Overrides
@@ -267,7 +267,7 @@ pub fn apply_options(
                                 };
 
                                 let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                                let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
+                                let assets = cache.get_or_create_image_assets(build, &path_relative_to_catalog);
 
                                 artist_mut.image = Some(Rc::new(RefCell::new(Image::new(assets, description))));
                             } else {
@@ -338,7 +338,7 @@ pub fn apply_options(
             let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
             if absolute_path.exists() {
                 let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
+                let assets = cache.get_or_create_image_assets(build, &path_relative_to_catalog);
 
                 // TODO: Double check if the RSS feed image can specify an image description somehow
                 catalog.feed_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
@@ -578,7 +578,7 @@ pub fn apply_options(
                         };
 
                         let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                        let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
+                        let assets = cache.get_or_create_image_assets(build, &path_relative_to_catalog);
 
                         overrides.release_cover = Some(Rc::new(RefCell::new(Image::new(assets, description))));
                     } else {
@@ -646,7 +646,7 @@ pub fn apply_options(
             let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
             if absolute_path.exists() {
                 let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                let assets = cache_manifest.get_or_create_image_assets(build, &path_relative_to_catalog);
+                let assets = cache.get_or_create_image_assets(build, &path_relative_to_catalog);
 
                 // TODO: Double check if the background image can specify an image description somehow
                 build.theme.background_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));

@@ -14,7 +14,7 @@ use crate::{
     AudioFormat,
     AudioMeta,
     Build,
-    CacheManifest,
+    Cache,
     ffmpeg,
     SourceFileSignature,
     TagMapping,
@@ -25,7 +25,9 @@ use crate::{
 pub struct Track {
     /// The final mapped artists (including metadata). Used in assembling the final page.
     pub artists: Vec<Rc<RefCell<Artist>>>,
-    /// Names/aliases that should be mapped to this track, coming from the audio file metadata or from manifest overrides. Only relevant as an intermediate step before actual mapping.
+    /// Names/aliases that should be mapped to this track, coming from the
+    /// audio file metadata or from manifest overrides. Only relevant as an
+    /// intermediate step before actual mapping.
     pub artists_to_map: Vec<String>,
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download/stream asset filenames.
@@ -132,7 +134,7 @@ impl TrackAssets {
     
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(CacheManifest::MANIFEST_TRACKS_DIR).join(filename)
+        cache_dir.join(Cache::MANIFEST_TRACKS_DIR).join(filename)
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {

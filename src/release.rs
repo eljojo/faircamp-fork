@@ -15,7 +15,7 @@ use crate::{
     AssetIntent,
     AudioFormat,
     Build,
-    CacheManifest,
+    Cache,
     Catalog,
     DownloadOption,
     Image,
@@ -448,7 +448,7 @@ impl ReleaseAssets {
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(CacheManifest::MANIFEST_RELEASES_DIR).join(filename)
+        cache_dir.join(Cache::MANIFEST_RELEASES_DIR).join(filename)
     }
 
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
