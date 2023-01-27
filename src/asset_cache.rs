@@ -397,6 +397,12 @@ impl Cache {
                             // No actual cached files present, can throw away serialized metadata too
                             util::remove_file(&dir_entry.path());
                         }
+                    } else {
+                        warn!(
+                            "Removing unsupported image asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
+                            &dir_entry.path().display()
+                        );
+                        util::remove_file(&dir_entry.path());
                     }
                 }
             }
@@ -413,6 +419,12 @@ impl Cache {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(assets) = ReleaseAssets::deserialize_cached(&dir_entry.path()) {
                         releases.push(Rc::new(RefCell::new(assets)));
+                    } else {
+                        warn!(
+                            "Removing unsupported release asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
+                            &dir_entry.path().display()
+                        );
+                        util::remove_file(&dir_entry.path());
                     }
                 }
             }
@@ -429,6 +441,12 @@ impl Cache {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(assets) = TrackAssets::deserialize_cached(&dir_entry.path()) {
                         tracks.push(Rc::new(RefCell::new(assets)));
+                    } else {
+                        warn!(
+                            "Removing unsupported track asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
+                            &dir_entry.path().display()
+                        );
+                        util::remove_file(&dir_entry.path());
                     }
                 }
             }
