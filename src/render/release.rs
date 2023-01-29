@@ -75,7 +75,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     )
                 } else if range.start > 0.0 {
                     format!(
-                        "{currency_symbol}{min_price}-{currency_symbol}{max_price} {currency_code}",
+                        "{currency_symbol}{min_price}-{max_price} {currency_code}",
                         currency_code=currency.code(),
                         currency_symbol=currency.symbol(),
                         max_price=range.end,
