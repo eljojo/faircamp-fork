@@ -47,6 +47,7 @@ nav {
     z-index: 9;
 }
 nav a { color: var(--color-text); }
+nav img { height: 2.5rem; }
 nav > *:not(:first-child) {
     margin-right: .4rem;
     position: relative;
