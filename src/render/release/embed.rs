@@ -6,7 +6,7 @@ use crate::{
     Catalog,
     Release,
     render::{cover_image, layout, list_artists, play_icon},
-    render::release::{MAX_TRACK_DURATION_WIDTH_EM, waveform},
+    render::release::waveform,
     Track,
     util::{format_time, html_escape_outside_attribute},
     WritingDirection
@@ -100,11 +100,6 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         .iter()
         .enumerate()
         .map(|(index, track)| {
-            let track_duration_width_rem = if longest_track_duration > 0 {
-                MAX_TRACK_DURATION_WIDTH_EM * (track.assets.borrow().source_meta.duration_seconds as f32 / longest_track_duration as f32)
-            } else {
-                0.0
-            };
             let track_number = index + 1;
 
             formatdoc!(
@@ -123,7 +118,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                 track_duration = format_time(track.assets.borrow().source_meta.duration_seconds),
                 track_src = track.assets.borrow().get(release.streaming_format).as_ref().unwrap().filename,
                 track_title = html_escape_outside_attribute(&track.title),
-                waveform = waveform(track, track_number, track_duration_width_rem)
+                waveform = waveform(track)
             )
         })
         .collect::<Vec<String>>()
@@ -149,6 +144,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                         <div>{artists}</div>
                     </div>
 
+                    <div data-longest-duration="{longest_track_duration}"></div>
                     {tracks_rendered}
 
                     <div>
@@ -187,7 +183,6 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
     let root_prefix = "../../../";
 
     let track_duration = track.assets.borrow().source_meta.duration_seconds;
-    let track_duration_width_rem = if track_duration > 0 { MAX_TRACK_DURATION_WIDTH_EM } else { 0.0 };
 
     let track_rendered = formatdoc!(
         r#"
@@ -205,7 +200,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
         track_duration = format_time(track_duration),
         track_src = track.assets.borrow().get(release.streaming_format).as_ref().unwrap().filename,
         track_title = html_escape_outside_attribute(&track.title),
-        waveform = waveform(track, track_number, track_duration_width_rem)
+        waveform = waveform(track)
     );
 
     let release_prefix = "../../";

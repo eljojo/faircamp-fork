@@ -7,17 +7,16 @@ use crate::{
     Release,
     render::{cover_image, layout, list_artists, play_icon},
     Track,
-    util::{format_time, html_escape_outside_attribute}
+    util::{
+        format_time,
+        html_escape_inside_attribute,
+        html_escape_outside_attribute
+    }
 };
 
 pub mod checkout;
 pub mod download;
 pub mod embed;
-
-const MAX_TRACK_DURATION_WIDTH_EM: f32 = 20.0;
-const TRACK_HEIGHT_EM: f32 = 1.5;
-const WAVEFORM_PADDING_EM: f32 = 0.3;
-const WAVEFORM_HEIGHT: f32 = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
@@ -123,11 +122,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .iter()
         .enumerate()
         .map(|(index, track)| {
-            let track_duration_width_rem = if longest_track_duration > 0 {
-                MAX_TRACK_DURATION_WIDTH_EM * (track.assets.borrow().source_meta.duration_seconds as f32 / longest_track_duration as f32)
-            } else {
-                0.0
-            };
             let track_number = index + 1;
 
             let track_filename = format!(
@@ -145,10 +139,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             formatdoc!(
                 r#"
                     <div class="track">
-                        <a class="track_controls">{play_icon}</a>
-                        <span class="track_number">{track_number}</span>
-                        <a class="track_title">{track_title} <span class="duration"><span class="track_time"></span>{duration}</span></a>
-                        <br>
+                        <a class="track_controls outer">{play_icon}</a>
+                        <span class="track_number outer">{track_number}</span>
+                        <a class="track_title" title="{track_title_attribute}">
+                            <span class="track_controls inner">{play_icon}</span>
+                            <span class="track_number inner">{track_number}</span>
+                            <span class="track_title_actual">{track_title}</span>
+                            <span class="duration"><span class="track_time"></span>{duration}</span>
+                        </a>
                         <audio controls preload="metadata" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
                         {waveform}
                     </div>
@@ -158,7 +156,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 streaming_format_dir = release.streaming_format.asset_dirname(),
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
-                waveform = waveform(track, track_number, track_duration_width_rem)
+                track_title_attribute = html_escape_inside_attribute(&track.title),
+                waveform = waveform(track)
             )
         })
         .collect::<Vec<String>>()
@@ -186,6 +185,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 <br>
 
+                <div data-longest-duration="{longest_track_duration}"></div>
                 {tracks_rendered}
             </div>
             <div class="additional">
@@ -216,47 +216,33 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }
 
-fn waveform(track: &Track, track_number: usize, track_duration_width_rem: f32) -> String {
-    let step = (MAX_TRACK_DURATION_WIDTH_EM / track_duration_width_rem).floor() as usize;
-
+fn waveform(track: &Track) -> String {
     if let Some(peaks) = &track.assets.borrow().source_meta.peaks {
-        let num_peaks = peaks.len() / step;
-        let step_width = track_duration_width_rem / num_peaks as f32;
+        let peaks_base64 = peaks.iter()
+            .map(|peak| {
+                // Limit range to 0-63
+                let peak64 = ((peak / 1.0) * 63.0) as u8;
+                let base64 = match peak64 {
+                    0..=25 => (peak64 + 65) as char, // shift to 65-90 (A-Z)
+                    26..=51 => (peak64 + 71) as char, // shift to 97-122 (a-z)
+                    52..=61 => (peak64 - 4) as char, // shift to 48-57 (0-9)
+                    62 => '+', // map to 43 (+)
+                    63 => '/', // map to 48 (/)
+                    _ => unreachable!() 
+                };
+                base64.to_string()
+            })
+            .collect::<Vec<String>>()
+            .join("");
 
-        let mut enumerate_peaks = peaks.iter().step_by(step).enumerate();
-
-        let mut d = format!(
-            "M 0,{}",
-            WAVEFORM_PADDING_EM + (1.0 - enumerate_peaks.next().unwrap().1) * WAVEFORM_HEIGHT
-        );
-
-        while let Some((index, peak)) = enumerate_peaks.next() {
-            let command = format!(
-                " L {x},{y}",
-                x = index as f32 * step_width,
-                y = WAVEFORM_PADDING_EM + (1.0 - peak) * WAVEFORM_HEIGHT
-            );
-
-            d.push_str(&command);
-        }
+        let duration_seconds = track.assets.borrow().source_meta.duration_seconds;
 
         formatdoc!(r#"
             <svg class="waveform"
-                 height="{TRACK_HEIGHT_EM}rem"
-                 viewBox="0 0 {track_duration_width_rem} {TRACK_HEIGHT_EM}"
-                 width="{track_duration_width_rem}rem"
-                 xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="progress_gradient_{track_number}">
-                        <stop offset="0%" stop-color="hsl(0, 0%, var(--text-l))" />
-                        <stop offset="0.000001%" stop-color="hsla(0, 0%, 0%, 0)" />
-                    </linearGradient>
-                </defs>
-                <style>
-                    .progress_{track_number} {{ stroke: url(#progress_gradient_{track_number}); }}
-                </style>
-                <path class="progress progress_{track_number}" d="{d}" />
-                <path class="base" d="{d}" />
+                 data-duration="{duration_seconds}"
+                 data-peaks="{peaks_base64}">
+                <path class="progress"/>
+                <path class="base"/>
             </svg>
         "#)
     } else {

@@ -23,7 +23,8 @@ function formatTime(seconds) {
 function mountAndPlay(container, seek) {
     const a = container.querySelector('a');
     const audio = container.querySelector('audio');
-    const controls = container.querySelector('.track_controls');
+    const controlsInner = container.querySelector('.track_controls.inner');
+    const controlsOuter = container.querySelector('.track_controls.outer');
     const svg = container.querySelector('svg');
     const time = container.querySelector('.track_time');
 
@@ -37,7 +38,8 @@ function mountAndPlay(container, seek) {
                 updatePlayhead(window.activeTrack, true);
                 container.classList.remove('active', 'playing');
                 bigPlayButton.innerHTML = playIcon;
-                controls.innerHTML = playIcon;
+                controlsInner.innerHTML = playIcon;
+                controlsOuter.innerHTML = playIcon;
                 
                 const nextContainer = container.nextElementSibling;
                 if (nextContainer && nextContainer.classList.contains('track')) {
@@ -51,7 +53,8 @@ function mountAndPlay(container, seek) {
 
     container.classList.add('active', 'playing');
     bigPlayButton.innerHTML = pauseIcon;
-    controls.innerHTML = pauseIcon;
+    controlsInner.innerHTML = pauseIcon;
+    controlsOuter.innerHTML = pauseIcon;
 
     if (seek) {
         audio.currentTime = seek * audio.duration;
@@ -59,7 +62,7 @@ function mountAndPlay(container, seek) {
 
     audio.play();
 
-    window.activeTrack = { a, audio, container, controls, svg, time }
+    window.activeTrack = { a, audio, container, controlsInner, controlsOuter, svg, time }
     window.activeTrack.interval = setInterval(() => updatePlayhead(window.activeTrack), 200);
 }
 
@@ -77,7 +80,8 @@ function togglePlayback(container = null, seek = null) {
                     activeTrack.audio.currentTime = seek * activeTrack.audio.duration;
                 }
                 activeTrack.container.classList.add('playing');
-                activeTrack.controls.innerHTML = pauseIcon;
+                activeTrack.controlsInner.innerHTML = pauseIcon;
+                activeTrack.controlsOuter.innerHTML = pauseIcon;
                 bigPlayButton.innerHTML = pauseIcon;
                 activeTrack.audio.play();
                 activeTrack.interval = setInterval(() => updatePlayhead(activeTrack), 200);
@@ -90,7 +94,8 @@ function togglePlayback(container = null, seek = null) {
                     clearInterval(activeTrack.interval);
                     updatePlayhead(activeTrack);
                     activeTrack.container.classList.remove('playing');
-                    activeTrack.controls.innerHTML = playIcon;
+                    activeTrack.controlsInner.innerHTML = playIcon;
+                    activeTrack.controlsOuter.innerHTML = playIcon;
                     bigPlayButton.innerHTML = playIcon;
                 }
             }
@@ -100,7 +105,8 @@ function togglePlayback(container = null, seek = null) {
             activeTrack.audio.currentTime = 0;
             updatePlayhead(activeTrack, true);
             activeTrack.container.classList.remove('active', 'playing');
-            activeTrack.controls.innerHTML = playIcon;
+            activeTrack.controlsInner.innerHTML = playIcon;
+            activeTrack.controlsOuter.innerHTML = playIcon;
             bigPlayButton.innerHTML = playIcon;
 
             mountAndPlay(container, seek);
@@ -117,8 +123,8 @@ function togglePlayback(container = null, seek = null) {
 function updatePlayhead(activeTrack, reset = false) {
     const { audio, svg, time } = activeTrack;
     const factor = reset ? 0 : audio.currentTime / audio.duration;
-    svg.querySelector('stop:nth-child(1)').setAttribute('offset', `${factor * 100}%`);
-    svg.querySelector('stop:nth-child(2)').setAttribute('offset', `${(factor + 0.0001) * 100}%`);
+    svg.querySelector('stop:nth-child(1)').setAttribute('offset', factor);
+    svg.querySelector('stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
     time.innerHTML = reset ? '' : `${formatTime(audio.currentTime)} / `;
 }
 
@@ -140,3 +146,122 @@ document.body.addEventListener('click', event => {
         togglePlayback(container, seek);
     }
 });
+
+function decode(string) {
+    const peaks = [];
+
+    for (let index = 0; index < string.length; index++) {
+        const code = string.charCodeAt(index);
+        if (code >= 65 && code <= 90) { // A-Z
+            peaks.push(code - 65); // 0-25
+        } else if (code >= 97 && code <= 122) { // a-z
+            peaks.push(code - 71); // 26-51
+        } else if (code > 48 && code < 57) { // 0-9
+            peaks.push(code + 4); // 52-61
+        } else if (code === 43) { // +
+            peaks.push(62);
+        } else if (code === 48) { // /
+            peaks.push(63);
+        }
+    }
+
+    return peaks;
+}
+
+const MAX_TRACK_DURATION_WIDTH_EM = 20.0;
+const TRACK_HEIGHT_EM = 1.5;
+const WAVEFORM_PADDING_EM = 0.3;
+const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
+
+const waveformRenderState = {};
+
+function waveforms(widthOverride) {
+    let trackNumber = 1;
+    for (const svg of document.querySelectorAll('svg[data-peaks]')) {
+        const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
+
+        const longestTrackDuration = parseInt(document.querySelector('[data-longest-duration]').dataset.longestDuration);
+        const trackDuration = parseInt(svg.dataset.duration);
+
+        let stepSize;
+        let trackDurationWidthRem;
+        if (widthOverride) {
+            stepSize = 1; // TODO: Actually make this somewhat dependent on screen width (use less points when the screen is really small?)
+            trackDurationWidthRem = widthOverride;
+        } else {
+            if (longestTrackDuration > 0) {
+                trackDurationWidthRem = MAX_TRACK_DURATION_WIDTH_EM * (trackDuration / longestTrackDuration);
+            } else {
+                trackDurationWidthRem = 0; // TODO: Probably nonsensical (also by 0 division later on?), for now just copied from earlier rust implementation
+            }
+            stepSize = Math.floor(MAX_TRACK_DURATION_WIDTH_EM / trackDurationWidthRem);
+        }
+
+        let d = `M 0,${WAVEFORM_PADDING_EM + (1 - peaks[0]) * WAVEFORM_HEIGHT}`;
+
+        const peakWidth = trackDurationWidthRem / peaks.length;
+
+        for (let index = stepSize; index < peaks.length; index += stepSize) {
+            const x = index * peakWidth;
+            const y = WAVEFORM_PADDING_EM + (1 - peaks[index]) * WAVEFORM_HEIGHT;
+
+            d += ` L ${x},${y}`;
+        }
+
+        const SVG_XMLNS = 'http://www.w3.org/2000/svg';
+
+        if (!waveformRenderState.initialized) {
+            svg.setAttribute('xmlns', SVG_XMLNS);
+            svg.setAttribute('height', `${TRACK_HEIGHT_EM}em`);
+
+            const defs = document.createElementNS(SVG_XMLNS, 'defs');
+            const linearGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
+            linearGradient.id = `gradient_${trackNumber}`;
+            const stop1 = document.createElementNS(SVG_XMLNS, 'stop');
+            stop1.setAttribute('offset', '0');
+            stop1.setAttribute('stop-color', 'hsl(0, 0%, var(--text-l))');
+            const stop2 = document.createElementNS(SVG_XMLNS, 'stop');
+            stop2.setAttribute('offset', '0.000001');
+            stop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
+
+            linearGradient.append(stop1, stop2);
+            defs.append(linearGradient);
+            svg.prepend(defs);
+
+            svg.querySelector('.progress').setAttribute('stroke', `url(#gradient_${trackNumber})`);
+        }
+
+        svg.setAttribute('viewBox', `0 0 ${trackDurationWidthRem} 1.5`);
+        svg.setAttribute('width', `${trackDurationWidthRem}em`);
+        svg.querySelector('.base').setAttribute('d', d);
+        svg.querySelector('.progress').setAttribute('d', d);
+
+        trackNumber++;
+    }
+
+    waveformRenderState.initialized = true;
+}
+
+waveforms();
+
+window.addEventListener('resize', event => {
+    const baseFontSizePx = parseInt(window
+        .getComputedStyle(document.documentElement)
+        .getPropertyValue('font-size')
+        .replace('px', ''));
+    const width = window.innerWidth;
+
+    if (width > 350) {
+        if (waveformRenderState.width !== Infinity) {
+            waveforms();
+            waveformRenderState.width = Infinity;
+        }
+    } else {
+        if (waveformRenderState.width !== width) {
+            const PADDING_HORIZONTAL = 2; // (rem) TODO: This is hardcoded, might change in css anytime - figure something out
+            const widthRem = (1 / baseFontSizePx) * (width - PADDING_HORIZONTAL * baseFontSizePx);
+            waveforms(widthRem);
+            waveformRenderState.width = width;
+        }
+    }
+})
