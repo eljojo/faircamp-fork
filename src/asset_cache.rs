@@ -23,6 +23,12 @@ use crate::{
     util
 };
 
+/// This is the name of an empty file created by faircamp in the root
+/// of the cache directory. When the cache layout (or critical implementation
+/// details) change, this name can be updated, prompting cache purge and rebuild
+/// for site operators picking up the new version of faircamp.
+const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_1";
+
 #[derive(Clone, Debug)]
 pub struct Cache {
     /// We register all files found in the cache root (= actual audio, image
@@ -322,11 +328,11 @@ pub fn report_stale_track_assets(
 }
 
 impl Cache {
-    pub const MANIFEST_IMAGES_DIR: &'static str = "manifest/images";
-    pub const MANIFEST_RELEASES_DIR: &'static str = "manifest/releases";
-    pub const MANIFEST_TRACKS_DIR: &'static str = "manifest/tracks";
+    pub const MANIFEST_IMAGES_DIR: &'static str = "images";
+    pub const MANIFEST_RELEASES_DIR: &'static str = "releases";
+    pub const MANIFEST_TRACKS_DIR: &'static str = "tracks";
     
-    pub fn ensure_dirs(cache_dir: &Path) {
+    fn ensure_manifest_dirs(cache_dir: &Path) {
         util::ensure_dir(&cache_dir.join(Cache::MANIFEST_IMAGES_DIR));
         util::ensure_dir(&cache_dir.join(Cache::MANIFEST_RELEASES_DIR));
         util::ensure_dir(&cache_dir.join(Cache::MANIFEST_TRACKS_DIR));
@@ -334,6 +340,7 @@ impl Cache {
 
     /// Scans the cache root dir and initializes a HashMap that tracks
     /// all filenames, mapping them to a usage count (initialized to 0).
+    /// The asset cache version marker is explicitly excluded from this.
     fn fill_registry(&mut self, cache_dir: &Path) {
         if let Ok(dir_entries) = cache_dir.read_dir() {
             for dir_entry_result in dir_entries {
@@ -343,7 +350,10 @@ impl Cache {
                         .map(|file_type| file_type.is_file())
                         .unwrap_or(false) {
                         let filename = dir_entry.file_name().to_str().unwrap().to_string();
-                        self.artifact_registry.insert(filename, 0);
+
+                        if filename != ASSET_CACHE_VERSION_MARKER {
+                            self.artifact_registry.insert(filename, 0);
+                        }
                     }
                 }
             }
@@ -375,6 +385,20 @@ impl Cache {
 
     pub fn retrieve(cache_dir: &Path) -> Cache {
         let mut cache = Cache::new();
+
+        let version_marker_file = cache_dir.join(&ASSET_CACHE_VERSION_MARKER);
+
+        if !version_marker_file.exists() {
+            if cache_dir.exists() {
+                warn!("Existing cache data is in an incompatible format (= from an older faircamp version), the cache will be purged and regenerated.");
+                util::ensure_empty_dir(cache_dir);
+            } else {
+                util::ensure_dir(cache_dir);
+            }
+            fs::write(version_marker_file, "").unwrap();
+        }
+
+        Cache::ensure_manifest_dirs(cache_dir);
 
         cache.fill_registry(cache_dir);
 

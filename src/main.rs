@@ -59,7 +59,6 @@ fn main() {
         return;
     }
     
-    Cache::ensure_dirs(&build.cache_dir);
     let mut cache = Cache::retrieve(&build.cache_dir);
     
     if args.analyze_cache {
