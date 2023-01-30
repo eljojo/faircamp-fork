@@ -52,7 +52,8 @@ pub struct Overrides {
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
     pub streaming_format: AudioFormat,
-    pub track_artists: Option<Vec<String>>
+    pub track_artists: Option<Vec<String>>,
+    pub unlock_text: Option<String>
 }
 
 impl LocalOptions {
@@ -77,7 +78,8 @@ impl Overrides {
             release_track_numbering: TrackNumbering::Arabic,
             rewrite_tags: true,
             streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
-            track_artists: None
+            track_artists: None,
+            unlock_text: None
         }
     }
 }
@@ -370,7 +372,10 @@ pub fn apply_options(
         if let Some(value) = optional_field_value(section, "code") {
             match Permalink::new(&value) {
                 Ok(_) => {
-                    overrides.download_option = DownloadOption::Codes(vec![value]);
+                    overrides.download_option = DownloadOption::Codes {
+                        codes: vec![value],
+                        unlock_text: None
+                    };
                 }
                 Err(err) => {
                     error!("Ignoring invalid download.code value '{}' ({}) in {}", value, err, path.display())
@@ -396,7 +401,10 @@ pub fn apply_options(
                     .collect();
 
             if !codes.is_empty() {
-                overrides.download_option = DownloadOption::Codes(codes);
+                overrides.download_option = DownloadOption::Codes {
+                    codes,
+                    unlock_text: None
+                };
             }
         });
         if optional_flag_present(section, "disabled") {
@@ -496,6 +504,9 @@ pub fn apply_options(
             } else {
                 error!("Ignoring unrecognized download.price option '{}' in {}:{}", value, path.display(), line);
             }
+        }
+        if let Some(value) = optional_embed_value(section, "unlock_text") {
+            overrides.unlock_text = Some(util::markdown_to_html(&value));
         }
     }
     

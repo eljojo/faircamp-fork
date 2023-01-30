@@ -29,7 +29,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .join(", ");
 
     let download_option_rendered = match &release.download_option {
-        DownloadOption::Codes(_) => {
+        DownloadOption::Codes { .. } => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
             formatdoc!(r#"

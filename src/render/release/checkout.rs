@@ -10,6 +10,15 @@ use crate::{
     util::html_escape_outside_attribute
 };
 
+const DEFAULT_UNLOCK_TEXT: &str = "\
+Downloads for this release are available by entering an unlock \
+code. If you don't already have a code you need to obtain one \
+from the artists/people who run this site - get in touch with \
+them or see if there's any information on the release page \
+itself. Download codes may sometimes be offered as perks on \
+crowdfunding campaigns or subscriptions, so also check these \
+if you know of any!";
+
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let release_prefix = "../../";
@@ -99,18 +108,15 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             "#);
 
             (content, "Buy Release")
-    } else if let DownloadOption::Codes(_) = &release.download_option {
+    } else if let DownloadOption::Codes { unlock_text, .. } = &release.download_option {
+        let custom_or_default_unlock_text = unlock_text
+            .as_ref()
+            .map(|text| text.to_string())
+            .unwrap_or(DEFAULT_UNLOCK_TEXT.to_string());
+
         let content = formatdoc!(r#"
             <div class="unlock_scripted">
-                Downloads for this release are available by entering an unlock
-                code. If you don't already have a code you need to obtain one
-                from the artists/people who run this site - get in touch with
-                them or see if there's any information on the release page
-                itself. Download codes may sometimes be offered as perks on
-                crowdfunding campaigns or subscriptions, so also check these
-                if you know of any!
-
-                <!-- TODO: Alternative text configurable by site owner -->
+                {custom_or_default_unlock_text}
 
                 <br><br>
 

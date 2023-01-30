@@ -85,14 +85,20 @@ impl Release {
         title: String,
         tracks: Vec<Track>
     ) -> Release {
-        // TODO: Use/store multiple images (beyond just one cover) (think this through: why?)
-
         let runtime = tracks
             .iter()
             .map(|track| track.assets.borrow().source_meta.duration_seconds)
             .sum();
 
         let permalink = permalink_option.unwrap_or_else(|| Permalink::generate(&title));
+
+        let mut download_option = manifest_overrides.download_option.clone();
+
+        if let DownloadOption::Codes { unlock_text, .. } = &mut download_option {
+            if let Some(custom_unlock_text) = &manifest_overrides.unlock_text {
+                unlock_text.replace(custom_unlock_text.clone());
+            }
+        }
 
         Release {
             artists: Vec::new(),
@@ -101,7 +107,7 @@ impl Release {
             assets,
             cover,
             download_formats: manifest_overrides.download_formats.clone(),
-            download_option: manifest_overrides.download_option.clone(),
+            download_option,
             embedding: manifest_overrides.embedding,
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
@@ -312,7 +318,7 @@ impl Release {
 
     pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
-            DownloadOption::Codes(codes) => {
+            DownloadOption::Codes { codes, .. } => {
                 let page_hash = build.hash_generic(&[&self.permalink.slug, "checkout"]);
 
                 let checkout_page_dir = build.build_dir

@@ -3,7 +3,10 @@ use std::ops::Range;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum DownloadOption {
-    Codes(Vec<String>),
+    Codes {
+        codes: Vec<String>,
+        unlock_text: Option<String>
+    },
     Disabled,
     Free,
     Paid(Currency, Range<f32>)
