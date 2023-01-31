@@ -162,8 +162,10 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         unreachable!();
     };
 
+    let release_link = format!("../..{explicit_index}");
+
     let artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists);
-    let cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None);
+    let cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, Some(&release_link));
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
     let body = formatdoc!(r#"
@@ -185,7 +187,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     "#);
 
     let breadcrumbs = &[
-        format!(r#"<a href="../..{explicit_index}">{release_title_escaped}</a>"#),
+        format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!("<span>{heading}</span>")
     ];
 

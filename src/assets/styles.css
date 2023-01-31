@@ -165,6 +165,23 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .js_enabled audio { display: none; }
 .large_type { font-size: 1.4rem; }
 .muted { color: var(--color-muted); }
+#overlay {
+    align-items: center;
+    background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
+    bottom: 0;
+    display: none;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 999;
+}
+#overlay:target { display: flex; }
+#overlay img {
+    max-height: calc(100vh - 4em);
+    max-width: calc(100vw - 4em);
+}
 .release {
     display:  flex;
     flex-direction: column;

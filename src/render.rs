@@ -95,17 +95,39 @@ fn cover_image(
 
     let src_url = format!("{release_prefix}cover_0.jpg");
 
-    let href_or_src_url = href_url.unwrap_or(&src_url);
+    let href_or_overlay_anchor = href_url.unwrap_or("#overlay");
 
     if let Some(description) = &image_ref.description {
         let alt = html_escape_inside_attribute(description);
+        let overlay = if href_url.is_none() {
+            // TODO: This should not use src_url, but the full size cover image version! (like download_cover more or less, just more compressed or so?)
+            formatdoc!(r##"
+                <a id="overlay" href="#">
+                    <img alt="{alt}" loading="lazy" src="{src_url}">
+                </a>
+            "##)
+        } else {
+            String::new()
+        };
 
         formatdoc!(r#"
-            <a class="image" href="{href_or_src_url}">
+            <a class="image" href="{href_or_overlay_anchor}">
                 <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src_url}" srcset="{srcset}">
             </a>
+            {overlay}
         "#)
     } else {
+        let overlay = if href_url.is_none() {
+            // TODO: This should not use src_url, but the full size cover image version! (like download_cover more or less, just more compressed or so?)
+            formatdoc!(r##"
+                <a id="overlay" href="#">
+                    <img loading="lazy" src="{src_url}">
+                </a>
+            "##)
+        } else {
+            String::new()
+        };
+
         formatdoc!(r#"
             <div class="undescribed_wrapper">
                 <div class="undescribed_corner_tag">
@@ -117,10 +139,11 @@ fn cover_image(
                 <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
                     <span>Missing image description.<br>Click to learn more</span>
                 </a>
-                <a class="image" href="{href_or_src_url}">
+                <a class="image" href="{href_or_overlay_anchor}">
                     <img loading="lazy" sizes="{sizes}" src="{src_url}" srcset="{srcset}">
                 </a>
             </div>
+            {overlay}
         "#)
     }
 }
