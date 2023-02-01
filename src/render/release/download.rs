@@ -17,18 +17,19 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
 
-    let cover_download = if release.cover.is_some() {
+    let cover_download = if let Some(cover) = &release.cover {
         formatdoc!(
             r#"
                 <div>
                     <span>Cover Image</span>
                     <span class="download_formats">
-                        <a download href="{root_prefix}{permalink}/cover.jpg">
+                        <a download href="{root_prefix}{permalink}/cover_{edge_size}.jpg">
                             JPEG
                         </a>
                     </span>
                 </div>
             "#,
+            edge_size = cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().edge_size,
             permalink = &release.permalink.slug
         )
     } else {
