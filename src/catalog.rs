@@ -707,15 +707,15 @@ impl Catalog {
             if let Some(image) = &mut release_mut.cover {
                 let image_mut = image.borrow_mut();
                 let mut image_assets_mut = image_mut.assets.borrow_mut();
-                let image_version_assets = image_assets_mut.cover_asset(build, AssetIntent::Deliverable);
+                let cover_assets = image_assets_mut.cover_asset(build, AssetIntent::Deliverable);
 
-                for (index, version) in image_version_assets.versions.iter().enumerate() {
+                for asset in &cover_assets.all() {
                     util::hard_link_or_copy(
-                        build.cache_dir.join(&version.filename),
-                        release_dir.join(format!("cover_{index}.jpg"))
+                        build.cache_dir.join(&asset.filename),
+                        release_dir.join(format!("cover_{}.jpg", asset.edge_size))
                     );
 
-                    build.stats.add_image(version.filesize_bytes);
+                    build.stats.add_image(asset.filesize_bytes);
                 }
 
                 image_assets_mut.persist_to_cache(&build.cache_dir);

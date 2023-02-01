@@ -20,9 +20,28 @@ use crate::{
 
 const ARTIST_EDGE_SIZE: i32 = 420;
 const BACKGROUND_MAX_EDGE_SIZE: i32 = 1280;
-const COVER_EDGE_SIZE: i32 = 360;
-const DOWNLOAD_COVER_EDGE_SIZE: i32 = 1080;
 const FEED_MAX_EDGE_SIZE: i32 = 920;
+
+/// A single, resized version of the cover image.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CoverAsset {
+    /// Represents both height and width (covers have a square aspect ratio)
+    pub edge_size: i32,
+    pub filename: String,
+    pub filesize_bytes: u64
+}
+
+/// Represents multiple, differently sized versions of a cover image, for
+/// display on different screen sizes and for inclusion in the release
+/// archive.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CoverAssets {
+    pub marked_stale: Option<DateTime<Utc>>,
+    pub max_180: CoverAsset,
+    pub max_360: Option<CoverAsset>,
+    pub max_720: Option<CoverAsset>,
+    pub max_1080: Option<CoverAsset>
+}
 
 /// Associates image assets with an image description
 #[derive(Debug)]
@@ -37,25 +56,10 @@ pub struct Image {
 pub struct ImageAssets {
     pub artist: Option<Asset>,
     pub background: Option<Asset>,
-    pub cover: Option<CoverImageVersions>,
-    pub download_cover: Option<Asset>,
+    pub cover: Option<CoverAssets>,
     pub feed: Option<Asset>,
     pub source_file_signature: SourceFileSignature,
     pub uid: String
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ImageVersion {
-    pub filename: String,
-    pub filesize_bytes: u64,
-    pub height: i32,
-    pub width: i32
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CoverImageVersions {
-    pub marked_stale: Option<DateTime<Utc>>,
-    pub versions: Vec<ImageVersion>
 }
 
 enum ResizeMode {
@@ -128,7 +132,30 @@ fn resize(
     (target_filename, result_dimensions)
 }
 
-impl CoverImageVersions {
+impl CoverAssets {
+    pub fn all(&self) -> Vec<&CoverAsset> {
+        let mut result = Vec::with_capacity(4);
+
+        result.push(&self.max_180);
+        if let Some(asset) = &self.max_360 { result.push(asset); }
+        if let Some(asset) = &self.max_720 { result.push(asset); }
+        if let Some(asset) = &self.max_1080 { result.push(asset); }
+
+        result
+    }
+
+    pub fn largest(&self) -> &CoverAsset {
+        if let Some(max_1080) = &self.max_1080 {
+            max_1080
+        } else if let Some(max_720) = &self.max_720 {
+            max_720
+        } else if let Some(max_360) = &self.max_360 {
+            max_360
+        } else {
+            &self.max_180
+        }
+    }
+
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
             self.marked_stale = Some(timestamp.clone());
@@ -153,6 +180,26 @@ impl CoverImageVersions {
 
     pub fn unmark_stale(&mut self) {
         self.marked_stale = None;
+    }
+
+    pub fn up_to_360(&self) -> Vec<&CoverAsset> {
+        match &self.max_360 {
+            Some(max_360) => vec![max_360, &self.max_180],
+            None => vec![&self.max_180]
+        }
+    }
+
+    // TODO: Almost all() except for the different sorting, it's a bit intransparent
+    //       because the names do not even indicate the sorting ... improve.
+    pub fn up_to_1080(&self) -> Vec<&CoverAsset> {
+        let mut result = Vec::with_capacity(4);
+
+        if let Some(asset) = &self.max_1080 { result.push(asset); }
+        if let Some(asset) = &self.max_720 { result.push(asset); }
+        if let Some(asset) = &self.max_360 { result.push(asset); }
+        result.push(&self.max_180);
+
+        result
     }
 }
 
@@ -214,55 +261,90 @@ impl ImageAssets {
         &mut self,
         build: &Build,
         asset_intent: AssetIntent
-    ) -> &mut CoverImageVersions {
-        if let Some(asset) = self.cover.as_mut() {
+    ) -> &mut CoverAssets {
+        if let Some(assets) = self.cover.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
-                asset.unmark_stale();
+                assets.unmark_stale();
             }
         } else {
-            let mut versions = Vec::new();
-
-            let (filename_hires, dimensions_hires) = resize(
+            let (filename_180, dimensions_180) = resize(
                 build,
                 &self.source_file_signature.path,
-                ResizeMode::CropSquare(COVER_EDGE_SIZE)
+                ResizeMode::CropSquare(180)
             );
 
-            let metadata_hires = fs::metadata(&build.cache_dir.join(&filename_hires)).unwrap();
+            let metadata_180 = fs::metadata(&build.cache_dir.join(&filename_180)).unwrap();
 
-            versions.push(ImageVersion {
-                filename: filename_hires,
-                filesize_bytes: metadata_hires.len(),
-                height: dimensions_hires.1,
-                width: dimensions_hires.0
-            });
+            let max_180 = CoverAsset {
+                edge_size: dimensions_180.0,
+                filename: filename_180,
+                filesize_bytes: metadata_180.len()
+            };
 
-            if dimensions_hires.0 as f32 > (COVER_EDGE_SIZE as f32 * 0.75) {
-                let (filename_lores, dimensions_lores) = resize(
+            let mut max_360 = None;
+            let mut max_720 = None;
+            let mut max_1080 = None;
+
+            if dimensions_180.0 == 180 {
+                let (filename_360, dimensions_360) = resize(
                     build,
                     &self.source_file_signature.path,
-                    ResizeMode::CropSquare(COVER_EDGE_SIZE / 2)
+                    ResizeMode::CropSquare(360)
                 );
 
-                let metadata_lores = fs::metadata(&build.cache_dir.join(&filename_lores)).unwrap();
+                let metadata_360 = fs::metadata(&build.cache_dir.join(&filename_360)).unwrap();
 
-                versions.push(ImageVersion {
-                    filename: filename_lores,
-                    filesize_bytes: metadata_lores.len(),
-                    height: dimensions_lores.1,
-                    width: dimensions_lores.0
+                max_360 = Some(CoverAsset {
+                    edge_size: dimensions_360.0,
+                    filename: filename_360,
+                    filesize_bytes: metadata_360.len()
                 });
+
+                if dimensions_360.0 == 360 {
+                    let (filename_720, dimensions_720) = resize(
+                        build,
+                        &self.source_file_signature.path,
+                        ResizeMode::CropSquare(720)
+                    );
+
+                    let metadata_720 = fs::metadata(&build.cache_dir.join(&filename_720)).unwrap();
+
+                    max_720 = Some(CoverAsset {
+                        edge_size: dimensions_720.0,
+                        filename: filename_720,
+                        filesize_bytes: metadata_720.len()
+                    });
+
+                    if dimensions_720.0 == 720 {
+                        let (filename_1080, dimensions_1080) = resize(
+                            build,
+                            &self.source_file_signature.path,
+                            ResizeMode::CropSquare(1080)
+                        );
+
+                        let metadata_1080 = fs::metadata(&build.cache_dir.join(&filename_1080)).unwrap();
+
+                        max_1080 = Some(CoverAsset {
+                            edge_size: dimensions_1080.0,
+                            filename: filename_1080,
+                            filesize_bytes: metadata_1080.len()
+                        });
+                    }
+                }
             }
 
-            let cover_image_versions = CoverImageVersions {
+            let cover_assets = CoverAssets {
                 marked_stale: match asset_intent {
                     AssetIntent::Deliverable => None,
                     AssetIntent::Intermediate => Some(build.build_begin)
                 },
-                versions
+                max_180,
+                max_360,
+                max_720,
+                max_1080
             };
 
-            self.cover.replace(cover_image_versions);
+            self.cover.replace(cover_assets);
         }
 
         self.cover.as_mut().unwrap()
@@ -273,28 +355,6 @@ impl ImageAssets {
             Ok(bytes) => bincode::deserialize::<ImageAssets>(&bytes).ok(),
             Err(_) => None
         }
-    }
-
-    pub fn download_cover_asset(
-        &mut self,
-        build: &Build,
-        asset_intent: AssetIntent
-    ) -> &mut Asset {
-        if let Some(asset) = self.download_cover.as_mut() {
-            if asset_intent == AssetIntent::Deliverable {
-                asset.unmark_stale();
-            }
-        } else {
-            let (filename, _dimensions) = resize(
-                build,
-                &self.source_file_signature.path,
-                ResizeMode::CropSquare(DOWNLOAD_COVER_EDGE_SIZE)
-            );
-
-            self.download_cover.replace(Asset::new(build, filename, asset_intent));
-        }
-
-        self.download_cover.as_mut().unwrap()
     }
 
     pub fn feed_asset(
@@ -328,7 +388,6 @@ impl ImageAssets {
         self.artist.as_mut().map(|asset| asset.mark_stale(timestamp));
         self.background.as_mut().map(|asset| asset.mark_stale(timestamp));
         self.cover.as_mut().map(|asset| asset.mark_stale(timestamp));
-        self.download_cover.as_mut().map(|asset| asset.mark_stale(timestamp));
         self.feed.as_mut().map(|asset| asset.mark_stale(timestamp));
     }
     
@@ -337,7 +396,6 @@ impl ImageAssets {
             artist: None,
             background: None,
             cover: None,
-            download_cover: None,
             feed: None,
             source_file_signature,
             uid: util::uid()

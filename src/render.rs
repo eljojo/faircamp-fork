@@ -77,33 +77,61 @@ fn cover_image(
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
 
+    // TODO: DRY up this function, plenty of unnecessary repetition
+
+    let mut max_edge_size = 0;
     let mut srcset_entries = Vec::new();
     let mut sizes_entries = Vec::new();
 
-    for (index, version) in image_assets.cover.as_ref().unwrap().versions.iter().enumerate().rev() {
-        srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, index, version.width));
+    for (index, asset) in image_assets.cover.as_ref().unwrap().up_to_360().iter().enumerate().rev() {
+        srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, asset.edge_size, asset.edge_size));
 
         if index > 0 {
-            sizes_entries.push(format!("(max-width: {}px) {}px", version.width, version.width));
+            sizes_entries.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
         } else {
-            sizes_entries.push(format!("{}px", version.width));
+            sizes_entries.push(format!("{}px", asset.edge_size));
+        }
+
+        if asset.edge_size > max_edge_size {
+            max_edge_size = asset.edge_size;
         }
     }
 
     let srcset = srcset_entries.join(",");
     let sizes = sizes_entries.join(",");
 
-    let src_url = format!("{release_prefix}cover_0.jpg");
+    let src_url = format!("{release_prefix}cover_{max_edge_size}.jpg");
 
     let href_or_overlay_anchor = href_url.unwrap_or("#overlay");
 
     if let Some(description) = &image_ref.description {
         let alt = html_escape_inside_attribute(description);
         let overlay = if href_url.is_none() {
-            // TODO: This should not use src_url, but the full size cover image version! (like download_cover more or less, just more compressed or so?)
+            let mut overlay_max_edge_size = 0;
+            let mut overlay_srcset_entries = Vec::new();
+            let mut overlay_sizes_entries = Vec::new();
+
+            for (index, asset) in image_assets.cover.as_ref().unwrap().up_to_1080().iter().enumerate().rev() {
+                overlay_srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, asset.edge_size, asset.edge_size));
+
+                if index > 0 {
+                    overlay_sizes_entries.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
+                } else {
+                    overlay_sizes_entries.push(format!("{}px", asset.edge_size));
+                }
+
+                if asset.edge_size > overlay_max_edge_size {
+                    overlay_max_edge_size = asset.edge_size;
+                }
+            }
+
+            let overlay_src_url = format!("{release_prefix}cover_{overlay_max_edge_size}.jpg");
+            let overlay_srcset = overlay_srcset_entries.join(",");
+            let overlay_sizes = overlay_sizes_entries.join(",");
+
             formatdoc!(r##"
                 <a id="overlay" href="#">
-                    <img alt="{alt}" loading="lazy" src="{src_url}">
+                    <img alt="{alt}" loading="lazy" sizes="{overlay_sizes}" src="{overlay_src_url}" srcset="{overlay_srcset}">
                 </a>
             "##)
         } else {
@@ -118,10 +146,31 @@ fn cover_image(
         "#)
     } else {
         let overlay = if href_url.is_none() {
-            // TODO: This should not use src_url, but the full size cover image version! (like download_cover more or less, just more compressed or so?)
+            let mut overlay_max_edge_size = 0;
+            let mut overlay_srcset_entries = Vec::new();
+            let mut overlay_sizes_entries = Vec::new();
+
+            for (index, asset) in image_assets.cover.as_ref().unwrap().up_to_1080().iter().enumerate().rev() {
+                overlay_srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, asset.edge_size, asset.edge_size));
+
+                if index > 0 {
+                    overlay_sizes_entries.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
+                } else {
+                    overlay_sizes_entries.push(format!("{}px", asset.edge_size));
+                }
+
+                if asset.edge_size > overlay_max_edge_size {
+                    overlay_max_edge_size = asset.edge_size;
+                }
+            }
+
+            let overlay_src_url = format!("{release_prefix}cover_{overlay_max_edge_size}.jpg");
+            let overlay_srcset = overlay_srcset_entries.join(",");
+            let overlay_sizes = overlay_sizes_entries.join(",");
+
             formatdoc!(r##"
                 <a id="overlay" href="#">
-                    <img loading="lazy" src="{src_url}">
+                    <img loading="lazy" sizes="{overlay_sizes}" src="{overlay_src_url}" srcset="{overlay_srcset}">
                 </a>
             "##)
         } else {

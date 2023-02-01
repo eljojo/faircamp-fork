@@ -265,12 +265,12 @@ impl Release {
                 if let Some(cover) = &mut self.cover {
                     let cover_mut = cover.borrow_mut();
                     let mut assets_mut = cover_mut.assets.borrow_mut();
-                    let cover_asset = assets_mut.download_cover_asset(build, AssetIntent::Intermediate);
+                    let cover_assets = assets_mut.cover_asset(build, AssetIntent::Intermediate);
 
                     zip_writer.start_file("cover.jpg", options).unwrap();
 
                     let mut zip_inner_file = File::open(
-                        &build.cache_dir.join(&cover_asset.filename)
+                        &build.cache_dir.join(&cover_assets.largest().filename)
                     ).unwrap();
 
                     zip_inner_file.read_to_end(&mut buffer).unwrap();

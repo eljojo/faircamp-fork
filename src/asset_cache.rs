@@ -15,7 +15,7 @@ use crate::{
     AudioMeta,
     Build,
     Catalog,
-    CoverImageVersions,
+    CoverAssets,
     ImageAssets,
     ReleaseAssets,
     Track,
@@ -123,22 +123,21 @@ pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Buil
 
         optimize(&mut assets_mut.artist, "artist", &path);
         optimize(&mut assets_mut.background, "background", &path);
-        optimize(&mut assets_mut.download_cover, "download_cover", &path);
         optimize(&mut assets_mut.feed, "feed", &path);
     }
 
     {
-        let mut optimize_multiple = |civ_option: &mut Option<CoverImageVersions>, format: &str, path: &str| {
-            match civ_option.as_ref().map(|asset| asset.obsolete(build)) {
+        let mut optimize_multiple = |assets_option: &mut Option<CoverAssets>, format: &str, path: &str| {
+            match assets_option.as_ref().map(|assets| assets.obsolete(build)) {
                 Some(true) => {
-                    for version in civ_option.take().unwrap().versions {
-                        util::remove_file(&build.cache_dir.join(version.filename));
+                    for asset in assets_option.take().unwrap().all() {
+                        util::remove_file(&build.cache_dir.join(&asset.filename));
                         info_cache!(
                             "Removed cached image asset ({}) for {} {}x{}.",
                             format,
                             path,
-                            version.width,
-                            version.height
+                            asset.edge_size,
+                            asset.edge_size
                         );
                     }
                 }
@@ -274,17 +273,15 @@ pub fn report_stale_image_assets(
 
     report(&assets_ref.artist);
     report(&assets_ref.background);
-    report(&assets_ref.download_cover);
     report(&assets_ref.feed);
 
-    let mut report_multiple = |civ_option: &Option<CoverImageVersions>| {
-        if let Some(versions) = civ_option
+    let mut report_multiple = |assets_option: &Option<CoverAssets>| {
+        if let Some(assets) = assets_option
             .as_ref()
-            .filter(|civ| civ.marked_stale.is_some())
-            .map(|civ| &civ.versions) {
-            for version in versions {
+            .filter(|assets| assets.marked_stale.is_some()) {
+            for asset in &assets.all() {
                 *num_unused += 1;
-                *unused_bytesize += version.filesize_bytes;
+                *unused_bytesize += asset.filesize_bytes;
             }
         }
     };
@@ -446,31 +443,25 @@ impl Cache {
                             }
                         }
 
-                        if let Some(cover_image) = assets.cover.as_mut() {
-                            for version in cover_image.versions.iter() {
-                                if let Some(usage_counter) = self.artifact_registry.get_mut(&version.filename) {
+                        if let Some(cover_assets) = assets.cover.as_mut() {
+                            let all_assets = cover_assets.all();
+
+                            for asset in all_assets.iter() {
+                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
                                     *usage_counter += 1;
                                 } else {
-                                    // If a single version is in a corrupt state (cached file missing)
-                                    // we delete all other versions and remove the cache entry altogether.
+                                    // If a single asset is in a corrupt state (cached file missing)
+                                    // we delete all other assets and remove the cache entry altogether.
 
-                                    for version_to_delete in cover_image.versions.iter() {
-                                        if cache_dir.join(&version_to_delete.filename).exists() {
-                                            util::remove_file(&cache_dir.join(&version_to_delete.filename));
+                                    for asset_to_delete in all_assets.iter() {
+                                        if cache_dir.join(&asset_to_delete.filename).exists() {
+                                            util::remove_file(&cache_dir.join(&asset_to_delete.filename));
                                         }
                                     }
 
                                     assets.cover = None;
                                     break;
                                 }
-                            }
-                        }
-
-                        if let Some(download_cover_image) = &assets.download_cover {
-                            if let Some(usage_counter) = self.artifact_registry.get_mut(&download_cover_image.filename) {
-                                *usage_counter += 1;
-                            } else {
-                                assets.download_cover = None;
                             }
                         }
 
@@ -485,7 +476,6 @@ impl Cache {
                         if assets.artist.is_some() ||
                             assets.background.is_some() ||
                             assets.cover.is_some() ||
-                            assets.download_cover.is_some() ||
                             assets.feed.is_some() {
                             self.images.push(Rc::new(RefCell::new(assets)));
                         } else {
