@@ -536,29 +536,34 @@ impl Cache {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(mut assets) = TrackAssets::deserialize_cached(&dir_entry.path()) {
-                        let mut assets_present = false;
+                        let mut dead_references_removed = false;
 
                         for format in AudioFormat::ALL_FORMATS {
                             let asset_option = assets.get_mut(format);
                             if let Some(asset) = &asset_option {
                                 if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
-                                    assets_present = true;
                                     *usage_counter += 1;
                                 } else {
+                                    dead_references_removed = true;
                                     asset_option.take();
                                 }
                             }
                         }
 
-                        if assets_present {
-                            self.tracks.push(Rc::new(RefCell::new(assets)));
-                        } else {
-                            // With images and releases we would throw away serialized metadata here,
-                            // because there are no actual cached files present. However for a track
-                            // the cache data contains AudioMeta, which is expensively computed,
-                            // therefore we retain the serialized metadata here and wait until the
-                            // cache entry is removed during cache optimization instead.
+                        if dead_references_removed {
+                            // Persist corrections so we don't have to re-apply them next time around
+                            assets.persist_to_cache(cache_dir);
                         }
+
+                        // With images and releases we would throw away
+                        // serialized metadata here if no actual cached files are
+                        // present. However for a track the cached metadata
+                        // contains AudioMeta, which is expensively computed,
+                        // therefore we always retain the serialized metadata
+                        // and only remove it if cache optimization calls for
+                        // it.
+
+                        self.tracks.push(Rc::new(RefCell::new(assets)));
                     } else {
                         warn!(
                             "Removing unsupported track asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
