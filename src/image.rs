@@ -62,6 +62,12 @@ pub struct ImageAssets {
     pub uid: String
 }
 
+pub struct ImgAttributes {
+    pub sizes: String,
+    pub src: String,
+    pub srcset: String
+}
+
 enum ResizeMode {
     CropSquare(i32),
     CropWithin(i32)
@@ -144,6 +150,26 @@ impl CoverAssets {
         result
     }
 
+    pub fn img_attributes_up_to_360(&self, prefix: &str) -> ImgAttributes {
+        let assets = match &self.max_360 {
+            Some(max_360) => vec![&self.max_180, max_360],
+            None => vec![&self.max_180]
+        };
+
+        ImgAttributes::new(assets, prefix)
+    }
+
+    pub fn img_attributes_up_to_1080(&self, prefix: &str) -> ImgAttributes {
+        let mut assets = Vec::with_capacity(4);
+
+        assets.push(&self.max_180);
+        if let Some(asset) = &self.max_360 { assets.push(asset); }
+        if let Some(asset) = &self.max_720 { assets.push(asset); }
+        if let Some(asset) = &self.max_1080 { assets.push(asset); }
+
+        ImgAttributes::new(assets, prefix)
+    }
+
     pub fn largest(&self) -> &CoverAsset {
         if let Some(max_1080) = &self.max_1080 {
             max_1080
@@ -180,26 +206,6 @@ impl CoverAssets {
 
     pub fn unmark_stale(&mut self) {
         self.marked_stale = None;
-    }
-
-    pub fn up_to_360(&self) -> Vec<&CoverAsset> {
-        match &self.max_360 {
-            Some(max_360) => vec![max_360, &self.max_180],
-            None => vec![&self.max_180]
-        }
-    }
-
-    // TODO: Almost all() except for the different sorting, it's a bit intransparent
-    //       because the names do not even indicate the sorting ... improve.
-    pub fn up_to_1080(&self) -> Vec<&CoverAsset> {
-        let mut result = Vec::with_capacity(4);
-
-        if let Some(asset) = &self.max_1080 { result.push(asset); }
-        if let Some(asset) = &self.max_720 { result.push(asset); }
-        if let Some(asset) = &self.max_360 { result.push(asset); }
-        result.push(&self.max_180);
-
-        result
     }
 }
 
@@ -405,5 +411,33 @@ impl ImageAssets {
     pub fn persist_to_cache(&self, cache_dir: &Path) {
         let serialized = bincode::serialize(self).unwrap();
         fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
+    }
+}
+
+impl ImgAttributes {
+    /// Assets MUST be passed in ascending size
+    pub fn new(assets_ascending_by_size: Vec<&CoverAsset>, prefix: &str) -> ImgAttributes {
+        let mut sizes = Vec::new();
+        let mut src = String::new();
+        let mut srcset = Vec::new();
+
+        let mut asset_peek_iter = assets_ascending_by_size.iter().peekable();
+
+        while let Some(asset) = asset_peek_iter.next() {
+            srcset.push(format!("{}cover_{}.jpg {}w", prefix, asset.edge_size, asset.edge_size));
+
+            if asset_peek_iter.peek().is_some() {
+                sizes.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
+            } else {
+                sizes.push(format!("{}px", asset.edge_size));
+                src = format!("{prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
+            }
+        }
+
+        ImgAttributes {
+            sizes: sizes.join(","),
+            src,
+            srcset: srcset.join(",")
+        }
     }
 }

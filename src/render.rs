@@ -77,123 +77,80 @@ fn cover_image(
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
 
-    // TODO: DRY up this function, plenty of unnecessary repetition
-
-    let mut max_edge_size = 0;
-    let mut srcset_entries = Vec::new();
-    let mut sizes_entries = Vec::new();
-
-    for (index, asset) in image_assets.cover.as_ref().unwrap().up_to_360().iter().enumerate().rev() {
-        srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, asset.edge_size, asset.edge_size));
-
-        if index > 0 {
-            sizes_entries.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
-        } else {
-            sizes_entries.push(format!("{}px", asset.edge_size));
-        }
-
-        if asset.edge_size > max_edge_size {
-            max_edge_size = asset.edge_size;
-        }
-    }
-
-    let srcset = srcset_entries.join(",");
-    let sizes = sizes_entries.join(",");
-
-    let src_url = format!("{release_prefix}cover_{max_edge_size}.jpg");
+    let img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_360(release_prefix);
 
     let href_or_overlay_anchor = href_url.unwrap_or("#overlay");
 
     if let Some(description) = &image_ref.description {
         let alt = html_escape_inside_attribute(description);
         let overlay = if href_url.is_none() {
-            let mut overlay_max_edge_size = 0;
-            let mut overlay_srcset_entries = Vec::new();
-            let mut overlay_sizes_entries = Vec::new();
+            let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1080(release_prefix);
 
-            for (index, asset) in image_assets.cover.as_ref().unwrap().up_to_1080().iter().enumerate().rev() {
-                overlay_srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, asset.edge_size, asset.edge_size));
-
-                if index > 0 {
-                    overlay_sizes_entries.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
-                } else {
-                    overlay_sizes_entries.push(format!("{}px", asset.edge_size));
-                }
-
-                if asset.edge_size > overlay_max_edge_size {
-                    overlay_max_edge_size = asset.edge_size;
-                }
-            }
-
-            let overlay_src_url = format!("{release_prefix}cover_{overlay_max_edge_size}.jpg");
-            let overlay_srcset = overlay_srcset_entries.join(",");
-            let overlay_sizes = overlay_sizes_entries.join(",");
-
-            formatdoc!(r##"
-                <a id="overlay" href="#">
-                    <img alt="{alt}" loading="lazy" sizes="{overlay_sizes}" src="{overlay_src_url}" srcset="{overlay_srcset}">
-                </a>
-            "##)
+            formatdoc!(
+                r##"
+                    <a id="overlay" href="#">
+                        <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
+                    </a>
+                "##,
+                sizes = overlay_img.sizes,
+                src = overlay_img.src,
+                srcset = overlay_img.srcset
+            )
         } else {
             String::new()
         };
 
-        formatdoc!(r#"
-            <a class="image" href="{href_or_overlay_anchor}">
-                <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src_url}" srcset="{srcset}">
-            </a>
-            {overlay}
-        "#)
+        formatdoc!(
+            r#"
+                <a class="image" href="{href_or_overlay_anchor}">
+                    <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
+                </a>
+                {overlay}
+            "#,
+            sizes = img.sizes,
+            src = img.src,
+            srcset = img.srcset
+        )
     } else {
         let overlay = if href_url.is_none() {
-            let mut overlay_max_edge_size = 0;
-            let mut overlay_srcset_entries = Vec::new();
-            let mut overlay_sizes_entries = Vec::new();
+            let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1080(release_prefix);
 
-            for (index, asset) in image_assets.cover.as_ref().unwrap().up_to_1080().iter().enumerate().rev() {
-                overlay_srcset_entries.push(format!("{}cover_{}.jpg {}w", release_prefix, asset.edge_size, asset.edge_size));
-
-                if index > 0 {
-                    overlay_sizes_entries.push(format!("(max-width: {}px) {}px", asset.edge_size, asset.edge_size));
-                } else {
-                    overlay_sizes_entries.push(format!("{}px", asset.edge_size));
-                }
-
-                if asset.edge_size > overlay_max_edge_size {
-                    overlay_max_edge_size = asset.edge_size;
-                }
-            }
-
-            let overlay_src_url = format!("{release_prefix}cover_{overlay_max_edge_size}.jpg");
-            let overlay_srcset = overlay_srcset_entries.join(",");
-            let overlay_sizes = overlay_sizes_entries.join(",");
-
-            formatdoc!(r##"
-                <a id="overlay" href="#">
-                    <img loading="lazy" sizes="{overlay_sizes}" src="{overlay_src_url}" srcset="{overlay_srcset}">
-                </a>
-            "##)
+            formatdoc!(
+                r##"
+                    <a id="overlay" href="#">
+                        <img loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
+                    </a>
+                "##,
+                sizes = overlay_img.sizes,
+                src = overlay_img.src,
+                srcset = overlay_img.srcset
+            )
         } else {
             String::new()
         };
 
-        formatdoc!(r#"
-            <div class="undescribed_wrapper">
-                <div class="undescribed_corner_tag">
-                    <img src="{root_prefix}corner_tag.svg">
+        formatdoc!(
+            r#"
+                <div class="undescribed_wrapper">
+                    <div class="undescribed_corner_tag">
+                        <img src="{root_prefix}corner_tag.svg">
+                    </div>
+                    <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                        <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+                    </a>
+                    <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                        <span>Missing image description.<br>Click to learn more</span>
+                    </a>
+                    <a class="image" href="{href_or_overlay_anchor}">
+                        <img loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
+                    </a>
                 </div>
-                <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
-                    <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
-                </a>
-                <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
-                    <span>Missing image description.<br>Click to learn more</span>
-                </a>
-                <a class="image" href="{href_or_overlay_anchor}">
-                    <img loading="lazy" sizes="{sizes}" src="{src_url}" srcset="{srcset}">
-                </a>
-            </div>
-            {overlay}
-        "#)
+                {overlay}
+            "#,
+            sizes = img.sizes,
+            src = img.src,
+            srcset = img.srcset
+        )
     }
 }
 
