@@ -217,10 +217,17 @@ mutually exclusive download modes you can enable for your releases:
 
     code: crowdfunding2023!
 
+    -- unlock_text
+    You should have received the unlock code in your confirmation mail for this year's crowdfunding. Stay tuned in case you missed it, we're currently planning the next run!
+    -- unlock_text
+
     formats:
     - flac
     - opus
     ```
+
+    `unlock_text` can be (optionally) used to provide a custom text to display
+    on the page where your visitors can enter the unlock code.
 
     Or for example, if you have subscribers in multiple tiers, you can configure access with multiple codes:
 
