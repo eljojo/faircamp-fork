@@ -437,9 +437,7 @@ impl Catalog {
                 }
             }
             
-            let title = &local_overrides
-                .as_ref()
-                .unwrap_or(parent_overrides)
+            let title = &local_options
                 .release_title
                 .as_ref()
                 .map(|title| title.clone())

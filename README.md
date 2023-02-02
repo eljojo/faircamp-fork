@@ -27,11 +27,15 @@ Besides the audio and image files in your catalog faircamp allows you to put
 simple text files - so called *manifests* - inside your directories. In these
 manifests you can set and override options (e.g. which download formats a
 release should have) that are applied to all files within the same directory and
-below. So by putting a manifest in the top level directory of your catalog you
+below (\*). So by putting a manifest in the top level directory of your catalog you
 can at once set an option for *all* of your releases, and by placing
 manifests further down in the directory structure, you can make specific adjustments all the way down to
 the *release* (single, album, playlist) level - and within the manifest itself also down to the *track* (single song or
 recording within a release) level.
+
+(\*) Note that a few select options do not propagate to other folders as it
+would make no sense, e.g. a release's permalink must be unique and therefore
+must not be applied twice.
 
 ## Current development state
 

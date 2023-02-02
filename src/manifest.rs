@@ -34,11 +34,21 @@ macro_rules! err_line {
     };
 }
 
+/// Options specified in a manifest that only apply to everything found in the
+/// same folder as the manifest. For instance the permalink for a release can
+/// only uniquely apply to one release, thus it is a local option only.
 #[derive(Clone)]
 pub struct LocalOptions {
-    pub release_permalink: Option<Permalink>
+    pub release_permalink: Option<Permalink>,
+    pub release_title: Option<String>
 }
 
+/// Options specified in a manifest that apply to everything in the same
+/// folder, but which are also passed down and applied to child folders
+/// (unless overriden there once again). For instance one might enable
+/// downloads in a manifest in the root folder of the catalog, this would
+/// apply to everything in the catalog then, however one can also disable it
+/// in a manifest further down the hierarchy, hence it is an override.
 #[derive(Clone)]
 pub struct Overrides {
     pub download_formats: Vec<AudioFormat>,
@@ -48,7 +58,6 @@ pub struct Overrides {
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<Rc<RefCell<Image>>>,
     pub release_text: Option<String>,
-    pub release_title: Option<String>,
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
     pub streaming_format: AudioFormat,
@@ -59,7 +68,8 @@ pub struct Overrides {
 impl LocalOptions {
     pub fn new() -> LocalOptions {
         LocalOptions {
-            release_permalink: None
+            release_permalink: None,
+            release_title: None
         }
     }
 }
@@ -74,7 +84,6 @@ impl Overrides {
             release_artists: None,
             release_cover: None,
             release_text: None,
-            release_title: None,
             release_track_numbering: TrackNumbering::Arabic,
             rewrite_tags: true,
             streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
@@ -84,6 +93,11 @@ impl Overrides {
     }
 }
 
+/// Receives the path to a manifest (.eno) file, alongside references to
+/// various mutable structures used by faircamp. The options found in the
+/// manifest are applied to these various structures (e.g. the catalog title
+/// is set on the passed catalog instance when it is encountered in the
+/// manifest).
 pub fn apply_options(
     path: &Path,
     build: &mut Build,
@@ -625,7 +639,7 @@ pub fn apply_options(
         }
 
         if let Some(value) = optional_field_value(section, "title") {
-            overrides.release_title = Some(value);
+            local_options.release_title = Some(value);
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "track_numbering") {
