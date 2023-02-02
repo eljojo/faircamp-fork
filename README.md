@@ -39,14 +39,18 @@ must not be applied twice.
 
 ## Current development state
 
-Faircamp already does a lot of things (reading, transcoding, zipping, caching,
-rendering, deploying), and for testing purposes faircamp can be stably run on
-the main branch. For production usage you might still want to wait though,
-faircamp is still more of an advanced prototype and demo.
+Faircamp can be stably built and run from the main branch. Feature and
+design improvements are usually rolled out piecewise or in waves every few
+weeks. Occcasional small glitches in the interface might temporarily show up.
+Some more advanced features (e.g. embeds) are only half-way implemented.
+Technically nothing about the catalog format is set in stone, but practically
+speaking actual changes have been few and far between. Faircamp is not
+production-grade software, but in a very usable alpha state, steadily
+progressing towards an official beta release right now.
 
 ## Documentation
 
-Mostly complete and accurate but keep in mind that things are still being developed and in motion.
+Pretty complete and accurate but keep in mind that things are still being developed and in motion.
 
 ### Commandline arguments
 
