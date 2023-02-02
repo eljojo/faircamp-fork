@@ -149,11 +149,15 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 <br><br>
 
-                <div class="cover_listing" style="max-width: 12rem">
-                    {cover}
+                <div style="align-items: center; display: flex;">
+                    <div style="margin-right: .8rem; max-width: 4rem">
+                        {cover}
+                    </div>
+                    <div>
+                        <div>{release_title_escaped}</div>
+                        <div>{artists}</div>
+                    </div>
                 </div>
-                <div>{release_title_escaped}</div>
-                <div>{artists}</div>
 
                 <br><br>
 
