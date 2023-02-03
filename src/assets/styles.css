@@ -251,16 +251,28 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     justify-self: end;
 }
 #unlock { margin-bottom: 2rem; }
-button, .unlock_code {
+button,
+input[type="number"],
+input[type="text"],
+.button {
     background-color: hsla(0, 0%, var(--pane-l), .5);
     border: none;
     border-radius: .2rem;
     color: var(--color-text);
     padding: .2rem .5rem .4rem .5rem;
 }
+button.disabled,
+input[type="number"].disabled,
+input[type="text"].disabled,
+.button.disabled {
+    cursor: default;
+    opacity: .2; /* TODO: Make-shift way to indicate disabledness, implement properly */
+}
+.js_enabled .payment,
 .js_enabled .unlock_manual { display: none; }
 .unlock_scripted { display: none; }
 .js_enabled .unlock_scripted { display: unset; }
+.js_enabled .payment.active { display: unset; }
 .vpad { margin: 1rem 0; }
 .waveform { cursor: pointer; }
 .waveform path { fill: none; }

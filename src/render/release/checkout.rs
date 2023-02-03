@@ -25,40 +25,50 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let root_prefix = "../../../";
 
     let (content, heading) = if let DownloadOption::Paid(currency, range) = &release.download_option {
-         let price = if range.end == f32::INFINITY {
+        let currency_symbol = currency.symbol();
+        let mut max = String::new();
+        let mut min = String::new();
+
+        let placeholder = if range.end == f32::INFINITY {
             if range.start > 0.0 {
+                min = format!(r#"min="{}" "#, range.start);
                 format!(
-                    "{currency_symbol}{min_price} {currency_code} or more",
+                    r#"<input placeholder="{currency_symbol}{min_price} {currency_code} or more" step="any" type="number"> {currency_symbol}"#,
                     currency_code=currency.code(),
-                    currency_symbol=currency.symbol(),
                     min_price=range.start
                 )
             } else {
                 format!("Name Your Price ({})", currency.code())
             }
         } else if range.start == range.end {
+            min = format!(r#"min="{}" "#, range.start);
+            max = format!(r#"max="{}" "#, range.end);
             format!(
                 "{currency_symbol}{price} {currency_code}",
                 currency_code=currency.code(),
-                currency_symbol=currency.symbol(),
                 price=range.start
             )
         } else if range.start > 0.0 {
+            min = format!(r#"min="{}" "#, range.start);
+            max = format!(r#"max="{}" "#, range.end);
             format!(
                 "{currency_symbol}{min_price}-{max_price} {currency_code}",
                 currency_code=currency.code(),
-                currency_symbol=currency.symbol(),
                 max_price=range.end,
                 min_price=range.start
             )
         } else {
+            max = format!(r#"max="{}" "#, range.end);
             format!(
                 "Up to {currency_symbol}{max_price} {currency_code}",
                 currency_code=currency.code(),
-                currency_symbol=currency.symbol(),
                 max_price=range.end
             )
         };
+
+        let price_input = format!(
+            r#"<input {max}{min}placeholder="{placeholder}" step="any" type="number"> {currency_symbol}"#
+        );
 
         let payment_options = &release.payment_options
             .iter()
@@ -77,15 +87,16 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                         formatdoc!(r#"
                             <div>
-                                Pay on liberapay: <a href="{liberapay_url}">{liberapay_url}</a>
+                                Pay on liberapay:<br>
+                                <a href="{liberapay_url}">{liberapay_url}</a>
                             </div>
                         "#)
                     }
                 };
 
                 formatdoc!(r#"
-                    <div>
-                        <h2>Option {number}:</h2>
+                    <div style="align-items: center; display: flex; margin-bottom: 1rem;">
+                        <div style="font-size: .8rem; margin-right: 1rem; white-space: nowrap;">Option {number}</div>
                         {option_rendered}
                     </div>
                 "#)
@@ -96,15 +107,34 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             let download_page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
             let content = formatdoc!(r#"
-                {price}
+                <form id="confirm">
+                    {price_input} <button name="confirm">Confirm</button>
+                </form>
 
-                <br><br>
+                <script>
+                    document.querySelector('#confirm').addEventListener('submit', event => {{
+                        event.preventDefault();
+                        document.querySelector('#confirm').style.display = 'none';
+                        document.querySelector('.payment').classList.add('active');
+                    }});
+                </script>
 
-                {payment_options}
+                <div class="payment">
+                    {payment_options}
 
-                <br><br>
+                    <br><br>
 
-                <a href="{release_prefix}download/{download_page_hash}{explicit_index}">I have made the payment — Continue</a>
+                    <input id="confirm_payment" onchange="document.querySelector('#continue').classList.toggle('disabled', !this.checked)" type="checkbox"> <label for="confirm_payment">I have made or arranged the payment</label>
+
+                    <br><br>
+
+                    <a class="button disabled"
+                       href="{release_prefix}download/{download_page_hash}{explicit_index}"
+                       id="continue"
+                       onclick="if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}">
+                        Continue
+                    </a>
+                </div>
             "#);
 
             (content, "Buy Release")
