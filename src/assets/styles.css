@@ -296,35 +296,34 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-bottom: .2rem;
     position: relative;
 }
-@media (max-width: 467px) {
-    .track.active .track_controls.inner,
-    .track:hover .track_controls.inner { display: inline-flex; }
-}
 .track.active .track_number,
 .track:hover .track_number { display: none; }
 .track_controls {
     display: none;
     top: .15rem;
 }
+.track_number.outer { display: none; }
+.track.active .track_controls.inner,
+.track:hover .track_controls.inner { display: flex; }
 .track_download_option { position: relative; }
 .track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
-.track_controls, .track_number {
+.track_controls,
+.track_number {
     padding-right: .5rem;
 }
-@media (min-width: 468px) {
-    .track_controls.inner, .track_number.inner { display: none; }
+@media (min-width: 30rem) {
+    .track.active .track_controls.inner,
+    .track:hover .track_controls.inner { display: none; }
+    .track_number.inner { display: none; }
     .track.active .track_controls.outer,
     .track:hover .track_controls.outer { display: flex; }
+    .track_number.outer { display: block; }
 }
-.track_controls.outer, .track_number.outer {
+.track_controls.outer,
+.track_number.outer {
     position: absolute;
     right: calc(100%);
     text-align: right;
-}
-@media (max-width: 467px) {
-    .track_controls.outer, .track_number.outer { display: none; }
-    .track.active .track_controls.inner,
-    .track:hover .track_controls.inner { display: flex; }
 }
 .track_title {
     color: var(--color-text);
