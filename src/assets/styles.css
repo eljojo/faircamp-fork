@@ -112,16 +112,20 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .center_release {
     flex-grow: 1;
-    margin: 3rem auto;
+    margin: 1rem auto 3rem auto;
     max-width: 20rem;
 }
-@media (max-width: 23rem) {
-    .center_release { margin: 1rem auto 3rem auto; }
+@media (min-width: 23rem) {
+    .center_release { margin: 3rem auto; }
 }
-@media (max-width: 30rem) {
+.mobile_hpadding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+@media (min-width: 30rem) {
     .mobile_hpadding {
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: 0;
+        padding-right: 0;
     }
 }
 .center_unconstrained {
