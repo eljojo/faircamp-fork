@@ -693,6 +693,13 @@ pub fn apply_options(
 
         build.theme.customized = true;
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "background_alpha") {
+            match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
+                Some(percentage) => build.theme.background_alpha = percentage,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.background_alpha' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "background_image") {
             let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
             if absolute_path.exists() {

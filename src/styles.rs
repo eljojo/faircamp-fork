@@ -97,7 +97,12 @@ pub fn generate(build: &Build) {
         muted_l = theme.base.muted_l,
         muted_s = 35,
         nav_s = 17,
-        overlay_a = theme.base.overlay_a,
+        // To the user it's exposed as background alpha, technically it's solved
+        // the other way round though. Not the image is overlayed transparently
+        // over the background, but a solid color layer with the background color is
+        // transparently overlayed over the background image. Here we convert from
+        // background alpha to overlay alpha (simply the inverse).
+        overlay_a = 100 - theme.background_alpha,
         pane_l = theme.base.pane_l,
         text_l = theme.base.text_l,
         text_s = 94,
@@ -112,7 +117,7 @@ pub fn generate(build: &Build) {
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
                     ),
-                    background.jpg center / cover;
+                    url(background.jpg) center / cover;
             }}
         ");
 
