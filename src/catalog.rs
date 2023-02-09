@@ -37,9 +37,8 @@ pub struct Catalog {
     /// Stores the primary artist for "single artist" catalogs
     pub artist: Option<Rc<RefCell<Artist>>>,
     pub artists: Vec<Rc<RefCell<Artist>>>,
-    /// Contains an absolute path to the file (validity is checked when reading manifests)
     pub feed_image: Option<Rc<RefCell<Image>>>,
-    pub images: Vec<Rc<RefCell<Image>>>, // TODO: Do we need these + what to do with them (also consider "label cover" aspect)
+    pub home_image: Option<Rc<RefCell<Image>>>,
     pub label_mode: bool,
     pub releases: Vec<Rc<RefCell<Release>>>,
     pub text: Option<String>,
@@ -192,7 +191,7 @@ impl Catalog {
             artist: None,
             artists: Vec::new(),
             feed_image: None,
-            images: Vec::new(),
+            home_image: None,
             label_mode: false,
             releases: Vec::new(),
             text: None,
@@ -476,9 +475,8 @@ impl Catalog {
 
             self.releases.push(Rc::new(RefCell::new(release)));
         } else if !images.is_empty() {
-            // TODO: Some future logic/configuration lookup for  associating images with an artist
-            // TODO: Right now might as well drop these (artist images need to be directly assigned anyway currently)
-            self.images.append(&mut images);
+            // This dir is not a release dir (no tracks found), but it contains images.
+            // Consider whether there might be anything to do with these images?
         }
         
         for dir_path in &dir_paths {
@@ -674,6 +672,22 @@ impl Catalog {
             build.stats.add_image(image_asset.filesize_bytes);
             
             feed_image_assets_mut.persist_to_cache(&build.cache_dir);
+        }
+
+        if let Some(home_image) = &self.home_image {
+            let home_image_mut = home_image.borrow_mut();
+            let mut home_image_assets_mut = home_image_mut.assets.borrow_mut();
+            // TODO: Instead of background_asset, this should have its own, tailored implementation (various sizes etc.)
+            let image_asset = home_image_assets_mut.background_asset(build, AssetIntent::Deliverable);
+            
+            util::hard_link_or_copy(
+                build.cache_dir.join(&image_asset.filename),
+                build.build_dir.join("home.jpg")
+            );
+            
+            build.stats.add_image(image_asset.filesize_bytes);
+            
+            home_image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
         for artist in self.artists.iter_mut() {

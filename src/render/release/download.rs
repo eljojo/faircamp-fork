@@ -144,7 +144,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let body = formatdoc!(
         r##"
-            <div class="center_release">
+            <div class="center_release mobile_hpadding">
                 <h1>Download Release</h1>
 
                 <br><br>

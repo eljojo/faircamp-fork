@@ -363,6 +363,32 @@ pub fn apply_options(
             }
         }
 
+        if let Some(field) = optional_field(section, "home_image", path) {
+            match required_attribute_value_with_line(&field, "file") {
+                Some((path_relative_to_manifest, line)) => {
+                    let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
+                    if absolute_path.exists() {
+                        // TODO: Print errors, refactor
+                        let description = match field.required_attribute("description") {
+                            Ok(attribute) => match attribute.required_value() {
+                                Ok(description) => Some(description),
+                                _ => None
+                            }
+                            _ => None
+                        };
+
+                        let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
+                        let assets = cache.get_or_create_image_assets(build, &path_relative_to_catalog);
+
+                        catalog.home_image = Some(Rc::new(RefCell::new(Image::new(assets, description))));
+                    } else {
+                        error!("Ignoring invalid catalog.home_image.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
+                    }
+                }
+                None => ()
+            }
+        }
+
         if optional_flag_present(section, "label_mode") {
             catalog.label_mode = true;
         }

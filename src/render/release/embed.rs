@@ -51,7 +51,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
 
     let body = formatdoc!(
         r##"
-            <div class="center_release">
+            <div class="center_release mobile_hpadding">
                 <h1>Embed Release</h1>
 
                 <br><br>

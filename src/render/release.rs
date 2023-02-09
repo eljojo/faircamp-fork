@@ -22,21 +22,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "../";
 
-    let formats_list = release.download_formats
-        .iter()
-        .map(|format| format.user_label().to_string())
-        .collect::<Vec<String>>()
-        .join(", ");
-
-    let download_option_rendered = match &release.download_option {
+    let download_link = match &release.download_option {
         DownloadOption::Codes { .. } => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
             formatdoc!(r#"
-                <div class="vpad">
-                    <a href="checkout/{page_hash}{explicit_index}">Download with unlock code</a>
-                    <div>{formats_list}</div>
-                </div>
+                <a href="checkout/{page_hash}{explicit_index}">Download with unlock code</a>
             "#)
         },
         DownloadOption::Disabled => String::new(),
@@ -44,64 +35,23 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
             formatdoc!(r#"
-                <div class="vpad">
-                    <a href="download/{page_hash}{explicit_index}">Download</a>
-                    <div>{formats_list}</div>
-                </div>
+                <a href="download/{page_hash}{explicit_index}">Download</a>
             "#)
         },
-        DownloadOption::Paid(currency, range) => {
+        DownloadOption::Paid(_currency, _range) => {
             if release.payment_options.is_empty() {
                 String::new()
             } else {
-                let price_label = if range.end == f32::INFINITY {
-                    if range.start > 0.0 {
-                        format!(
-                            "{currency_symbol}{min_price} {currency_code} or more",
-                            currency_code=currency.code(),
-                            currency_symbol=currency.symbol(),
-                            min_price=range.start
-                        )
-                    } else {
-                        format!("Name Your Price ({})", currency.code())
-                    }
-                } else if range.start == range.end {
-                    format!(
-                        "{currency_symbol}{price} {currency_code}",
-                        currency_code=currency.code(),
-                        currency_symbol=currency.symbol(),
-                        price=range.start
-                    )
-                } else if range.start > 0.0 {
-                    format!(
-                        "{currency_symbol}{min_price}-{max_price} {currency_code}",
-                        currency_code=currency.code(),
-                        currency_symbol=currency.symbol(),
-                        max_price=range.end,
-                        min_price=range.start
-                    )
-                } else {
-                    format!(
-                        "Up to {currency_symbol}{max_price} {currency_code}",
-                        currency_code=currency.code(),
-                        currency_symbol=currency.symbol(),
-                        max_price=range.end
-                    )
-                };
-
                 let checkout_page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
                 formatdoc!(r#"
-                    <div class="vpad">
-                        <a href="checkout/{checkout_page_hash}{explicit_index}">Buy</a> {price_label}
-                        <div>{formats_list}</div>
-                    </div>
+                    <a href="checkout/{checkout_page_hash}{explicit_index}">Buy</a>
                 "#)
             }
         }
     };
 
-    let embed_widget = if release.embedding && build.base_url.is_some() {
+    let embed_link = if release.embedding && build.base_url.is_some() {
         format!(r#"<a href="embed{explicit_index}">Embed</a>"#)
     } else {
         String::new()
@@ -167,7 +117,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="center_release">
+            <div class="center_release mobile_hpadding">
                 <div class="cover">
                     {cover}
                 </div>
@@ -189,17 +139,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 {tracks_rendered}
             </div>
             <div class="additional">
-                <div class="center_release">
+                <div class="center_release mobile_hpadding">
+                    <div>
+                        {download_link} / {embed_link} / <a href="#TODO">Share</a>
+                    </div>
+
                     <div>
                         {release_text}
-                    </div>
-
-                    <div>
-                        {download_option_rendered}
-                    </div>
-
-                    <div>
-                        {embed_widget}
                     </div>
                 </div>
             </div>
