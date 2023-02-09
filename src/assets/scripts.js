@@ -199,7 +199,7 @@ const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
 const waveformRenderState = {};
 
-function waveforms(widthOverride) {
+function waveforms(baseFontSizePx, widthOverride) {
     let trackNumber = 1;
     for (const svg of document.querySelectorAll('svg[data-peaks]')) {
         const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
@@ -207,27 +207,42 @@ function waveforms(widthOverride) {
         const longestTrackDuration = parseInt(document.querySelector('[data-longest-duration]').dataset.longestDuration);
         const trackDuration = parseInt(svg.dataset.duration);
 
-        let stepSize;
-        let trackDurationWidthRem;
+        let waveformWidthRem;
         if (widthOverride) {
-            stepSize = 1; // TODO: Actually make this somewhat dependent on screen width (use less points when the screen is really small?)
-            trackDurationWidthRem = widthOverride;
+            waveformWidthRem = widthOverride;
         } else {
             if (longestTrackDuration > 0) {
-                trackDurationWidthRem = MAX_TRACK_DURATION_WIDTH_EM * (trackDuration / longestTrackDuration);
+                waveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM * (trackDuration / longestTrackDuration);
             } else {
-                trackDurationWidthRem = 0; // TODO: Probably nonsensical (also by 0 division later on?), for now just copied from earlier rust implementation
+                waveformWidthRem = 0; // TODO: Probably nonsensical (also by 0 division later on?), for now just copied from earlier rust implementation
             }
-            stepSize = Math.floor(MAX_TRACK_DURATION_WIDTH_EM / trackDurationWidthRem);
         }
+
+        // Render the waveform with n samples. Prefer 0.75 samples per pixel, but if there
+        // are less peaks available than that, sample exactly at every peak.
+        // 1 samples per pixel = More detail, but more jagged
+        // 0.5 samples per pixel = Smoother, but more sampling artifacts
+        // 0.75 looked like a good in-between (on my low-dpi test screen anyway)
+        const numSamples = Math.min(0.75 * waveformWidthRem * baseFontSizePx, peaks.length);
 
         let d = `M 0,${WAVEFORM_PADDING_EM + (1 - peaks[0]) * WAVEFORM_HEIGHT}`;
 
-        const peakWidth = trackDurationWidthRem / peaks.length;
+        for (let sample = 1; sample < numSamples; sample += 1) {
+            const factor = sample / (numSamples - 1);
+            const floatIndex = factor * (peaks.length - 1);
+            const previousIndex = Math.floor(floatIndex);
+            const nextIndex = Math.ceil(floatIndex);
 
-        for (let index = stepSize; index < peaks.length; index += stepSize) {
-            const x = index * peakWidth;
-            const y = WAVEFORM_PADDING_EM + (1 - peaks[index]) * WAVEFORM_HEIGHT;
+            let peak;
+            if (previousIndex === nextIndex) {
+                peak = peaks[previousIndex];
+            } else {
+                const interPeakBias = floatIndex - previousIndex;
+                peak = peaks[previousIndex] * (1 - interPeakBias) + peaks[nextIndex] * interPeakBias;
+            }
+
+            const x = factor * waveformWidthRem;
+            const y = WAVEFORM_PADDING_EM + (1 - peak) * WAVEFORM_HEIGHT;
 
             d += ` L ${x},${y}`;
         }
@@ -255,8 +270,8 @@ function waveforms(widthOverride) {
             svg.querySelector('.progress').setAttribute('stroke', `url(#gradient_${trackNumber})`);
         }
 
-        svg.setAttribute('viewBox', `0 0 ${trackDurationWidthRem} 1.5`);
-        svg.setAttribute('width', `${trackDurationWidthRem}em`);
+        svg.setAttribute('viewBox', `0 0 ${waveformWidthRem} 1.5`);
+        svg.setAttribute('width', `${waveformWidthRem}em`);
         svg.querySelector('.base').setAttribute('d', d);
         svg.querySelector('.progress').setAttribute('d', d);
 
@@ -266,26 +281,30 @@ function waveforms(widthOverride) {
     waveformRenderState.initialized = true;
 }
 
-waveforms();
+function getBaseFontSizePx() {
+    const fontSize = window
+        .getComputedStyle(document.documentElement)
+        .getPropertyValue('font-size');
+    return parseInt(fontSize.replace('px', ''));
+}
+
+waveforms(getBaseFontSizePx());
 
 window.addEventListener('resize', event => {
-    const baseFontSizePx = parseInt(window
-        .getComputedStyle(document.documentElement)
-        .getPropertyValue('font-size')
-        .replace('px', ''));
-    const width = window.innerWidth;
+    const baseFontSizePx = getBaseFontSizePx();
+    const widthPx = window.innerWidth;
 
-    if (width > 350) {
-        if (waveformRenderState.width !== Infinity) {
-            waveforms();
-            waveformRenderState.width = Infinity;
+    if (widthPx > 350) {
+        if (waveformRenderState.widthPx !== Infinity) {
+            waveforms(baseFontSizePx);
+            waveformRenderState.widthPx = Infinity;
         }
     } else {
-        if (waveformRenderState.width !== width) {
-            const PADDING_HORIZONTAL = 2; // (rem) TODO: This is hardcoded, might change in css anytime - figure something out
-            const widthRem = (1 / baseFontSizePx) * (width - PADDING_HORIZONTAL * baseFontSizePx);
-            waveforms(widthRem);
-            waveformRenderState.width = width;
+        if (waveformRenderState.widthPx !== widthPx) {
+            const PADDING_HORIZONTAL_REM = 2; // TODO: This is hardcoded, might change in css anytime - figure something out
+            const widthRem = (widthPx / baseFontSizePx) - PADDING_HORIZONTAL_REM;
+            waveforms(baseFontSizePx, widthRem);
+            waveformRenderState.widthPx = widthPx;
         }
     }
 });

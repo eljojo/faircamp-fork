@@ -298,6 +298,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track {
     height: 3rem;
     margin-bottom: .2rem;
+    margin-bottom: .4rem;
     position: relative;
 }
 .track.active .track_number,
@@ -369,7 +370,10 @@ input[type="text"].disabled,
 .js_enabled .unlock_scripted { display: unset; }
 .js_enabled .payment.active { display: unset; }
 .vpad { margin: 1rem 0; }
-.waveform { cursor: pointer; }
+.waveform {
+    cursor: pointer;
+    margin-top: .3rem;
+}
 .waveform path { fill: none; }
 .waveform path.base {
     stroke: hsl(0, 0%, var(--text-l));
