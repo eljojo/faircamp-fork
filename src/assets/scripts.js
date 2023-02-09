@@ -66,6 +66,27 @@ function mountAndPlay(container, seek) {
     window.activeTrack.interval = setInterval(() => updatePlayhead(window.activeTrack), 200);
 }
 
+function share() {
+    const shareOverlay = document.querySelector('#share');
+
+    const notify = message => {
+        const prevNotification = shareOverlay.querySelector('.share_notification');
+        if (prevNotification) prevNotification.remove();
+            
+        const newNotification = document.createElement('span');
+        newNotification.classList.add('share_notification');
+        newNotification.innerHTML = message;
+        shareOverlay.appendChild(newNotification);
+    };
+
+    const url = shareOverlay.querySelector('[data-url]').innerHTML;
+    
+    navigator.clipboard
+        .writeText(url)
+        .then(() => notify(`${url} has been copied to your clipboard`))
+        .catch(err => notify(`Failed to copy ${url} to your clipboard (${err})`));
+};
+
 function togglePlayback(container = null, seek = null) {
     const { activeTrack } = window;
 
@@ -144,6 +165,9 @@ document.body.addEventListener('click', event => {
         const svg = event.target;
         const seek = (event.clientX - svg.getBoundingClientRect().x) / svg.getBoundingClientRect().width;
         togglePlayback(container, seek);
+    } else if ('copyToClipboard' in event.target.dataset) {
+        event.preventDefault();
+        share();
     }
 });
 
@@ -264,4 +288,30 @@ window.addEventListener('resize', event => {
             waveformRenderState.width = width;
         }
     }
-})
+});
+
+window.addEventListener('DOMContentLoaded', event => {
+    const shareOverlay = document.querySelector('#share');
+
+    if (!shareOverlay) return;
+
+    const disabledShareLink = document.querySelector('[data-disabled-share]');
+    if (disabledShareLink) {
+        disabledShareLink.classList.remove('disabled');
+        disabledShareLink.removeAttribute('data-disabled-share');
+        disabledShareLink.removeAttribute('title');
+        disabledShareLink.setAttribute('href', '#share');
+    }
+
+    const shareUrl = shareOverlay.querySelector('[data-url]');
+    if (!shareUrl.innerHTML.length) {
+        shareUrl.innerHTML = window.location.href;
+    }
+
+    const copyLink = shareOverlay.querySelector('[data-copy-to-clipboard]');
+    if (navigator.clipboard) {
+        copyLink.classList.remove('disabled');
+        copyLink.removeAttribute('title');
+    }
+});
+

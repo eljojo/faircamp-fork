@@ -220,6 +220,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
     bottom: 0;
     display: none;
+    flex-direction: column;
     justify-content: center;
     left: 0;
     position: absolute;
@@ -227,6 +228,21 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     top: 0;
     z-index: 999;
 }
+.share_notification {
+    animation: appear 3s linear;
+    color: var(--color-muted);
+    margin-left: .2em;
+    opacity: 0;
+    pointer-events: none;
+}
+@keyframes appear {
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+[data-disabled-share],
+.disabled[data-copy-to-clipboard] { color: var(--color-muted); }
 #overlay:target { display: flex; }
 #overlay img {
     max-height: calc(100vh - 4em);

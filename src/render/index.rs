@@ -3,7 +3,7 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    render::{layout, releases},
+    render::{layout, releases, share_link, share_overlay},
     util::html_escape_outside_attribute
 };
 
@@ -17,6 +17,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         true => format!(r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg" style="display: none;">Feed</a>"#),
         false => String::new()
     };
+
+    let share_link_rendered = share_link(build);
 
     let catalog_text = match &catalog.text {
         Some(text) => text.clone(),
@@ -58,6 +60,15 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
+    let mut action_links = String::new();
+
+    if !feed_link.is_empty() {
+        action_links.push_str(&feed_link);
+        action_links.push_str(" &nbsp; ");
+    }
+
+    action_links.push_str(&share_link_rendered);
+
     let catalog_info = formatdoc!(r##"
         <div class="catalog">
             {home_image}
@@ -67,7 +78,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 </h1>
                 {catalog_text}
                 {artists}
-                {feed_link} &nbsp; <a href="#share">Share</a>
+                {action_links}
             </div>
         </div>
     "##);
@@ -90,6 +101,13 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         ""
     };
 
+    let share_url = match &build.base_url {
+        Some(base_url) => base_url.join(explicit_index).unwrap().to_string(),
+        None => String::new()
+    };
+
+    let share_overlay_rendered = share_overlay(&share_url);
+
     let body = formatdoc!(r##"
         <div class="index_split {index_vcentered}">
             {catalog_info}
@@ -97,9 +115,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 {releases_rendered}
             </div>
         </div>
-        <a id="share" href="#">
-            <span>https://example.org/share/example</span>
-        </a>
+        {share_overlay_rendered}
     "##);
 
     layout(root_prefix, &body, build, catalog, &catalog_title, &[])

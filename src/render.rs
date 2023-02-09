@@ -284,3 +284,24 @@ fn releases(
         .collect::<Vec<String>>()
         .join("\n")
 }
+
+pub fn share_link(build: &Build) -> String {
+    match &build.base_url.is_some() {
+        true => format!(r##"<a href="#share">Share</a>"##),
+        // In a javascript-enabled browser, some bootstrapping happens on DOM load:
+        // - class="disabled" is removed
+        // - title="..."  is removed
+        // - href="#share" is added
+        false => format!(r##"<a class="disabled" data-disabled-share title="Not available in your browser (requires JavaScript)">Share</a>"##)
+    }
+}
+
+pub fn share_overlay(url: &str) -> String {
+    formatdoc!(r##"
+        <div id="share">
+            <span data-url>{url}</span>
+            <a class="disabled" data-copy-to-clipboard title="Not available in your browser (navigator.clipboard is not supported)">Copy to clipboard</a>
+            <a href="#">Close</a>
+        </div>
+    "##)
+}

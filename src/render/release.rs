@@ -5,7 +5,14 @@ use crate::{
     Catalog,
     DownloadOption,
     Release,
-    render::{cover_image, layout, list_artists, play_icon},
+    render::{
+        cover_image,
+        layout,
+        list_artists,
+        play_icon,
+        share_link,
+        share_overlay
+    },
     Track,
     util::{
         format_time,
@@ -115,6 +122,17 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
+    let share_url = match &build.base_url {
+        Some(base_url) => base_url
+            .join(&format!("{}{}", &release.permalink.slug, explicit_index))
+            .unwrap()
+            .to_string(),
+        None => String::new()
+    };
+
+    let share_link_rendered = share_link(build);
+    let share_overlay_rendered = share_overlay(&share_url);
+
     let body = formatdoc!(
         r##"
             <div class="center_release mobile_hpadding">
@@ -141,7 +159,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             <div class="additional">
                 <div class="center_release mobile_hpadding">
                     <div>
-                        {download_link} / {embed_link} / <a href="#TODO">Share</a>
+                        {download_link} / {embed_link} / {share_link_rendered}
                     </div>
 
                     <div>
@@ -149,6 +167,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     </div>
                 </div>
             </div>
+            {share_overlay_rendered}
         "##,
         artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
         cover = cover_image(explicit_index, "", root_prefix, &release.cover, None),
