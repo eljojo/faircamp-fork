@@ -117,7 +117,7 @@ pub fn generate(build: &Build) {
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
                     ),
-                    url(background.jpg) center / cover;
+                    url(background.jpg) center / cover fixed;
             }}
         ");
 
