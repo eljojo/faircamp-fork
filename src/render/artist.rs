@@ -45,6 +45,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     "##);
 
     let releases_rendered = releases(
+        build,
         index_suffix,
         root_prefix,
         &catalog,

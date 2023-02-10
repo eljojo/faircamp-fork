@@ -83,6 +83,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     "##);
 
     let releases_rendered = releases(
+        build,
         index_suffix,
         root_prefix,
         &catalog,

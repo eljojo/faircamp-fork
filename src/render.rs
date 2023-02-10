@@ -22,6 +22,7 @@ fn play_icon(root_prefix: &str) -> String {
 }
 
 fn artist_image(
+    build: &Build,
     index_suffix: &str,
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>,
@@ -46,6 +47,7 @@ fn artist_image(
             </a>
         "#)
     } else {
+        let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
         formatdoc!(r#"
             <div class="undescribed_wrapper">
                 <div class="undescribed_corner_tag">
@@ -55,7 +57,7 @@ fn artist_image(
                     <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
                 </a>
                 <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
-                    <span>Missing image description.<br>Click to learn more</span>
+                    <span>{t_missing_image_description_note}</span>
                 </a>
                 <a class="image" href="{href_or_src_url}">
                     <img loading="lazy" src="{src_url}">
@@ -91,6 +93,7 @@ fn compact_release_identifier(
 }
 
 fn cover_image(
+    build: &Build,
     index_suffix: &str,
     release_prefix: &str,
     root_prefix: &str,
@@ -154,6 +157,7 @@ fn cover_image(
             String::new()
         };
 
+        let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
         formatdoc!(
             r#"
                 <div class="undescribed_wrapper">
@@ -164,7 +168,7 @@ fn cover_image(
                         <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
                     </a>
                     <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
-                        <span>Missing image description.<br>Click to learn more</span>
+                        <span>{t_missing_image_description_note}</span>
                     </a>
                     <a class="image" href="{href_or_overlay_anchor}">
                         <img loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
@@ -298,6 +302,7 @@ fn list_artists(
 }
 
 fn releases(
+    build: &Build,
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
@@ -321,7 +326,7 @@ fn releases(
 
             let release_prefix = format!("{root_prefix}{permalink}/");
 
-            let cover = cover_image(index_suffix, &release_prefix, root_prefix, &release_ref.cover, Some(&href));
+            let cover = cover_image(build, index_suffix, &release_prefix, root_prefix, &release_ref.cover, Some(&href));
             let release_title = html_escape_outside_attribute(&release_ref.title);
 
             formatdoc!(r#"
