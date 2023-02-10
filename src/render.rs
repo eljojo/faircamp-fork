@@ -75,13 +75,7 @@ fn compact_release_identifier(
 ) -> String {
     let artists = list_artists(index_suffix, root_prefix, catalog, &release.artists);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let cover = cover_image(
-        index_suffix,
-        release_prefix,
-        root_prefix,
-        &release.cover,
-        Some(release_link) // TODO: In embed.rs we used None (?) But probably makes sense to link it (?)
-    );
+    let cover = cover_image_tiny(release_prefix, &release.cover, release_link);
 
     format!(r#"
         <div style="align-items: center; display: flex; margin: 2em 0;">
@@ -183,6 +177,33 @@ fn cover_image(
             srcset = img.srcset
         )
     }
+}
+
+fn cover_image_tiny(
+    release_prefix: &str,
+    image: &Option<Rc<RefCell<Image>>>,
+    href_url: &str
+) -> String {
+    if image.is_none() { return format!("<div></div>"); }
+
+    let image_ref = image.as_ref().unwrap().borrow();
+    let image_assets = image_ref.assets.borrow();
+
+    let asset = &image_assets.cover.as_ref().unwrap().max_180;
+    let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
+
+    let alt = if let Some(description) = &image_ref.description {
+        let alt = html_escape_inside_attribute(description);
+        format!(r#" alt="{alt}""#)
+    } else {
+        String::new()
+    };
+
+    formatdoc!(r#"
+        <a class="image" href="{href_url}">
+            <img{alt} loading="lazy" src="{src}">
+        </a>
+    "#)
 }
 
 fn layout(
