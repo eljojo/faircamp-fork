@@ -11,7 +11,6 @@ pub struct Locale {
 /// a method of the same name - these are translations that need to be called
 /// as a function because they interpolate some parameter into the translation.
 pub struct Translations {
-    pub artists: String,
     pub audio_format_description_aac: String,
     pub audio_format_description_aiff: String,
     pub audio_format_description_flac: String,
@@ -91,7 +90,6 @@ impl Translations {
     #[allow(dead_code)]
     pub fn de() -> Translations {
         Translations {
-            artists: String::from("Künstlerinnen"),
             audio_format_description_aac: String::from("Durchschnittliche Komprimierungsqualität – sinnvoll wenn dein Player keine besseren Formate unterstützt"),
             audio_format_description_aiff: String::from("Unkomprimierte, große Dateien – Nur für Audio Produktion sinnvoll"),
             audio_format_description_flac: String::from("Verlustfrei komprimiert – Beste Wahl für Archivierung"),
@@ -160,7 +158,6 @@ mit /download/[dein-freischaltecode]{explicit_index} and dann drücke Enter."),
 
     pub fn en() -> Translations {
         Translations {
-            artists: String::from("Artists"),
             audio_format_description_aac: String::from("Average encoding quality – appropriate if your player does not support better formats"),
             audio_format_description_aiff: String::from("Uncompressed large files – appropriate only for audio production"),
             audio_format_description_flac: String::from("Lossless and compressed – best choice for archival"),

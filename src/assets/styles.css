@@ -64,6 +64,20 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     min-height: calc(50vh - 1.25rem);
     padding: 3rem;
 }
+.artists {
+    align-items: center;
+    column-gap: .4rem;
+    display: flex;
+    flex-flow: row wrap;
+    margin: 1.5rem 0;
+    row-gap: .4rem;
+}
+.artists a {
+    background-color: hsl(var(--hue), var(--link-s), var(--link-l));
+    border-radius: .1rem;
+    color: #000;
+    padding: .1rem .2rem .2rem .2rem;
+}
 .big_play_button,
 .big_play_button:hover {
     align-items: center;

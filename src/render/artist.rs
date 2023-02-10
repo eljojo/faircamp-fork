@@ -4,7 +4,7 @@ use crate::{
     Artist,
     Build,
     Catalog,
-    render::{artist_image, layout, releases},
+    render::{artist_image, layout, releases, share_link, share_overlay},
     util::html_escape_outside_attribute
 };
 
@@ -12,40 +12,73 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "../";
 
-    let text = if let Some(text) = &artist.text {
-        formatdoc!(r#"
-            <div class="vpad">
-                {text}
-            </div>
-        "#)
-    } else {
-        String::new()
+    let artist_text = match &artist.text {
+        Some(text) => text.clone(),
+        None => String::new()
     };
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
+    let share_link_rendered = share_link(build);
 
-    let body = formatdoc!(
-        r#"
-            <div class="center">
-                {releases}
-            </div>
-            <div class="additional">
-                <div class="center">
-                    <div class="cover">
-                        {artist_image}
-                    </div>
+    let artist_image = match &artist.image {
+        Some(artist_image) => {
+            // TODO: sizes/srcset, alt etc.
+            format!(r#"
+                <img alt="TODO" class="home_image" src="home.jpg">
+            "#)
+        }
+        None => String::new()
+    };
+    // let artist_image = artist_image(explicit_index, root_prefix, &artist.image, None);
 
+    let artist_info = formatdoc!(r##"
+        <div class="catalog">
+            {artist_image}
+            <div class="catalog_info_padded">
+                <h1 style="color: #fff;">
                     {artist_name_escaped}
-
-                    <br><br>
-
-                    {text}
-                </div>
+                </h1>
+                {artist_text}
+                {share_link_rendered}
             </div>
-        "#,
-        artist_image = artist_image(explicit_index, root_prefix, &artist.image, None),
-        releases = releases(explicit_index, root_prefix, &catalog, &artist.releases, false)
+        </div>
+    "##);
+
+    let releases_rendered = releases(
+        explicit_index,
+        root_prefix,
+        &catalog,
+        &artist.releases,
+        false
     );
+
+    // TODO: See note in index.rs and sync the solution between there and here
+    let index_vcentered = if artist.releases.len() <= 2 &&
+        artist_text.len() <= 1024 {
+        "index_vcentered"
+    } else {
+        ""
+    };
+
+    let share_url = match &build.base_url {
+        Some(base_url) => base_url
+            .join(&format!("{}{}", &artist.permalink.slug, explicit_index))
+            .unwrap()
+            .to_string(),
+        None => String::new()
+    };
+
+    let share_overlay_rendered = share_overlay(build, &share_url);
+
+    let body = formatdoc!(r##"
+        <div class="index_split {index_vcentered}">
+            {artist_info}
+            <div class="releases" id="releases">
+                {releases_rendered}
+            </div>
+        </div>
+        {share_overlay_rendered}
+    "##);
 
     let breadcrumbs = &[
         format!(r#"<a href=".{explicit_index}">{artist_name_escaped}</a>"#)

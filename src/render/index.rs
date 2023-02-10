@@ -29,9 +29,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
-    let t_artists = &build.locale.strings.artists;
-    let artists = if catalog.label_mode && !catalog.artists.is_empty()  {
-        let list = catalog.artists
+    let artists = if catalog.label_mode && !catalog.artists.is_empty() {
+        let artist_links = catalog.artists
             .iter()
             .map(|artist| {
                 let artist_ref = artist.borrow();
@@ -41,14 +40,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 format!(r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#)
             })
             .collect::<Vec<String>>()
-            .join("<br>\n");
+            .join("");
 
-        formatdoc!(r#"
-            <div style="max-width: 36rem;">
-                <strong>{t_artists}</strong><br>
-                {list}
-            </div>
-        "#)
+        format!(r#"<div class="artists">{artist_links}</div>"#)
     } else {
         String::new()
     };
@@ -82,8 +76,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                     {title_escaped}
                 </h1>
                 {catalog_text}
-                {artists}
                 {action_links}
+                {artists}
             </div>
         </div>
     "##);
