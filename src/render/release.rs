@@ -137,6 +137,20 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let share_link_rendered = share_link(build);
     let share_overlay_rendered = share_overlay(build, &share_url);
 
+    let mut action_links = String::new();
+
+    if !download_link.is_empty() {
+        action_links.push_str(&download_link);
+        action_links.push_str(" &nbsp; ");
+    }
+
+    if !embed_link.is_empty() {
+        action_links.push_str(&embed_link);
+        action_links.push_str(" &nbsp; ");
+    }
+
+    action_links.push_str(&share_link_rendered);
+
     let body = formatdoc!(
         r##"
             <div class="center_release mobile_hpadding">
@@ -163,7 +177,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             <div class="additional">
                 <div class="center_release mobile_hpadding">
                     <div>
-                        {download_link} / {embed_link} / {share_link_rendered}
+                        {action_links}
                     </div>
                     <div>
                         {release_text}
