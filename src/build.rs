@@ -16,7 +16,7 @@ use url::Url;
 use crate::{
     Args,
     CacheOptimization,
-    Localization,
+    Locale,
     Theme,
     util
 };
@@ -34,7 +34,7 @@ pub struct Build {
     pub embeds_requested: bool,
     pub exclude_patterns: Vec<String>,
     pub include_patterns: Vec<String>,
-    pub localization: Localization,
+    pub locale: Locale,
     pub libvips_app: VipsApp,
     /// If we encounter missing image descriptions during the build we set this flag.
     /// This lets us know to inject optional css used for indicating these images.
@@ -141,7 +141,7 @@ impl Build {
             exclude_patterns: args.exclude_patterns.clone(),
             include_patterns: args.include_patterns.clone(),
             libvips_app,
-            localization: Localization::defaults(),
+            locale: Locale::en(),
             missing_image_descriptions: false,
             post_build_action,
             stats: Stats::new(),

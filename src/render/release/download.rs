@@ -15,13 +15,16 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
     let root_prefix = "../../../";
 
+    let t_recommended_format =  &build.locale.strings.recommended_format;
+
     let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
 
+    let t_cover_image = &build.locale.strings.cover_image;
     let cover_download = if let Some(cover) = &release.cover {
         formatdoc!(
             r#"
                 <div>
-                    <span>Cover Image</span>
+                    <span>{t_cover_image}</span>
                     <span class="download_formats">
                         <a download href="{root_prefix}{permalink}/cover_{edge_size}.jpg">
                             JPEG
@@ -45,10 +48,10 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         {user_label}{download_label}: {description}{recommendation}
                     </small>
                 "#,
-                description = format.description(),
+                description = format.description(build),
                 download_label = if format.download_label() == format.user_label() { String::new() } else { format!(r#" ({})"#, format.download_label()) },
                 user_label = format.user_label(),
-                recommendation = if *recommended { " (Recommended Format)" } else { "" }
+                recommendation = if *recommended { format!(" ({t_recommended_format})") } else { String::new() }
             )
         )
         .collect::<Vec<String>>()
@@ -142,10 +145,15 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let release_link = format!("../..{explicit_index}");
 
+    let t_download = &build.locale.strings.download;
+    let t_download_choice_hints = &build.locale.strings.download_choice_hints;
+    let t_download_release = &build.locale.strings.download_release;
+    let t_entire_release = &build.locale.strings.entire_release;
+    let t_format_guide = &build.locale.strings.format_guide;
     let body = formatdoc!(
         r##"
             <div class="center_release mobile_hpadding">
-                <h1>Download Release</h1>
+                <h1>{t_download_release}</h1>
 
                 <br><br>
 
@@ -164,9 +172,9 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <a class="download_button" 
                    download
                    href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
-                    <img alt="Download" class="download_icon" src="{root_prefix}download.svg">
+                    <img alt="{t_download}" class="download_icon" src="{root_prefix}download.svg">
                     <div>
-                        <span class="large_type">Entire Release</span><br>
+                        <span class="large_type">{t_entire_release}</span><br>
                         <span class="small_type">{primary_download_format}{primary_download_format_recommendation}</span>
                     </div>
                 </a>
@@ -174,14 +182,12 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <br><br>
 
                 <p>
-                    Single track downloads or downloads in other formats are
-                    available below. Not sure what format to pick? See the <a
-                    href="#hints">hints</a> below.
+                    {t_download_choice_hints}
                 </p>
 
                 <div class="download_options">
                     <div>
-                        <span>Entire Release</span>
+                        <span>{t_entire_release}</span>
                         <span class="download_formats">{release_downloads}</span>
                     </div>
                     {cover_download}
@@ -191,7 +197,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <br><br>
 
                 <div class="download_hints" id="hints">
-                    <small>Format Guide:</small>
+                    <small>{t_format_guide}</small>
 
                     {download_hints}
                 </div>
@@ -203,13 +209,13 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, Some(&release_link)),
         primary_download_format = primary_format.0.user_label(),
         primary_download_format_dirname = primary_format.0.asset_dirname(),
-        primary_download_format_recommendation = if primary_format.1 { " (Recommended Format)" } else { "" },
+        primary_download_format_recommendation = if primary_format.1 { format!(" ({t_recommended_format})") } else { String::new() },
         permalink = &release.permalink.slug
     );
 
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!("<span>Download</span>")
+        format!("<span>{t_download}</span>")
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)

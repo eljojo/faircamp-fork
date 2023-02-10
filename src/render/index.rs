@@ -14,7 +14,11 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let catalog_title = catalog.title();
 
     let feed_link = match &build.base_url.is_some() {
-        true => format!(r#"<a href="{root_prefix}feed.rss"><img alt="RSS Feed" class="feed_icon" src="{root_prefix}feed.svg" style="display: none;">Feed</a>"#),
+        true => {
+            let t_feed = &build.locale.strings.feed;
+            let t_rss_feed = &build.locale.strings.feed;
+            format!(r#"<a href="{root_prefix}feed.rss"><img alt="{t_rss_feed}" class="feed_icon" src="{root_prefix}feed.svg" style="display: none;">{t_feed}</a>"#)
+        }
         false => String::new()
     };
 
@@ -25,6 +29,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
+    let t_artists = &build.locale.strings.artists;
     let artists = if catalog.label_mode && !catalog.artists.is_empty()  {
         let list = catalog.artists
             .iter()
@@ -40,7 +45,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
         formatdoc!(r#"
             <div style="max-width: 36rem;">
-                <strong>Artists</strong><br>
+                <strong>{t_artists}</strong><br>
                 {list}
             </div>
         "#)
@@ -106,7 +111,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
-    let share_overlay_rendered = share_overlay(&share_url);
+    let share_overlay_rendered = share_overlay(build, &share_url);
 
     let body = formatdoc!(r##"
         <div class="index_split {index_vcentered}">

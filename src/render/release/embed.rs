@@ -49,10 +49,12 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
+    let t_embed_release = &build.locale.strings.embed_release;
+    let t_embed_entire_release = &build.locale.strings.embed_release;
     let body = formatdoc!(
         r##"
             <div class="center_release mobile_hpadding">
-                <h1>Embed Release</h1>
+                <h1>{t_embed_release}</h1>
 
                 <br><br>
 
@@ -68,7 +70,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
 
                 <br><br>
 
-                Embed the entire release<br><br>
+                {t_embed_entire_release}<br><br>
                 {embed_code}
 
                 <br><br><br>
@@ -81,9 +83,10 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
         embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release")
     );
 
+    let t_embed = &build.locale.strings.embed;
     let breadcrumbs = &[
         format!(r#"<a href="..{explicit_index}">{release_title_escaped}</a>"#),
-        format!("<span>Embed</span>")
+        format!("<span>{t_embed}</span>")
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
@@ -166,7 +169,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
 }
 
 fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
-    let dir_attribute = match build.localization.writing_direction {
+    let dir_attribute = match build.locale.writing_direction {
         WritingDirection::Ltr => "",
         WritingDirection::Rtl => "dir=\"rtl\""
     };

@@ -33,16 +33,18 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Codes { .. } => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
+            let t_download_with_unlock_code = &build.locale.strings.download_with_unlock_code;
             formatdoc!(r#"
-                <a href="checkout/{page_hash}{explicit_index}">Download with unlock code</a>
+                <a href="checkout/{page_hash}{explicit_index}">{t_download_with_unlock_code}</a>
             "#)
         },
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
+            let t_download = &build.locale.strings.download;
             formatdoc!(r#"
-                <a href="download/{page_hash}{explicit_index}">Download</a>
+                <a href="download/{page_hash}{explicit_index}">{t_download}</a>
             "#)
         },
         DownloadOption::Paid(_currency, _range) => {
@@ -51,15 +53,17 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             } else {
                 let checkout_page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
+                let t_buy = &build.locale.strings.buy;
                 formatdoc!(r#"
-                    <a href="checkout/{checkout_page_hash}{explicit_index}">Buy</a>
+                    <a href="checkout/{checkout_page_hash}{explicit_index}">{t_buy}</a>
                 "#)
             }
         }
     };
 
+    let t_embed = &build.locale.strings.embed;
     let embed_link = if release.embedding && build.base_url.is_some() {
-        format!(r#"<a href="embed{explicit_index}">Embed</a>"#)
+        format!(r#"<a href="embed{explicit_index}">{t_embed}</a>"#)
     } else {
         String::new()
     };
@@ -131,7 +135,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let share_link_rendered = share_link(build);
-    let share_overlay_rendered = share_overlay(&share_url);
+    let share_overlay_rendered = share_overlay(build, &share_url);
 
     let body = formatdoc!(
         r##"

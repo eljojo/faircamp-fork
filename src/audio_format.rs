@@ -1,3 +1,5 @@
+use crate::Build;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum AudioFormat {
     Aac,
@@ -80,18 +82,18 @@ impl AudioFormat {
         }
     }
 
-    /// A one-liner describing the format for someone unfamiliar with audio formats
-    pub fn description(&self) -> &str {
+    /// A one-liner describing the format for someone unfamiliar with audio formats.
+    pub fn description(&self, build: &Build) -> String {
         match self {
-            AudioFormat::Aac => "Average encoding quality – appropriate if your player does not support better formats",
-            AudioFormat::Aiff => "Uncompressed large files – appropriate only for audio production",
-            AudioFormat::Flac => "Lossless and compressed – best choice for archival",
-            AudioFormat::Mp3VbrV0 => "Inferior encoding quality – appropriate if compatibility with older players is needed",
-            AudioFormat::OggVorbis => "Average encoding quality – appropriate if your player does not support better formats",
-            AudioFormat::Opus48Kbps => "State-of-the-art encoding quality at 48Kbps – best choice for high-demand streaming",
-            AudioFormat::Opus96Kbps => "State-of-the-art encoding quality at 96Kbps – best choice for streaming",
-            AudioFormat::Opus128Kbps => "State-of-the-art encoding quality at 128Kbps – best choice for offline listening",
-            AudioFormat::Wav => "Uncompressed large files – appropriate only for audio production"
+            AudioFormat::Aac => build.locale.strings.audio_format_description_aac.clone(),
+            AudioFormat::Aiff => build.locale.strings.audio_format_description_aiff.clone(),
+            AudioFormat::Flac => build.locale.strings.audio_format_description_flac.clone(),
+            AudioFormat::Mp3VbrV0 => build.locale.strings.audio_format_description_mp3_vbr.clone(),
+            AudioFormat::OggVorbis => build.locale.strings.audio_format_description_ogg_vorbis.clone(),
+            AudioFormat::Opus48Kbps => build.locale.strings.audio_format_description_opus_48.clone(),
+            AudioFormat::Opus96Kbps => build.locale.strings.audio_format_description_opus_96.clone(),
+            AudioFormat::Opus128Kbps => build.locale.strings.audio_format_description_opus_128.clone(),
+            AudioFormat::Wav => build.locale.strings.audio_format_description_wav.clone(),
         }
     }
 

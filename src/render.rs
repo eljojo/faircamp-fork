@@ -163,11 +163,14 @@ fn layout(
     breadcrumbs: &[String]
 ) -> String {
     let feed_meta_link = match &build.base_url.is_some() {
-        true => format!(r#"<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{root_prefix}feed.rss">"#),
+        true => {
+            let t_rss_feed = &build.locale.strings.feed;
+            format!(r#"<link rel="alternate" type="application/rss+xml" title="{t_rss_feed}" href="{root_prefix}feed.rss">"#)
+        }
         false => String::new()
     };
 
-    let dir_attribute = match build.localization.writing_direction {
+    let dir_attribute = match build.locale.writing_direction {
         WritingDirection::Ltr => "",
         WritingDirection::Rtl => "dir=\"rtl\""
     };
@@ -286,23 +289,32 @@ fn releases(
 }
 
 pub fn share_link(build: &Build) -> String {
+    let t_share = &build.locale.strings.share;
+    let t_share_not_available_requires_javascript = &build.locale.strings.share_not_available_requires_javascript;
+
     match &build.base_url.is_some() {
-        true => format!(r##"<a href="#share">Share</a>"##),
+        true => format!(r##"<a href="#share">{t_share}</a>"##),
         // In a javascript-enabled browser, some bootstrapping happens on DOM load:
         // - class="disabled" is removed
         // - title="..."  is removed
         // - href="#share" is added
-        false => format!(r##"<a class="disabled" data-disabled-share title="Not available in your browser (requires JavaScript)">Share</a>"##)
+        false => format!(r##"<a class="disabled" data-disabled-share title="{t_share_not_available_requires_javascript}">{t_share}</a>"##)
     }
 }
 
-pub fn share_overlay(url: &str) -> String {
+pub fn share_overlay(build: &Build, url: &str) -> String {
+    let t_close = &build.locale.strings.close;
+    let t_copied = &build.locale.strings.copied;
+    let t_copy = &build.locale.strings.copy;
+    let t_failed = &build.locale.strings.failed;
+    let t_share_not_available_navigator_clipboard = &build.locale.strings.share_not_available_navigator_clipboard;
+
     formatdoc!(r##"
         <div id="share">
             <div class="inner">
                 <input data-url value="{url}">
-                <a class="button disabled" data-copy title="Not available in your browser (navigator.clipboard is not supported)"><span class="action">Copy</span><span class="success">Copied</span><span class="error">Failed</span></a>
-                <a class="button" href="#">Close</a>
+                <a class="button disabled" data-copy title="{t_share_not_available_navigator_clipboard}"><span class="action">{t_copy}</span><span class="success">{t_copied}</span><span class="error">{t_failed}</span></a>
+                <a class="button" href="#">{t_close}</a>
             </div>
         </div>
     "##)

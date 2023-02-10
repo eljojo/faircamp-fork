@@ -561,12 +561,12 @@ pub fn apply_options(
 
     if let Some(section) = optional_section(&document, "localization", path) {
         if let Some(value) = optional_field_value(section, "language") {
-            build.localization.language = value;
+            build.locale.language = value;
         }
         if let Some((value, line)) = optional_field_value_with_line(section, "writing_direction") {
             match value.as_str() {
-                "ltr" => build.localization.writing_direction = WritingDirection::Ltr,
-                "rtl" => build.localization.writing_direction = WritingDirection::Rtl,
+                "ltr" => build.locale.writing_direction = WritingDirection::Ltr,
+                "rtl" => build.locale.writing_direction = WritingDirection::Rtl,
                 value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in {}:{}", value, path.display(), line)
             }
         }
