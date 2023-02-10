@@ -66,25 +66,34 @@ function mountAndPlay(container, seek) {
     window.activeTrack.interval = setInterval(() => updatePlayhead(window.activeTrack), 200);
 }
 
-function share() {
+let copyNotificationTimeout;
+function copyToClipboard() {
     const shareOverlay = document.querySelector('#share');
 
-    const notify = message => {
-        const prevNotification = shareOverlay.querySelector('.share_notification');
-        if (prevNotification) prevNotification.remove();
-            
-        const newNotification = document.createElement('span');
-        newNotification.classList.add('share_notification');
-        newNotification.innerHTML = message;
-        shareOverlay.appendChild(newNotification);
+    const notify = success => {
+        if (copyNotificationTimeout) {
+            clearTimeout(copyNotificationTimeout);
+            copyNotificationTimeout = null;
+        }
+
+        const copyLink = shareOverlay.querySelector('[data-copy]');
+
+        copyLink.classList.remove(success ? 'failed' : 'confirmed');
+        copyLink.classList.add(success ? 'confirmed' : 'failed');
+
+        copyNotificationTimeout = setTimeout(() => {
+            copyLink.classList.remove(success ? 'confirmed' : 'failed');
+        }, 3000);
     };
 
-    const url = shareOverlay.querySelector('[data-url]').innerHTML;
+    const shareUrl = shareOverlay.querySelector('[data-url]');
+
+    shareUrl.select();
     
     navigator.clipboard
-        .writeText(url)
-        .then(() => notify(`${url} has been copied to your clipboard`))
-        .catch(err => notify(`Failed to copy ${url} to your clipboard (${err})`));
+        .writeText(shareUrl.value)
+        .then(() => notify(true))
+        .catch(_err => notify(false));
 };
 
 function togglePlayback(container = null, seek = null) {
@@ -165,9 +174,9 @@ document.body.addEventListener('click', event => {
         const svg = event.target;
         const seek = (event.clientX - svg.getBoundingClientRect().x) / svg.getBoundingClientRect().width;
         togglePlayback(container, seek);
-    } else if ('copyToClipboard' in event.target.dataset) {
+    } else if ('copy' in event.target.dataset) {
         event.preventDefault();
-        share();
+        copyToClipboard();
     }
 });
 
@@ -323,11 +332,12 @@ window.addEventListener('DOMContentLoaded', event => {
     }
 
     const shareUrl = shareOverlay.querySelector('[data-url]');
-    if (!shareUrl.innerHTML.length) {
-        shareUrl.innerHTML = window.location.href;
+    shareUrl.addEventListener('focus', () => shareUrl.select());
+    if (!shareUrl.value.length) {
+        shareUrl.value = window.location.href;
     }
 
-    const copyLink = shareOverlay.querySelector('[data-copy-to-clipboard]');
+    const copyLink = shareOverlay.querySelector('[data-copy]');
     if (navigator.clipboard) {
         copyLink.classList.remove('disabled');
         copyLink.removeAttribute('title');

@@ -299,9 +299,11 @@ pub fn share_link(build: &Build) -> String {
 pub fn share_overlay(url: &str) -> String {
     formatdoc!(r##"
         <div id="share">
-            <span data-url>{url}</span>
-            <a class="disabled" data-copy-to-clipboard title="Not available in your browser (navigator.clipboard is not supported)">Copy to clipboard</a>
-            <a href="#">Close</a>
+            <div class="inner">
+                <input data-url value="{url}">
+                <a class="button disabled" data-copy title="Not available in your browser (navigator.clipboard is not supported)"><span class="action">Copy</span><span class="success">Copied</span><span class="error">Failed</span></a>
+                <a class="button" href="#">Close</a>
+            </div>
         </div>
     "##)
 }

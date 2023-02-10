@@ -218,8 +218,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .js_enabled audio { display: none; }
 .large_type { font-size: 1.4rem; }
 .muted { color: var(--color-muted); }
-#overlay,
-#share {
+#overlay {
     align-items: center;
     background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
     bottom: 0;
@@ -229,24 +228,12 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     left: 0;
     position: absolute;
     right: 0;
+    row-gap: .2rem;
     top: 0;
     z-index: 999;
 }
-.share_notification {
-    animation: appear 3s linear;
-    color: var(--color-muted);
-    margin-left: .2em;
-    opacity: 0;
-    pointer-events: none;
-}
-@keyframes appear {
-  0% { opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { opacity: 0; }
-}
 [data-disabled-share],
-.disabled[data-copy-to-clipboard] { color: var(--color-muted); }
+.disabled[data-copy] { color: var(--color-muted); }
 #overlay:target { display: flex; }
 #overlay img {
     max-height: calc(100vh - 4em);
@@ -293,7 +280,49 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     .release:nth-child(3n+2) { grid-column-start: 2 }
     .release:nth-child(3n+3) { grid-column-start: 3 }
 }
+#share {
+    align-items: center;
+    bottom: 0;
+    display: none;
+    justify-content: center;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 999;
+}
+#share .inner {
+    align-items: center;
+    background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
+    column-gap: .8rem;
+    display: flex;
+    padding: 1rem;
+}
+#share input {
+    background-color: hsla(0, 0%, var(--pane-l), .5);
+    border: none;
+    border-radius: .2rem;
+    color: var(--color-text);
+    padding: .5rem .7rem .6rem .8rem;
+}
+@keyframes dim {
+  0% { opacity: 1; }
+  5% { opacity: .5; }
+  95% { opacity: .5; }
+  100% { opacity: 0; }
+}
 #share:target { display: flex; }
+[data-copy] .success,
+[data-copy] .error { display: none; }
+.confirmed[data-copy] .action,
+.failed[data-copy] .action { display: none; }
+.confirmed[data-copy] .success { display: inline; }
+.failed[data-copy] .error { display: inline; }
+.confirmed[data-copy],
+.failed[data-copy] {
+    animation: dim 3s linear;
+    opacity: 1;
+}
 .small_type { font-size: .9rem; }
 .track {
     height: 3rem;
