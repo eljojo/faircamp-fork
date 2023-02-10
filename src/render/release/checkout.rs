@@ -6,12 +6,12 @@ use crate::{
     DownloadOption,
     PaymentOption,
     Release,
-    render::{cover_image, layout, list_artists},
+    render::{compact_release_identifier, layout},
     util::html_escape_outside_attribute
 };
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
@@ -127,7 +127,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     <br><br>
 
                     <a class="button disabled"
-                       href="{release_prefix}download/{download_page_hash}{explicit_index}"
+                       href="{release_prefix}download/{download_page_hash}{index_suffix}"
                        id="continue"
                        onclick="if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}">
                         {t_continue}
@@ -145,7 +145,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         let t_enter_code_here = &build.locale.strings.enter_code_here;
         let t_unlock = &build.locale.strings.unlock;
         let t_unlock_code_seems_incorrect = &build.locale.strings.unlock_code_seems_incorrect;
-        let t_unlock_manual_instructions = &build.locale.strings.unlock_manual_instructions(explicit_index);
+        let t_unlock_manual_instructions = &build.locale.strings.unlock_manual_instructions(index_suffix);
         let content = formatdoc!(r#"
             <div class="unlock_scripted">
                 {custom_or_default_unlock_text}
@@ -160,7 +160,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     document.querySelector('#unlock').addEventListener('submit', event => {{
                         event.preventDefault();
                         const code = document.querySelector('.unlock_code').value;
-                        const url = `../../download/${{code}}{explicit_index}`;
+                        const url = `../../download/${{code}}{index_suffix}`;
                         fetch(url, {{ method: 'HEAD', mode: 'no-cors' }})
                             .then(response => {{
                                 window.location = url;
@@ -181,34 +181,26 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         unreachable!();
     };
 
-    let release_link = format!("../..{explicit_index}");
+    let release_link = format!("../..{index_suffix}");
 
-    let artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists);
-    let cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, Some(&release_link));
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let compact_release_identifier_rendered = compact_release_identifier(
+        &catalog,
+        index_suffix,
+        &release,
+        &release_link,
+        release_prefix,
+        root_prefix,
+    );
 
     let body = formatdoc!(r#"
         <div class="center">
             <h1>{heading}</h1>
-
-            <br><br>
-
-            <div style="align-items: center; display: flex;">
-                <div style="margin-right: .8rem; max-width: 4rem">
-                    {cover}
-                </div>
-                <div>
-                    <div>{release_title_escaped}</div>
-                    <div>{artists}</div>
-                </div>
-            </div>
-
-            <br><br>
-
+            {compact_release_identifier_rendered}
             {content}
         </div>
     "#);
 
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!("<span>{heading}</span>")

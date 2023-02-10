@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let root_prefix = "";
     
     let catalog_title = catalog.title();
@@ -37,7 +37,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 let name = &artist_ref.name;
                 let permalink = &artist_ref.permalink.slug;
 
-                format!(r#"<a href="{root_prefix}{permalink}{explicit_index}">{name}</a>"#)
+                format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name}</a>"#)
             })
             .collect::<Vec<String>>()
             .join("");
@@ -83,7 +83,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     "##);
 
     let releases_rendered = releases(
-        explicit_index,
+        index_suffix,
         root_prefix,
         &catalog,
         &catalog.releases,
@@ -101,7 +101,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     let share_url = match &build.base_url {
-        Some(base_url) => base_url.join(explicit_index).unwrap().to_string(),
+        Some(base_url) => base_url.join(index_suffix).unwrap().to_string(),
         None => String::new()
     };
 

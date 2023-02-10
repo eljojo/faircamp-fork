@@ -5,14 +5,14 @@ use crate::{
     Build,
     Catalog,
     Release,
-    render::{cover_image, layout, list_artists},
+    render::{compact_release_identifier, layout},
     util::html_escape_outside_attribute
 };
 
 const DOWNLOAD_LABEL_SEPARATOR: &str = " <span style=\"font-size: .8rem\">_</span> ";
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
     let t_recommended_format =  &build.locale.strings.recommended_format;
@@ -143,7 +143,16 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
-    let release_link = format!("../..{explicit_index}");
+    let release_link = format!("../..{index_suffix}");
+
+    let compact_release_identifier_rendered = compact_release_identifier(
+        &catalog,
+        index_suffix,
+        &release,
+        &release_link,
+        release_prefix,
+        root_prefix,
+    );
 
     let t_download = &build.locale.strings.download;
     let t_download_choice_hints = &build.locale.strings.download_choice_hints;
@@ -155,19 +164,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             <div class="center_release mobile_hpadding">
                 <h1>{t_download_release}</h1>
 
-                <br><br>
-
-                <div style="align-items: center; display: flex;">
-                    <div style="margin-right: .8rem; max-width: 4rem">
-                        {cover}
-                    </div>
-                    <div>
-                        <div>{release_title_escaped}</div>
-                        <div>{artists}</div>
-                    </div>
-                </div>
-
-                <br><br>
+                {compact_release_identifier_rendered}
 
                 <a class="download_button" 
                    download
@@ -205,8 +202,6 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <br><br><br>
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, Some(&release_link)),
         primary_download_format = primary_format.0.user_label(),
         primary_download_format_dirname = primary_format.0.asset_dirname(),
         primary_download_format_recommendation = if primary_format.1 { format!(" ({t_recommended_format})") } else { String::new() },

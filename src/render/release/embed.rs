@@ -5,7 +5,7 @@ use crate::{
     Build,
     Catalog,
     Release,
-    render::{cover_image, layout, list_artists, play_icon},
+    render::{compact_release_identifier, cover_image, layout, list_artists, play_icon},
     render::release::waveform,
     Track,
     util::{format_time, html_escape_outside_attribute},
@@ -21,8 +21,14 @@ fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfi
     )
 }
 
-pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+pub fn embed_choices_html(
+    build: &Build,
+    catalog: &Catalog,
+    release: &Release,
+    base_url: &Url
+) -> String {
+    let index_suffix = build.index_suffix();
+    let release_prefix = "../";
     let root_prefix = "../../";
 
     let track_choices_rendered = release.tracks
@@ -30,62 +36,66 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
         .enumerate()
         .map(|(index, track)| {
             let track_number = index + 1;
-            formatdoc!(
-                r#"
-                    <div style="position: relative;">
-                        <span class="track_number">{track_number:02}</span>
-                        <span>{track_title}</span><br><br>
-                        {embed_code}
-                    </div>
-                "#,
-                embed_code = embed_code(base_url, &release.permalink.slug, track_number, "Audio player widget for one track"),
-                track_title = html_escape_outside_attribute(&track.title)
-            )
+            let track_title = html_escape_outside_attribute(&track.title);
+
+            let embed_code = embed_code(
+                base_url,
+                &release.permalink.slug,
+                track_number,
+                &build.locale.strings.audio_player_widget_for_track
+            );
+
+            formatdoc!(r#"
+                <div style="position: relative;">
+                    <span class="track_number">{track_number:02}</span>
+                    <span>{track_title}</span><br><br>
+                    {embed_code}
+                </div>
+            "#)
         })
         .collect::<Vec<String>>()
         .join("<br><br>\n");
 
-    let release_prefix = "../";
+    let release_link = format!("..{index_suffix}");
 
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let compact_release_identifier_rendered = compact_release_identifier(
+        &catalog,
+        index_suffix,
+        &release,
+        &release_link,
+        release_prefix,
+        root_prefix,
+    );
+
+    let embed_code = embed_code(
+        base_url,
+        &release.permalink.slug,
+        "all",
+        &build.locale.strings.audio_player_widget_for_release
+    );
 
     let t_embed_release = &build.locale.strings.embed_release;
     let t_embed_entire_release = &build.locale.strings.embed_release;
-    let body = formatdoc!(
-        r##"
-            <div class="center_release mobile_hpadding">
-                <h1>{t_embed_release}</h1>
+    let body = formatdoc!(r##"
+        <div class="center_release mobile_hpadding">
+            <h1>{t_embed_release}</h1>
 
-                <br><br>
+            {compact_release_identifier_rendered}
 
-                <div style="align-items: center; display: flex;">
-                    <div style="margin-right: .8rem; max-width: 4rem">
-                        {cover}
-                    </div>
-                    <div>
-                        <div>{release_title_escaped}</div>
-                        <div>{artists}</div>
-                    </div>
-                </div>
+            {t_embed_entire_release}<br><br>
+            {embed_code}
 
-                <br><br>
+            <br><br><br>
 
-                {t_embed_entire_release}<br><br>
-                {embed_code}
+            {track_choices_rendered}
+        </div>
+    "##);
 
-                <br><br><br>
-
-                {track_choices_rendered}
-            </div>
-        "##,
-        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
-        embed_code = embed_code(base_url, &release.permalink.slug, "all", "Audio player widget for all tracks of a release")
-    );
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
 
     let t_embed = &build.locale.strings.embed;
     let breadcrumbs = &[
-        format!(r#"<a href="..{explicit_index}">{release_title_escaped}</a>"#),
+        format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!("<span>{t_embed}</span>")
     ];
 
@@ -93,7 +103,7 @@ pub fn embed_choices_html(build: &Build, catalog: &Catalog, release: &Release, b
 }
 
 pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
     let longest_track_duration = release.tracks
@@ -154,13 +164,13 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                     {tracks_rendered}
 
                     <div>
-                        Listen to everything at <a href="{root_prefix}.{explicit_index}">{base_url}</a>
+                        Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>
                     </div>
                 </div>
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
+        artists = list_artists(index_suffix, root_prefix, &catalog, &release.artists),
+        cover = cover_image(index_suffix, &release_prefix, root_prefix, &release.cover, None),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );
@@ -185,7 +195,7 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
 }
 
 pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, track: &Track, track_number: usize, base_url: &Url) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
     let track_duration = track.assets.borrow().source_meta.duration_seconds;
@@ -232,13 +242,13 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
                     {track_rendered}
 
                     <div>
-                        Listen to everything at <a href="{root_prefix}.{explicit_index}">{base_url}</a>
+                        Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>
                     </div>
                 </div>
             </div>
         "##,
-        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = cover_image(explicit_index, &release_prefix, root_prefix, &release.cover, None),
+        artists = list_artists(index_suffix, root_prefix, &catalog, &release.artists),
+        cover = cover_image(index_suffix, &release_prefix, root_prefix, &release.cover, None),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );

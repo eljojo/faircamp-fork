@@ -20,6 +20,8 @@ pub struct Translations {
     pub audio_format_description_opus_96: String,
     pub audio_format_description_opus_128: String,
     pub audio_format_description_wav: String,
+    pub audio_player_widget_for_release: String,
+    pub audio_player_widget_for_track: String,
     pub buy: String,
     pub buy_release: String,
     pub close: String,
@@ -99,6 +101,8 @@ impl Translations {
             audio_format_description_opus_96: String::from("Bestverfügbare Komprimierung bei 96Kbps – Beste Wahl für Streaming"),
             audio_format_description_opus_128: String::from("Bestverfügbare Komprimierung bei 128Kbps – Beste Wahl zum offline hören"),
             audio_format_description_wav: String::from("Unkomprimierte, große Dateien – Nur für Audio Produktion sinnvoll"),
+            audio_player_widget_for_release: String::from("Audio Player Widget für alle Tracks von einem Release"),
+            audio_player_widget_for_track: String::from("Audio Player Widget für einen Track"),
             buy: String::from("Kaufen"),
             buy_release: String::from("Release kaufen"),
             close: String::from("Schließen"),
@@ -149,8 +153,8 @@ Falls das passiert, benutze den Zurück Button deines Browsers \
 und folge den Instruktionen erneut und ganz genau.\
 <br><br>\
 Ersetze den letzten Abschnitt der Adresse der in etwa so aussieht - \
-/checkout/[zufällige-buchstaben-und-ziffern]{explicit_index} - \
-mit /download/[dein-freischaltecode]{explicit_index} and dann drücke Enter."),
+/checkout/[zufällige-buchstaben-und-ziffern]{index_suffix} - \
+mit /download/[dein-freischaltecode]{index_suffix} and dann drücke Enter."),
             up_to_xxx: String::from("Bis zu {xxx}"),
             xxx_or_more: String::from("{xxx} oder mehr")
         }
@@ -171,6 +175,8 @@ mit /download/[dein-freischaltecode]{explicit_index} and dann drücke Enter."),
             audio_format_description_opus_96: String::from("State-of-the-art encoding quality at 96Kbps – best choice for streaming"),
             audio_format_description_opus_128: String::from("State-of-the-art encoding quality at 128Kbps – best choice for offline listening"),
             audio_format_description_wav: String::from("Uncompressed large files – appropriate only for audio production"),
+            audio_player_widget_for_release: String::from("Audio player widget for all tracks of a release"),
+            audio_player_widget_for_track: String::from("Audio player widget for one track"),
             buy: String::from("Buy"),
             buy_release: String::from("Buy Release"),
             close: String::from("Close"),
@@ -220,15 +226,15 @@ address modifications take you to a 404 page. In this case \
 use the Back button and closely follow the instructions again.\
 <br><br>\
 Replace the final part of the address that \
-looks like this - /checkout/[some-random-letters]{explicit_index} - \
-with /download/[your-unlock-code]{explicit_index} and then press Enter."),
+looks like this - /checkout/[some-random-letters]{index_suffix} - \
+with /download/[your-unlock-code]{index_suffix} and then press Enter."),
             up_to_xxx: String::from("Up to {xxx}"),
             xxx_or_more: String::from("{xxx} or more")
         }
     }
 
-    pub fn unlock_manual_instructions(&self, explicit_index: &str) -> String {
-        self.unlock_manual_instructions.replace("{explicit_index}", explicit_index)
+    pub fn unlock_manual_instructions(&self, index_suffix: &str) -> String {
+        self.unlock_manual_instructions.replace("{index_suffix}", index_suffix)
     }
 
     pub fn up_to_xxx(&self, xxx: &str) -> String {

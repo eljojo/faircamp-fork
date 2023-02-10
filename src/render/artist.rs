@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let root_prefix = "../";
 
     let artist_text = match &artist.text {
@@ -29,7 +29,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         }
         None => String::new()
     };
-    // let artist_image = artist_image(explicit_index, root_prefix, &artist.image, None);
+    // let artist_image = artist_image(index_suffix, root_prefix, &artist.image, None);
 
     let artist_info = formatdoc!(r##"
         <div class="catalog">
@@ -45,7 +45,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     "##);
 
     let releases_rendered = releases(
-        explicit_index,
+        index_suffix,
         root_prefix,
         &catalog,
         &artist.releases,
@@ -62,7 +62,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let share_url = match &build.base_url {
         Some(base_url) => base_url
-            .join(&format!("{}{}", &artist.permalink.slug, explicit_index))
+            .join(&format!("{}{}", &artist.permalink.slug, index_suffix))
             .unwrap()
             .to_string(),
         None => String::new()
@@ -81,7 +81,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     "##);
 
     let breadcrumbs = &[
-        format!(r#"<a href=".{explicit_index}">{artist_name_escaped}</a>"#)
+        format!(r#"<a href=".{index_suffix}">{artist_name_escaped}</a>"#)
     ];
 
     layout(root_prefix, &body, build, catalog, &artist.name, breadcrumbs)

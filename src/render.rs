@@ -22,7 +22,7 @@ fn play_icon(root_prefix: &str) -> String {
 }
 
 fn artist_image(
-    explicit_index: &str,
+    index_suffix: &str,
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>,
     href_url: Option<&str>
@@ -51,10 +51,10 @@ fn artist_image(
                 <div class="undescribed_corner_tag">
                     <img src="{root_prefix}corner_tag.svg">
                 </div>
-                <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
                     <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
                 </a>
-                <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
                     <span>Missing image description.<br>Click to learn more</span>
                 </a>
                 <a class="image" href="{href_or_src_url}">
@@ -65,8 +65,39 @@ fn artist_image(
     }
 }
 
+fn compact_release_identifier(
+    catalog: &Catalog,
+    index_suffix: &str,
+    release: &Release,
+    release_link: &str,
+    release_prefix: &str,
+    root_prefix: &str
+) -> String {
+    let artists = list_artists(index_suffix, root_prefix, catalog, &release.artists);
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let cover = cover_image(
+        index_suffix,
+        release_prefix,
+        root_prefix,
+        &release.cover,
+        Some(release_link) // TODO: In embed.rs we used None (?) But probably makes sense to link it (?)
+    );
+
+    format!(r#"
+        <div style="align-items: center; display: flex; margin: 2em 0;">
+            <div style="margin-right: .8rem; max-width: 4rem">
+                {cover}
+            </div>
+            <div>
+                <div>{release_title_escaped}</div>
+                <div>{artists}</div>
+            </div>
+        </div>
+    "#)
+}
+
 fn cover_image(
-    explicit_index: &str,
+    index_suffix: &str,
     release_prefix: &str,
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>,
@@ -135,10 +166,10 @@ fn cover_image(
                     <div class="undescribed_corner_tag">
                         <img src="{root_prefix}corner_tag.svg">
                     </div>
-                    <a class="undescribed_icon" href="{root_prefix}image-descriptions{explicit_index}">
+                    <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
                         <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
                     </a>
-                    <a class="undescribed_overlay" href="{root_prefix}image-descriptions{explicit_index}">
+                    <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
                         <span>Missing image description.<br>Click to learn more</span>
                     </a>
                     <a class="image" href="{href_or_overlay_anchor}">
@@ -207,7 +238,7 @@ fn layout(
         body = body,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         dir_attribute = dir_attribute,
-        explicit_index = if build.clean_urls { "/" } else { "/index.html" },
+        index_suffix = if build.clean_urls { "/" } else { "/index.html" },
         feed_meta_link = feed_meta_link,
         breadcrumbs = breadcrumbs,
         root_prefix = root_prefix,
@@ -217,7 +248,7 @@ fn layout(
 }
 
 fn list_artists(
-    explicit_index: &str,
+    index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
     artists: &Vec<Rc<RefCell<Artist>>>
@@ -230,12 +261,12 @@ fn list_artists(
 
             if catalog.label_mode {
                 let permalink = &artist_ref.permalink.slug;
-                return format!(r#"<a href="{root_prefix}{permalink}{explicit_index}">{name_escaped}</a>"#);
+                return format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
             }
 
             if let Some(catalog_artist) = &catalog.artist {
                 if Rc::ptr_eq(artist, catalog_artist) {
-                    return format!(r#"<a href="{root_prefix}.{explicit_index}">{name_escaped}</a>"#);
+                    return format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#);
                 }
             }
 
@@ -246,7 +277,7 @@ fn list_artists(
 }
 
 fn releases(
-    explicit_index: &str,
+    index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
     releases: &Vec<Rc<RefCell<Release>>>,
@@ -258,10 +289,10 @@ fn releases(
             let release_ref = release.borrow();
             let permalink = &release_ref.permalink.slug;
 
-            let href = format!("{root_prefix}{permalink}{explicit_index}");
+            let href = format!("{root_prefix}{permalink}{index_suffix}");
 
             let artists = if show_artists {
-                let list = list_artists(explicit_index, root_prefix, &catalog, &release_ref.artists);
+                let list = list_artists(index_suffix, root_prefix, &catalog, &release_ref.artists);
                 format!("<div>{list}</div>")
             } else {
                 String::new()
@@ -269,7 +300,7 @@ fn releases(
 
             let release_prefix = format!("{root_prefix}{permalink}/");
 
-            let cover = cover_image(explicit_index, &release_prefix, root_prefix, &release_ref.cover, Some(&href));
+            let cover = cover_image(index_suffix, &release_prefix, root_prefix, &release_ref.cover, Some(&href));
             let release_title = html_escape_outside_attribute(&release_ref.title);
 
             formatdoc!(r#"

@@ -103,6 +103,18 @@ impl Build {
         self.base64_engine.encode(hasher.finish().to_le_bytes())
     }
 
+    /// When we construct site-internal linking urls, we always
+    /// append an index suffix. For instance we might build this:
+    /// root_prefix ("../") + permalink ("foo") + index_suffix ("/") = "../foo/"
+    /// If clean_urls is disabled however, we always append an index_suffix "/index.html",
+    /// so that above example would result in "../foo/index.html".
+    pub fn index_suffix(&self) -> &str {
+        match self.clean_urls {
+            true => "/",
+            false => "/index.html"
+        }
+    }
+
     pub fn new(args: &Args) -> Build {
         let catalog_dir = args.catalog_dir
             .as_ref()

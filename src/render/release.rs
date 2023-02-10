@@ -26,7 +26,7 @@ pub mod download;
 pub mod embed;
 
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let explicit_index = if build.clean_urls { "/" } else { "/index.html" };
+    let index_suffix = build.index_suffix();
     let root_prefix = "../";
 
     let download_link = match &release.download_option {
@@ -35,7 +35,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             let t_download_with_unlock_code = &build.locale.strings.download_with_unlock_code;
             formatdoc!(r#"
-                <a href="checkout/{page_hash}{explicit_index}">{t_download_with_unlock_code}</a>
+                <a href="checkout/{page_hash}{index_suffix}">{t_download_with_unlock_code}</a>
             "#)
         },
         DownloadOption::Disabled => String::new(),
@@ -44,7 +44,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             let t_download = &build.locale.strings.download;
             formatdoc!(r#"
-                <a href="download/{page_hash}{explicit_index}">{t_download}</a>
+                <a href="download/{page_hash}{index_suffix}">{t_download}</a>
             "#)
         },
         DownloadOption::Paid(_currency, _range) => {
@@ -55,7 +55,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 let t_buy = &build.locale.strings.buy;
                 formatdoc!(r#"
-                    <a href="checkout/{checkout_page_hash}{explicit_index}">{t_buy}</a>
+                    <a href="checkout/{checkout_page_hash}{index_suffix}">{t_buy}</a>
                 "#)
             }
         }
@@ -63,7 +63,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let t_embed = &build.locale.strings.embed;
     let embed_link = if release.embedding && build.base_url.is_some() {
-        format!(r#"<a href="embed{explicit_index}">{t_embed}</a>"#)
+        format!(r#"<a href="embed{index_suffix}">{t_embed}</a>"#)
     } else {
         String::new()
     };
@@ -128,7 +128,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let share_url = match &build.base_url {
         Some(base_url) => base_url
-            .join(&format!("{}{}", &release.permalink.slug, explicit_index))
+            .join(&format!("{}{}", &release.permalink.slug, index_suffix))
             .unwrap()
             .to_string(),
         None => String::new()
@@ -165,7 +165,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div>
                         {download_link} / {embed_link} / {share_link_rendered}
                     </div>
-
                     <div>
                         {release_text}
                     </div>
@@ -173,13 +172,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
             {share_overlay_rendered}
         "##,
-        artists = list_artists(explicit_index, root_prefix, &catalog, &release.artists),
-        cover = cover_image(explicit_index, "", root_prefix, &release.cover, None),
+        artists = list_artists(index_suffix, root_prefix, &catalog, &release.artists),
+        cover = cover_image(index_suffix, "", root_prefix, &release.cover, None),
         play_icon = play_icon(root_prefix)
     );
 
     let breadcrumbs = &[
-        format!(r#"<a href=".{explicit_index}">{release_title_escaped}</a>"#)
+        format!(r#"<a href=".{index_suffix}">{release_title_escaped}</a>"#)
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
