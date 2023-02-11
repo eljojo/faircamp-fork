@@ -351,9 +351,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track_download_option { position: relative; }
 .track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
 .track_controls,
-.track_number {
-    padding-right: .5rem;
-}
+.track_number { padding-right: .5rem; }
 @media (min-width: 30rem) {
     .track.active .track_controls.inner,
     .track:hover .track_controls.inner { display: none; }
@@ -368,22 +366,16 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     right: calc(100%);
     text-align: right;
 }
+.track_header { display: flex; }
+.duration { user-select: none; }
 .track_title {
     color: var(--color-text);
-    display: flex;
-    user-select: none;
-}
-.track_title_actual {
     flex-shrink: 1;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .track.playing .track_title { color: hsl(var(--hue), var(--link-s), var(--link-l)); }
-.track_title_wrapper {
-    display: flex;
-    justify-self: end;
-}
 #unlock { margin-bottom: 2rem; }
 button,
 input[type="number"],

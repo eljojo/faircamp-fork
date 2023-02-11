@@ -102,12 +102,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="track">
                         <a class="track_controls outer">{play_icon}</a>
                         <span class="track_number outer">{track_number}</span>
-                        <a class="track_title" title="{track_title_attribute}">
-                            <span class="track_controls inner">{play_icon}</span>
+                        <span class="track_header">
+                            <a class="track_controls inner">{play_icon}</a>
                             <span class="track_number inner">{track_number}</span>
-                            <span class="track_title_actual">{track_title}</span>
+                            <a class="track_title" title="{track_title_attribute}">{track_title}</a>
                             <span class="duration"><span class="track_time"></span>{duration}</span>
-                        </a>
+                        </span>
                         <audio controls preload="metadata" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
                         {waveform}
                     </div>
