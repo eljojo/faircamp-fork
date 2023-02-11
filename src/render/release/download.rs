@@ -23,7 +23,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let cover_download = if let Some(cover) = &release.cover {
         formatdoc!(
             r#"
-                <div>
+                <div style="font-size: 1.17rem;">
                     <span>{t_cover_image}</span>
                     <span class="download_formats">
                         <a download href="{root_prefix}{permalink}/cover_{edge_size}.jpg">
@@ -171,8 +171,8 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                    href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
                     <img alt="{t_download}" class="download_icon" src="{root_prefix}download.svg">
                     <div>
-                        <span class="large_type">{t_entire_release}</span><br>
-                        <span class="small_type">{primary_download_format}{primary_download_format_recommendation}</span>
+                        <span style="font-size: 1.17rem;">{t_entire_release}</span><br>
+                        <span style="font-size: .9rem;">{primary_download_format}{primary_download_format_recommendation}</span>
                     </div>
                 </a>
 
@@ -183,11 +183,14 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 </p>
 
                 <div class="download_options">
-                    <div>
+                    <div style="font-size: 1.17rem;">
                         <span>{t_entire_release}</span>
                         <span class="download_formats">{release_downloads}</span>
                     </div>
                     {cover_download}
+
+                    <br>
+
                     {track_downloads}
                 </div>
 

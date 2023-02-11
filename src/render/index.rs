@@ -76,7 +76,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                     {title_escaped}
                 </h1>
                 {catalog_text}
-                {action_links}
+                <div style="font-size: 1.17rem;">
+                    {action_links}
+                </div>
                 {artists}
             </div>
         </div>

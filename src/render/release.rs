@@ -69,7 +69,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let release_text = match &release.text {
-        Some(text) => format!(r#"<div class="vpad">{}</div>"#, text),
+        Some(text) => format!(r#"<div class="vpad" style="margin-top: 1.5rem;">{}</div>"#, text),
         None => String::new()
     };
 
@@ -153,10 +153,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="center_release mobile_hpadding">
-                <div class="cover">
-                    {cover}
-                </div>
+            <div class="center_release mobile_hpadding" style="margin-bottom: 1.5rem;">
+                <div class="cover">{cover}</div>
 
                 <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
                     <a class="big_play_button">
@@ -166,7 +164,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 <div style="margin: .4rem 0 1rem 0;">
                     <h1 style="margin-bottom: .2rem;">{release_title_escaped}</h1>
-                    <div>{artists}</div>
+                    <div style="font-size: 1.17rem;">{artists}</div>
                 </div>
 
                 <br>
@@ -175,13 +173,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 {tracks_rendered}
             </div>
             <div class="additional">
-                <div class="center_release mobile_hpadding">
-                    <div>
+                <div class="mobile_hpadding">
+                    <div style="font-size: 1.17rem;">
                         {action_links}
                     </div>
-                    <div>
-                        {release_text}
-                    </div>
+                    {release_text}
                 </div>
             </div>
             {share_overlay_rendered}

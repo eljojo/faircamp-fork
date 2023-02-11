@@ -19,7 +19,7 @@ body {
 }
 input, button { font-size: 1rem; }
 h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 400;
     margin: 0;
 }
@@ -35,7 +35,7 @@ img {
 main { box-sizing: border-box; }
 nav {
     align-items: center;
-    background-color: hsla(0, 0%, var(--pane-l), .92);
+    background-color: hsla(0, 0%, var(--pane-l), .8);
     box-shadow: 0 0 .5rem hsla(0, 0%, 0%, 0.2);
     box-sizing: border-box;
     display: flex;
@@ -47,6 +47,12 @@ nav {
     width: 100%;
     z-index: 9;
 }
+@media (min-width: 30rem) {
+    nav {
+        font-size: 1.17rem;
+        height: 3.5rem;
+    }
+}
 nav a { color: var(--color-text); }
 nav img { height: 2.5rem; }
 nav > *:not(:first-child) {
@@ -55,14 +61,11 @@ nav > *:not(:first-child) {
     top: -.01rem;
 }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
-.additional {
-    align-items: center;
-    background-color: hsl(0, 0%, var(--pane-l));
-    box-sizing: border-box;
-    display: flex;
-    justify-content: space-around;
-    min-height: calc(50vh - 1.25rem);
-    padding: 3rem;
+.additional { background-color: hsla(0, 0%, var(--text-l), 0.02); }
+.additional > div {
+    margin: 0 auto;
+    max-width: 20rem;
+    padding: 1.5rem;
 }
 .artists {
     align-items: center;
@@ -215,6 +218,9 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     justify-content: center;
     min-height: calc(100vh - 2.5rem);
 }
+@media (min-width: 30rem) {
+    .index_split { min-height: calc(100vh - 3.5rem); }
+}
 @media (min-width: 60rem) {
     .index_split {
         grid-template-columns: auto auto;
@@ -332,7 +338,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     animation: dim 3s linear;
     opacity: 1;
 }
-.small_type { font-size: .9rem; }
 .track {
     height: 3rem;
     margin-bottom: .2rem;
