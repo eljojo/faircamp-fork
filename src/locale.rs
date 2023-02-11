@@ -44,6 +44,8 @@ pub struct Translations {
     pub failed: String,
     pub feed: String,
     pub format_guide: String,
+    pub image_descriptions: String,
+    pub image_descriptions_guide: String,
     pub made_or_arranged_payment: String,
     pub missing_image_description_note: String,
     pub name_your_price: String,
@@ -133,6 +135,23 @@ schau auch dort falls dir welche bekannt sind!"),
             failed: String::from("Fehler"),
             feed: String::from("Feed"),
             format_guide: String::from("Format Hilfe:"),
+            image_descriptions: String::from("Bildbeschreibungen"),
+            image_descriptions_guide: String::from("\
+Millionen Menschen bewegen sich mit Screen Readern \
+durch das Netz, da sie nicht (oder nicht ausreichend \
+gut) sehen können. Bilder ohne Textbeschreibungen sind \
+für sie unzugänglich, deshalb sollten wir uns darum \
+kümmern für sie Bildbeschreibungen zu schreiben.<br><br>\
+\
+Das Faircamp README beschreibt wie Bildbeschreibungen \
+hinzugefügt werden können - es ist einfach und ermöglicht \
+vielen Menschen Teilhabe, die ihnen sonst oft verwehrt bleibt.<br><br>\
+\
+Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
+- Jede Beschreibung ist besser als keine Beschreibung, lass dich nicht von der Angst abhalten du könntest etwas falsch machen<br>\
+- Halte dich kurz. Schreib soviel wie nötig, aber gleichzeitig nicht mehr als nötig.<br>\
+- Beschreib was da ist und wichtig fürs Verständnis, aber analysiere und interpretiere darüber hinaus nicht.<br>\
+- Du kannst Farbbeschreibungen verwenden wo es Sinn macht - viele Menschen verlieren ihre Sehkraft erst spät im Leben und verstehen und schätzen Farben."),
             made_or_arranged_payment: String::from("Ich habe die Bezahlung durchgeführt oder arrangiert"),
             missing_image_description_note: String::from("Fehlende Bildbeschreibung.<br>Klick für mehr Info"),
             name_your_price: String::from("Nenne einen Preis"),
@@ -208,6 +227,23 @@ if you know of any!"),
             failed: String::from("Failed"),
             feed: String::from("Feed"),
             format_guide: String::from("Format Guide:"),
+            image_descriptions: String::from("Image Descriptions"),
+            image_descriptions_guide: String::from("\
+Millions of people browse the web using screen-readers \
+because they can not see (or not well enough). Images \
+without textual descriptions are inaccessible to them, \
+and this is why we should make the effort to provide \
+image descriptions for them.<br><br>\
+\
+Consult the faircamp README for how to add image \
+descriptions, it's simple and an act of \
+kindness.<br><br>\
+\
+Here are some tips for writing good image descriptions:<br>\
+- Any description is better than having no description, don't worry about doing it wrong.<br>\
+- Make it concise. Write as much as needed, but at the same time keep it as short as possible.<br>\
+- Don't interpret. Describe what is there and relevant for its understanding, don't analyze beyond that.<br>\
+- You can use colors where it makes sense - many people only lost their sight later on and understand and appreciate colors."),
             made_or_arranged_payment: String::from("I have made or arranged the payment"),
             missing_image_description_note: String::from("Missing image description.<br>Click to learn more"),
             name_your_price: String::from("Name your price"),
