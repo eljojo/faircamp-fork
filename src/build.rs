@@ -139,6 +139,8 @@ impl Build {
 
         let post_build_action = PostBuildAction::new(args);
 
+        let locale = if args.debug_translations { Locale::keys() } else { Locale::en() };
+
         Build {
             base_url: None,
             base64_engine: URL_SAFE_NO_PAD,
@@ -153,7 +155,7 @@ impl Build {
             exclude_patterns: args.exclude_patterns.clone(),
             include_patterns: args.include_patterns.clone(),
             libvips_app,
-            locale: Locale::en(),
+            locale,
             missing_image_descriptions: false,
             post_build_action,
             stats: Stats::new(),

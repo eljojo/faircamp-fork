@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 #[clap(version = env!("CARGO_PKG_VERSION"))]
 pub struct Args {
     /// Reports cached assets that currently appear obsolete and their consumed disk space (no build is performed)
@@ -48,6 +48,10 @@ pub struct Args {
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
     
+    /// The site is rendered with every translatable interface string showing its key instead of its value (=translation)
+    #[clap(long = "debug-translations")]
+    pub debug_translations: bool,
+
     /// Injects a small widget into the page which allows you to interactively explore different theme color configurations
     #[clap(long = "theming-widget")]
     pub theming_widget: bool,

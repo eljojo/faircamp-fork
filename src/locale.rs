@@ -89,6 +89,14 @@ impl Locale {
             writing_direction: WritingDirection::Ltr
         }
     }
+
+    pub fn keys() -> Locale {
+        Locale {
+            language: String::from("en"),
+            strings: Translations::keys(),
+            writing_direction: WritingDirection::Ltr
+        }
+    }
 }
 
 impl Translations {
@@ -269,6 +277,61 @@ looks like this - /checkout/[some-random-letters]{index_suffix} - \
 with /download/[your-unlock-code]{index_suffix} and then press Enter."),
             up_to_xxx: String::from("Up to {xxx}"),
             xxx_or_more: String::from("{xxx} or more")
+        }
+    }
+
+    pub fn keys() -> Translations {
+        Translations {
+            audio_format_description_aac: String::from("audio_format_description_aac"),
+            audio_format_description_aiff: String::from("audio_format_description_aiff"),
+            audio_format_description_flac: String::from("audio_format_description_flac"),
+            audio_format_description_mp3_vbr: String::from("audio_format_description_mp3_vbr"),
+            audio_format_description_ogg_vorbis: String::from("audio_format_description_ogg_vorbis"),
+            audio_format_description_opus_48: String::from("audio_format_description_opus_48"),
+            audio_format_description_opus_96: String::from("audio_format_description_opus_96"),
+            audio_format_description_opus_128: String::from("audio_format_description_opus_128"),
+            audio_format_description_wav: String::from("audio_format_description_wav"),
+            audio_player_widget_for_release: String::from("audio_player_widget_for_release"),
+            audio_player_widget_for_track: String::from("audio_player_widget_for_track"),
+            buy: String::from("buy"),
+            buy_release: String::from("buy_release"),
+            close: String::from("close"),
+            copied: String::from("copied"),
+            copy: String::from("copy"),
+            confirm: String::from("confirm"),
+            r#continue: String::from("continue"),
+            cover_image: String::from("cover_image"),
+            default_unlock_text: String::from("default_unlock_text"),
+            download: String::from("download"),
+            download_choice_hints: String::from("download_choice_hints"),
+            download_release: String::from("download_release"),
+            download_with_unlock_code: String::from("download_with_unlock_code"),
+            embed: String::from("embed"),
+            embed_entire_release: String::from("embed_entire_release"),
+            embed_release: String::from("embed_release"),
+            enter_code: String::from("enter_code"),
+            enter_code_here: String::from("enter_code_here"),
+            entire_release: String::from("entire_release"),
+            failed: String::from("failed"),
+            feed: String::from("feed"),
+            format_guide: String::from("format_guide"),
+            image_descriptions: String::from("image_descriptions"),
+            image_descriptions_guide: String::from("image_descriptions_guide"),
+            made_or_arranged_payment: String::from("made_or_arranged_payment"),
+            missing_image_description_note: String::from("missing_image_description_note"),
+            name_your_price: String::from("name_your_price"),
+            option: String::from("option"),
+            pay_on_liberapay: String::from("pay_on_liberapay"),
+            recommended_format: String::from("recommended_format"),
+            rss_feed: String::from("rss_feed"),
+            share: String::from("share"),
+            share_not_available_navigator_clipboard: String::from("share_not_available_navigator_clipboard"),
+            share_not_available_requires_javascript: String::from("share_not_available_requires_javascript"),
+            unlock: String::from("unlock"),
+            unlock_code_seems_incorrect: String::from("unlock_code_seems_incorrect"),
+            unlock_manual_instructions: String::from("unlock_manual_instructions"),
+            up_to_xxx: String::from("up_to_xxx"),
+            xxx_or_more: String::from("xxx_or_more")
         }
     }
 
