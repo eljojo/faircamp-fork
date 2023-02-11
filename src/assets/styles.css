@@ -118,12 +118,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
         max-width: 27rem;
     }
 }
-.center {
-    flex-grow: 1;
-    margin: 0 auto;
-    margin-top: 8rem;
-    max-width: 23rem;
-}
 .center_release {
     flex-grow: 1;
     margin: 1rem auto 3rem auto;
@@ -282,9 +276,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     .release:nth-child(2n+1) { grid-column-start: 1 }
     .release:nth-child(2n+2) { grid-column-start: 2 }
     .releases {
-        grid-column-start: 1;
-        grid-row-start: 1;
         grid-auto-columns: 12rem;
+        grid-column-start: 1;
+        grid-column-gap: 1.6rem;
+        grid-row-start: 1;
         max-width: unset;
         padding: 2rem;
     }

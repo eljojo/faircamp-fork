@@ -193,7 +193,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     );
 
     let body = formatdoc!(r#"
-        <div class="center">
+        <div class="center_release">
             <h1>{heading}</h1>
             {compact_release_identifier_rendered}
             {content}
