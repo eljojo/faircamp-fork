@@ -97,7 +97,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     // TODO: catalog_text criterium is a bit random because the character
     //       count includes markup, we should improve this. In the end this
     //       criterium will always be a bit arbitrary though probably.
-    let index_vcentered = if catalog.releases.len() <= 2 &&
+    let index_vcentered = if
+        catalog.home_image.is_none() &&
+        catalog.releases.len() <= 2 &&
         catalog_text.len() <= 1024 {
         "index_vcentered"
     } else {

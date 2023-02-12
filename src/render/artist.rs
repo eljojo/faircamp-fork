@@ -54,7 +54,9 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     );
 
     // TODO: See note in index.rs and sync the solution between there and here
-    let index_vcentered = if artist.releases.len() <= 2 &&
+    let index_vcentered = if
+        artist.image.is_none() &&
+        artist.releases.len() <= 2 &&
         artist_text.len() <= 1024 {
         "index_vcentered"
     } else {
