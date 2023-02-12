@@ -50,7 +50,7 @@ nav {
 @media (min-width: 30rem) {
     nav {
         font-size: 1.17rem;
-        height: 3.5rem;
+        height: 3.2rem;
     }
 }
 nav a { color: var(--color-text); }
@@ -219,7 +219,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     min-height: calc(100vh - 2.5rem);
 }
 @media (min-width: 30rem) {
-    .index_split { min-height: calc(100vh - 3.5rem); }
+    .index_split { min-height: calc(100vh - 3.2rem); }
 }
 @media (min-width: 60rem) {
     .index_split {
