@@ -194,9 +194,12 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     width: 1rem;
 }
 .home_image {
-    height: 12rem;
+    height: 40vw;
     object-fit: cover;
     width: 100vw;
+}
+@media (min-width: 30rem) {
+    .home_image { height: 12rem; }
 }
 @media (min-width: 60rem) {
     .home_image { width: 27rem; }
