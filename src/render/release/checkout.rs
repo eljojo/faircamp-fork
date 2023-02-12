@@ -18,50 +18,60 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let (content, heading) = if let DownloadOption::Paid(currency, range) = &release.download_option {
         let currency_code = currency.code();
         let currency_symbol = currency.symbol();
-        let mut max = String::new();
-        let mut min = String::new();
 
-        let placeholder = if range.end == f32::INFINITY {
-            if range.start > 0.0 {
-                min = format!(r#"min="{}" "#, range.start);
-                let min_price_formatted = format!(
-                    "{currency_symbol}{min_price} {currency_code}",
-                    min_price = range.start
-                );
-
-                build.locale.strings.xxx_or_more(&min_price_formatted)
-            } else {
-                let t_name_your_price = &build.locale.strings.name_your_price;
-                format!("{t_name_your_price} ({currency_code})")
-            }
-        } else if range.start == range.end {
-            min = format!(r#"min="{}" "#, range.start);
-            max = format!(r#"max="{}" "#, range.end);
-            format!(
-                "{currency_symbol}{price} {currency_code}",
-                price = range.start
-            )
-        } else if range.start > 0.0 {
-            min = format!(r#"min="{}" "#, range.start);
-            max = format!(r#"max="{}" "#, range.end);
-            format!(
-                "{currency_symbol}{min_price}-{max_price} {currency_code}",
-                max_price = range.end,
-                min_price = range.start
-            )
-        } else {
-            max = format!(r#"max="{}" "#, range.end);
-            let max_price_formatted = format!(
-                "{currency_symbol}{max_price} {currency_code}",
-                max_price = range.end
-            );
-
-            build.locale.strings.up_to_xxx(&max_price_formatted)
+        let price_input = |
+            label: &str,
+            _max: Option<f32>,
+            _min: Option<f32>,
+            placeholder: &str
+        | {
+            // TODO: Use and enforce min/max somehow (probably js script)
+            formatdoc!(r#"
+                <label for="price">{label}</label><br><br>
+                <div style="align-items: center; column-gap: .5rem; display: flex; position: relative;">
+                    <span style="position: absolute; left: .5rem;">{currency_symbol}</span>
+                    <input autocomplete="off" id="price" pattern="[0-9]+([.,][0-9])?" placeholder="{placeholder}" style="padding-left: 1.5rem; width: 6rem;" type="text">
+                    {currency_code}
+                </div><br> 
+            "#)
         };
 
-        let price_input = format!(
-            r#"<input {max}{min}placeholder="{placeholder}" step="any" type="number"> {currency_symbol}"#
-        );
+        let price_input_rendered = if range.end == f32::INFINITY {
+            if range.start > 0.0 {
+                price_input(
+                    &build.locale.strings.name_your_price,
+                    Some(range.start),
+                    None,
+                    &build.locale.strings.xxx_or_more(&range.start.to_string())
+                )
+            } else {
+                price_input(
+                    &build.locale.strings.name_your_price,
+                    None,
+                    None,
+                    &build.locale.strings.any_amount
+                )
+            }
+        } else if range.start == range.end {
+            format!(
+                "Fixed price: {currency_symbol}{price} {currency_code}",
+                price = &range.start
+            )
+        } else if range.start > 0.0 {
+            price_input(
+                &build.locale.strings.name_your_price,
+                Some(range.start),
+                Some(range.end),
+                &format!("{}-{}", range.start, range.end)
+            )
+        } else {
+            price_input(
+                &build.locale.strings.name_your_price,
+                None,
+                Some(range.end),
+                &build.locale.strings.up_to_xxx(&range.end.to_string())
+            )
+        };
 
         let payment_options = &release.payment_options
             .iter()
@@ -104,9 +114,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             let t_confirm = &build.locale.strings.confirm;
             let t_continue = &build.locale.strings.r#continue;
             let t_made_or_arranged_payment = &build.locale.strings.made_or_arranged_payment;
+            let t_payment_options = &build.locale.strings.payment_options;
             let content = formatdoc!(r#"
                 <form id="confirm">
-                    {price_input} <button name="confirm">{t_confirm}</button>
+                    {price_input_rendered}
+                    <button name="confirm">{t_confirm}</button>
                 </form>
 
                 <script>
@@ -118,6 +130,8 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 </script>
 
                 <div class="payment">
+                    {t_payment_options}
+
                     {payment_options}
 
                     <br><br>

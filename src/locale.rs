@@ -11,6 +11,7 @@ pub struct Locale {
 /// a method of the same name - these are translations that need to be called
 /// as a function because they interpolate some parameter into the translation.
 pub struct Translations {
+    pub any_amount: String,
     pub audio_format_description_aac: String,
     pub audio_format_description_aiff: String,
     pub audio_format_description_flac: String,
@@ -51,6 +52,7 @@ pub struct Translations {
     pub name_your_price: String,
     pub option: String,
     pub pay_on_liberapay: String,
+    pub payment_options: String,
     pub recommended_format: String,
     pub rss_feed: String,
     pub share: String,
@@ -103,6 +105,7 @@ impl Translations {
     #[allow(dead_code)]
     pub fn de() -> Translations {
         Translations {
+            any_amount: String::from("Beliebiger Betrag"),
             audio_format_description_aac: String::from("Durchschnittliche Komprimierungsqualität – sinnvoll wenn dein Player keine besseren Formate unterstützt"),
             audio_format_description_aiff: String::from("Unkomprimierte, große Dateien – Nur für Audio Produktion sinnvoll"),
             audio_format_description_flac: String::from("Verlustfrei komprimiert – Beste Wahl für Archivierung"),
@@ -165,6 +168,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
             name_your_price: String::from("Nenne einen Preis"),
             option: String::from("Option"),
             pay_on_liberapay: String::from("Auf Liberapay bezahlen:"),
+            payment_options: String::from("Zahlungsoptionen:"),
             recommended_format: String::from("Empfohlenes Format"),
             rss_feed: String::from("RSS Feed"),
             share: String::from("Teilen"),
@@ -191,6 +195,7 @@ mit /download/[dein-freischaltecode]{index_suffix} and dann drücke Enter."),
 
     pub fn en() -> Translations {
         Translations {
+            any_amount: String::from("Any amount"),
             audio_format_description_aac: String::from("Average encoding quality – appropriate if your player does not support better formats"),
             audio_format_description_aiff: String::from("Uncompressed large files – appropriate only for audio production"),
             audio_format_description_flac: String::from("Lossless and compressed – best choice for archival"),
@@ -257,6 +262,7 @@ Here are some tips for writing good image descriptions:<br>\
             name_your_price: String::from("Name your price"),
             option: String::from("Option"),
             pay_on_liberapay: String::from("Pay on liberapay:"),
+            payment_options: String::from("Payment options:"),
             recommended_format: String::from("Recommended Format"),
             rss_feed: String::from("RSS Feed"),
             share: String::from("Share"),
@@ -282,6 +288,7 @@ with /download/[your-unlock-code]{index_suffix} and then press Enter."),
 
     pub fn keys() -> Translations {
         Translations {
+            any_amount: String::from("any_amount"),
             audio_format_description_aac: String::from("audio_format_description_aac"),
             audio_format_description_aiff: String::from("audio_format_description_aiff"),
             audio_format_description_flac: String::from("audio_format_description_flac"),
@@ -322,6 +329,7 @@ with /download/[your-unlock-code]{index_suffix} and then press Enter."),
             name_your_price: String::from("name_your_price"),
             option: String::from("option"),
             pay_on_liberapay: String::from("pay_on_liberapay"),
+            payment_options: String::from("payment_options"),
             recommended_format: String::from("recommended_format"),
             rss_feed: String::from("rss_feed"),
             share: String::from("share"),
