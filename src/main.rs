@@ -42,7 +42,7 @@ use build::{Build, PostBuildAction};
 use catalog::Catalog;
 use download_option::DownloadOption;
 use ffmpeg::TagMapping;
-use image::{CoverAssets, Image, ImageAssets};
+use image::{Image, ImageAssets};
 use locale::{Locale, WritingDirection};
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};

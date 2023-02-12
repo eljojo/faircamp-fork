@@ -15,7 +15,6 @@ use crate::{
     AudioMeta,
     Build,
     Catalog,
-    CoverAssets,
     ImageAssets,
     ReleaseAssets,
     Track,
@@ -121,32 +120,46 @@ pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Buil
             }
         };
 
-        optimize(&mut assets_mut.artist, "artist", &path);
         optimize(&mut assets_mut.background, "background", &path);
         optimize(&mut assets_mut.feed, "feed", &path);
     }
 
     {
-        let mut optimize_multiple = |assets_option: &mut Option<CoverAssets>, format: &str, path: &str| {
-            match assets_option.as_ref().map(|assets| assets.obsolete(build)) {
-                Some(true) => {
-                    for asset in assets_option.take().unwrap().all() {
-                        util::remove_file(&build.cache_dir.join(&asset.filename));
-                        info_cache!(
-                            "Removed cached image asset ({}) for {} {}x{}.",
-                            format,
-                            path,
-                            asset.edge_size,
-                            asset.edge_size
-                        );
-                    }
+        match assets_mut.artist.as_ref().map(|assets| assets.obsolete(build)) {
+            Some(true) => {
+                for asset in assets_mut.artist.take().unwrap().all() {
+                    util::remove_file(&build.cache_dir.join(&asset.filename));
+                    info_cache!(
+                        "Removed cached image asset ({}) for {} {}x{}.",
+                        "artist",
+                        &path,
+                        asset.height,
+                        asset.width
+                    );
                 }
-                Some(false) => keep_container = true,
-                None => ()
             }
-        };
+            Some(false) => keep_container = true,
+            None => ()
+        }
+    }
 
-        optimize_multiple(&mut assets_mut.cover, "cover", &path);
+    {
+        match assets_mut.cover.as_ref().map(|assets| assets.obsolete(build)) {
+            Some(true) => {
+                for asset in assets_mut.cover.take().unwrap().all() {
+                    util::remove_file(&build.cache_dir.join(&asset.filename));
+                    info_cache!(
+                        "Removed cached image asset ({}) for {} {}x{}.",
+                        "cover",
+                        &path,
+                        asset.edge_size,
+                        asset.edge_size
+                    );
+                }
+            }
+            Some(false) => keep_container = true,
+            None => ()
+        }
     }
 
     if keep_container {
@@ -271,22 +284,26 @@ pub fn report_stale_image_assets(
         }
     };
 
-    report(&assets_ref.artist);
     report(&assets_ref.background);
     report(&assets_ref.feed);
 
-    let mut report_multiple = |assets_option: &Option<CoverAssets>| {
-        if let Some(assets) = assets_option
-            .as_ref()
-            .filter(|assets| assets.marked_stale.is_some()) {
-            for asset in &assets.all() {
-                *num_unused += 1;
-                *unused_bytesize += asset.filesize_bytes;
-            }
+    if let Some(assets) = assets_ref.artist
+        .as_ref()
+        .filter(|assets| assets.marked_stale.is_some()) {
+        for asset in &assets.all() {
+            *num_unused += 1;
+            *unused_bytesize += asset.filesize_bytes;
         }
-    };
+    }
 
-    report_multiple(&assets_ref.cover);
+    if let Some(assets) = assets_ref.cover
+        .as_ref()
+        .filter(|assets| assets.marked_stale.is_some()) {
+        for asset in &assets.all() {
+            *num_unused += 1;
+            *unused_bytesize += asset.filesize_bytes;
+        }
+    }
 }
 
 pub fn report_stale_release_assets(
@@ -426,11 +443,25 @@ impl Cache {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(mut assets) = ImageAssets::deserialize_cached(&dir_entry.path()) {
-                        if let Some(artist_image) = &assets.artist {
-                            if let Some(usage_counter) = self.artifact_registry.get_mut(&artist_image.filename) {
-                                *usage_counter += 1;
-                            } else {
-                                assets.artist = None;
+                        if let Some(artist_assets) = assets.artist.as_mut() {
+                            let all_assets = artist_assets.all();
+
+                            for asset in all_assets.iter() {
+                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
+                                    *usage_counter += 1;
+                                } else {
+                                    // If a single asset is in a corrupt state (cached file missing)
+                                    // we delete all other assets and remove the cache entry altogether.
+
+                                    for asset_to_delete in all_assets.iter() {
+                                        if cache_dir.join(&asset_to_delete.filename).exists() {
+                                            util::remove_file(&cache_dir.join(&asset_to_delete.filename));
+                                        }
+                                    }
+
+                                    assets.artist = None;
+                                    break;
+                                }
                             }
                         }
 

@@ -675,36 +675,41 @@ impl Catalog {
         }
 
         if let Some(home_image) = &self.home_image {
-            let home_image_mut = home_image.borrow_mut();
-            let mut home_image_assets_mut = home_image_mut.assets.borrow_mut();
-            // TODO: Instead of background_asset, this should have its own, tailored implementation (various sizes etc.)
-            let image_asset = home_image_assets_mut.background_asset(build, AssetIntent::Deliverable);
-            
-            util::hard_link_or_copy(
-                build.cache_dir.join(&image_asset.filename),
-                build.build_dir.join("home.jpg")
-            );
-            
-            build.stats.add_image(image_asset.filesize_bytes);
-            
-            home_image_assets_mut.persist_to_cache(&build.cache_dir);
+            let image_mut = home_image.borrow_mut();
+            let mut image_assets_mut = image_mut.assets.borrow_mut();
+            let poster_assets = image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
+
+            for asset in &poster_assets.all() {
+                util::hard_link_or_copy(
+                    build.cache_dir.join(&asset.filename),
+                    // TODO: Address the ugly __home__ hack soon
+                    build.build_dir.join(format!("{}_{}x{}.jpg", "__home__", asset.width, asset.height))
+                );
+
+                build.stats.add_image(asset.filesize_bytes);
+            }
+
+            image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
         for artist in self.artists.iter_mut() {
             let mut artist_mut = artist.borrow_mut();
 
+            let permalink = artist_mut.permalink.slug.to_string();
             if let Some(image) = &mut artist_mut.image {
                 let image_mut = image.borrow_mut();
                 let mut image_assets_mut = image_mut.assets.borrow_mut();
-                let image_asset = image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
-                
-                util::hard_link_or_copy(
-                    build.cache_dir.join(&image_asset.filename),
-                    build.build_dir.join(&image_asset.filename)
-                );
-                
-                build.stats.add_image(image_asset.filesize_bytes);
-                
+                let poster_assets = image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
+
+                for asset in &poster_assets.all() {
+                    util::hard_link_or_copy(
+                        build.cache_dir.join(&asset.filename),
+                        build.build_dir.join(format!("{}_{}x{}.jpg", &permalink, asset.width, asset.height))
+                    );
+
+                    build.stats.add_image(asset.filesize_bytes);
+                }
+
                 image_assets_mut.persist_to_cache(&build.cache_dir);
             }
         }

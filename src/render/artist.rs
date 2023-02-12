@@ -20,20 +20,20 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
     let share_link_rendered = share_link(build);
 
-    let artist_image = match &artist.image {
-        Some(artist_image) => {
-            // TODO: sizes/srcset, alt etc.
-            format!(r#"
-                <img alt="TODO" class="home_image" src="home.jpg">
-            "#)
-        }
+    let artist_image_rendered = match &artist.image {
+        Some(artist_image_unpacked) => artist_image(
+            build,
+            index_suffix,
+            root_prefix,
+            &artist.permalink.slug,
+            artist_image_unpacked
+        ),
         None => String::new()
     };
-    // let artist_image = artist_image(index_suffix, root_prefix, &artist.image, None);
 
     let artist_info = formatdoc!(r##"
         <div class="catalog">
-            {artist_image}
+            {artist_image_rendered}
             <div class="catalog_info_padded">
                 <h1 style="color: #fff;">
                     {artist_name_escaped}

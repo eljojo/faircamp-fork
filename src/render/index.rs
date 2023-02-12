@@ -3,7 +3,7 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    render::{layout, releases, share_link, share_overlay},
+    render::{artist_image, layout, releases, share_link, share_overlay},
     util::html_escape_outside_attribute
 };
 
@@ -50,12 +50,13 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let title_escaped = html_escape_outside_attribute(&catalog_title);
 
     let home_image = match &catalog.home_image {
-        Some(_home_image) => {
-            // TODO: sizes/srcset, alt etc.
-            format!(r#"
-                <img alt="TODO" class="home_image" src="home.jpg">
-            "#)
-        }
+        Some(home_image) => artist_image(
+            build,
+            index_suffix,
+            root_prefix,
+            "__home__", // TODO: Bad hack, solve properly
+            home_image
+        ),
         None => String::new()
     };
 

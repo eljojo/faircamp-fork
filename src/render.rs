@@ -25,45 +25,36 @@ fn artist_image(
     build: &Build,
     index_suffix: &str,
     root_prefix: &str,
-    image: &Option<Rc<RefCell<Image>>>,
-    href_url: Option<&str>
+    permalink: &str,
+    image: &Rc<RefCell<Image>>
 ) -> String {
-    if image.is_none() { return format!("<div></div>"); }
+    let image_ref = image.borrow();
+    let image_assets = image_ref.assets.borrow();
 
-    let image_ref = image.as_ref().unwrap().borrow();
+    let alt = match &image_ref.description {
+        Some(description) => format!(" alt={}", html_escape_inside_attribute(description)),
+        None => String::new()
+    };
 
-    let assets = image_ref.assets.borrow();
-    let filename = &assets.artist.as_ref().unwrap().filename;
+    let poster_img = image_assets.artist.as_ref().unwrap().img_attributes_up_to_1120(permalink, root_prefix);
+    let poster = formatdoc!(
+        r##"
+            <span class="home_image">
+                <img{alt}
+                    class="home_image"
+                    sizes="(min-width: 60rem) 27rem, 100vw"
+                    src="{src}"
+                    srcset="{srcset}">
+            </span>
+        "##,
+        src = poster_img.src,
+        srcset = poster_img.srcset
+    );
 
-    let src_url = format!("{root_prefix}{filename}");
-    let href_or_src_url = href_url.unwrap_or(&src_url);
-
-    if let Some(description) = &image_ref.description {
-        let alt = html_escape_inside_attribute(description);
-
-        formatdoc!(r#"
-            <a class="image" href="{href_or_src_url}">
-                <img alt="{alt}" loading="lazy" src="{src_url}">
-            </a>
-        "#)
+    if image_ref.description.is_some() {
+        poster
     } else {
-        let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
-        formatdoc!(r#"
-            <div class="undescribed_wrapper">
-                <div class="undescribed_corner_tag">
-                    <img src="{root_prefix}corner_tag.svg">
-                </div>
-                <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
-                    <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
-                </a>
-                <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
-                    <span>{t_missing_image_description_note}</span>
-                </a>
-                <a class="image" href="{href_or_src_url}">
-                    <img loading="lazy" src="{src_url}">
-                </a>
-            </div>
-        "#)
+        wrap_undescribed_image(build, index_suffix, root_prefix, &poster, "", "home_image")
     }
 }
 
@@ -137,7 +128,7 @@ fn cover_image(
             {overlay}
         ")
     } else {
-        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay)
+        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
     }
 }
 
@@ -182,7 +173,7 @@ fn cover_tile_image(
     if image_ref.description.is_some() {
         thumbnail
     } else {
-        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, "")
+        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, "", "")
     }
 }
 
@@ -387,11 +378,12 @@ fn wrap_undescribed_image(
     index_suffix: &str,
     root_prefix: &str,
     thumbnail: &str,
-    overlay: &str
+    overlay: &str,
+    extra_class: &str
 ) -> String {
     let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
     formatdoc!(r#"
-        <div class="undescribed_wrapper">
+        <div class="{extra_class} undescribed_wrapper">
             <div class="undescribed_corner_tag">
                 <img src="{root_prefix}corner_tag.svg">
             </div>
