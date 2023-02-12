@@ -170,7 +170,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
             </div>
         "##,
         artists = list_artists(index_suffix, root_prefix, &catalog, &release.artists),
-        cover = cover_image(build, index_suffix, &release_prefix, root_prefix, &release.cover, None),
+        cover = cover_image(build, index_suffix, &release_prefix, root_prefix, &release.cover),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );
@@ -248,7 +248,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
             </div>
         "##,
         artists = list_artists(index_suffix, root_prefix, &catalog, &release.artists),
-        cover = cover_image(build, index_suffix, &release_prefix, root_prefix, &release.cover, None),
+        cover = cover_image(build, index_suffix, &release_prefix, root_prefix, &release.cover),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );

@@ -253,8 +253,8 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .disabled[data-copy] { color: var(--color-muted); }
 #overlay:target { display: flex; }
 #overlay img {
-    max-height: calc(100vh - 4em);
-    max-width: calc(100vw - 4em);
+    max-height: calc(100vh - 4rem);
+    max-width: calc(100vw - 4rem);
 }
 .release {
     display:  flex;

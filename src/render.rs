@@ -97,89 +97,92 @@ fn cover_image(
     index_suffix: &str,
     release_prefix: &str,
     root_prefix: &str,
-    image: &Option<Rc<RefCell<Image>>>,
-    href_url: Option<&str>
+    image: &Option<Rc<RefCell<Image>>>
 ) -> String {
     if image.is_none() { return format!("<div></div>"); }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
 
-    let img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_360(release_prefix);
+    let alt = match &image_ref.description {
+        Some(description) => format!("alt={} ", html_escape_inside_attribute(description)),
+        None => String::new()
+    };
 
-    let href_or_overlay_anchor = href_url.unwrap_or("#overlay");
+    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_360(release_prefix);
+    let thumbnail = formatdoc!(
+        r##"
+            <a class="image" href="#overlay">
+                <img {alt}loading="lazy" sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
+            </a>
+        "##,
+        src = thumbnail_img.src,
+        srcset = thumbnail_img.srcset
+    );
 
-    if let Some(description) = &image_ref.description {
-        let alt = html_escape_inside_attribute(description);
-        let overlay = if href_url.is_none() {
-            let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1080(release_prefix);
+    let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1080(release_prefix);
+    let overlay = formatdoc!(
+        r##"
+            <a id="overlay" href="#">
+                <img {alt} sizes="calc(100vmin - 4rem)" src="{src}" srcset="{srcset}">
+            </a>
+        "##,
+        src = overlay_img.src,
+        srcset = overlay_img.srcset
+    );
 
-            formatdoc!(
-                r##"
-                    <a id="overlay" href="#">
-                        <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
-                    </a>
-                "##,
-                sizes = overlay_img.sizes,
-                src = overlay_img.src,
-                srcset = overlay_img.srcset
-            )
-        } else {
-            String::new()
-        };
-
-        formatdoc!(
-            r#"
-                <a class="image" href="{href_or_overlay_anchor}">
-                    <img alt="{alt}" loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
-                </a>
-                {overlay}
-            "#,
-            sizes = img.sizes,
-            src = img.src,
-            srcset = img.srcset
-        )
+    if image_ref.description.is_some() {
+        formatdoc!("
+            {thumbnail}
+            {overlay}
+        ")
     } else {
-        let overlay = if href_url.is_none() {
-            let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1080(release_prefix);
+        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay)
+    }
+}
 
-            formatdoc!(
-                r##"
-                    <a id="overlay" href="#">
-                        <img loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
-                    </a>
-                "##,
-                sizes = overlay_img.sizes,
-                src = overlay_img.src,
-                srcset = overlay_img.srcset
-            )
-        } else {
-            String::new()
-        };
+fn cover_tile_image(
+    build: &Build,
+    index_suffix: &str,
+    release_prefix: &str,
+    root_prefix: &str,
+    image: &Option<Rc<RefCell<Image>>>,
+    href: &str
+) -> String {
+    if image.is_none() { return format!("<div></div>"); }
 
-        let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
-        formatdoc!(
-            r#"
-                <div class="undescribed_wrapper">
-                    <div class="undescribed_corner_tag">
-                        <img src="{root_prefix}corner_tag.svg">
-                    </div>
-                    <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
-                        <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
-                    </a>
-                    <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
-                        <span>{t_missing_image_description_note}</span>
-                    </a>
-                    <a class="image" href="{href_or_overlay_anchor}">
-                        <img loading="lazy" sizes="{sizes}" src="{src}" srcset="{srcset}">
-                    </a>
-                </div>
-                {overlay}
-            "#,
-            sizes = img.sizes,
-            src = img.src,
-            srcset = img.srcset
-        )
+    let image_ref = image.as_ref().unwrap().borrow();
+    let image_assets = image_ref.assets.borrow();
+
+    let alt = match &image_ref.description {
+        Some(description) => format!(" alt={}", html_escape_inside_attribute(description)),
+        None => String::new()
+    };
+
+    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_360(release_prefix);
+    let thumbnail = formatdoc!(
+        r##"
+            <a class="image" href="{href}">
+                <img{alt}
+                    loading="lazy"
+                    sizes="
+                        (min-width: 60rem) 20rem,
+                        (min-width: 30rem) calc((100vw - 4rem) * 0.333),
+                        (min-width: 15rem) calc((100vw - 3rem) * 0.5),
+                        calc(100vw - 2rem)
+                    "
+                    src="{src}"
+                    srcset="{srcset}">
+            </a>
+        "##,
+        src = thumbnail_img.src,
+        srcset = thumbnail_img.srcset
+    );
+
+    if image_ref.description.is_some() {
+        thumbnail
+    } else {
+        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, "")
     }
 }
 
@@ -326,7 +329,7 @@ fn releases(
 
             let release_prefix = format!("{root_prefix}{permalink}/");
 
-            let cover = cover_image(build, index_suffix, &release_prefix, root_prefix, &release_ref.cover, Some(&href));
+            let cover = cover_tile_image(build, index_suffix, &release_prefix, root_prefix, &release_ref.cover, &href);
             let release_title = html_escape_outside_attribute(&release_ref.title);
 
             formatdoc!(r#"
@@ -377,4 +380,29 @@ pub fn share_overlay(build: &Build, url: &str) -> String {
             </div>
         </div>
     "##)
+}
+
+fn wrap_undescribed_image(
+    build: &Build,
+    index_suffix: &str,
+    root_prefix: &str,
+    thumbnail: &str,
+    overlay: &str
+) -> String {
+    let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
+    formatdoc!(r#"
+        <div class="undescribed_wrapper">
+            <div class="undescribed_corner_tag">
+                <img src="{root_prefix}corner_tag.svg">
+            </div>
+            <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
+                <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+            </a>
+            <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
+                <span>{t_missing_image_description_note}</span>
+            </a>
+            {thumbnail}
+        </div>
+        {overlay}
+    "#)
 }
