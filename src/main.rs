@@ -106,6 +106,13 @@ fn main() {
         release.borrow_mut().write_files(&mut build, &catalog);
     }
 
+    if let Some(home_image) = &catalog.home_image {
+        if home_image.borrow().description.is_none() {
+            warn_discouraged!("The catalog home image is missing an image description.");
+            build.missing_image_descriptions = true;
+        }
+    }
+
     if catalog.label_mode {
         // Render page for each artist
         for artist in &catalog.artists {
