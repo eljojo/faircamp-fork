@@ -36,19 +36,29 @@ fn artist_image(
         None => String::new()
     };
 
-    let poster_img = image_assets.artist.as_ref().unwrap().img_attributes_up_to_1120(permalink, root_prefix);
+    let poster_fixed_img = image_assets.artist.as_ref().unwrap().img_attributes_fixed(permalink, root_prefix);
+    let poster_fluid_img = image_assets.artist.as_ref().unwrap().img_attributes_fluid(permalink, root_prefix);
     let poster = formatdoc!(
         r##"
             <span class="home_image">
-                <img{alt}
-                    class="home_image"
-                    sizes="(min-width: 60rem) 27rem, 100vw"
-                    src="{src}"
-                    srcset="{srcset}">
+                <picture>
+                    <source media="(min-width: 60rem)"
+                            sizes="27rem"
+                            srcset="{srcset_fixed}" />
+                    <source media="(min-width: 30rem)"
+                            sizes="100vw"
+                            srcset="{srcset_fluid}" />
+                    <img{alt}
+                        class="home_image"
+                        sizes="100vw"
+                        src="{src_fixed}"
+                        srcset="{srcset_fixed}">
+                </picture>
             </span>
         "##,
-        src = poster_img.src,
-        srcset = poster_img.srcset
+        src_fixed = poster_fixed_img.src,
+        srcset_fixed = poster_fixed_img.srcset,
+        srcset_fluid = poster_fluid_img.srcset
     );
 
     if image_ref.description.is_some() {
@@ -100,7 +110,7 @@ fn cover_image(
         None => String::new()
     };
 
-    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_360(release_prefix);
+    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_480(release_prefix);
     let thumbnail = formatdoc!(
         r##"
             <a class="image" href="#overlay">
@@ -111,7 +121,7 @@ fn cover_image(
         srcset = thumbnail_img.srcset
     );
 
-    let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1080(release_prefix);
+    let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1280(release_prefix);
     let overlay = formatdoc!(
         r##"
             <a id="overlay" href="#">
@@ -150,7 +160,7 @@ fn cover_tile_image(
         None => String::new()
     };
 
-    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_360(release_prefix);
+    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_320(release_prefix);
     let thumbnail = formatdoc!(
         r##"
             <a class="image" href="{href}">
@@ -187,7 +197,7 @@ fn cover_image_tiny(
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
 
-    let asset = &image_assets.cover.as_ref().unwrap().max_180;
+    let asset = &image_assets.cover.as_ref().unwrap().max_160;
     let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
 
     let alt = if let Some(description) = &image_ref.description {

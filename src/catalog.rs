@@ -683,7 +683,7 @@ impl Catalog {
                 util::hard_link_or_copy(
                     build.cache_dir.join(&asset.filename),
                     // TODO: Address the ugly __home__ hack soon
-                    build.build_dir.join(format!("{}_{}x{}.jpg", "__home__", asset.width, asset.height))
+                    build.build_dir.join(format!("{}_{}_{}x{}.jpg", "__home__", asset.format, asset.width, asset.height))
                 );
 
                 build.stats.add_image(asset.filesize_bytes);
