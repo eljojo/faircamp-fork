@@ -20,13 +20,26 @@ function formatTime(seconds) {
     }
 }
 
-function mountAndPlay(container, seek) {
+async function mountAndPlay(container, seek) {
     const a = container.querySelector('a');
     const audio = container.querySelector('audio');
     const controlsInner = container.querySelector('.track_controls.inner');
     const controlsOuter = container.querySelector('.track_controls.outer');
     const svg = container.querySelector('svg');
     const time = container.querySelector('.track_time');
+
+    if (audio.readyState === audio.HAVE_NOTHING) {
+        audio.load();
+        let ready = false;
+        await new Promise(resolve => {
+            const interval = setInterval(() => {
+                if (audio.readyState >= audio.HAVE_CURRENT_DATA) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 100);
+        });
+    }
 
     if (!audio.dataset.endedListenerAdded) {
         audio.dataset.endedListenerAdded = true;

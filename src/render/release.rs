@@ -108,7 +108,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             <a class="track_title" title="{track_title_attribute}">{track_title}</a>
                             <span class="duration"><span class="track_time"></span>{duration}</span>
                         </span>
-                        <audio controls preload="metadata" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
+                        <audio controls preload="none" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
                         {waveform}
                     </div>
                 "#,
