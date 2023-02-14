@@ -1,5 +1,4 @@
 use enolib::{prelude::*, Document, Field, Item, Section};
-use iso_currency::Currency;
 use std::{
     cell::RefCell,
     fs,
@@ -478,72 +477,16 @@ pub fn apply_options(
             overrides.download_option = DownloadOption::Free;
         }
         if let Some((value, line)) = optional_field_value_with_line(section, "price") {
-            let mut split_by_whitespace = value.split_ascii_whitespace();
-
-            if let Some(first_token) = split_by_whitespace.next() {
-                if let Some(currency) = Currency::from_code(first_token) {
-                    let recombined = &value[4..]; // TODO: Why 4?
-
-                    if recombined.ends_with("+") {
-                        if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
-                            overrides.download_option = DownloadOption::Paid(currency, amount_parsed..f32::INFINITY);
-                        } else {
-                            error!("Ignoring download.price option '{}' with malformed minimum price in {}:{}", value, path.display(), line);
-                        }
-                    } else {
-                        let mut split_by_dash = recombined.split("-");
-
-                        if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
-                            if let Some(max_amount) = split_by_dash.next() {
-                                if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
-                                    overrides.download_option = DownloadOption::Paid(currency, amount_parsed..max_amount_parsed);
-                                } else {
-                                    error!("Ignoring download.price option '{}' with malformed maximum price in {}:{}", value, path.display(), line);
-                                }
-                            } else {
-                                overrides.download_option = DownloadOption::Paid(currency, amount_parsed..amount_parsed);
-                            }
-                        } else {
-                            error!("Ignoring download.price option '{}' with malformed price in {}:{}", value, path.display(), line);
-                        }
-                    }
-                } else if let Some(last_token) = split_by_whitespace.last() {
-                    if let Some(currency) = Currency::from_code(last_token) {
-                        let recombined = &value[..(value.len() - 4)];
-
-                        // TODO: DRY - exact copy from above
-                        if recombined.ends_with("+") {
-                            if let Ok(amount_parsed) = recombined[..(recombined.len() - 1)].parse::<f32>() {
-                                overrides.download_option = DownloadOption::Paid(currency, amount_parsed..f32::INFINITY);
-                            } else {
-                                error!("Ignoring download.price option '{}' with malformed minimum price in {}:{}", value, path.display(), line);
-                            }
-                        } else {
-                            let mut split_by_dash = recombined.split("-");
-
-                            if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
-                                if let Some(max_amount) = split_by_dash.next() {
-                                    if let Ok(max_amount_parsed) = max_amount.parse::<f32>() {
-                                        overrides.download_option = DownloadOption::Paid(currency, amount_parsed..max_amount_parsed);
-                                    } else {
-                                        error!("Ignoring download.price option '{}' with malformed maximum price in {}:{}", value, path.display(), line);
-                                    }
-                                } else {
-                                    overrides.download_option = DownloadOption::Paid(currency, amount_parsed..amount_parsed);
-                                }
-                            } else {
-                                error!("Ignoring download.price option '{}' with malformed price in {}:{}", value, path.display(), line);
-                            }
-                        }
-                    } else {
-                        error!("Ignoring download.price option '{}' without recognizable currency code in {}:{}", value, path.display(), line);
-                    }
-                } else {
-                    error!("Ignoring unrecognized download.price option '{}' in {}:{}", value, path.display(), line);
-                }
-            } else {
-                error!("Ignoring unrecognized download.price option '{}' in {}:{}", value, path.display(), line);
-            }
+             match DownloadOption::new_from_price_string(&value) {
+                Ok(download_option) => overrides.download_option = download_option,
+                Err(err) => error!(
+                    "Ignoring download.price option '{}' ({}) in {}:{}",
+                    value,
+                    err,
+                    path.display(),
+                    line
+                )
+            };
         }
         if let Some(value) = optional_embed_value(section, "unlock_text") {
             overrides.unlock_text = Some(util::markdown_to_html(&value));
