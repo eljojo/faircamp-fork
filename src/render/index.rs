@@ -73,7 +73,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         <div class="catalog">
             {home_image}
             <div class="catalog_info_padded">
-                <h1 style="color: #fff;">
+                <h1 style="color: #fff; font-size: 1.8rem;">
                     {title_escaped}
                 </h1>
                 {catalog_text}
