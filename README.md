@@ -1,15 +1,33 @@
-# Faircamp (codename)
+# Faircamp
 
-A self-hostable, statically generated bandcamp alternative — *[see screenshots at simonrepp.com/faircamp](https://simonrepp.com/faircamp)*
+A static site generator for audio producers
 
-## Concept Overview
+<img src="https://simonrepp.com/faircamp/release_mobile.png?0001"
+     alt="Screenshot of Faircamp (Mobile Layout)"
+     style="max-height: 30rem;" />
 
-Faircamp takes a directory on your disk - your *Catalog* - and from it produces a
-fancy-looking (and technically simple and completely *static*) website, which
-presents your music in a way similar to how popular commercial service
-*bandcamp* does it.
+For more screenshots check out *[https://simonrepp.com/faircamp](https://simonrepp.com/faircamp)*
 
-You can upload the files faircamp generates to any webspace - no database and no programming language support (PHP or such) is required. If your webspace supports SSH access, faircamp can be configured to upload your website for you automatically, otherwise you can use FTP or whichever means you prefer to do that manually.
+Faircamp adheres to these principles: Personal, plain, small, simple, light, fast, reduced, elegant, stable, low/no-maintenance, free, independent, privacy-respecting, standards-conforming, no-nonsense
+
+Curious? Read on!
+
+## Overview
+
+Point Faircamp to a folder hierarchy on your disk which contains your audio
+files. Within minutes, Faircamp builds a complete, static website that
+presents your music to your audience. You can view the site on your computer
+or upload it to any webhost - no database, no php or such required.
+
+By default, visitors can browse and stream your music. You can enable more
+features: Downloads, Embeds, Soft Paycurtain, Unlock codes for Downloads, RSS
+Feed, etc.. You can also provide text descriptions for your releases, adjust
+the theme of your site and so on, this is all done in *manifests*, simple
+text files you place next to your audio files.
+
+If your webspace supports SSH access, faircamp can be configured to upload
+your website for you automatically, otherwise you can use FTP or whichever
+means you prefer to do that manually.
 
 ### The Catalog
 
@@ -26,37 +44,44 @@ get an end result that is pretty much spot-on the first time you run faircamp.
 Besides the audio and image files in your catalog faircamp allows you to put
 simple text files - so called *manifests* - inside your directories. In these
 manifests you can set and override options (e.g. which download formats a
-release should have) that are applied to all files within the same directory and
-below (\*). So by putting a manifest in the top level directory of your catalog you
-can at once set an option for *all* of your releases, and by placing
-manifests further down in the directory structure, you can make specific adjustments all the way down to
-the *release* (single, album, playlist) level - and within the manifest itself also down to the *track* (single song or
-recording within a release) level.
+release should have) that are applied to all files within the same directory
+and below (\*). So by putting a manifest in the top level directory of your
+catalog you can at once set an option for *all* of your releases, and by
+placing manifests further down in the directory structure, you can make
+specific adjustments all the way down to the *release* (single, album,
+playlist) level - and within the manifest itself also down to the *track*
+(single song or recording within a release) level.
 
 (\*) Note that a few select options do not propagate to other folders as it
 would make no sense, e.g. a release's permalink must be unique and therefore
-must not be applied twice.
+makes no sense to propagate.
 
-## Current development state
+## Faircamp is now in Beta
 
 Faircamp can be stably built and run from the main branch. Feature and
-design improvements are usually rolled out piecewise or in waves every few
-weeks. Occcasional small glitches in the interface might temporarily show up.
-Some more advanced features (e.g. embeds) are only half-way implemented.
+design improvements are usually rolled out piece by piece, or in larger waves every few
+weeks. Occcasional glitches in the interface might occur, sometimes only temporarily between updates.
+Some more advanced features are only half-way implemented (see below).
 Technically nothing about the catalog format is set in stone, but practically
 speaking actual changes have been few and far between. Faircamp is not
-production-grade software, but in a very usable alpha state, steadily
-progressing towards an official beta release right now.
+production-grade software, but in a very usable state, in steady development.
+
+These features are knowingly incomplete right now:
+
+- Embeds (they are available but display as a garbled mess for now)
+- Buy page (functionally there but rather bare in usability still)
+- No-javascript mode (faircamp sites work without javascript too, some things still need to be wrapped up though)
 
 ## Documentation
 
-Pretty complete and accurate but keep in mind that things are still being developed and in motion.
+It is pretty complete and mostly accurate.
 
 ### Commandline arguments
 
 Consult `faircamp --help` for the most authoritative and up-to-date information on available arguments.
 
 That said here's a glimpse at some particularly interesting ones:
+
 - `--build-dir <BUILD_DIR>` Override build directory (default is .faircamp_build/ inside the current working directory)
 - `--cache-dir <CACHE_DIR>` Override cache directory (default is .faircamp_cache/ inside the current working directory)
 - `--catalog-dir <CATALOG_DIR>` Override catalog directory (default is the current working directory)
@@ -460,7 +485,9 @@ you need to install (if not already present on your system):
 Faircamp has so far only been tested on Linux - architecturally there should be
 no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
 
-**Note that faircamp is still in alpha development and you're running it at your own risk.**
+**Note that you are running faircamp at your own risk.**
+
+Pay close attention when setting custom paths for the build and cache directories as these directories get wiped as part of faircamp's standard operation.
 
 Run this to build and install faircamp on your system:
 
