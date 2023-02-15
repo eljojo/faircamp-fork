@@ -221,7 +221,32 @@ const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
 const waveformRenderState = {};
 
-function waveforms(baseFontSizePx, widthOverride) {
+function getBaseFontSizePx() {
+    const fontSize = window
+        .getComputedStyle(document.documentElement)
+        .getPropertyValue('font-size');
+    return parseInt(fontSize.replace('px', ''));
+}
+
+function waveforms() {
+    const widthPx = window.innerWidth;
+
+    if (widthPx > 350) {
+        if (waveformRenderState.widthPx === Infinity) return;
+        waveformRenderState.widthPx = Infinity;
+    } else {
+        if (waveformRenderState.widthPx === widthPx) return;
+        waveformRenderState.widthPx = widthPx;
+    }
+
+    const baseFontSizePx = getBaseFontSizePx();
+
+    let widthOverride = null
+    if (waveformRenderState.widthPx !== Infinity) {
+        const PADDING_HORIZONTAL_REM = 2; // must be kept in sync with css
+        widthOverride = (widthPx / baseFontSizePx) - PADDING_HORIZONTAL_REM;
+    }
+
     let trackNumber = 1;
     for (const svg of document.querySelectorAll('svg[data-peaks]')) {
         const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
@@ -303,33 +328,8 @@ function waveforms(baseFontSizePx, widthOverride) {
     waveformRenderState.initialized = true;
 }
 
-function getBaseFontSizePx() {
-    const fontSize = window
-        .getComputedStyle(document.documentElement)
-        .getPropertyValue('font-size');
-    return parseInt(fontSize.replace('px', ''));
-}
-
-waveforms(getBaseFontSizePx());
-
-window.addEventListener('resize', event => {
-    const baseFontSizePx = getBaseFontSizePx();
-    const widthPx = window.innerWidth;
-
-    if (widthPx > 350) {
-        if (waveformRenderState.widthPx !== Infinity) {
-            waveforms(baseFontSizePx);
-            waveformRenderState.widthPx = Infinity;
-        }
-    } else {
-        if (waveformRenderState.widthPx !== widthPx) {
-            const PADDING_HORIZONTAL_REM = 2; // TODO: This is hardcoded, might change in css anytime - figure something out
-            const widthRem = (widthPx / baseFontSizePx) - PADDING_HORIZONTAL_REM;
-            waveforms(baseFontSizePx, widthRem);
-            waveformRenderState.widthPx = widthPx;
-        }
-    }
-});
+waveforms();
+window.addEventListener('resize', waveforms);
 
 window.addEventListener('DOMContentLoaded', event => {
     const shareOverlay = document.querySelector('#share');
