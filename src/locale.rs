@@ -35,7 +35,7 @@ pub struct Translations {
     pub download: String,
     pub download_choice_hints: String,
     pub download_release: String,
-    pub download_with_unlock_code: String,
+    pub download_with_code: String,
     pub embed: String,
     pub embed_entire_release: String,
     pub embed_release: String,
@@ -73,7 +73,9 @@ pub enum WritingDirection {
 /// TODO: In-code provision of multiple locales is mostly there for
 /// prototyping right now. Final implementation will probably go back to just
 /// the default en locale in code, with other locales being loaded through
-/// some other, probably runtime based mechanism.
+/// some other, probably runtime based mechanism. Update: Actually probably
+/// keeping them in-code, PLUS an additional runtime-based mechanism for adding
+/// or customizing locales
 impl Locale {
     #[allow(dead_code)]
     pub fn de() -> Locale {
@@ -136,7 +138,7 @@ schau auch dort falls dir welche bekannt sind!"),
             download: String::from("Download"),
             download_choice_hints: String::from(r##"Einzelne Tracks oder Downloads in anderen Formaten sind unten verfügbar. Nicht sicher welches Format du nehmen sollst? Folge den <a href="#hints">Tipps</a> unten."##),
             download_release: String::from("Release downloaden"),
-            download_with_unlock_code: String::from("Download mit Freischaltecode"),
+            download_with_code: String::from("Download mit Code"),
             embed: String::from("Einbetten"),
             embed_entire_release: String::from("Den gesamten Release einbetten"),
             embed_release: String::from("Release einbetten"),
@@ -230,7 +232,7 @@ if you know of any!"),
             download: String::from("Download"),
             download_choice_hints: String::from(r##"Single track downloads or downloads in other formats are available below. Not sure what format to pick? See the <a href="#hints">hints</a> below."##),
             download_release: String::from("Download Release"),
-            download_with_unlock_code: String::from("Download with unlock code"),
+            download_with_code: String::from("Download with code"),
             embed: String::from("Embed"),
             embed_entire_release: String::from("Embed the entire release"),
             embed_release: String::from("Embed Release"),
@@ -312,7 +314,7 @@ with /download/[your-unlock-code]{index_suffix} and then press Enter."),
             download: String::from("download"),
             download_choice_hints: String::from("download_choice_hints"),
             download_release: String::from("download_release"),
-            download_with_unlock_code: String::from("download_with_unlock_code"),
+            download_with_code: String::from("download_with_code"),
             embed: String::from("embed"),
             embed_entire_release: String::from("embed_entire_release"),
             embed_release: String::from("embed_release"),

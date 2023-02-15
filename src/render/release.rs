@@ -33,9 +33,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Codes { .. } => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
-            let t_download_with_unlock_code = &build.locale.strings.download_with_unlock_code;
+            let t_download_with_code = &build.locale.strings.download_with_code;
             formatdoc!(r#"
-                <a href="checkout/{page_hash}{index_suffix}">{t_download_with_unlock_code}</a>
+                <a href="checkout/{page_hash}{index_suffix}">{t_download_with_code}</a>
             "#)
         },
         DownloadOption::Disabled => String::new(),
