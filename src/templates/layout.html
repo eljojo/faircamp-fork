@@ -15,11 +15,13 @@
     <body>
         <script>document.body.classList.add('js_enabled');</script>
         <nav>
-            <a href="{root_prefix}.{index_suffix}">
+            <a class="logo" href="{root_prefix}.{index_suffix}">
                 <img alt="Faircamp" src="{root_prefix}logo.svg">
             </a>
-            <a href="{root_prefix}.{index_suffix}">{catalog_title}</a>
-            {breadcrumbs}
+            <div class="path">
+                <a href="{root_prefix}.{index_suffix}">{catalog_title}</a>
+                {breadcrumbs}
+            </div>
         </nav>
         {body}
         {theming_widget}

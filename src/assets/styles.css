@@ -43,7 +43,6 @@ nav {
     justify-content: flex-start;
     position: sticky;
     top: 0;
-    white-space: nowrap;
     width: 100%;
     z-index: 9;
 }
@@ -52,13 +51,6 @@ nav {
         font-size: 1.17rem;
         height: 3.2rem;
     }
-}
-nav a { color: var(--color-text); }
-nav img { height: 2.5rem; }
-nav > *:not(:first-child) {
-    margin-right: .4rem;
-    position: relative;
-    top: -.01rem;
 }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .additional { background-color: hsla(0, 0%, var(--text-l), 0.02); }
@@ -234,6 +226,17 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .js_enabled audio { display: none; }
 .large_type { font-size: 1.4rem; }
+.logo {
+    flex-shrink: 0;
+    margin-left: .1rem;
+    width: 2.3rem;
+}
+@media (min-width: 30rem) {
+    .logo {
+        margin-left: .3rem;
+        width: 2.5rem;
+    }
+}
 .muted { color: var(--color-muted); }
 #overlay {
     align-items: center;
@@ -256,6 +259,16 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     max-height: calc(100vh - 4rem);
     max-width: calc(100vw - 4rem);
 }
+.path {
+    overflow-x: hidden;
+    padding-right: 1rem;
+    position: relative;
+    text-overflow: ellipsis;
+    top: -.01rem;
+    white-space: nowrap;
+}
+.path a { color: var(--color-text); }
+.path span { padding: 0 .2rem; }
 .release {
     display:  flex;
     flex-direction: column;
