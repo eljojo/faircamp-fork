@@ -223,7 +223,7 @@ Nice of you to stop by!
 #### Download
 
 By default your visitors can only stream your releases. There are three
-mutually exclusive download modes you can enable for your releases:
+mutually exclusive download modes you can enable for each release:
 
 1. `free` – Free download
 
@@ -337,8 +337,10 @@ disabled
 #### Localization
 
 This allows you to configure a language code (used e.g. for the RSS feed
-metadata) and more importantly to switch from left-to-right to right-to-left
-presentation for e.g. arabic and hebrew scripts.
+metadata) and to switch from left-to-right to right-to-left presentation for
+e.g. arabic and hebrew scripts. Note that the interface itself is already
+fully translatable internally, this only needs some wrapping up before it
+can be exposed through configuration.
 
 ```eno
 # localization
@@ -350,7 +352,9 @@ writing_direction = rtl
 #### Payment
 
 This sets payment options that are shown when someone wants to buy one of your
-releases. For liberapay just provide your account name.
+releases. For liberapay just provide your account name. Functionality and
+options are still a bit bare here, but for now you can provide any custom
+links and information through the `custom` field (which supports markdown).
 
 ```eno
 # payment
@@ -449,7 +453,7 @@ tint_front: 0
 Note that there is a `--theming-widget` CLI option that lets you interactively
 explore different settings for `hue`, `hue_spread`, `tint_back` and
 `tint_front`. Just build your catalog with the option enabled and open it in
-the browser - the page will then contain the theming widget.
+the browser - every page will then contain the theming widget.
 
 #### Advanced control over caching strategy
 
@@ -459,17 +463,32 @@ the browser - the page will then contain the theming widget.
 optimization: [delayed|immediate|manual|wipe]
 ```
 
-Faircamp maintains an asset cache that holds the results of all computation-heavy build
-artifacts (transcoded audio files, images, and compressed archives). By default this cache uses a delayed optimization strategy: Any asset that is not directly used in a build gets marked as stale and past a certain period (e.g. 24 hours) gets purged from the cache during a follow-up build (if it is not meanwhile reactivated because it's needed again). This strikes a nice balance for achieving instant build speeds during editing (after assets have been generated initially) without inadvertently growing a storage resource leak in a directory you don't ever look at normally.
+Faircamp maintains an asset cache that holds the results of all
+computation-heavy build artifacts (transcoded audio files, images, and
+compressed archives). By default this cache uses a delayed optimization
+strategy: Any asset that is not directly used in a build gets marked as stale
+and past a certain period (e.g. 24 hours) gets purged from the cache during a
+follow-up build (if it is not meanwhile reactivated because it's needed
+again). This strikes a nice balance for achieving instant build speeds during
+editing (after assets have been generated initially) without inadvertently
+growing a storage resource leak in a directory you don't ever look at
+normally.
 
-If you're short on disk space you can switch to `immediate` optimization, which purges stale assets right after each build (which might result in small configuration mistakes  wiping assets that took long to generate as a drawback).
+If you're short on disk space you can switch to `immediate` optimization,
+which purges stale assets right after each build (which might result in small
+configuration mistakes wiping cached assets that took long to generate as a
+drawback).
 
-If you're even shorter on disk space you can use `wipe` optimization, which just completely wipes the cache right after each build (so everything needs to be regenerated on each build).
+If you're even shorter on disk space you can use `wipe` optimization, which
+just completely wipes the cache right after each build (so everything needs
+to be regenerated on each build).
 
-If you're more the structured type you can use  `manual` optimization, which does not
-automatically purge anything from the cache but instead prints back reports on stale
-assets after each build and lets you use `faircamp --optimize-cache` and `faircamp --wipe-cache` appropriately whenever you're done with your changes and don't expect to generate
-any new builds for a while.
+If you're more the structured type you can use  `manual` optimization, which
+does not automatically purge anything from the cache but instead prints back
+reports on stale assets after each build and lets you use
+`faircamp --optimize-cache` and `faircamp --wipe-cache` appropriately
+whenever you're done with your changes and don't expect to generate any new
+builds for a while.
 
 ## Build
 
@@ -485,9 +504,7 @@ you need to install (if not already present on your system):
 Faircamp has so far only been tested on Linux - architecturally there should be
 no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
 
-**Note that you are running faircamp at your own risk.**
-
-Pay close attention when setting custom paths for the build and cache directories as these directories get wiped as part of faircamp's standard operation.
+**Note that you are running faircamp at your own risk** - Pay close attention when setting custom paths for the build and cache directories as these directories get wiped as part of faircamp's standard operation.
 
 Run this to build and install faircamp on your system:
 
@@ -501,9 +518,9 @@ Then run it *inside a directory that contains directories that contain audio fil
 faircamp
 ```
 
-With its default settings, faircamp will create a `.faircamp_build` and a `.faircamp_cache` folder inside the directory you called it from. As you might have guessed you will want to open `.faircamp_build/index.html` inside your browser after building is complete.
+With its default settings, faircamp will create a `.faircamp_build` and a `.faircamp_cache` folder inside the directory you called it from. Open `.faircamp_build/index.html` inside your browser after building is complete (the `--preview` flag can also be used).
 
-Run `faircamp -h` to get some help on command line options (there are a few already).
+Run `faircamp -h` to get some help on command line options (there are quite a few).
 
 If you tried out previous versions of faircamp before and find that running an
 updated version crashes when you tried to re-build a previously built site, this
@@ -525,8 +542,8 @@ Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fon
 
 ## Faircamp Alternatives
 
-If you're looking for a bandcamp alternative, but faircamp does not tick your
-boxes, here are some faircamp alternatives for you to explore:
+If you are looking for something like this but faircamp does not tick your
+boxes, here are some alternatives for you to explore:
 
 - [Ampled](https://www.ampled.com/) – «A Co-op For Musicians. Collectively owned, community supported.»
 - [blamscamp](https://suricrasia.online/blamscamp/) – «create a bandcamp-style audio player for selling albums on itch.io.»
