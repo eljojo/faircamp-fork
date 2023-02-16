@@ -107,7 +107,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     let share_url = match &build.base_url {
-        Some(base_url) => base_url.join(index_suffix).unwrap().to_string(),
+        Some(base_url) => base_url.join(build.index_suffix_file_only()).unwrap().to_string(),
         None => String::new()
     };
 

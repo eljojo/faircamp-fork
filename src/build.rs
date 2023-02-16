@@ -115,6 +115,13 @@ impl Build {
         }
     }
 
+    pub fn index_suffix_file_only(&self) -> &str {
+        match self.clean_urls {
+            true => "",
+            false => "index.html"
+        }
+    }
+
     pub fn new(args: &Args) -> Build {
         let catalog_dir = args.catalog_dir
             .as_ref()
