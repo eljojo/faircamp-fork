@@ -26,7 +26,9 @@ Now to use faircamp, prepare your catalog folder (similar to `Superstar Artist/`
 faircamp --preview
 ```
 
-By default, faircamp will create a `.faircamp_build` and a `.faircamp_cache` folder inside the catalog directory. With `--preview` specified, it will automatically open
-`.faircamp_build/index.html` inside your browser after building is complete.
+By default, faircamp will write the site to a `.faircamp_build` folder inside
+the catalog directory. With `--preview` specified, it will automatically open
+the site inside your browser after building is complete. (You can press
+`Ctrl+C` in the terminal to kill the preview server again)
 
 And that's it, your faircamp site is now alive and kicking.

@@ -26,6 +26,7 @@ mod permalink;
 mod release;
 mod render;
 mod rsync;
+mod server;
 mod styles;
 mod theme;
 mod track;
@@ -203,9 +204,16 @@ fn main() {
             }
         },
         PostBuildAction::Preview => {
-            let local_file_url = build.build_dir.join("index.html");
-            if webbrowser::open(&local_file_url.to_string_lossy()).is_err() {
-                error!("Could not open browser for previewing the site")
+            if build.clean_urls {
+                server::serve_preview(&build.build_dir);
+            } else {
+                // We don't need an actively running server to preview a build
+                // without clean urls, we can just open everything directly in
+                // a browser.
+                let local_file_url = build.build_dir.join("index.html");
+                if webbrowser::open(&local_file_url.to_string_lossy()).is_err() {
+                    error!("Could not open browser for previewing the site")
+                }
             }
         }
     }

@@ -156,7 +156,7 @@ impl Build {
             cache_dir,
             cache_optimization: CacheOptimization::Default,
             catalog_dir,
-            clean_urls: !args.no_clean_urls && post_build_action != PostBuildAction::Preview,
+            clean_urls: !args.no_clean_urls,
             deploy_destination: args.deploy_destination.clone(),
             embeds_requested: false,
             exclude_patterns: args.exclude_patterns.clone(),

@@ -11,5 +11,5 @@ That said here's a glimpse at some particularly interesting ones:
 - `--include <INCLUDE_PATTERNS>` Pass this so only file paths that contain the specified pattern will get processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex
 - `--manual` Opens the faircamp manual in your browser, does not do anything else
 - `--no-clean-urls` Generate full links, e.g. "/my-album/index.html" instead of "/my-album/". Creates a build that is fully browsable from your local disk without a webserver
-- `--preview` Locally previews the build in the browser after the build is finished (note that this emits a faircamp site with relative links, i.e. the resulting build is then not indended for direct deployment)
+- `--preview` Locally previews the build in the browser after the build is finished (usually spins up an http server, except for builds with --no-clean-urls which can be directly browsed)
 - `--theming-widget` Injects a small widget into the page which allows you to interactively explore different theme color configurations (see the reference page for `Theme`)
