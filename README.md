@@ -82,8 +82,8 @@ Consult `faircamp --help` for the most authoritative and up-to-date information 
 
 That said here's a glimpse at some particularly interesting ones:
 
-- `--build-dir <BUILD_DIR>` Override build directory (default is .faircamp_build/ inside the current working directory)
-- `--cache-dir <CACHE_DIR>` Override cache directory (default is .faircamp_cache/ inside the current working directory)
+- `--build-dir <BUILD_DIR>` Override build directory (default is .faircamp_build/ inside the catalog directory)
+- `--cache-dir <CACHE_DIR>` Override cache directory (default is .faircamp_cache/ inside the catalog directory)
 - `--catalog-dir <CATALOG_DIR>` Override catalog directory (default is the current working directory)
 - `--exclude <EXCLUDE_PATTERNS>` Excludes all file paths that contain the specified pattern from being processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex
 - `--include <INCLUDE_PATTERNS>` Pass this so only file paths that contain the specified pattern will get processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex

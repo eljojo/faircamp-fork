@@ -8,11 +8,11 @@ pub struct Args {
     #[clap(long = "analyze-cache")]
     pub analyze_cache: bool,
     
-    /// Override build directory (default is .faircamp_build/ inside the current working directory)
+    /// Override build directory (default is .faircamp_build/ inside the catalog directory)
     #[clap(long = "build-dir")]
     pub build_dir: Option<PathBuf>,
     
-    /// Override cache directory (default is .faircamp_cache/ inside the current working directory)
+    /// Override cache directory (default is .faircamp_cache/ inside the catalog directory)
     #[clap(long = "cache-dir")]
     pub cache_dir: Option<PathBuf>,
     
