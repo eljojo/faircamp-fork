@@ -32,7 +32,7 @@ fn artist_image(
     let image_assets = image_ref.assets.borrow();
 
     let alt = match &image_ref.description {
-        Some(description) => format!(" alt={}", html_escape_inside_attribute(description)),
+        Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
         None => String::new()
     };
 
@@ -106,7 +106,7 @@ fn cover_image(
     let image_assets = image_ref.assets.borrow();
 
     let alt = match &image_ref.description {
-        Some(description) => format!("alt={} ", html_escape_inside_attribute(description)),
+        Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
         None => String::new()
     };
 
@@ -114,7 +114,7 @@ fn cover_image(
     let thumbnail = formatdoc!(
         r##"
             <a class="image" href="#overlay">
-                <img {alt}loading="lazy" sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
+                <img{alt} loading="lazy" sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
             </a>
         "##,
         src = thumbnail_img.src,
@@ -156,7 +156,7 @@ fn cover_tile_image(
     let image_assets = image_ref.assets.borrow();
 
     let alt = match &image_ref.description {
-        Some(description) => format!(" alt={}", html_escape_inside_attribute(description)),
+        Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
         None => String::new()
     };
 
@@ -398,7 +398,7 @@ fn wrap_undescribed_image(
                 <img src="{root_prefix}corner_tag.svg">
             </div>
             <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
-                <img alt="Visual Impairment"  src="{root_prefix}visual_impairment.svg">
+                <img alt="Visual Impairment" src="{root_prefix}visual_impairment.svg">
             </a>
             <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
                 <span>{t_missing_image_description_note}</span>
