@@ -33,7 +33,7 @@ impl Asset {
     
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
-            self.marked_stale = Some(timestamp.clone());
+            self.marked_stale = Some(*timestamp);
         }
     }
     
@@ -43,7 +43,7 @@ impl Asset {
                 match &build.cache_optimization {
                     CacheOptimization::Default | 
                     CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(marked_stale.clone()) > Duration::hours(24),
+                        build.build_begin.signed_duration_since(*marked_stale) > Duration::hours(24),
                     CacheOptimization::Immediate |
                     CacheOptimization::Manual |
                     CacheOptimization::Wipe => true

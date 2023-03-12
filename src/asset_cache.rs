@@ -400,7 +400,7 @@ impl Cache {
     pub fn retrieve(cache_dir: &Path) -> Cache {
         let mut cache = Cache::new();
 
-        let version_marker_file = cache_dir.join(&ASSET_CACHE_VERSION_MARKER);
+        let version_marker_file = cache_dir.join(ASSET_CACHE_VERSION_MARKER);
 
         if !version_marker_file.exists() {
             if cache_dir.exists() {
@@ -626,7 +626,7 @@ impl Cache {
         }
     }
     
-    pub fn get_or_create_release_assets(&mut self, tracks: &Vec<Track>) -> Rc<RefCell<ReleaseAssets>> {
+    pub fn get_or_create_release_assets(&mut self, tracks: &[Track]) -> Rc<RefCell<ReleaseAssets>> {
         match self.releases
             .iter()
             .find(|assets| {
@@ -664,7 +664,7 @@ impl Cache {
         ) {
             Some(assets) => assets.clone(),
             None => {
-                let source_meta = AudioMeta::extract(&build.catalog_dir.join(&source_path), extension);
+                let source_meta = AudioMeta::extract(&build.catalog_dir.join(source_path), extension);
                 let track_assets = TrackAssets::new(source_file_signature, source_meta);
 
                 // We already extracted the AudioMeta for this track - which is costly

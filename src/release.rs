@@ -113,7 +113,7 @@ impl Release {
             permalink,
             rewrite_tags: manifest_overrides.rewrite_tags,
             runtime,
-            streaming_format: manifest_overrides.streaming_format.clone(),
+            streaming_format: manifest_overrides.streaming_format,
             text: manifest_overrides.release_text.clone(),
             title,
             track_numbering: manifest_overrides.release_track_numbering.clone(),
@@ -256,7 +256,7 @@ impl Release {
                     ).unwrap();
 
                     zip_inner_file.read_to_end(&mut buffer).unwrap();
-                    zip_writer.write_all(&*buffer).unwrap();
+                    zip_writer.write_all(&buffer).unwrap();
                     buffer.clear();
 
                     track.assets.borrow().persist_to_cache(&build.cache_dir);
@@ -274,7 +274,7 @@ impl Release {
                     ).unwrap();
 
                     zip_inner_file.read_to_end(&mut buffer).unwrap();
-                    zip_writer.write_all(&*buffer).unwrap();
+                    zip_writer.write_all(&buffer).unwrap();
                     buffer.clear();
 
                     assets_mut.persist_to_cache(&build.cache_dir);
@@ -398,17 +398,17 @@ impl Release {
         if self.embedding  {
             if let Some(base_url) = &build.base_url {
                 let embed_choices_dir = release_dir.join("embed");
-                let embed_choices_html = render::release::embed::embed_choices_html(build, catalog, self, &base_url);
+                let embed_choices_html = render::release::embed::embed_choices_html(build, catalog, self, base_url);
                 util::ensure_dir_and_write_index(&embed_choices_dir, &embed_choices_html);
 
                 let embed_release_dir = embed_choices_dir.join("all");
-                let embed_release_html = render::release::embed::embed_release_html(build, catalog, self, &base_url);
+                let embed_release_html = render::release::embed::embed_release_html(build, catalog, self, base_url);
                 util::ensure_dir_and_write_index(&embed_release_dir, &embed_release_html);
 
                 for (index, track) in self.tracks.iter().enumerate() {
                     let track_number = index + 1;
                     let embed_track_dir = embed_choices_dir.join(track_number.to_string());
-                    let embed_track_html = render::release::embed::embed_track_html(build, catalog, self, track, track_number, &base_url);
+                    let embed_track_html = render::release::embed::embed_track_html(build, catalog, self, track, track_number, base_url);
                     util::ensure_dir_and_write_index(&embed_track_dir, &embed_track_html);
                 }
             }
@@ -483,7 +483,7 @@ impl ReleaseAssets {
 
     pub fn persist_to_cache(&self, cache_dir: &Path) {
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
+        fs::write(self.manifest_path(cache_dir), serialized).unwrap();
     }
 }
 
@@ -553,6 +553,6 @@ impl TrackNumbering {
             _ => unimplemented!()
         };
         
-        format!("{}", roman)
+        roman.to_string()
     }
 }

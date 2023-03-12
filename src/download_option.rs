@@ -17,15 +17,15 @@ impl DownloadOption {
     /// Valid price strings look like this: "EUR 4+", "3 USD", "1-9 CAN", etc.
     pub fn new_from_price_string(string: &str) -> Result<DownloadOption, String> {
         let parse_price = |currency: Currency, amount: &str| {
-            if amount.ends_with("+") {
-                if let Ok(amount_parsed) = amount[..(amount.len() - 1)].parse::<f32>() {
-                    return Ok(DownloadOption::Paid(currency, amount_parsed..f32::INFINITY));
+            if let Some(amount_min_str) = amount.strip_suffix('+') {
+                if let Ok(amount_min) = amount_min_str.parse::<f32>() {
+                    return Ok(DownloadOption::Paid(currency, amount_min..f32::INFINITY));
                 } else {
                     return Err(String::from("Malformed minimum price"));
                 }
             }
 
-            let mut split_by_dash = amount.split("-");
+            let mut split_by_dash = amount.split('-');
 
             if let Ok(amount_parsed) = split_by_dash.next().unwrap().parse::<f32>() {
                 if let Some(max_amount) = split_by_dash.next() {
@@ -53,7 +53,7 @@ impl DownloadOption {
                 }
             }
 
-            return Err(String::from("Malformed price"));
+            Err(String::from("Malformed price"))
         };
 
         let mut split_by_whitespace = string.split_ascii_whitespace();
@@ -72,6 +72,6 @@ impl DownloadOption {
             }
         }
 
-        return Err(String::from("Price format must consist of two tokens"));
+        Err(String::from("Price format must consist of two tokens"))
     }
 }

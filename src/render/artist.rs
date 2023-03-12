@@ -48,7 +48,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         build,
         index_suffix,
         root_prefix,
-        &catalog,
+        catalog,
         &artist.releases,
         false
     );

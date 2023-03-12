@@ -108,7 +108,7 @@ impl ThemeFont {
                     Err(format!("Theme font extension {:?} not supported (only .woff/.woff2 is supported)", extension))
                 }
             }
-            None => Err(format!("Custom theme font file needs to have a file extension"))
+            None => Err(String::from("Custom theme font file needs to have a file extension"))
         }
     }
 }

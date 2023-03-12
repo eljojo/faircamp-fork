@@ -198,9 +198,9 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_link = format!("../..{index_suffix}");
 
     let compact_release_identifier_rendered = compact_release_identifier(
-        &catalog,
+        catalog,
         index_suffix,
-        &release,
+        release,
         &release_link,
         release_prefix,
         root_prefix,

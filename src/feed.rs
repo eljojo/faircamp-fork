@@ -27,8 +27,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         // TODO: This should maybe be stripped off html (?) - practically speaking
         //       our markdown parser allows us to manually generate such output.
         let channel_description = catalog.text
-            .as_ref()
-            .map(|string| string.as_str())
+            .as_deref()
             .unwrap_or("A faircamp-based music catalog"); 
         
         let channel_title = catalog.title();

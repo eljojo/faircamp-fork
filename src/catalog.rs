@@ -71,7 +71,7 @@ fn pick_best_cover_image(images: Vec<Rc<RefCell<Image>>>) -> Option<Rc<RefCell<I
         }
     }
 
-    cover_candidate_option.map(|cover_candidate| cover_candidate.1.clone())
+    cover_candidate_option.map(|cover_candidate| cover_candidate.1)
 }
 
 impl Catalog {
@@ -83,7 +83,7 @@ impl Catalog {
             let mut release_mut = release.borrow_mut();
 
             let release_artists = if release_mut.artists.is_empty() {
-                format!("")
+                String::new()
             } else {
                 let list = release_mut.artists
                     .iter()
@@ -101,7 +101,7 @@ impl Catalog {
 
             for (index, track) in release_mut.tracks.iter_mut().enumerate() {
                 let track_artists = if track.artists.is_empty() {
-                    format!("")
+                    String::new()
                 } else {
                     let list = track.artists
                         .iter()
@@ -277,7 +277,7 @@ impl Catalog {
                 'dir_entry_iter: for dir_entry_result in dir_entries {
                     if let Ok(dir_entry) = dir_entry_result {
                         if let Some(filename) = dir_entry.file_name().to_str() {
-                            if filename.starts_with(".") {
+                            if filename.starts_with('.') {
                                 if build.verbose {
                                     info!("Ignoring hidden file '{}'", filename);
                                 }
@@ -302,7 +302,7 @@ impl Catalog {
                                     }
                                 }
 
-                                if build.include_patterns.len() > 0 {
+                                if !build.include_patterns.is_empty() {
                                     let mut include = false;
 
                                     for include_pattern in &build.include_patterns {
@@ -322,13 +322,13 @@ impl Catalog {
                                     }
                                 }
 
-                                if let Some(extension) = path.extension()
-                                    .map(|osstr|
+                                if let Some(extension) = path
+                                    .extension()
+                                    .and_then(|osstr|
                                         osstr.to_str().map(|str|
                                             str.to_lowercase().as_str().to_string()
                                         )
-                                    )
-                                    .flatten() {
+                                    ) {
                                     if extension == "eno" {
                                         meta_paths.push(path);
                                     } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
@@ -426,10 +426,9 @@ impl Catalog {
             } else {
                 for release_track in &release_tracks {
                     for track_artist_to_map in &release_track.artists_to_map {
-                        if release_artists_to_map
+                        if !release_artists_to_map
                         .iter()
-                        .find(|release_artist_to_map| release_artist_to_map == &track_artist_to_map)
-                        .is_none() {
+                        .any(|release_artist_to_map| release_artist_to_map == track_artist_to_map) {
                             release_artists_to_map.push(track_artist_to_map.clone());
                         }
                     }
@@ -439,7 +438,7 @@ impl Catalog {
             let title = &local_options
                 .release_title
                 .as_ref()
-                .map(|title| title.clone())
+                .cloned()
                 .unwrap_or_else(||
                     release_title_metrics
                         .pop()
@@ -480,7 +479,7 @@ impl Catalog {
         }
         
         for dir_path in &dir_paths {
-            self.read_dir(dir_path, build, cache, local_overrides.as_ref().unwrap_or(&parent_overrides)).unwrap();
+            self.read_dir(dir_path, build, cache, local_overrides.as_ref().unwrap_or(parent_overrides)).unwrap();
         }
 
         Ok(())
@@ -493,14 +492,14 @@ impl Catalog {
         assets: Rc<RefCell<TrackAssets>>
     ) -> Track {
         let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
-            artist_names.iter().map(|name| name.clone()).collect()
+            artist_names.to_vec()
         } else {
-            assets.borrow().source_meta.artist.iter().map(|name| name.clone()).collect()
+            assets.borrow().source_meta.artist.to_vec()
         };
         
         let title = assets.borrow().source_meta.title
             .as_ref()
-            .map(|title| title.clone())
+            .cloned()
             .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
         
         Track::new(artists_to_map, assets, title)
@@ -609,7 +608,7 @@ impl Catalog {
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
-                let usage = PermalinkUsage::Release(&release);
+                let usage = PermalinkUsage::Release(release);
                 if release_ref.permalink.generated { add_generated_usage(&usage); }
                 used_permalinks.insert(release_ref.permalink.slug.to_string(), usage);
             }
@@ -625,7 +624,7 @@ impl Catalog {
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
-                let usage = PermalinkUsage::Artist(&artist);
+                let usage = PermalinkUsage::Artist(artist);
                 if artist_ref.permalink.generated { add_generated_usage(&usage); }
                 used_permalinks.insert(artist_ref.permalink.slug.to_string(), usage);
             }
@@ -640,7 +639,7 @@ impl Catalog {
             _ => unreachable!()
         }
 
-        return true;
+        true
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {

@@ -100,7 +100,7 @@ fn cover_image(
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>
 ) -> String {
-    if image.is_none() { return format!("<div></div>"); }
+    if image.is_none() { return String::from("<div></div>"); }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
@@ -150,7 +150,7 @@ fn cover_tile_image(
     image: &Option<Rc<RefCell<Image>>>,
     href: &str
 ) -> String {
-    if image.is_none() { return format!("<div></div>"); }
+    if image.is_none() { return String::from("<div></div>"); }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
@@ -192,7 +192,7 @@ fn cover_image_tiny(
     image: &Option<Rc<RefCell<Image>>>,
     href_url: &str
 ) -> String {
-    if image.is_none() { return format!("<div></div>"); }
+    if image.is_none() { return String::from("<div></div>"); }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
@@ -280,7 +280,7 @@ fn list_artists(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    artists: &Vec<Rc<RefCell<Artist>>>
+    artists: &[Rc<RefCell<Artist>>]
 ) -> String {
     artists
         .iter()
@@ -310,7 +310,7 @@ fn releases(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    releases: &Vec<Rc<RefCell<Release>>>,
+    releases: &[Rc<RefCell<Release>>],
     show_artists: bool
 ) -> String {
     releases
@@ -322,7 +322,7 @@ fn releases(
             let href = format!("{root_prefix}{permalink}{index_suffix}");
 
             let artists = if show_artists {
-                let list = list_artists(index_suffix, root_prefix, &catalog, &release_ref.artists);
+                let list = list_artists(index_suffix, root_prefix, catalog, &release_ref.artists);
                 format!("<div>{list}</div>")
             } else {
                 String::new()

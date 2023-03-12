@@ -1,5 +1,4 @@
 use id3::{self, TagLike};
-use metaflac;
 use serde_derive::{Serialize, Deserialize};
 use std::path::Path;
 
@@ -73,7 +72,7 @@ impl AudioMeta {
                         .map(|fields|
                             fields.map(|field| field.to_string()).collect()
                         )
-                        .unwrap_or_else(|| Vec::new());
+                        .unwrap_or_else(Vec::new);
 
                     let title = match tag.get_vorbis("title") {
                         Some(fields) => fields.fold(None, |result, field| {

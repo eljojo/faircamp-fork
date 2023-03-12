@@ -1,6 +1,5 @@
 use clap::Parser;
 use std::fs;
-use webbrowser;
 
 #[macro_use]
 mod message;

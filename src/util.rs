@@ -57,17 +57,17 @@ pub fn hard_link_or_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) {
 }
 
 pub fn html_escape_inside_attribute(string: &str) -> String {
-    string.replace("&", "&amp")
-          .replace("<", "&lt;")
-          .replace(">", "&gt;")
-          .replace("\"", "&quot;")
-          .replace("'", "&#39;")
+    string.replace('&', "&amp")
+          .replace('<', "&lt;")
+          .replace('>', "&gt;")
+          .replace('"', "&quot;")
+          .replace('\'', "&#39;")
 }
 
 pub fn html_escape_outside_attribute(string: &str) -> String {
-    string.replace("&", "&amp")
-          .replace("<", "&lt;")
-          .replace(">", "&gt;")
+    string.replace('&', "&amp")
+          .replace('<', "&lt;")
+          .replace('>', "&gt;")
 }
 
 pub fn markdown_to_html(markdown: &str) -> String {

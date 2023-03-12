@@ -15,7 +15,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
     let mut result = DecodeResult {
         channels: spec.channels,
         duration: sample_count as f32 / spec.sample_rate as f32,
-        sample_count: sample_count,
+        sample_count,
         sample_rate: spec.sample_rate,
         samples: Vec::with_capacity(sample_count as usize * spec.channels as usize)
     };

@@ -89,7 +89,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         build,
         index_suffix,
         root_prefix,
-        &catalog,
+        catalog,
         &catalog.releases,
         catalog.label_mode
     );

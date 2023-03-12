@@ -18,11 +18,11 @@ pub enum AudioFormat {
 /// - .1 => Audio formats sorted by relevance for a non-expert listener, the recommended one marked as such 
 /// Careful this does not support being called with an empty list of formats.
 pub fn prioritized_for_download(
-    download_formats: &Vec<AudioFormat>
+    download_formats: &[AudioFormat]
 ) -> ((AudioFormat, bool), Vec<(AudioFormat, bool)>) {
-    let mut sorted_formats = download_formats.clone();
+    let mut sorted_formats = download_formats.to_owned();
     
-    sorted_formats.sort_by(|a, b| a.download_rank().cmp(&b.download_rank()));
+    sorted_formats.sort_by_key(|format| format.download_rank());
     
     let mut recommended_format = None;
     let mut recommendation_given = false;

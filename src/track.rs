@@ -164,6 +164,6 @@ impl TrackAssets {
     
     pub fn persist_to_cache(&self, cache_dir: &Path) {
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
+        fs::write(self.manifest_path(cache_dir), serialized).unwrap();
     }
 }

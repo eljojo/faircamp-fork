@@ -242,7 +242,7 @@ impl ArtistAssets {
 
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
-            self.marked_stale = Some(timestamp.clone());
+            self.marked_stale = Some(*timestamp);
         }
     }
 
@@ -252,7 +252,7 @@ impl ArtistAssets {
                 match &build.cache_optimization {
                     CacheOptimization::Default | 
                     CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(marked_stale.clone()) > Duration::hours(24),
+                        build.build_begin.signed_duration_since(*marked_stale) > Duration::hours(24),
                     CacheOptimization::Immediate |
                     CacheOptimization::Manual |
                     CacheOptimization::Wipe => true
@@ -329,7 +329,7 @@ impl CoverAssets {
 
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
-            self.marked_stale = Some(timestamp.clone());
+            self.marked_stale = Some(*timestamp);
         }
     }
 
@@ -339,7 +339,7 @@ impl CoverAssets {
                 match &build.cache_optimization {
                     CacheOptimization::Default | 
                     CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(marked_stale.clone()) > Duration::hours(24),
+                        build.build_begin.signed_duration_since(*marked_stale) > Duration::hours(24),
                     CacheOptimization::Immediate |
                     CacheOptimization::Manual |
                     CacheOptimization::Wipe => true
@@ -389,7 +389,7 @@ impl ImageAssets {
                 }
             );
 
-            let fixed_metadata_320 = fs::metadata(&build.cache_dir.join(&fixed_filename_320)).unwrap();
+            let fixed_metadata_320 = fs::metadata(build.cache_dir.join(&fixed_filename_320)).unwrap();
 
             let fixed_max_320 = ArtistAsset {
                 filename: fixed_filename_320,
@@ -413,7 +413,7 @@ impl ImageAssets {
                     }
                 );
 
-                let fixed_metadata_480 = fs::metadata(&build.cache_dir.join(&fixed_filename_480)).unwrap();
+                let fixed_metadata_480 = fs::metadata(build.cache_dir.join(&fixed_filename_480)).unwrap();
 
                 fixed_max_480 = Some(ArtistAsset {
                     filename: fixed_filename_480,
@@ -434,7 +434,7 @@ impl ImageAssets {
                         }
                     );
 
-                    let fixed_metadata_640 = fs::metadata(&build.cache_dir.join(&fixed_filename_640)).unwrap();
+                    let fixed_metadata_640 = fs::metadata(build.cache_dir.join(&fixed_filename_640)).unwrap();
 
                     fixed_max_640 = Some(ArtistAsset {
                         filename: fixed_filename_640,
@@ -461,7 +461,7 @@ impl ImageAssets {
                 }
             );
 
-            let fluid_metadata_640 = fs::metadata(&build.cache_dir.join(&fluid_filename_640)).unwrap();
+            let fluid_metadata_640 = fs::metadata(build.cache_dir.join(&fluid_filename_640)).unwrap();
 
             let fluid_max_640 = ArtistAsset {
                 filename: fluid_filename_640,
@@ -485,7 +485,7 @@ impl ImageAssets {
                     }
                 );
 
-                let fluid_metadata_960 = fs::metadata(&build.cache_dir.join(&fluid_filename_960)).unwrap();
+                let fluid_metadata_960 = fs::metadata(build.cache_dir.join(&fluid_filename_960)).unwrap();
 
                 fluid_max_960 = Some(ArtistAsset {
                     filename: fluid_filename_960,
@@ -506,7 +506,7 @@ impl ImageAssets {
                         }
                     );
 
-                    let fluid_metadata_1280 = fs::metadata(&build.cache_dir.join(&fluid_filename_1280)).unwrap();
+                    let fluid_metadata_1280 = fs::metadata(build.cache_dir.join(&fluid_filename_1280)).unwrap();
 
                     fluid_max_1280 = Some(ArtistAsset {
                         filename: fluid_filename_1280,
@@ -575,7 +575,7 @@ impl ImageAssets {
                 ResizeMode::CoverSquare { edge_size: 160 }
             );
 
-            let metadata_160 = fs::metadata(&build.cache_dir.join(&filename_160)).unwrap();
+            let metadata_160 = fs::metadata(build.cache_dir.join(&filename_160)).unwrap();
 
             let max_160 = CoverAsset {
                 edge_size: dimensions_160.0,
@@ -595,7 +595,7 @@ impl ImageAssets {
                     ResizeMode::CoverSquare { edge_size: 320 }
                 );
 
-                let metadata_320 = fs::metadata(&build.cache_dir.join(&filename_320)).unwrap();
+                let metadata_320 = fs::metadata(build.cache_dir.join(&filename_320)).unwrap();
 
                 max_320 = Some(CoverAsset {
                     edge_size: dimensions_320.0,
@@ -610,7 +610,7 @@ impl ImageAssets {
                         ResizeMode::CoverSquare { edge_size: 480 }
                     );
 
-                    let metadata_480 = fs::metadata(&build.cache_dir.join(&filename_480)).unwrap();
+                    let metadata_480 = fs::metadata(build.cache_dir.join(&filename_480)).unwrap();
 
                     max_480 = Some(CoverAsset {
                         edge_size: dimensions_480.0,
@@ -625,7 +625,7 @@ impl ImageAssets {
                             ResizeMode::CoverSquare { edge_size: 800 }
                         );
 
-                        let metadata_800 = fs::metadata(&build.cache_dir.join(&filename_800)).unwrap();
+                        let metadata_800 = fs::metadata(build.cache_dir.join(&filename_800)).unwrap();
 
                         max_800 = Some(CoverAsset {
                             edge_size: dimensions_800.0,
@@ -640,7 +640,7 @@ impl ImageAssets {
                                 ResizeMode::CoverSquare { edge_size: 1280 }
                             );
 
-                            let metadata_1280 = fs::metadata(&build.cache_dir.join(&filename_1280)).unwrap();
+                            let metadata_1280 = fs::metadata(build.cache_dir.join(&filename_1280)).unwrap();
 
                             max_1280 = Some(CoverAsset {
                                 edge_size: dimensions_1280.0,
@@ -705,10 +705,10 @@ impl ImageAssets {
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        self.artist.as_mut().map(|asset| asset.mark_stale(timestamp));
-        self.background.as_mut().map(|asset| asset.mark_stale(timestamp));
-        self.cover.as_mut().map(|asset| asset.mark_stale(timestamp));
-        self.feed.as_mut().map(|asset| asset.mark_stale(timestamp));
+        if let Some(asset) = self.artist.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.background.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.cover.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.feed.as_mut() { asset.mark_stale(timestamp); }
     }
     
     pub fn new(source_file_signature: SourceFileSignature) -> ImageAssets {
@@ -724,7 +724,7 @@ impl ImageAssets {
     
     pub fn persist_to_cache(&self, cache_dir: &Path) {
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(self.manifest_path(cache_dir), &serialized).unwrap();
+        fs::write(self.manifest_path(cache_dir), serialized).unwrap();
     }
 }
 
