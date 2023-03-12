@@ -466,6 +466,7 @@ impl Catalog {
                 release_artists_to_map,
                 assets,
                 cover,
+                local_options.release_date,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 local_options.release_permalink,
                 title.to_string(),

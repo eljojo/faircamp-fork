@@ -313,8 +313,13 @@ fn releases(
     releases: &[Rc<RefCell<Release>>],
     show_artists: bool
 ) -> String {
-    releases
+    let mut releases_desc_by_date = releases.to_vec();
+
+    releases_desc_by_date.sort_by_key(|release| release.borrow().date);
+
+    releases_desc_by_date
         .iter()
+        .rev()
         .map(|release| {
             let release_ref = release.borrow();
             let permalink = &release_ref.permalink.slug;

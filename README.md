@@ -392,6 +392,7 @@ the source files onto the transcoded files, as you provided them.
 # release
 
 artist: Heston Exchange
+date: 2019-11-03
 permalink: ape-affairs-bonus-track-edition
 rewrite_tags: no
 title: Ape Affairs (Bonus Track Edition)
@@ -413,6 +414,12 @@ for it. `track_numbering` allows configuration of the numbering style
 used - by default it's `arabic` (01 02 03 …) but can be set to `hexadecimal`
 (0x01 0x02 0x03 …), `roman` (I II
 III …) or `disabled`.
+
+Note that the `date` is used for sorting only: Both on the homepage, as well
+as on artist pages (label mode) releases that have the most recent date are
+displayed on top, followed by older ones and lastly followed by those that
+have no date specified at all (those will follow no intentional order).
+Dates must be supplied strictly in the format `YYYY-MM-DD`.
 
 #### Streaming
 

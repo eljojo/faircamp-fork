@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use enolib::{prelude::*, Document, Field, Item, Section};
 use std::{
     cell::RefCell,
@@ -38,6 +39,7 @@ macro_rules! err_line {
 /// only uniquely apply to one release, thus it is a local option only.
 #[derive(Clone)]
 pub struct LocalOptions {
+    pub release_date: Option<NaiveDate>,
     pub release_permalink: Option<Permalink>,
     pub release_title: Option<String>
 }
@@ -67,6 +69,7 @@ pub struct Overrides {
 impl LocalOptions {
     pub fn new() -> LocalOptions {
         LocalOptions {
+            release_date: None,
             release_permalink: None,
             release_title: None
         }
@@ -588,6 +591,18 @@ pub fn apply_options(
                     }
                 }
                 None => ()
+            }
+        }    
+
+        if let Some((date_str, line)) = optional_field_value_with_line(section, "date") {
+            match NaiveDate::parse_from_str(&date_str, "%Y-%m-%d") {
+                Ok(date) => {
+                    if let Some(previous) = &local_options.release_date {
+                        warn!("Option release.date is set more than once - overriding previous value '{}' with '{}'", previous, date);
+                    }
+                    local_options.release_date = Some(date);
+                },
+                Err(err) => error!("Ignoring invalid release.date value '{}' in {}:{} ({})", date_str, path.display(), line, err)
             }
         }
 

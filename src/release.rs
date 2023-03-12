@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde_derive::{Serialize, Deserialize};
 use std::{
     cell::RefCell,
@@ -38,6 +38,7 @@ pub struct Release {
     pub asset_basename: Option<String>,
     pub assets: Rc<RefCell<ReleaseAssets>>,
     pub cover: Option<Rc<RefCell<Image>>>,
+    pub date: Option<NaiveDate>,
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
@@ -80,6 +81,7 @@ impl Release {
         artists_to_map: Vec<String>,
         assets: Rc<RefCell<ReleaseAssets>>,
         cover: Option<Rc<RefCell<Image>>>,
+        date: Option<NaiveDate>,
         manifest_overrides: &Overrides,
         permalink_option: Option<Permalink>,
         title: String,
@@ -106,6 +108,7 @@ impl Release {
             asset_basename: None,
             assets,
             cover,
+            date,
             download_formats: manifest_overrides.download_formats.clone(),
             download_option,
             embedding: manifest_overrides.embedding,
