@@ -35,9 +35,8 @@ pub fn main() {
 	let docs = read_docs();
 
 	let out_dir = env::var_os("OUT_DIR").unwrap();
-    let manual_out_dir = Path::new("manual");
+    let manual_out_dir = Path::new(&out_dir).join("manual");
 
-    // TODO: Possibly not needed because OUT_DIR is maybe wiped anyway?
 	if manual_out_dir.exists() {
 		fs::remove_dir_all(&manual_out_dir).unwrap();
 	}
@@ -71,6 +70,43 @@ pub fn main() {
 		);
 	}
 
+    fs::write(
+        manual_out_dir.join("favicon.svg"),
+        include_bytes!("src/assets/favicon.svg")
+    ).unwrap();
+
+    fs::write(
+        manual_out_dir.join("favicon_dark.png"),
+        include_bytes!("src/assets/favicon_dark.png")
+    ).unwrap();
+
+    fs::write(
+        manual_out_dir.join("favicon_light.png"),
+        include_bytes!("src/assets/favicon_light.png")
+    ).unwrap();
+
+    let text_color = format!("hsl(0, 0%, 100%)");
+    let logo_svg = format!(
+        include_str!("src/icons/logo.svg"),
+        text_color = text_color
+    );
+    fs::write(manual_out_dir.join("logo.svg"), logo_svg).unwrap();
+
+	fs::copy(
+		Path::new(MANUAL_DIR).join("fira-mono-v14-latin_latin-ext-regular.woff2"),
+		manual_out_dir.join("fira-mono-v14-latin_latin-ext-regular.woff2")
+	).unwrap();
+
+	fs::copy(
+		Path::new(MANUAL_DIR).join("titillium-web-v15-latin_latin-ext-regular.woff2"),
+		manual_out_dir.join("titillium-web-v15-latin_latin-ext-regular.woff2")
+	).unwrap();
+
+	fs::copy(
+		Path::new(MANUAL_DIR).join("titillium-web-v15-latin_latin-ext-italic.woff2"),
+		manual_out_dir.join("titillium-web-v15-latin_latin-ext-italic.woff2")
+	).unwrap();
+
 	fs::copy(
 		Path::new(MANUAL_DIR).join("styles.css"),
 		manual_out_dir.join("styles.css")
@@ -103,6 +139,8 @@ fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
 		.collect::<Vec<String>>()
 		.join("\n");
 
+	let index_active = if active_page == &docs.index { r#" class="active""# } else { "" };
+
 	formatdoc!(r##"
 		<!doctype html>
 		<html>
@@ -111,17 +149,25 @@ fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
 				<meta charset="utf-8">
 		        <meta name="description" content="{title}">
 		        <meta name="viewport" content="width=device-width, initial-scale=1">
-		        <link href="styles.css" rel="stylesheet">
+		        <link href="favicon.svg" rel="icon" type="image/svg+xml">
+		        <link href="favicon_light.png" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
+		        <link href="favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
+		        <link href="styles.css?0" rel="stylesheet">
 			</head>
 			<body>
 				<header>
-					<a class="title" href="index.html">Faircamp Manual</a>
-					<a class="nav_link" href="#nav">Menu</a>
+					<a class="title" href="index.html">
+						<span{index_active}>Faircamp Manual</span>
+						<img src="logo.svg">
+					</a>
+					<a class="open_nav" href="#nav">☰</a>
 				</header>
 
 				<div class="split">
 					<nav id="nav">
 						<div class="nav_inner">
+							<a class="close_nav" href="#">✕</a>
+
 							<span>Topics</span>
 							{topics}
 
@@ -146,7 +192,7 @@ fn read_docs() -> Docs {
 	let index = Page {
 		content: index_content,
 		slug: String::from("index"),
-		title: String::from("Manual")
+		title: String::from("Faircamp Manual")
 	};
 
 	let reference = read_pages(&Path::new(MANUAL_DIR).join("reference"));

@@ -1,4 +1,4 @@
-# Overview
+# Faircamp Manual
 
 The manual is organized into *topics* and *reference* pages.
 
