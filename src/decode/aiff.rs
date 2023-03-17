@@ -1,0 +1,33 @@
+use pacmog::PcmReader;
+use std::fs;
+use std::path::Path;
+
+use super::DecodeResult;
+
+pub fn decode(path: &Path) -> Option<DecodeResult> {
+    let buffer = match fs::read(path) {
+        Ok(buffer) => buffer,
+        Err(_) => return None
+    };
+
+    let reader = PcmReader::new(&buffer);
+
+    let specs = reader.get_pcm_specs();
+
+    let mut result = DecodeResult {
+        channels: specs.num_channels,
+        duration: specs.num_samples as f32 / specs.sample_rate as f32,
+        sample_count: specs.num_samples,
+        sample_rate: specs.sample_rate,
+        samples: Vec::with_capacity(specs.num_samples as usize * specs.num_channels as usize)
+    };
+
+    for sample in 0..specs.num_samples {
+        for channel in 0..specs.num_channels {
+            let sample_value = reader.read_sample(channel as u32, sample).unwrap();
+            result.samples.push(sample_value);
+        }
+    }
+
+    Some(result)
+}

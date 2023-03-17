@@ -1,3 +1,4 @@
+pub mod aiff;
 pub mod flac;
 pub mod mp3;
 pub mod ogg_vorbis;

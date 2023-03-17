@@ -4,6 +4,7 @@ use std::path::Path;
 
 use crate::decode::{
     DecodeResult,
+    aiff,
     flac,
     mp3,
     ogg_vorbis,
@@ -41,6 +42,55 @@ impl AudioMeta {
         };
 
         match extension {
+            "aiff" => {
+                let (duration_seconds, peaks) = match aiff::decode(path) {
+                    Some(decode_result) => (
+                        decode_result.duration as u32,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0, None)
+                };
+
+                if let Ok(tag) = id3::Tag::read_from_path(path) {
+                    let album = match tag.album() {
+                        Some(album) => trim_and_reject_empty(album),
+                        None => None
+                    };
+
+                    let artist = match tag.artist() {
+                        Some(artist) => match trim_and_reject_empty(artist) {
+                            Some(artist) => vec![artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
+                    };
+
+                    let title = match tag.title() {
+                        Some(title) => trim_and_reject_empty(title),
+                        None => None
+                    };
+
+                    AudioMeta {
+                        album,
+                        artist,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title,
+                        track_number: tag.track()
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        artist: Vec::new(),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
+                }
+            }
             "flac" => {
                 let (duration_seconds, peaks) = match flac::decode(path) {
                     Some(decode_result) => (
