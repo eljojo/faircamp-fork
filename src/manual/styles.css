@@ -19,9 +19,12 @@ body {
 	height: 100%;
 	margin: 0;
 }
-.center {
-	margin: 0 auto;
-	max-width: 33rem;
+.close_nav {
+	color: var(--text);
+	font-size: 1.5rem;
+	position: absolute;
+	right: 1.3rem;
+	top: 1rem;
 }
 h1 {
 	font-size: 1.5rem;
@@ -42,23 +45,12 @@ header {
 	justify-content: space-between;
 	padding: 0 2rem;
 }
-@media (max-width: 50rem) {
-	header { padding: 0 1rem; }
-}
 header a { color: var(--code); }
 main {
 	flex-grow: 1;
 	min-width: 0;
 	overflow-y: auto;
 	padding: 0 2rem;
-}
-@media (max-width: 50rem) {
-	main {
-		flex-grow: 1;
-		min-width: 0;
-		overflow-y: auto;
-		padding: 0 1rem;
-	}
 }
 nav {
 	box-sizing: border-box;
@@ -72,40 +64,15 @@ nav {
 }
 .nav_inner a { white-space: nowrap; }
 .nav_inner span { margin: 2rem 0 .2rem 0; }
-@media (max-width: 50rem) {
-	nav {
-		display: none;
-	}
-	nav:target {
-		background-color: var(--background);
-		bottom: 0;
-		display: flex;
-		left: 0;
-		position: absolute;
-		right: 0;
-		top: 0;
-	}
-}
-@media (min-width: 50.0001rem) {
-	nav {
-		border-right: 1px solid #d0d0d0;
-		box-shadow: 0 0 1rem hsla(0, 0%, 0%, .05);
-	}
-}
-.nav_link {
-	color: var(--link);
-}
-@media (min-width: 50.0001rem) {
-	.nav_link { display: none; }
-}
-.next_page { margin: 1rem 0; }
+.next_page { margin: 3rem 0 2rem 0; }
 .number {
 	display: inline-block;
 	font-weight: 500;
 	text-align: right;
 	width: 1.5rem;
 }
-p {
+p, ul {
+	box-sizing: border-box;
 	max-width: 33rem;
 	text-align: justify;
 }
@@ -129,7 +96,38 @@ pre {
 	overflow-x: auto;
 	padding: 2rem;
 }
+.split {
+	display: flex;
+	height: calc(100vh - 3.4rem);
+}
+.title {
+	align-items: center;
+	display: flex;
+	font-weight: 500;
+}
+.title img { width: 3rem; }
+
 @media (max-width: 50rem) {
+	header { padding: 0 1rem; }
+	main {
+		flex-grow: 1;
+		min-width: 0;
+		overflow-y: auto;
+		padding: 0 1rem;
+	}
+	nav {
+		display: none;
+	}
+	nav:target {
+		align-items: center;
+		background-color: var(--background);
+		bottom: 0;
+		display: flex;
+		left: 0;
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
 	pre {
 		margin-left: -1rem;
 		margin-right: -1rem;
@@ -137,8 +135,12 @@ pre {
 		padding: 1rem;
 	}
 }
-.split {
-	display: flex;
-	height: calc(100vh - 3.4rem);
+
+@media (min-width: 50.0001rem) {
+	.close_nav { display: none; }
+	nav {
+		border-right: 1px solid #d0d0d0;
+		box-shadow: 0 0 1rem hsla(0, 0%, 0%, .05);
+	}
+	.open_nav { display: none; }
 }
-.title { font-weight: 500; }

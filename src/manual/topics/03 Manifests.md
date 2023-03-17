@@ -28,8 +28,24 @@ everything in its containing folder `release_a`, as likewise
 `my_release_manifest_b.eno` can selectively override certain things for
 everything in its containing folder `release_b`.
 
-Note that manifest lines such as `# catalog` are not comments but denote
+Here is an example manifest to give you an idea of how they work:
+
+```eno
+# release
+
+cover:
+description = An ink drawing of a barren tree with monkeys in its branches
+file = cover.jpg
+
+-- text
+Recorded in the summer of '94 at West Callaghan Ranch, XE.
+
+Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
+-- text
+```
+
+Note that manifest lines such as `# release` are not comments but denote
 sections (and instead `> these are comments`). For a detailed guide on the
-syntax used in the manifest files consult the [eno language
-guide](https://eno-lang.org/guide/), simply modifying the examples in the manual
-should likely get you there as well though.
+syntax used in the manifest files consult the [eno language guide](https://eno-lang.org/guide/), simply modifying the examples in the manual
+should get you there without any problems as well though, the example here is
+pretty much as complex as it gets.

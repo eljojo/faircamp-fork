@@ -6,7 +6,7 @@ A static site generator for audio producers
      alt="Screenshot of Faircamp (Mobile Layout)"
      style="max-height: 30rem;" />
 
-For more screenshots check out *[https://simonrepp.com/faircamp](https://simonrepp.com/faircamp)*
+For more screenshots see the [website](https://simonrepp.com/faircamp).
 
 Faircamp adheres to these principles: Personal, plain, small, simple, light, fast, reduced, elegant, stable, low/no-maintenance, free, independent, privacy-respecting, standards-conforming, no-nonsense
 
@@ -125,15 +125,4 @@ cargo uninstall faircamp
 Faircamp is licensed under the [AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later.html).
 
 Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fonts/barlow/) font, licensed under the [OFL 1.1](src/assets/OFL.txt)
-
-## Faircamp Alternatives
-
-If you are looking for something like this but faircamp does not tick your
-boxes, here are some alternatives for you to explore:
-
-- [Ampled](https://www.ampled.com/) – «A Co-op For Musicians. Collectively owned, community supported.»
-- [blamscamp](https://suricrasia.online/blamscamp/) – «create a bandcamp-style audio player for selling albums on itch.io.»
-- [CD-R 700mb](https://github.com/thebaer/cdr) – «Static site generator for making web mixtapes in 2022.»
-- [Funkwhale](https://funkwhale.audio/) – «Funkwhale is a community-driven project that lets you listen and share music and audio within a decentralized, open network. »
-- [Rauversion](https://github.com/rauversion/rauversion-phx) – «Rauversion is an open source music sharing platform.»
 

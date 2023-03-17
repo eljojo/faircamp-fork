@@ -4,14 +4,19 @@ Installation from source is currently the way to go. Official packages will be a
 
 ## Installing from source
 
-Faircamp compiles on recent stable rust, there are two external dependencies
-you need to install (if not already present on your system): 
+Faircamp compiles on stable rust, available e.g. via [rustup](https://rustup.rs).
 
-- For compilation to succeed you need `libvips` on your system. On debian
-  based systems (Debian, Ubuntu, etc.) you can run `sudo apt install libvips-dev` to install it.
-- As a purely *runtime* dependency, *FFmpeg* needs to be installed, such that `ffmpeg -version` called in a terminal
-  at any location confirms ffmpeg being available. On Linux you can use your distro's
-  package manager to install `ffmpeg`, it's readily available on all major distros.
+Two (\*) external dependencies need to be installed (if not already installed):
+
+1. Development files for `libvips`
+ - On Debian, Ubuntu, etc. install with `sudo apt install libvips-dev`
+ - On Arch install with `sudo pacman -S libvips`
+ - On Manjaro install with `sudo pamac install libvips`
+ - (\*) If installing libvips is an obstacle on your OS, check out and compile the [integrate-image-crate](https://codeberg.org/simonrepp/faircamp/src/branch/integrate-image-crate) branch instead, it replaces libvips with a pure-rust alternative.
+
+2. `ffmpeg` command-line application
+  - On Linux you can use your distro's package manager to install `ffmpeg` on all major distros.
+  - Otherwise consult <https://ffmpeg.org/download.html>
 
 Faircamp has so far only been tested on Linux - architecturally there should be
 no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
