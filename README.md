@@ -8,6 +8,8 @@ A static site generator for audio producers
 
 For more screenshots see the [website](https://simonrepp.com/faircamp).
 
+Already set on using faircamp? Then jump right into the [manual](https://simonrepp.com/faircamp/manual).
+
 Faircamp adheres to these principles: Personal, plain, small, simple, light, fast, reduced, elegant, stable, low/no-maintenance, free, independent, privacy-respecting, standards-conforming, no-nonsense
 
 Curious? Read on!
@@ -74,51 +76,11 @@ These features are knowingly incomplete right now:
 
 ## Documentation
 
-You can access the full documentation at https://simonrepp.com/faircamp/manual
+See faircamp's comprehensive [Manual](https://simonrepp.com/faircamp/manual).
 
-## Build
+## Build/Install
 
-Faircamp compiles on recent stable rust, there are two external dependencies
-you need to install (if not already present on your system): 
-
-- For compilation to succeed you need `libvips` on your system. On debian
-  based systems (Debian, Ubuntu, etc.) you can run `sudo apt install libvips-dev` to install it.
-- As a purely *runtime* dependency, *FFmpeg* needs to be installed, such that `ffmpeg -version` called in a terminal
-  at any location confirms ffmpeg being available. On Linux you can use your distro's
-  package manager to install `ffmpeg`, it's readily available on all major distros.
-
-Faircamp has so far only been tested on Linux - architecturally there should be
-no blockers for running faircamp on other platforms though (e.g. BSD, maOS, Windows).
-
-**Note that you are running faircamp at your own risk** - Pay close attention when setting custom paths for the build and cache directories as these directories get wiped as part of faircamp's standard operation.
-
-Run this to build and install faircamp on your system:
-
-```bash
-cargo install --locked --path .
-```
-
-Then run it *inside a directory that contains directories that contain audio files*:
-
-```bash
-faircamp
-```
-
-With its default settings, faircamp will create a `.faircamp_build` and a `.faircamp_cache` folder inside the directory you called it from. Open `.faircamp_build/index.html` inside your browser after building is complete (the `--preview` flag can also be used).
-
-Run `faircamp -h` to get some help on command line options (there are quite a few).
-
-If you tried out previous versions of faircamp before and find that running an
-updated version crashes when you tried to re-build a previously built site, this
-is most likely due to incompatible cache data - simply delete the `.faircamp_cache`
-folder and try again. If the problem persists do open an issue, I'm happy to figure
-it out together with you and improve stability for all users.
-
-To get faircamp off your system again, simply run:
-
-```bash
-cargo uninstall faircamp
-```
+See *Installing from source* in the [Installation](https://simonrepp.com/faircamp/manual/installation.html) guide in the [Manual](https://simonrepp.com/faircamp/manual). If the online version of the manual should be inaccessible, the same information is also available in the repository itself, in [01 Installation.md](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/manual/topics/01%20Installation.md).
 
 ## License
 
