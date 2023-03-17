@@ -36,6 +36,10 @@ pub struct Args {
     #[clap(long = "include")]
     pub include_patterns: Vec<String>,
 
+    /// Opens the faircamp manual in your browser, does not do anything else.
+    #[clap(long = "manual")]
+    pub manual: bool,
+
     /// Generate full links, e.g. "/my-album/index.html" instead of "/my-album/". Creates a build that is fully browsable from your local disk without a webserver
     #[clap(long = "no-clean-urls")]
     pub no_clean_urls: bool,

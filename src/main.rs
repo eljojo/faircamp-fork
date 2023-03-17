@@ -49,8 +49,18 @@ use release::{Release, ReleaseAssets};
 use theme::Theme;
 use track::{Track, TrackAssets};
 
+const MANUAL_URL: &str = "https://simonrepp.com/faircamp/manual/";
+
 fn main() {
     let args: Args = Args::parse();
+
+    if args.manual {
+        if webbrowser::open(MANUAL_URL).is_err() {
+            error!("Could not open browser for displaying the manual")
+        }
+        return;
+    }
+
     let mut build = Build::new(&args);
     
     if !build.catalog_dir.is_dir() {
