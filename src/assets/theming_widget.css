@@ -1,23 +1,23 @@
 .theming_widget {
     background-color: hsl(var(--background-h), var(--background-s), var(--background-l), .8);
     border: 1px solid hsl(var(--text-h), var(--text-s), var(--text-l));
-    border-radius: .1em;
+    border-radius: .1rem;
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
-    bottom: 1em;
-    padding: 1em;
+    bottom: 1rem;
+    padding: 1rem;
     position: absolute;
-    right: 1em;
-    width: 40em;
+    right: 1rem;
+    width: 28rem;
 }
 .theming_widget .message { margin-bottom: 1em; }
 .theming_widget .option {
     align-items: center;
     display: flex;
-    margin-bottom: 1em;
+    margin-bottom: 1rem;
 }
-.theming_widget .option input { width: 30em; }
-.theming_widget .option .label { margin-left: 1em; }
+.theming_widget .option input { width: 18rem; }
+.theming_widget .option .label { margin-left: 1rem; }
 .theming_widget textarea {
-    height: 10em;
+    height: 10rem;
     width: 100%;
 }

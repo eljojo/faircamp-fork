@@ -204,7 +204,13 @@ fn main() {
             }
         },
         PostBuildAction::Preview => {
-            if build.clean_urls {
+            if build.clean_urls || build.theming_widget {
+                // Here we serve the preview through an actual http server. In
+                // the case of clean urls, so that /foo/ gets resolved
+                // to /foo/index.html. In the case of the theming widget,
+                // because it can only retain its localStorage state across
+                // pages if the origin (in this case http://localhost:xxxx/) is
+                // stable (and not file://...).
                 server::serve_preview(&build.build_dir);
             } else {
                 // We don't need an actively running server to preview a build

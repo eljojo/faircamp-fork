@@ -1,5 +1,49 @@
 <div class="theming_widget"></div>
 <script>
+    const persistence = {
+        signature: `${HUE}:${HUE_SPREAD}:${TINT_BACK}:${TINT_FRONT}`
+    };
+
+    let persistTimeout = null;
+    function persistDebounced() {
+        if (persistTimeout) { clearTimeout(persistTimeout); }
+
+        persistTimeout = setTimeout(
+            () => {
+                persistTimeout = null;
+                window.localStorage.setItem(
+                    'faircamp_theming_widget_persistence',
+                    JSON.stringify(persistence)
+                );
+            },
+            250
+        );
+    }
+
+    const persistedJson = window.localStorage.getItem('faircamp_theming_widget_persistence');
+
+    if (persistedJson) {
+        const persisted = JSON.parse(persistedJson);
+        if (persistence.signature === persisted.signature) {
+            persistence.values = persisted.values; // restore previous values
+        }
+    }
+
+    if (!persistence.values) {
+        // A new build with differing values, or we never persisted before
+        persistence.values = {
+            'hue': HUE,
+            'hue_spread': HUE_SPREAD,
+            'tint_back': TINT_BACK,
+            'tint_front': TINT_FRONT
+        };
+
+        window.localStorage.setItem(
+            'faircamp_theming_widget_persistence',
+            JSON.stringify(persistence)
+        );
+    }
+
     const options = [
         {
             default: 0,
@@ -7,7 +51,7 @@
             range: [0, 360],
             step: 1,
             tooltip: 'Primarily sets the hue of the link color (0-360 degrees)',
-            value: HUE,
+            value: persistence.values.hue,
             variable: '--hue',
             unit: 'deg'
         },
@@ -16,7 +60,7 @@
             key: 'hue_spread',
             step: 1,
             tooltip: 'Applies additional hue variations if tint_back/tint_front is enabled (any number of degrees [+/-])',
-            value: HUE_SPREAD,
+            value: persistence.values.hue_spread,
             variable: '--hue-spread',
             unit: 'deg'
         },
@@ -26,7 +70,7 @@
             range: [0, 100],
             step: 1,
             tooltip: 'Applies a color tint to the page background (0-100%)',
-            value: TINT_BACK,
+            value: persistence.values.tint_back,
             variable: '--tint-back'
         },
         {
@@ -35,7 +79,7 @@
             range: [0, 100],
             step: 1,
             tooltip: 'Applies a color tint to the page foreground elements (0-100%)',
-            value: TINT_FRONT,
+            value: persistence.values.tint_front,
             variable: '--tint-front'
         }
     ];
@@ -62,6 +106,9 @@
     for (const option of options) {
         const { key, range, step, tooltip, unit, variable } = option;
 
+        const variableValue = unit ? `${option.value}${unit}` : option.value.toString();
+        document.querySelector(':root').style.setProperty(variable, variableValue);
+
         const input = document.createElement('input');
         
         if (range) {
@@ -76,8 +123,14 @@
         
         input.addEventListener('input', () => {
             option.value = input.valueAsNumber;
-            document.querySelector(':root').style.setProperty(variable, unit ? `${option.value}${unit}` : option.value.toString());
+
+            const variableValue = unit ? `${option.value}${unit}` : option.value.toString();
+            document.querySelector(':root').style.setProperty(variable, variableValue);
+
             updateTextarea();
+
+            persistence.values[option.key] = option.value;
+            persistDebounced();
         });
         
         const span = document.createElement('span');
