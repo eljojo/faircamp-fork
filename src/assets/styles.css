@@ -3,6 +3,11 @@
     --color-cover: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
     --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
     --color-text: hsl(var(--text-h), var(--text-s), var(--text-l));
+    --clearly-smaller: .83rem;
+    --subtly-larger: 1.14rem;
+    --boldly-larger: 1.17rem;
+    --large: 1.5rem;
+    --largest: 1.8rem;
 }
 a, button { cursor: pointer; }
 a {
@@ -19,12 +24,12 @@ body {
 }
 input, button { font-size: 1rem; }
 h1 {
-    font-size: 1.5rem;
+    font-size: var(--large);
     font-weight: 400;
     margin: 0;
 }
 h2 {
-    font-size: 1.17rem;
+    font-size: var(--boldly-larger);
     font-weight: 400;
     margin: 0;
 }
@@ -48,10 +53,11 @@ nav {
 }
 @media (min-width: 30rem) {
     nav {
-        font-size: 1.17rem;
+        font-size: var(--subtly-larger);
         height: 3.2rem;
     }
 }
+small { font-size: var(--clearly-smaller); }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 .additional { background-color: hsla(0, 0%, var(--text-l), 0.02); }
 .additional > div {

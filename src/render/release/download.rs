@@ -9,7 +9,7 @@ use crate::{
     util::html_escape_outside_attribute
 };
 
-const DOWNLOAD_LABEL_SEPARATOR: &str = " <span style=\"font-size: .8rem\">_</span> ";
+const DOWNLOAD_LABEL_SEPARATOR: &str = " <small>/</small> ";
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
@@ -23,7 +23,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let cover_download = if let Some(cover) = &release.cover {
         formatdoc!(
             r#"
-                <div style="font-size: 1.17rem;">
+                <div>
                     <span>{t_cover_image}</span>
                     <span class="download_formats">
                         <a download href="{root_prefix}{permalink}/cover_{edge_size}.jpg">
@@ -171,8 +171,8 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                    href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
                     <img alt="{t_download}" class="download_icon" src="{root_prefix}download.svg">
                     <div>
-                        <span style="font-size: 1.17rem;">{t_entire_release}</span><br>
-                        <span style="font-size: .9rem;">{primary_download_format}{primary_download_format_recommendation}</span>
+                        <span style="font-size: var(--subtly-larger);">{t_entire_release}</span><br>
+                        <small>{primary_download_format}{primary_download_format_recommendation}</small>
                     </div>
                 </a>
 
@@ -183,7 +183,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 </p>
 
                 <div class="download_options">
-                    <div style="font-size: 1.17rem;">
+                    <div>
                         <span>{t_entire_release}</span>
                         <span class="download_formats">{release_downloads}</span>
                     </div>

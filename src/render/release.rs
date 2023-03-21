@@ -164,7 +164,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 <div style="margin: .4rem 0 1rem 0;">
                     <h1 style="margin-bottom: .2rem;">{release_title_escaped}</h1>
-                    <div style="font-size: 1.17rem;">{artists}</div>
+                    <div style="font-size: var(--boldly-larger);">{artists}</div>
                 </div>
 
                 <br>
@@ -174,7 +174,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
             <div class="additional">
                 <div class="mobile_hpadding">
-                    <div style="font-size: 1.17rem;">
+                    <div style="font-size: var(--boldly-larger);">
                         {action_links}
                     </div>
                     {release_text}

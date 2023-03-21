@@ -86,8 +86,8 @@ fn compact_release_identifier(
                 {cover}
             </div>
             <div>
-                <div style="font-size: 1.17rem;">{release_title_escaped}</div>
-                <div>{artists}</div>
+                <div style="font-size: var(--boldly-larger);">{release_title_escaped}</div>
+                <div style="font-size: var(--subtly-larger);">{artists}</div>
             </div>
         </div>
     "#)
@@ -344,7 +344,7 @@ fn releases(
                         {cover}
                     </div>
                     <div>
-                        <a href="{href}" style="color: var(--color-text); font-size: 1.17rem;">
+                        <a href="{href}" style="color: var(--color-text); font-size: var(--subtly-larger);">
                             {release_title}
                         </a>
                         <div>{artists}</div>
