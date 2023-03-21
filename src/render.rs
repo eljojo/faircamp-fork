@@ -81,8 +81,8 @@ fn compact_release_identifier(
     let cover = cover_image_tiny(release_prefix, &release.cover, release_link);
 
     format!(r#"
-        <div style="align-items: center; display: flex; margin: 2em 0;">
-            <div style="margin-right: .8rem; max-width: 4rem">
+        <div style="align-items: center; column-gap: .8rem; display: flex; margin: 2em 0;">
+            <div style="background-color: var(--color-cover); max-width: 4rem">
                 {cover}
             </div>
             <div>
@@ -100,7 +100,13 @@ fn cover_image(
     root_prefix: &str,
     image: &Option<Rc<RefCell<Image>>>
 ) -> String {
-    if image.is_none() { return String::from("<div></div>"); }
+    if image.is_none() {
+        return formatdoc!(r#"
+            <span class="image">
+                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"></svg>
+            </span>
+        "#);
+    }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
@@ -150,7 +156,13 @@ fn cover_tile_image(
     image: &Option<Rc<RefCell<Image>>>,
     href: &str
 ) -> String {
-    if image.is_none() { return String::from("<div></div>"); }
+    if image.is_none() {
+        return formatdoc!(r#"
+            <a class="image" href="{href}">
+                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"></svg>
+            </a>
+        "#);
+    }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();
@@ -192,7 +204,13 @@ fn cover_image_tiny(
     image: &Option<Rc<RefCell<Image>>>,
     href_url: &str
 ) -> String {
-    if image.is_none() { return String::from("<div></div>"); }
+    if image.is_none() {
+        return formatdoc!(r#"
+            <a class="image" href="{href_url}">
+                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"></svg>
+            </a>
+        "#);
+    }
 
     let image_ref = image.as_ref().unwrap().borrow();
     let image_assets = image_ref.assets.borrow();

@@ -207,7 +207,8 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     height: 100%;
     width: 100%;
 }
-.image img {
+.image img,
+.image svg {
     height: 100%;
     width: 100%;
 }
