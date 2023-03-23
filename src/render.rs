@@ -98,14 +98,21 @@ fn cover_image(
     index_suffix: &str,
     release_prefix: &str,
     root_prefix: &str,
-    image: &Option<Rc<RefCell<Image>>>
+    release: &Release
 ) -> String {
+    let image = &release.cover;
+
+    // TODO: Auto-generating cover descriptions that fit the generated cover artwork
+    //       would be very cool, but with regards to needing translations too, right
+    //       now out of scope. Should be solved generically for the time being. Also
+    //       elsewhere.
     if image.is_none() {
-        return formatdoc!(r#"
+        // Use generated cover
+        return formatdoc!(r##"
             <span class="image">
-                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"></svg>
+                <img alt="A generated cover, looks like an abstract vinyl with grooves" src="cover.svg">
             </span>
-        "#);
+        "##);
     }
 
     let image_ref = image.as_ref().unwrap().borrow();
@@ -120,7 +127,7 @@ fn cover_image(
     let thumbnail = formatdoc!(
         r##"
             <a class="image" href="#overlay">
-                <img{alt} loading="lazy" sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
+                <img{alt} sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
             </a>
         "##,
         src = thumbnail_img.src,
@@ -131,7 +138,7 @@ fn cover_image(
     let overlay = formatdoc!(
         r##"
             <a id="overlay" href="#">
-                <img {alt} sizes="calc(100vmin - 4rem)" src="{src}" srcset="{srcset}">
+                <img {alt} loading="lazy" sizes="calc(100vmin - 4rem)" src="{src}" srcset="{srcset}">
             </a>
         "##,
         src = overlay_img.src,
@@ -153,13 +160,16 @@ fn cover_tile_image(
     index_suffix: &str,
     release_prefix: &str,
     root_prefix: &str,
-    image: &Option<Rc<RefCell<Image>>>,
+    release: &Release,
     href: &str
 ) -> String {
+    let image = &release.cover;
+
     if image.is_none() {
+        // Use generated cover
         return formatdoc!(r#"
             <a class="image" href="{href}">
-                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"></svg>
+                <img src="{release_prefix}cover.svg"/>
             </a>
         "#);
     }
@@ -353,7 +363,14 @@ fn releases(
 
             let release_prefix = format!("{root_prefix}{permalink}/");
 
-            let cover = cover_tile_image(build, index_suffix, &release_prefix, root_prefix, &release_ref.cover, &href);
+            let cover = cover_tile_image(
+                build,
+                index_suffix,
+                &release_prefix,
+                root_prefix,
+                &release_ref,
+                &href
+            );
             let release_title = html_escape_outside_attribute(&release_ref.title);
 
             formatdoc!(r#"

@@ -170,7 +170,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
             </div>
         "##,
         artists = list_artists(index_suffix, root_prefix, catalog, &release.artists),
-        cover = cover_image(build, index_suffix, release_prefix, root_prefix, &release.cover),
+        cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );
@@ -194,7 +194,14 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
     )
 }
 
-pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, track: &Track, track_number: usize, base_url: &Url) -> String {
+pub fn embed_track_html(
+    build: &Build,
+    catalog: &Catalog,
+    release: &Release,
+    track: &Track,
+    track_number: usize,
+    base_url: &Url
+) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
@@ -248,7 +255,7 @@ pub fn embed_track_html(build: &Build, catalog: &Catalog, release: &Release, tra
             </div>
         "##,
         artists = list_artists(index_suffix, root_prefix, catalog, &release.artists),
-        cover = cover_image(build, index_suffix, release_prefix, root_prefix, &release.cover),
+        cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );

@@ -1,4 +1,5 @@
 use chrono::{DateTime, NaiveDate, Utc};
+use indoc::formatdoc;
 use serde_derive::{Serialize, Deserialize};
 use std::{
     cell::RefCell,
@@ -7,6 +8,7 @@ use std::{
     path::{Path, PathBuf},
     rc::Rc
 };
+use std::f32::consts::TAU;
 use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 use crate::{
@@ -77,6 +79,80 @@ pub enum TrackNumbering {
 }
 
 impl Release {
+    pub fn generate_cover(&self, max_tracks_in_release: usize) -> String {
+        let edge = 64.0;
+        let radius = edge / 2.0;
+
+        let longest_duration = self.tracks
+            .iter()
+            .map(|track| track.assets.borrow().source_meta.duration_seconds)
+            .max()
+            .unwrap();
+
+        let mut track_offset = 0.0;
+        let points = self.tracks
+            .iter()
+            .enumerate()
+            .map(|(track_index, track)| {
+                let source_meta = &track.assets.borrow().source_meta;
+
+                let altitude_range = 0.75 * self.tracks.len() as f32 / max_tracks_in_release as f32;
+                let altitude_width = radius * altitude_range / self.tracks.len() as f32;
+                let track_arc_range = source_meta.duration_seconds as f32 / longest_duration as f32;
+
+                if let Some(peaks) = &source_meta.peaks {
+                    let mut samples = Vec::new();
+                    let step = 1;
+
+                    let mut previous = None;
+
+                    let track_compensation = 0.25 + (1.0 - track_arc_range) / 2.0;
+
+                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
+                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32 * -1.0; // 0-1
+
+                        let arc_offset = (track_compensation + peak_offset * track_arc_range) * TAU;
+                        let amplitude = 
+                            radius * 0.25 +
+                            (max_tracks_in_release - 1 - track_index) as f32 * altitude_width +
+                            (peak * 0.3 * altitude_width);
+
+                        let x = radius + amplitude * arc_offset.sin();
+                        let y = radius + amplitude * arc_offset.cos();
+
+                        if let Some((x_prev, y_prev)) = previous {
+                            let stroke = format!("rgba(255, 255, 255, {peak})");
+                            let stroke_width = peak * 0.32;
+                            let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
+                            samples.push(sample);
+                        }
+
+                        previous = Some((x, y));
+                    }
+
+                    track_offset += track_arc_range;
+
+                    samples.join("\n")
+                } else {
+                    let cx = radius + (edge / 3.0) * (track_offset * TAU).sin();
+                    let cy = radius + (edge / 3.0) * (track_offset * TAU).cos();
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="#ffffff" r="1"/>"##)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        formatdoc!(r##"
+            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="none" height="63.96" stroke="#fff" stroke-width=".12px" width="63.96" x="0.02" y="0.02"/>
+                {points}
+            </svg>
+        "##)
+    }
+
     pub fn new(
         artists_to_map: Vec<String>,
         assets: Rc<RefCell<ReleaseAssets>>,

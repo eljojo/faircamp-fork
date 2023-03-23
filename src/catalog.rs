@@ -1,11 +1,10 @@
 use sanitize_filename::sanitize;
-use std::{
-    cell::RefCell,
-    cmp::Ordering,
-    collections::HashMap,
-    path::{Path, PathBuf},
-    rc::Rc
-};
+use std::fs;
+use std::cell::RefCell;
+use std::cmp::Ordering;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use crate::{
     Artist,
@@ -14,11 +13,10 @@ use crate::{
     Cache,
     DownloadOption,
     Image,
-    manifest::{LocalOptions, Overrides},
+    manifest::{self, LocalOptions, Overrides},
     Permalink,
     PermalinkUsage,
     Release,
-    manifest,
     TagMapping,
     Track,
     TrackAssets,
@@ -714,6 +712,12 @@ impl Catalog {
             }
         }
 
+        let max_tracks_in_release = self.releases
+            .iter()
+            .map(|release| release.borrow().tracks.len())
+            .max()
+            .unwrap();
+
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
 
@@ -736,6 +740,9 @@ impl Catalog {
                 }
 
                 image_assets_mut.persist_to_cache(&build.cache_dir);
+            } else {
+                let svg = release_mut.generate_cover(max_tracks_in_release);
+                fs::write(release_dir.join("cover.svg"), svg).unwrap();
             }
             
             let streaming_format = release_mut.streaming_format;
