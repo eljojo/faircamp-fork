@@ -111,6 +111,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
             let download_page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
+            let formats = release.download_formats
+                .iter()
+                .map(|audio_format| audio_format.user_label())
+                .collect::<Vec<&str>>()
+                .join(", ");
+
+            let t_available_formats = &build.locale.strings.available_formats;
             let t_confirm = &build.locale.strings.confirm;
             let t_continue = &build.locale.strings.r#continue;
             let t_made_or_arranged_payment = &build.locale.strings.made_or_arranged_payment;
@@ -119,6 +126,9 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <form id="confirm">
                     {price_input_rendered}
                     <button name="confirm">{t_confirm}</button>
+                    <div style="font-size: .9rem; margin: 1rem 0;">
+                        {t_available_formats} {formats}
+                    </div>
                 </form>
 
                 <script>
@@ -207,7 +217,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     );
 
     let body = formatdoc!(r#"
-        <div class="center_release">
+        <div class="center_release mobile_hpadding">
             <h1>{heading}</h1>
             {compact_release_identifier_rendered}
             {content}
