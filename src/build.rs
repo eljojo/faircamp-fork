@@ -146,7 +146,7 @@ impl Build {
 
         let post_build_action = PostBuildAction::new(args);
 
-        let locale = if args.debug_translations { Locale::keys() } else { Locale::en() };
+        let locale = if args.debug_translations { Locale::keys() } else { Locale::default() };
 
         Build {
             base_url: None,

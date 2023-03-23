@@ -33,7 +33,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Codes { .. } => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
-            let t_download_with_code = &build.locale.strings.download_with_code;
+            let t_download_with_code = &build.locale.translations.download_with_code;
             formatdoc!(r#"
                 <a href="checkout/{page_hash}{index_suffix}">{t_download_with_code}</a>
             "#)
@@ -42,7 +42,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Free => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
-            let t_download = &build.locale.strings.download;
+            let t_download = &build.locale.translations.download;
             formatdoc!(r#"
                 <a href="download/{page_hash}{index_suffix}">{t_download}</a>
             "#)
@@ -53,7 +53,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             } else {
                 let checkout_page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
-                let t_buy = &build.locale.strings.buy;
+                let t_buy = &build.locale.translations.buy;
                 formatdoc!(r#"
                     <a href="checkout/{checkout_page_hash}{index_suffix}">{t_buy}</a>
                 "#)
@@ -61,7 +61,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
     };
 
-    let t_embed = &build.locale.strings.embed;
+    let t_embed = &build.locale.translations.embed;
     let embed_link = if release.embedding && build.base_url.is_some() {
         format!(r#"<a href="embed{index_suffix}">{t_embed}</a>"#)
     } else {

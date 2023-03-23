@@ -5,8 +5,8 @@ use crate::{Build, Catalog, render::layout};
 pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     let root_prefix = "../";
 
-    let t_image_descriptions = &build.locale.strings.image_descriptions; 
-    let t_image_descriptions_guide = &build.locale.strings.image_descriptions_guide; 
+    let t_image_descriptions = &build.locale.translations.image_descriptions;
+    let t_image_descriptions_guide = &build.locale.translations.image_descriptions_guide;
     
     let body = formatdoc!(r#"
         <div class="center_release">

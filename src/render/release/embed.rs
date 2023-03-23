@@ -42,7 +42,7 @@ pub fn embed_choices_html(
                 base_url,
                 &release.permalink.slug,
                 track_number,
-                &build.locale.strings.audio_player_widget_for_track
+                &build.locale.translations.audio_player_widget_for_track
             );
 
             formatdoc!(r#"
@@ -71,11 +71,11 @@ pub fn embed_choices_html(
         base_url,
         &release.permalink.slug,
         "all",
-        &build.locale.strings.audio_player_widget_for_release
+        &build.locale.translations.audio_player_widget_for_release
     );
 
-    let t_embed_release = &build.locale.strings.embed_release;
-    let t_embed_entire_release = &build.locale.strings.embed_release;
+    let t_embed_release = &build.locale.translations.embed_release;
+    let t_embed_entire_release = &build.locale.translations.embed_release;
     let body = formatdoc!(r##"
         <div class="center_release mobile_hpadding">
             <h1>{t_embed_release}</h1>
@@ -93,7 +93,7 @@ pub fn embed_choices_html(
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
-    let t_embed = &build.locale.strings.embed;
+    let t_embed = &build.locale.translations.embed;
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!("<span>{t_embed}</span>")

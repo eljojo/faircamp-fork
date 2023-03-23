@@ -15,11 +15,11 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
-    let t_recommended_format =  &build.locale.strings.recommended_format;
+    let t_recommended_format =  &build.locale.translations.recommended_format;
 
     let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
 
-    let t_cover_image = &build.locale.strings.cover_image;
+    let t_cover_image = &build.locale.translations.cover_image;
     let cover_download = if let Some(cover) = &release.cover {
         formatdoc!(
             r#"
@@ -154,11 +154,11 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         root_prefix,
     );
 
-    let t_download = &build.locale.strings.download;
-    let t_download_choice_hints = &build.locale.strings.download_choice_hints;
-    let t_download_release = &build.locale.strings.download_release;
-    let t_entire_release = &build.locale.strings.entire_release;
-    let t_format_guide = &build.locale.strings.format_guide;
+    let t_download = &build.locale.translations.download;
+    let t_download_choice_hints = &build.locale.translations.download_choice_hints;
+    let t_download_release = &build.locale.translations.download_release;
+    let t_entire_release = &build.locale.translations.entire_release;
+    let t_format_guide = &build.locale.translations.format_guide;
     let body = formatdoc!(
         r##"
             <div class="center_release mobile_hpadding">

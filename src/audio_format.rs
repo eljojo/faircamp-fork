@@ -85,15 +85,15 @@ impl AudioFormat {
     /// A one-liner describing the format for someone unfamiliar with audio formats.
     pub fn description(&self, build: &Build) -> String {
         match self {
-            AudioFormat::Aac => build.locale.strings.audio_format_description_aac.clone(),
-            AudioFormat::Aiff => build.locale.strings.audio_format_description_aiff.clone(),
-            AudioFormat::Flac => build.locale.strings.audio_format_description_flac.clone(),
-            AudioFormat::Mp3VbrV0 => build.locale.strings.audio_format_description_mp3_vbr.clone(),
-            AudioFormat::OggVorbis => build.locale.strings.audio_format_description_ogg_vorbis.clone(),
-            AudioFormat::Opus48Kbps => build.locale.strings.audio_format_description_opus_48.clone(),
-            AudioFormat::Opus96Kbps => build.locale.strings.audio_format_description_opus_96.clone(),
-            AudioFormat::Opus128Kbps => build.locale.strings.audio_format_description_opus_128.clone(),
-            AudioFormat::Wav => build.locale.strings.audio_format_description_wav.clone(),
+            AudioFormat::Aac => build.locale.translations.audio_format_description_aac.clone(),
+            AudioFormat::Aiff => build.locale.translations.audio_format_description_aiff.clone(),
+            AudioFormat::Flac => build.locale.translations.audio_format_description_flac.clone(),
+            AudioFormat::Mp3VbrV0 => build.locale.translations.audio_format_description_mp3_vbr.clone(),
+            AudioFormat::OggVorbis => build.locale.translations.audio_format_description_ogg_vorbis.clone(),
+            AudioFormat::Opus48Kbps => build.locale.translations.audio_format_description_opus_48.clone(),
+            AudioFormat::Opus96Kbps => build.locale.translations.audio_format_description_opus_96.clone(),
+            AudioFormat::Opus128Kbps => build.locale.translations.audio_format_description_opus_128.clone(),
+            AudioFormat::Wav => build.locale.translations.audio_format_description_wav.clone(),
         }
     }
 

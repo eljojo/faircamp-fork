@@ -39,17 +39,17 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         let price_input_rendered = if range.end == f32::INFINITY {
             if range.start > 0.0 {
                 price_input(
-                    &build.locale.strings.name_your_price,
+                    &build.locale.translations.name_your_price,
                     Some(range.start),
                     None,
-                    &build.locale.strings.xxx_or_more(&range.start.to_string())
+                    &build.locale.translations.xxx_or_more(&range.start.to_string())
                 )
             } else {
                 price_input(
-                    &build.locale.strings.name_your_price,
+                    &build.locale.translations.name_your_price,
                     None,
                     None,
-                    &build.locale.strings.any_amount
+                    &build.locale.translations.any_amount
                 )
             }
         } else if range.start == range.end {
@@ -59,17 +59,17 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             )
         } else if range.start > 0.0 {
             price_input(
-                &build.locale.strings.name_your_price,
+                &build.locale.translations.name_your_price,
                 Some(range.start),
                 Some(range.end),
                 &format!("{}-{}", range.start, range.end)
             )
         } else {
             price_input(
-                &build.locale.strings.name_your_price,
+                &build.locale.translations.name_your_price,
                 None,
                 Some(range.end),
-                &build.locale.strings.up_to_xxx(&range.end.to_string())
+                &build.locale.translations.up_to_xxx(&range.end.to_string())
             )
         };
 
@@ -88,7 +88,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     PaymentOption::Liberapay(account_name) => {
                         let liberapay_url = format!("https://liberapay.com/{}", account_name);
 
-                        let t_pay_on_liberapay = &build.locale.strings.pay_on_liberapay;
+                        let t_pay_on_liberapay = &build.locale.translations.pay_on_liberapay;
                         formatdoc!(r#"
                             <div>
                                 {t_pay_on_liberapay}<br>
@@ -98,7 +98,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     }
                 };
 
-                let t_option = &build.locale.strings.option;
+                let t_option = &build.locale.translations.option;
                 formatdoc!(r#"
                     <div style="align-items: center; display: flex; margin-bottom: 1rem;">
                         <div style="font-size: .8rem; margin-right: 1rem; white-space: nowrap;">{t_option} {number}</div>
@@ -117,11 +117,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 .collect::<Vec<&str>>()
                 .join(", ");
 
-            let t_available_formats = &build.locale.strings.available_formats;
-            let t_confirm = &build.locale.strings.confirm;
-            let t_continue = &build.locale.strings.r#continue;
-            let t_made_or_arranged_payment = &build.locale.strings.made_or_arranged_payment;
-            let t_payment_options = &build.locale.strings.payment_options;
+            let t_available_formats = &build.locale.translations.available_formats;
+            let t_confirm = &build.locale.translations.confirm;
+            let t_continue = &build.locale.translations.r#continue;
+            let t_made_or_arranged_payment = &build.locale.translations.made_or_arranged_payment;
+            let t_payment_options = &build.locale.translations.payment_options;
             let content = formatdoc!(r#"
                 <form id="confirm">
                     {price_input_rendered}
@@ -159,17 +159,20 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 </div>
             "#);
 
-            (content, build.locale.strings.buy_release.as_str())
+            (content, build.locale.translations.buy_release.as_str())
     } else if let DownloadOption::Codes { unlock_text, .. } = &release.download_option {
         let custom_or_default_unlock_text = unlock_text
             .as_ref()
             .map(|text| text.to_string())
-            .unwrap_or(build.locale.strings.default_unlock_text.clone());
+            .unwrap_or(build.locale.translations.default_unlock_text.clone());
 
-        let t_enter_code_here = &build.locale.strings.enter_code_here;
-        let t_unlock = &build.locale.strings.unlock;
-        let t_unlock_code_seems_incorrect = &build.locale.strings.unlock_code_seems_incorrect;
-        let t_unlock_manual_instructions = &build.locale.strings.unlock_manual_instructions(index_suffix);
+        let t_enter_code_here = &build.locale.translations.enter_code_here;
+        let t_unlock = &build.locale.translations.unlock;
+        let t_unlock_code_seems_incorrect = &build.locale.translations.unlock_code_seems_incorrect;
+        // TODO: In the message "Replace the final part of the address that looks like this -
+        //       /checkout/[some-random-letters]{index_suffix} ..." we could actually replace
+        //       [some-random-letters] with the actual letters that are present in the url?
+        let t_unlock_manual_instructions = &build.locale.translations.unlock_manual_instructions(index_suffix);
         let content = formatdoc!(r#"
             <div class="unlock_scripted">
                 {custom_or_default_unlock_text}
@@ -200,7 +203,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#);
 
-        (content, build.locale.strings.enter_code.as_str())
+        (content, build.locale.translations.enter_code.as_str())
     } else {
         unreachable!();
     };

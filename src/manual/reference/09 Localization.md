@@ -2,18 +2,21 @@
 
 ## Supported languages
 
-Faircamp currently only ships with a prototypical set of two languages:
+Faircamp currently only ships with a prototypical set of three languages:
 
 - English (`en`)
 - German (`de`)
+- Spanish (`es`)
 
-English is default anyway, german can be configured like this:
+English is the default, german or spanish can be configured like this:
 
 ```eno
 # localization
 
 language: de
 ```
+
+Translation corrections or improvements are very welcome, just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
 
 ## Unsupported languages
 

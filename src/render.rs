@@ -251,7 +251,7 @@ fn layout(
 ) -> String {
     let feed_meta_link = match &build.base_url.is_some() {
         true => {
-            let t_rss_feed = &build.locale.strings.feed;
+            let t_rss_feed = &build.locale.translations.feed;
             format!(r#"<link rel="alternate" type="application/rss+xml" title="{t_rss_feed}" href="{root_prefix}feed.rss">"#)
         }
         false => String::new()
@@ -391,8 +391,8 @@ fn releases(
 }
 
 pub fn share_link(build: &Build) -> String {
-    let t_share = &build.locale.strings.share;
-    let t_share_not_available_requires_javascript = &build.locale.strings.share_not_available_requires_javascript;
+    let t_share = &build.locale.translations.share;
+    let t_share_not_available_requires_javascript = &build.locale.translations.share_not_available_requires_javascript;
 
     match &build.base_url.is_some() {
         true => format!(r##"<a href="#share">{t_share}</a>"##),
@@ -405,11 +405,11 @@ pub fn share_link(build: &Build) -> String {
 }
 
 pub fn share_overlay(build: &Build, url: &str) -> String {
-    let t_close = &build.locale.strings.close;
-    let t_copied = &build.locale.strings.copied;
-    let t_copy = &build.locale.strings.copy;
-    let t_failed = &build.locale.strings.failed;
-    let t_share_not_available_navigator_clipboard = &build.locale.strings.share_not_available_navigator_clipboard;
+    let t_close = &build.locale.translations.close;
+    let t_copied = &build.locale.translations.copied;
+    let t_copy = &build.locale.translations.copy;
+    let t_failed = &build.locale.translations.failed;
+    let t_share_not_available_navigator_clipboard = &build.locale.translations.share_not_available_navigator_clipboard;
 
     formatdoc!(r##"
         <div id="share">
@@ -430,7 +430,7 @@ fn wrap_undescribed_image(
     overlay: &str,
     extra_class: &str
 ) -> String {
-    let t_missing_image_description_note = &build.locale.strings.missing_image_description_note;
+    let t_missing_image_description_note = &build.locale.translations.missing_image_description_note;
     formatdoc!(r#"
         <div class="{extra_class} undescribed_wrapper">
             <div class="undescribed_corner_tag">

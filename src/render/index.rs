@@ -15,8 +15,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let feed_link = match &build.base_url.is_some() {
         true => {
-            let t_feed = &build.locale.strings.feed;
-            let t_rss_feed = &build.locale.strings.feed;
+            let t_feed = &build.locale.translations.feed;
+            let t_rss_feed = &build.locale.translations.feed;
             format!(r#"<a href="{root_prefix}feed.rss"><img alt="{t_rss_feed}" class="feed_icon" src="{root_prefix}feed.svg" style="display: none;">{t_feed}</a>"#)
         }
         false => String::new()
