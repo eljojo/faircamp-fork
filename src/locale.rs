@@ -70,14 +70,8 @@ pub enum WritingDirection {
     Rtl
 }
 
-/// TODO: In-code provision of multiple locales is mostly there for
-/// prototyping right now. Final implementation will probably go back to just
-/// the default en locale in code, with other locales being loaded through
-/// some other, probably runtime based mechanism. Update: Actually probably
-/// keeping them in-code, PLUS an additional runtime-based mechanism for adding
-/// or customizing locales
+// TODO: Runtime-based mechanism for adding or customizing locales
 impl Locale {
-    #[allow(dead_code)]
     pub fn de() -> Locale {
         Locale {
             language: String::from("de"),
@@ -94,6 +88,14 @@ impl Locale {
         }
     }
 
+    pub fn from_code(language: &str) -> Option<Locale> {
+        match language {
+            "de" => Some(Locale::de()),
+            "en" => Some(Locale::en()),
+            _ => None
+        }
+    }
+
     pub fn keys() -> Locale {
         Locale {
             language: String::from("en"),
@@ -104,7 +106,6 @@ impl Locale {
 }
 
 impl Translations {
-    #[allow(dead_code)]
     pub fn de() -> Translations {
         Translations {
             any_amount: String::from("Beliebiger Betrag"),

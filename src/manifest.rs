@@ -16,6 +16,7 @@ use crate::{
     Catalog,
     DownloadOption,
     Image,
+    Locale,
     PaymentOption,
     Permalink,
     release::TrackNumbering,
@@ -507,7 +508,11 @@ pub fn apply_options(
 
     if let Some(section) = optional_section(&document, "localization", path) {
         if let Some(value) = optional_field_value(section, "language") {
-            build.locale.language = value;
+            if let Some(locale) = Locale::from_code(&value) {
+                build.locale = locale;
+            } else {
+                build.locale.language = value;
+            }
         }
         if let Some((value, line)) = optional_field_value_with_line(section, "writing_direction") {
             match value.as_str() {
