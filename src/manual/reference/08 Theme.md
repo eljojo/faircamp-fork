@@ -1,10 +1,10 @@
 # Theme
 
 You can adjust the visual appearance of your faircamp site to your liking. A
-*background_image* can be specified, the *base* theme can be chosen from *dark*
-and *light*, the accent color used in the theme can be set through *hue* (0-360)
-and a *hue_spread* (e.g. -12, 3, 320) can be defined, which makes the site more
-colorful (where 0 = mono-colored). In order for *hue_spread* to have an effect,
+`background_image` can be specified, the `base` theme can be chosen from `dark`
+and `light`, the accent color used in the theme can be set through `hue` (0-360)
+and a `hue_spread` (e.g. -12, 3, 320) can be defined, which makes the site more
+colorful (where 0 = mono-colored). In order for `hue_spread` to have an effect,
 make sure to turn up tint_back (0-100) and/or tint_front (0-100) to add a
 varyingly strong color tint to either the background, or the elements in the
 foreground (most prominently: text).
