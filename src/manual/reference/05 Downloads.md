@@ -89,8 +89,9 @@ disabled
 ## All formats
 
 Lastly here's a listing of all download formats you can currently enable. In
-practice a minimal lossless/lossy combination is recommended, e.g. `flac` and
-`opus`. Note that `opus` is an alias for `opus_128`.
+practice a minimal comination of a lossy state of the art format (e.g. `opus`),
+a lossy format with high compatibility (e.g. `mp3`) and a lossless format
+(e.g. `flac`) is recommended.
 
 ```eno
 formats:
@@ -105,3 +106,5 @@ formats:
 - opus_128
 - wav
 ```
+
+Note that `opus` is an alias for `opus_128`.
