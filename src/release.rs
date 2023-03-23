@@ -27,6 +27,7 @@ use crate::{
     render,
     SourceFileSignature,
     TagMapping,
+    Theme,
     Track,
     util
 };
@@ -79,7 +80,12 @@ pub enum TrackNumbering {
 }
 
 impl Release {
-    pub fn generate_cover(&self, max_tracks_in_release: usize) -> String {
+    pub fn generate_cover(&self, theme: &Theme, max_tracks_in_release: usize) -> String {
+        // TODO: This is too simplistic, text also has text_h and text_s
+        // currently (but theming may change quite a bit so no rush). Also
+        // unfortunately generated covers don't interactively repaint when
+        // using the --theming-widget, but that's probably to be accepted.
+        let text_l = theme.base.text_l;
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -121,7 +127,7 @@ impl Release {
                         let y = radius + amplitude * arc_offset.cos();
 
                         if let Some((x_prev, y_prev)) = previous {
-                            let stroke = format!("rgba(255, 255, 255, {peak})");
+                            let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
                             let stroke_width = peak * 0.32;
                             let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
                             samples.push(sample);
@@ -147,7 +153,7 @@ impl Release {
 
         formatdoc!(r##"
             <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <rect fill="none" height="63.96" stroke="#fff" stroke-width=".12px" width="63.96" x="0.02" y="0.02"/>
+                <rect fill="none" height="63.96" stroke="hsl(0, 0% {text_l}%)" stroke-width=".12px" width="63.96" x="0.02" y="0.02"/>
                 {points}
             </svg>
         "##)

@@ -741,7 +741,7 @@ impl Catalog {
 
                 image_assets_mut.persist_to_cache(&build.cache_dir);
             } else {
-                let svg = release_mut.generate_cover(max_tracks_in_release);
+                let svg = release_mut.generate_cover(&build.theme, max_tracks_in_release);
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();
             }
             

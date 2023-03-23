@@ -104,13 +104,12 @@ fn cover_image(
 
     // TODO: Auto-generating cover descriptions that fit the generated cover artwork
     //       would be very cool, but with regards to needing translations too, right
-    //       now out of scope. Should be solved generically for the time being. Also
-    //       elsewhere.
+    //       now out of scope. Should be solved generically for the time being.
     if image.is_none() {
         // Use generated cover
         return formatdoc!(r##"
             <span class="image">
-                <img alt="A generated cover, looks like an abstract vinyl with grooves" src="cover.svg">
+                <img alt="Auto-generated cover image" src="cover.svg">
             </span>
         "##);
     }
@@ -217,7 +216,7 @@ fn cover_image_tiny(
     if image.is_none() {
         return formatdoc!(r#"
             <a class="image" href="{href_url}">
-                <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"></svg>
+                <img alt="Auto-generated cover image" src="{release_prefix}cover.svg">
             </a>
         "#);
     }

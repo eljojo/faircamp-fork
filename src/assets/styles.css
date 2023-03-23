@@ -153,7 +153,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-bottom: .5rem;
 }
 .download_button {
-    background-color: var(--color-text);
+    background-color: hsl(var(--hue), var(--link-s), var(--link-hover-l));
     border-radius: .2rem;
     color: var(--color-background);
     display: inline-flex;

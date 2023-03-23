@@ -35,9 +35,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         <div class="catalog">
             {artist_image_rendered}
             <div class="catalog_info_padded">
-                <h1 style="color: #fff;">
-                    {artist_name_escaped}
-                </h1>
+                <h1>{artist_name_escaped}</h1>
                 {artist_text}
                 {share_link_rendered}
             </div>
