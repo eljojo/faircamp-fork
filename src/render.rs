@@ -433,15 +433,12 @@ fn wrap_undescribed_image(
     let t_missing_image_description_note = &build.locale.translations.missing_image_description_note;
     formatdoc!(r#"
         <div class="{extra_class} undescribed_wrapper">
-            <div class="undescribed_corner_tag">
-                <img src="{root_prefix}corner_tag.svg">
-            </div>
             <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
                 <img alt="Visual Impairment" src="{root_prefix}visual_impairment.svg">
             </a>
-            <a class="undescribed_overlay" href="{root_prefix}image-descriptions{index_suffix}">
-                <span>{t_missing_image_description_note}</span>
-            </a>
+            <span class="undescribed_overlay">
+                {t_missing_image_description_note}
+            </span>
             {thumbnail}
         </div>
         {overlay}

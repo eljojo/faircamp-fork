@@ -19,12 +19,6 @@ pub fn generate(build: &Build) {
     }
 
     if build.missing_image_descriptions {
-        let corner_tag_svg = format!(
-            include_str!("icons/corner_tag.svg"),
-            pane_color = pane_color
-        );
-        fs::write(build.build_dir.join("corner_tag.svg"), corner_tag_svg).unwrap();
-
         let visual_impairment_svg = format!(
             include_str!("icons/visual_impairment.svg"),
             text_color = text_color
