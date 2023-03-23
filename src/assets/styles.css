@@ -251,7 +251,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     flex-direction: column;
     justify-content: center;
     left: 0;
-    position: absolute;
+    position: fixed;
     right: 0;
     row-gap: .2rem;
     top: 0;
@@ -329,9 +329,12 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 #share .inner {
     align-items: center;
-    background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
+    background-color: var(--color-background);
+    border-radius: .4rem;
+    box-shadow: 0 0 1rem hsla(0, 0%, 0%, 0.2);
     column-gap: .8rem;
     display: flex;
+    margin: 4rem;
     padding: 1rem;
 }
 #share input {

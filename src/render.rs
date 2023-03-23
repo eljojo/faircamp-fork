@@ -414,7 +414,7 @@ pub fn share_overlay(build: &Build, url: &str) -> String {
     formatdoc!(r##"
         <div id="share">
             <div class="inner">
-                <input data-url value="{url}">
+                <a data-url href="{url}">{url}</a>
                 <a class="button disabled" data-copy title="{t_share_not_available_navigator_clipboard}"><span class="action">{t_copy}</span><span class="success">{t_copied}</span><span class="error">{t_failed}</span></a>
                 <a class="button" href="#">{t_close}</a>
             </div>

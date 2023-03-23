@@ -100,11 +100,9 @@ function copyToClipboard() {
     };
 
     const shareUrl = shareOverlay.querySelector('[data-url]');
-
-    shareUrl.select();
     
     navigator.clipboard
-        .writeText(shareUrl.value)
+        .writeText(shareUrl.getAttribute('href'))
         .then(() => notify(true))
         .catch(_err => notify(false));
 };
@@ -345,9 +343,9 @@ window.addEventListener('DOMContentLoaded', event => {
     }
 
     const shareUrl = shareOverlay.querySelector('[data-url]');
-    shareUrl.addEventListener('focus', () => shareUrl.select());
-    if (!shareUrl.value.length) {
-        shareUrl.value = window.location.href;
+    if (!shareUrl.getAttribute('href').length) {
+        shareUrl.setAttribute('href', window.location.href);
+        shareUrl.innerHTML = window.location.href;
     }
 
     const copyLink = shareOverlay.querySelector('[data-copy]');
