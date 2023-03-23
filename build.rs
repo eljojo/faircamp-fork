@@ -56,7 +56,7 @@ pub fn main() {
 			&manual_out_dir,
 			&docs,
 			page,
-			topics_iter.peek().map(|page| *page).or_else(|| docs.reference.first())
+			topics_iter.peek().copied().or_else(|| docs.reference.first())
 		);
 	}
 
@@ -66,7 +66,7 @@ pub fn main() {
 			&manual_out_dir,
 			&docs,
 			page,
-			reference_iter.peek().map(|page| *page)
+			reference_iter.peek().copied()
 		);
 	}
 
@@ -85,7 +85,7 @@ pub fn main() {
         include_bytes!("src/assets/favicon_light.png")
     ).unwrap();
 
-    let text_color = format!("hsl(0, 0%, 100%)");
+    let text_color = String::from("hsl(0, 0%, 100%)");
     let logo_svg = format!(
         include_str!("src/icons/logo.svg"),
         text_color = text_color
@@ -211,7 +211,7 @@ fn read_pages(dir: &Path) -> Vec<Page> {
 		.flatten()
 		.collect();
 
-	pages.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
+	pages.sort_by_key(|dir_entry| dir_entry.file_name());
 
 	pages
 		.into_iter()
