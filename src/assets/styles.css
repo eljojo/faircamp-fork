@@ -171,7 +171,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .download_hints > small:not(:first-child) { margin-top: .8rem; }
 .download_options div { margin-bottom: .5rem; }
 .duration {
-    color: hsla(var(--text-h), var(--text-s), var(--text-l), .4);
+    color: hsla(var(--text-h), var(--text-s), var(--text-l), .5);
     margin-left: .2rem;
     white-space: nowrap;
 }
@@ -375,7 +375,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track.active .track_controls.inner,
 .track:hover .track_controls.inner { display: flex; }
 .track_download_option { position: relative; }
-.track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .4); }
+.track_number { color: hsla(var(--text-h), var(--text-s), var(--text-l), .5); }
 .track_controls,
 .track_number { padding-right: .5rem; }
 @media (min-width: 30rem) {
@@ -433,6 +433,6 @@ input[type="text"].disabled,
 .waveform path { fill: none; }
 .waveform path.base {
     stroke: hsl(0, 0%, var(--text-l));
-    stroke-width: .02px;
+    stroke-width: .025px;
 }
 .waveform path.progress { stroke-width: .06px; }
