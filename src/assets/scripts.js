@@ -6,9 +6,35 @@ const rootPrefix = document.querySelector('script').getAttribute('src').replace(
 const pauseIcon = `<img alt="Pause" src="${rootPrefix}pause.svg" style="max-width: 1em;">`;
 const playIcon = `<img alt="Play" src="${rootPrefix}play.svg" style="max-width: 1em;">`;
 
+const copyNotificationTimeouts = {};
+
 window.activeTrack = null;
 
 const bigPlayButton = document.querySelector('.big_play_button');
+
+function copyToClipboard(copyLink) {
+    const notify = (success, content) => {
+        if (content in copyNotificationTimeouts) {
+            clearTimeout(copyNotificationTimeouts[content]);
+            delete copyNotificationTimeouts[content];
+        }
+
+        copyLink.classList.toggle('confirmed', success);
+        copyLink.classList.toggle('failed', !success);
+
+        copyNotificationTimeouts[content] = setTimeout(() => {
+            copyLink.classList.remove(success ? 'confirmed' : 'failed');
+        }, 3000);
+    };
+
+    const content = copyLink.dataset.content ||
+        document.querySelector('[data-url]').getAttribute('href');
+
+    navigator.clipboard
+        .writeText(content)
+        .then(() => notify(true, content))
+        .catch(_err => notify(false, content));
+};
 
 function formatTime(seconds) {
     if (seconds < 60) {
@@ -78,34 +104,6 @@ async function mountAndPlay(container, seek) {
     window.activeTrack = { a, audio, container, controlsInner, controlsOuter, svg, time }
     window.activeTrack.interval = setInterval(() => updatePlayhead(window.activeTrack), 200);
 }
-
-let copyNotificationTimeout;
-function copyToClipboard() {
-    const shareOverlay = document.querySelector('#share');
-
-    const notify = success => {
-        if (copyNotificationTimeout) {
-            clearTimeout(copyNotificationTimeout);
-            copyNotificationTimeout = null;
-        }
-
-        const copyLink = shareOverlay.querySelector('[data-copy]');
-
-        copyLink.classList.remove(success ? 'failed' : 'confirmed');
-        copyLink.classList.add(success ? 'confirmed' : 'failed');
-
-        copyNotificationTimeout = setTimeout(() => {
-            copyLink.classList.remove(success ? 'confirmed' : 'failed');
-        }, 3000);
-    };
-
-    const shareUrl = shareOverlay.querySelector('[data-url]');
-    
-    navigator.clipboard
-        .writeText(shareUrl.getAttribute('href'))
-        .then(() => notify(true))
-        .catch(_err => notify(false));
-};
 
 function togglePlayback(container = null, seek = null) {
     const { activeTrack } = window;
@@ -187,7 +185,7 @@ document.body.addEventListener('click', event => {
         togglePlayback(container, seek);
     } else if ('copy' in event.target.dataset) {
         event.preventDefault();
-        copyToClipboard();
+        copyToClipboard(event.target);
     }
 });
 
@@ -332,26 +330,27 @@ window.addEventListener('resize', waveforms);
 window.addEventListener('DOMContentLoaded', event => {
     const shareOverlay = document.querySelector('#share');
 
-    if (!shareOverlay) return;
-
-    const disabledShareLink = document.querySelector('[data-disabled-share]');
-    if (disabledShareLink) {
-        disabledShareLink.classList.remove('disabled');
-        disabledShareLink.removeAttribute('data-disabled-share');
-        disabledShareLink.removeAttribute('title');
-        disabledShareLink.setAttribute('href', '#share');
-    }
-
-    const shareUrl = shareOverlay.querySelector('[data-url]');
-    if (!shareUrl.getAttribute('href').length) {
-        shareUrl.setAttribute('href', window.location.href);
-        shareUrl.innerHTML = window.location.href;
-    }
-
-    const copyLink = shareOverlay.querySelector('[data-copy]');
     if (navigator.clipboard) {
-        copyLink.classList.remove('disabled');
-        copyLink.removeAttribute('title');
+        for (const copyLink of document.querySelectorAll('[data-copy]')) {
+            copyLink.classList.remove('disabled');
+            copyLink.removeAttribute('title');
+        }
+    }
+
+    if (shareOverlay) {
+        const disabledShareLink = document.querySelector('[data-disabled-share]');
+        if (disabledShareLink) {
+            disabledShareLink.classList.remove('disabled');
+            disabledShareLink.removeAttribute('data-disabled-share');
+            disabledShareLink.removeAttribute('title');
+            disabledShareLink.setAttribute('href', '#share');
+        }
+
+        const shareUrl = shareOverlay.querySelector('[data-url]');
+        if (!shareUrl.getAttribute('href').length) {
+            shareUrl.setAttribute('href', window.location.href);
+            shareUrl.innerHTML = window.location.href;
+        }
     }
 });
 

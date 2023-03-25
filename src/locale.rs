@@ -25,8 +25,8 @@ pub struct Translations {
     pub audio_format_description_opus_96: String,
     pub audio_format_description_opus_128: String,
     pub audio_format_description_wav: String,
-    pub audio_player_widget_for_release: String,
-    pub audio_player_widget_for_track: String,
+    audio_player_widget_for_release: String,
+    audio_player_widget_for_track: String,
     pub available_formats: String,
     pub buy: String,
     pub buy_release: String,
@@ -108,6 +108,14 @@ impl Locale {
 }
 
 impl Translations {
+    pub fn audio_player_widget_for_release(&self, title: &str) -> String {
+        self.audio_player_widget_for_release.replace("{title}", title)
+    }
+
+    pub fn audio_player_widget_for_track(&self, title: &str) -> String {
+        self.audio_player_widget_for_track.replace("{title}", title)
+    }
+
     pub fn keys() -> Translations {
         Translations {
             any_amount: String::from("any_amount"),

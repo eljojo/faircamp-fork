@@ -93,6 +93,27 @@ fn compact_release_identifier(
     "#)
 }
 
+
+pub fn copy_button(build: &Build, content: Option<&str>) -> String {
+    let data_content = match content {
+        Some(content) => format!(r#"data-content="{content}""#),
+        None => String::new()
+    };
+
+    let t_copied = &build.locale.translations.copied;
+    let t_copy = &build.locale.translations.copy;
+    let t_failed = &build.locale.translations.failed;
+    let t_share_not_available_navigator_clipboard = &build.locale.translations.share_not_available_navigator_clipboard;
+
+    formatdoc!(r#"
+        <a class="button disabled" {data_content}data-copy title="{t_share_not_available_navigator_clipboard}">
+            <span class="action">{t_copy}</span>
+            <span class="success">{t_copied}</span>
+            <span class="error">{t_failed}</span>
+        </a>
+    "#)
+}
+
 fn cover_image(
     build: &Build,
     index_suffix: &str,
@@ -405,17 +426,14 @@ pub fn share_link(build: &Build) -> String {
 }
 
 pub fn share_overlay(build: &Build, url: &str) -> String {
+    let r_copy_button = copy_button(build, None);
     let t_close = &build.locale.translations.close;
-    let t_copied = &build.locale.translations.copied;
-    let t_copy = &build.locale.translations.copy;
-    let t_failed = &build.locale.translations.failed;
-    let t_share_not_available_navigator_clipboard = &build.locale.translations.share_not_available_navigator_clipboard;
 
     formatdoc!(r##"
         <div id="share">
             <div class="inner">
                 <a data-url href="{url}">{url}</a>
-                <a class="button disabled" data-copy title="{t_share_not_available_navigator_clipboard}"><span class="action">{t_copy}</span><span class="success">{t_copied}</span><span class="error">{t_failed}</span></a>
+                {r_copy_button}
                 <a class="button" href="#">{t_close}</a>
             </div>
         </div>

@@ -56,16 +56,29 @@ pub fn hard_link_or_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) {
         });
 }
 
+/// Given e.g. "\"foo\"", it will first turn the input into "&quot;foo&quot;", 
+/// then into "&amp;quot;foo&amp;quot;". When this is rendered in the browser,
+/// the second escaping pass is removed again, i.e. people will see this on
+/// the site: "&quot;foo&quot;". Used to render embeddable code snippets.
+pub fn html_double_escape_inside_attribute(string: &str) -> String {
+    html_escape_inside_attribute(string)
+        .replace('&', "&amp;")
+}
+
+/// Escape e.g. "me&you" so it can be rendered into an attribute,
+/// e.g. as <img alt="me&quot;you" src="...">
 pub fn html_escape_inside_attribute(string: &str) -> String {
-    string.replace('&', "&amp")
+    string.replace('&', "&amp;")
           .replace('<', "&lt;")
           .replace('>', "&gt;")
           .replace('"', "&quot;")
           .replace('\'', "&#39;")
 }
 
+/// Escape e.g. "love>hate" so it can be rendered into the page,
+/// e.g. as <span>love&gt;hate</span>
 pub fn html_escape_outside_attribute(string: &str) -> String {
-    string.replace('&', "&amp")
+    string.replace('&', "&amp;")
           .replace('<', "&lt;")
           .replace('>', "&gt;")
 }

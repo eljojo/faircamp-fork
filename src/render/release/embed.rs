@@ -5,20 +5,57 @@ use crate::{
     Build,
     Catalog,
     Release,
-    render::{compact_release_identifier, cover_image, layout, list_artists, play_icon},
+    render::{
+        compact_release_identifier,
+        copy_button,
+        cover_image,
+        layout,
+        list_artists,
+        play_icon
+    },
     render::release::waveform,
     Track,
-    util::{format_time, html_escape_outside_attribute},
+    util::{
+        format_time,
+        html_double_escape_inside_attribute,
+        html_escape_inside_attribute,
+        html_escape_outside_attribute
+    },
     WritingDirection
 };
 
+/// Returns a two-field tuple where the fields have the following use:
+/// .0 => Intended to be directly copied via copy-to-clipboard
+/// .1 => Intended to be rendered to the page, so people can copy it themselves.
 /// The title parameter provides a text that indicates to screen-reader users
 /// what to expect inside the iframe. See description at
 /// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
-fn embed_code<T: std::fmt::Display>(base_url: &Url, permalink_slug: &str, postfix: T, title: &str) -> String {
-    format!(
-        r#"<textarea class="embed_code" onfocus="this.select()" readonly="true">&lt;iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title}"&gt;&lt;/iframe&gt;</textarea>"#
-    )
+fn embed_code<T: std::fmt::Display>(
+    base_url: &Url,
+    permalink_slug: &str,
+    postfix: T,
+    title: &str
+) -> (String, String) {
+    let title_double_escaped = html_double_escape_inside_attribute(title);
+    let title_escaped = html_escape_inside_attribute(title);
+    
+    let copy_code = html_escape_inside_attribute(
+        &formatdoc!(r#"
+            <iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title_escaped}"></iframe>
+        "#)
+    );
+
+    let display_code = formatdoc!(r#"
+        <div class="embed_code_wrapper">
+            <pre class="embed_code"><span class="embed_syntax_special">&lt;</span>iframe
+            loading<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"lazy"</span>
+            src<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{base_url}{permalink_slug}/embed/{postfix}"</span>
+            title<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{title_double_escaped}"</span><span class="embed_syntax_special">&gt;</span>
+        <span class="embed_syntax_special">&lt;/</span>iframe<span class="embed_syntax_special">&gt;</span></pre>
+        </div>
+    "#);
+
+    (copy_code, display_code)
 }
 
 pub fn embed_choices_html(
@@ -38,23 +75,31 @@ pub fn embed_choices_html(
             let track_number = index + 1;
             let track_title = html_escape_outside_attribute(&track.title);
 
-            let embed_code = embed_code(
+            let t_audio_player_widget_for_track =
+                &build.locale.translations.audio_player_widget_for_track(&track.title);
+
+            let (embed_copy_code, embed_display_code) = embed_code(
                 base_url,
                 &release.permalink.slug,
                 track_number,
-                &build.locale.translations.audio_player_widget_for_track
+                &t_audio_player_widget_for_track
             );
 
+            let r_copy_button = copy_button(build, Some(&embed_copy_code));
+
             formatdoc!(r#"
-                <div style="position: relative;">
-                    <span class="track_number">{track_number:02}</span>
-                    <span>{track_title}</span><br><br>
-                    {embed_code}
+                <div class="center_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
+                    <div style="font-size: var(--subtly-larger);">
+                        <span class="track_number">{track_number:02}</span>
+                        <span>{track_title}</span>
+                    </div>
+                    {r_copy_button}
                 </div>
+                {embed_display_code}
             "#)
         })
         .collect::<Vec<String>>()
-        .join("<br><br>\n");
+        .join("\n");
 
     let release_link = format!("..{index_suffix}");
 
@@ -67,28 +112,38 @@ pub fn embed_choices_html(
         root_prefix,
     );
 
-    let embed_code = embed_code(
+    let t_audio_player_widget_for_release = 
+        &build.locale.translations.audio_player_widget_for_release(&release.title);
+
+    let (embed_copy_code, embed_display_code) = embed_code(
         base_url,
         &release.permalink.slug,
         "all",
-        &build.locale.translations.audio_player_widget_for_release
+        &t_audio_player_widget_for_release
     );
 
+    let r_copy_button = copy_button(build, Some(&embed_copy_code));
+
     let t_embed_release = &build.locale.translations.embed_release;
-    let t_embed_entire_release = &build.locale.translations.embed_release;
+    let t_embed_entire_release = &build.locale.translations.embed_entire_release;
     let body = formatdoc!(r##"
-        <div class="center_release mobile_hpadding">
+        <div class="center_wide margin_page_top mobile_hpadding">
             <h1>{t_embed_release}</h1>
 
             {compact_release_identifier_rendered}
-
-            {t_embed_entire_release}<br><br>
-            {embed_code}
-
-            <br><br><br>
-
-            {track_choices_rendered}
         </div>
+
+        <div style="margin-top: 2rem;">
+            <div class="center_wide embed_split mobile_hpadding">
+                <span style="font-size: var(--subtly-larger);">{t_embed_entire_release}</span>
+                {r_copy_button}
+            </div>
+            {embed_display_code}
+        </div>
+
+        {track_choices_rendered}
+
+        <div class="margin_page_bottom"></div>
     "##);
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
