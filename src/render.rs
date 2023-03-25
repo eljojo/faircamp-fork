@@ -434,7 +434,7 @@ pub fn share_overlay(build: &Build, url: &str) -> String {
             <div class="inner">
                 <a data-url href="{url}">{url}</a>
                 {r_copy_button}
-                <a class="button" href="#">{t_close}</a>
+                <a class="button" href="#!">{t_close}</a>
             </div>
         </div>
     "##)

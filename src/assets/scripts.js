@@ -168,24 +168,26 @@ function updatePlayhead(activeTrack, reset = false) {
 }
 
 document.body.addEventListener('click', event => {
-    if (event.target.classList.contains('big_play_button')) {
+    const { target } = event;
+
+    if (target.classList.contains('big_play_button')) {
         togglePlayback();
-    } else if (event.target.classList.contains('track_controls')) {
+    } else if (target.classList.contains('track_controls')) {
         event.preventDefault();
-        const container = event.target.closest('.track')
+        const container = target.closest('.track')
         togglePlayback(container);
-    } else if (event.target.classList.contains('track_title')) {
+    } else if (target.classList.contains('track_title')) {
         event.preventDefault();
-        const container = event.target.closest('.track')
+        const container = target.closest('.track')
         togglePlayback(container, 0);
-    } else if (event.target.classList.contains('waveform')) {
-        const container = event.target.closest('.track');
-        const svg = event.target;
+    } else if (target.classList.contains('waveform')) {
+        const container = target.closest('.track');
+        const svg = target;
         const seek = (event.clientX - svg.getBoundingClientRect().x) / svg.getBoundingClientRect().width;
         togglePlayback(container, seek);
-    } else if ('copy' in event.target.dataset) {
+    } else if ('copy' in target.dataset) {
         event.preventDefault();
-        copyToClipboard(event.target);
+        copyToClipboard(target);
     }
 });
 
