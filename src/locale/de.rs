@@ -62,7 +62,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
 - Beschreib was da ist und wichtig fürs Verständnis, aber analysiere und interpretiere darüber hinaus nicht.<br>\
 - Du kannst Farbbeschreibungen verwenden wo es Sinn macht - viele Menschen verlieren ihre Sehkraft erst spät im Leben und verstehen und schätzen Farben."),
         made_or_arranged_payment: String::from("Ich habe die Bezahlung durchgeführt oder arrangiert"),
-        missing_image_description_note: String::from("Fehlende Bildbeschreibung.<br>Klick für mehr Info"),
+        missing_image_description_note: String::from("Fehlende Bildbeschreibung<br>Klick für mehr Info"),
         name_your_price: String::from("Nenne einen Preis"),
         option: String::from("Option"),
         pay_on_liberapay: String::from("Auf Liberapay bezahlen:"),

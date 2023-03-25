@@ -7,7 +7,6 @@ use std::fs;
 use crate::Build;
 
 pub fn generate(build: &Build) {
-    let pane_color = format!("hsl(0, 0%, {l}%)", l = build.theme.base.pane_l);
     let text_color = format!("hsl(0, 0%, {l}%)", l = build.theme.base.text_l);
 
     if build.base_url.is_some() {   
@@ -25,13 +24,6 @@ pub fn generate(build: &Build) {
         );
         fs::write(build.build_dir.join("visual_impairment.svg"), visual_impairment_svg).unwrap();
     }
-
-    // TODO: Conditionally build only when there are downloads?
-    let download_svg = format!(
-        include_str!("icons/download.svg"),
-        color = pane_color
-    );
-    fs::write(build.build_dir.join("download.svg"), download_svg).unwrap();
 
     let logo_svg = format!(
         include_str!("icons/logo.svg"),

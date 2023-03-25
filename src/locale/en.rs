@@ -66,7 +66,7 @@ Here are some tips for writing good image descriptions:<br>\
 - Don't interpret. Describe what is there and relevant for its understanding, don't analyze beyond that.<br>\
 - You can use colors where it makes sense - many people only lost their sight later on and understand and appreciate colors."),
         made_or_arranged_payment: String::from("I have made or arranged the payment"),
-        missing_image_description_note: String::from("Missing image description.<br>Click to learn more"),
+        missing_image_description_note: String::from("Missing image description<br>Click to learn more"),
         name_your_price: String::from("Name your price"),
         option: String::from("Option"),
         pay_on_liberapay: String::from("Pay on liberapay:"),

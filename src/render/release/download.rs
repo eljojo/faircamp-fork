@@ -161,22 +161,22 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let t_format_guide = &build.locale.translations.format_guide;
     let body = formatdoc!(
         r##"
-            <div class="center_release mobile_hpadding">
+            <div class="center_medium margin_page_bottom margin_page_top mobile_hpadding">
                 <h1>{t_download_release}</h1>
 
                 {compact_release_identifier_rendered}
 
-                <a class="download_button" 
-                   download
-                   href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
-                    <img alt="{t_download}" class="download_icon" src="{root_prefix}download.svg">
+                <div style="align-items: center; column-gap: .3rem; display: flex; justify-content: space-between; margin-bottom: 2rem;">
                     <div>
                         <span style="font-size: var(--subtly-larger);">{t_entire_release}</span><br>
                         <small>{primary_download_format}{primary_download_format_recommendation}</small>
                     </div>
-                </a>
-
-                <br><br>
+                    <a class="download_button" 
+                       download
+                       href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
+                       Download
+                    </a>
+                </div>
 
                 <p>
                     {t_download_choice_hints}

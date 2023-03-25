@@ -255,6 +255,11 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
         width: 2.5rem;
     }
 }
+.center_medium {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 27rem;
+}
 .center_wide {
     margin-left: auto;
     margin-right: auto;
