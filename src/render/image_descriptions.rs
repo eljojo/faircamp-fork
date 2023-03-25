@@ -9,7 +9,7 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     let t_image_descriptions_guide = &build.locale.translations.image_descriptions_guide;
     
     let body = formatdoc!(r#"
-        <div class="center_release">
+        <div class="center_wide margin_page_bottom margin_page_top">
             <div class="vpad">
                 <h1>{t_image_descriptions}</h1>
             </div>

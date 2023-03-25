@@ -448,10 +448,11 @@ fn wrap_undescribed_image(
     overlay: &str,
     extra_class: &str
 ) -> String {
+    let t_image_descriptions_permalink = &build.locale.translations.image_descriptions_permalink;
     let t_missing_image_description_note = &build.locale.translations.missing_image_description_note;
     formatdoc!(r#"
         <div class="{extra_class} undescribed_wrapper">
-            <a class="undescribed_icon" href="{root_prefix}image-descriptions{index_suffix}">
+            <a class="undescribed_icon" href="{root_prefix}{t_image_descriptions_permalink}{index_suffix}">
                 <img alt="Visual Impairment" src="{root_prefix}visual_impairment.svg">
             </a>
             <span class="undescribed_overlay">

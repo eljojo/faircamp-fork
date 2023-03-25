@@ -52,6 +52,8 @@ pub struct Translations {
     pub format_guide: String,
     pub image_descriptions: String,
     pub image_descriptions_guide: String,
+    /// May only contain url-safe characters
+    pub image_descriptions_permalink: String,
     pub made_or_arranged_payment: String,
     pub missing_image_description_note: String,
     pub name_your_price: String,
@@ -155,6 +157,7 @@ impl Translations {
             format_guide: String::from("format_guide"),
             image_descriptions: String::from("image_descriptions"),
             image_descriptions_guide: String::from("image_descriptions_guide"),
+            image_descriptions_permalink: String::from("image_descriptions_permalink"),
             made_or_arranged_payment: String::from("made_or_arranged_payment"),
             missing_image_description_note: String::from("missing_image_description_note"),
             name_your_price: String::from("name_your_price"),

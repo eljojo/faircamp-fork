@@ -64,6 +64,7 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
 - Sea concisa. Escriba tanto como sea necesario, pero también manténgalo lo más corto posible.<br>\
 - No interpretas. Describa que hay en el imagen pero no analices más allá de eso.<br>\
 - Puedes usar colores cuando tiene sentido - mucha gente solo perdan la vista mas tarde y entienden y aprecian los colores."),
+        image_descriptions_permalink: String::from("descripciones-de-imagenes"),
         made_or_arranged_payment: String::from("He hecho o arreglado el pago"),
         missing_image_description_note: String::from("Falta una descripción de imagen<br>Haz click para aprender más"),
         name_your_price: String::from("Nombra tu precio"),
