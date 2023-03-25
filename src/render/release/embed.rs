@@ -32,16 +32,20 @@ use crate::{
 /// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
 fn embed_code<T: std::fmt::Display>(
     base_url: &Url,
-    permalink_slug: &str,
+    index_suffix: &str,
+    release_slug: &str,
     postfix: T,
     title: &str
 ) -> (String, String) {
     let title_double_escaped = html_double_escape_inside_attribute(title);
     let title_escaped = html_escape_inside_attribute(title);
+    let url = base_url
+        .join(&format!("{release_slug}/embed/{postfix}{index_suffix}"))
+        .unwrap();
     
     let copy_code = html_escape_inside_attribute(
         &formatdoc!(r#"
-            <iframe loading="lazy" src="{base_url}{permalink_slug}/embed/{postfix}" title="{title_escaped}"></iframe>
+            <iframe loading="lazy" src="{url}" title="{title_escaped}"></iframe>
         "#)
     );
 
@@ -49,7 +53,7 @@ fn embed_code<T: std::fmt::Display>(
         <div class="embed_code_wrapper">
             <pre class="embed_code"><span class="embed_syntax_special">&lt;</span>iframe
             loading<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"lazy"</span>
-            src<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{base_url}{permalink_slug}/embed/{postfix}"</span>
+            src<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{url}"</span>
             title<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{title_double_escaped}"</span><span class="embed_syntax_special">&gt;</span>
         <span class="embed_syntax_special">&lt;/</span>iframe<span class="embed_syntax_special">&gt;</span></pre>
         </div>
@@ -80,6 +84,7 @@ pub fn embed_choices_html(
 
             let (embed_copy_code, embed_display_code) = embed_code(
                 base_url,
+                index_suffix,
                 &release.permalink.slug,
                 track_number,
                 &t_audio_player_widget_for_track
@@ -117,6 +122,7 @@ pub fn embed_choices_html(
 
     let (embed_copy_code, embed_display_code) = embed_code(
         base_url,
+        index_suffix,
         &release.permalink.slug,
         "all",
         &t_audio_player_widget_for_release

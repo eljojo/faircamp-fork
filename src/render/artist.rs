@@ -63,7 +63,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let share_url = match &build.base_url {
         Some(base_url) => base_url
-            .join(&format!("{}{}", &artist.permalink.slug, index_suffix))
+            .join(&format!("{}{index_suffix}", &artist.permalink.slug))
             .unwrap()
             .to_string(),
         None => String::new()

@@ -328,7 +328,12 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "catalog", path) {
-        if let Some((value, line)) = optional_field_value_with_line(section, "base_url") {
+        if let Some((mut value, line)) = optional_field_value_with_line(section, "base_url") {
+            // Ensure the value has a trailing slash. Without one, Url::parse below
+            // would interpret the final path segment as a file, which would lead to
+            // incorrect url construction at a later point.
+            if !value.ends_with('/') { value.push('/'); }
+
             match Url::parse(&value) {
                 Ok(url) => {
                     if let Some(previous_url) = &build.base_url {

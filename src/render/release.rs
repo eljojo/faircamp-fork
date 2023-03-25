@@ -128,7 +128,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let share_url = match &build.base_url {
         Some(base_url) => base_url
-            .join(&format!("{}{}", &release.permalink.slug, index_suffix))
+            .join(&format!("{}{index_suffix}", &release.permalink.slug))
             .unwrap()
             .to_string(),
         None => String::new()
