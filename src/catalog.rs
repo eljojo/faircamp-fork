@@ -152,10 +152,14 @@ impl Catalog {
                         artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == main_artist_to_map_lowercase) {
                         any_artist_found = true;
 
-                        // Only assign artist to release if it hasn't already been assigned to it
+                        // Only assign artist to release's main artists if it hasn't already been assigned to them
                         if !release_mut.main_artists.iter().any(|main_artist| Rc::ptr_eq(main_artist, artist)) {
                             artist_mut.releases.push(release.clone());
                             release_mut.main_artists.push(artist.clone());
+                        }
+
+                        // Only assign artist to catalog's main artists if it hasn't already been assigned to them
+                        if !self.main_artists.iter().any(|main_artist| Rc::ptr_eq(main_artist, artist)) {
                             self.main_artists.push(artist.clone());
                         }
                     }
@@ -183,10 +187,14 @@ impl Catalog {
                         artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == support_artist_to_map_lowercase) {
                         any_artist_found = true;
 
-                        // Only assign artist to release if it hasn't already been assigned to it
+                        // Only assign artist to release's support artists if it hasn't already been assigned to them
                         if !release_mut.support_artists.iter().any(|support_artist| Rc::ptr_eq(support_artist, artist)) {
                             artist_mut.releases.push(release.clone());
                             release_mut.support_artists.push(artist.clone());
+                        }
+
+                        // Only assign artist to catalog's support artists if it hasn't already been assigned to them
+                        if !self.support_artists.iter().any(|support_artist| Rc::ptr_eq(support_artist, artist)) {
                             self.support_artists.push(artist.clone());
                         }
                     }
@@ -264,7 +272,13 @@ impl Catalog {
             catalog.featured_artists.extend(catalog.main_artists.iter().cloned());
 
             if catalog.feature_support_artists {
-                catalog.featured_artists.extend(catalog.support_artists.iter().cloned());
+                for support_artist in &catalog.support_artists {
+                    // Only assign support artist to catalog's featured artists if
+                    // it hasn't already been assigned to them as a main artist
+                    if !catalog.featured_artists.iter().any(|featured_artist| Rc::ptr_eq(featured_artist, support_artist)) {
+                        catalog.featured_artists.push(support_artist.clone());
+                    }
+                }
             }
         } else {
             catalog.set_artist();
