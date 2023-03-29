@@ -80,7 +80,7 @@ pub fn embed_choices_html(
             let track_title = html_escape_outside_attribute(&track.title);
 
             let t_audio_player_widget_for_track =
-                &build.locale.translations.audio_player_widget_for_track(&track.title);
+                build.locale.translations.audio_player_widget_for_track(&track.title);
 
             let (embed_copy_code, embed_display_code) = embed_code(
                 base_url,
@@ -118,7 +118,7 @@ pub fn embed_choices_html(
     );
 
     let t_audio_player_widget_for_release = 
-        &build.locale.translations.audio_player_widget_for_release(&release.title);
+        build.locale.translations.audio_player_widget_for_release(&release.title);
 
     let (embed_copy_code, embed_display_code) = embed_code(
         base_url,

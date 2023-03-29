@@ -15,9 +15,10 @@ use crate::decode::{
 /// Return None if the passed string is empty or all whitespace,
 /// otherwise pass Some(String) containing the trimmed input string. 
 fn trim_and_reject_empty(string: &str) -> Option<String> {
-    let trimmed = string.trim();
-    if trimmed.is_empty() { return None }
-    Some(trimmed.to_string())
+    match string.trim() {
+        "" => None,
+        trimmed => Some(trimmed.to_string())
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

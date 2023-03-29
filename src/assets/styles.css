@@ -78,7 +78,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .artists a {
     background-color: var(--color-link);
     border-radius: .1rem;
-    color: #000;
+    color: var(--color-background);
     padding: .1rem .2rem .2rem .2rem;
 }
 .big_play_button,

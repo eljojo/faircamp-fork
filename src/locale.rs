@@ -103,7 +103,7 @@ impl Locale {
     ) -> Locale {
         Locale {
             language: language.to_owned(),
-            translations: translations,
+            translations,
             writing_direction
         }
     }
