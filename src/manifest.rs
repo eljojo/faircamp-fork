@@ -346,8 +346,8 @@ pub fn apply_options(
             }
         }
 
-        if optional_flag_present(section, "rotate_download_urls") {
-            build.url_salt = util::uid();
+        if optional_flag_present(section, "feature_support_artists") {
+            catalog.feature_support_artists = true;
         }
 
         if let Some(value) = optional_field_value(section, "freeze_download_urls") {
@@ -399,6 +399,18 @@ pub fn apply_options(
 
         if optional_flag_present(section, "label_mode") {
             catalog.label_mode = true;
+        }
+
+        // TODO: Would make sense to report if both rotate_download_urls and
+        // freeze_download_urls are set (or the latter twice e.g.), as this
+        // could lead to unexpected, frustrating behavior for users (and it
+        // can happen by accident).
+        if optional_flag_present(section, "rotate_download_urls") {
+            build.url_salt = util::uid();
+        }
+
+        if optional_flag_present(section, "show_support_artists") {
+            catalog.show_support_artists = true;
         }
 
         if let Some(value) = optional_field_value(section, "title") {

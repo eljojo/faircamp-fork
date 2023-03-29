@@ -182,7 +182,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
             {share_overlay_rendered}
         "##,
-        artists = list_artists(index_suffix, root_prefix, catalog, &release.artists),
+        artists = list_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, "", root_prefix, release),
         play_icon = play_icon(root_prefix)
     );

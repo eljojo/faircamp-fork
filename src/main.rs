@@ -123,23 +123,21 @@ fn main() {
         }
     }
 
-    if catalog.label_mode {
-        // Render page for each artist
-        for artist in &catalog.artists {
-            let artist_ref = artist.borrow();
-            if let Some(image) = &artist_ref.image {
-                if image.borrow().description.is_none() {
-                    warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
-                    build.missing_image_descriptions = true;
-                }
+    // Render pages for featured artists (these are populated only in label mode)
+    for artist in &catalog.featured_artists {
+        let artist_ref = artist.borrow();
+        if let Some(image) = &artist_ref.image {
+            if image.borrow().description.is_none() {
+                warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
+                build.missing_image_descriptions = true;
             }
-
-            let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
-            let artist_ref = artist.borrow();
-
-            fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
-            fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
         }
+
+        let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
+        let artist_ref = artist.borrow();
+
+        fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
+        fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
     }
 
     // Render image descriptions page (when needed)

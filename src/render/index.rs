@@ -29,8 +29,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
-    let artists = if catalog.label_mode && !catalog.artists.is_empty() {
-        let artist_links = catalog.artists
+    // Only populated in label mode, otherwise featured_artists is empty
+    let featured_artists = if !catalog.featured_artists.is_empty() {
+        let artist_links = catalog.featured_artists
             .iter()
             .map(|artist| {
                 let artist_ref = artist.borrow();
@@ -80,7 +81,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 <div style="font-size: var(--boldly-larger);">
                     {action_links}
                 </div>
-                {artists}
+                {featured_artists}
             </div>
         </div>
     "##);
@@ -90,8 +91,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         index_suffix,
         root_prefix,
         catalog,
-        &catalog.releases,
-        catalog.label_mode
+        &catalog.releases
     );
 
     // TODO: catalog_text criterium is a bit random because the character

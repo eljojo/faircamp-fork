@@ -47,8 +47,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         index_suffix,
         root_prefix,
         catalog,
-        &artist.releases,
-        false
+        &artist.releases
     );
 
     // TODO: See note in index.rs and sync the solution between there and here

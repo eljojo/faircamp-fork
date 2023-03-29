@@ -8,6 +8,7 @@ Site-wide metadata and settings, such as the title and site URL.
 base_url: https://myawesomemusic.site/
 feed_image: exported_logo_v3.jpg
 label_mode
+show_support_artists
 title: My awesome music
 
 -- text
@@ -50,6 +51,32 @@ title: My awesome music
 -- text
 Lorem ipsum dolor sit amet ...
 -- text
+```
+
+## Main & Support artists
+
+A release can have one or more *main artists*, i.e. principal authors. Artists
+that appear as collaborators are called *support artists* in faircamp. The
+main artists are auto-detected (e.g. when they are the only artist for a release,
+when they appear in the "Album Artist" tag in files, or when they appear as
+artist on most tracks of a release).
+
+By default, support artists are not listed in the interface. You can use the
+`show_support_artists` flag to make them show up in listings.
+
+```eno
+show_support_artists
+```
+
+Also by default, support artists are never linked to, and also don't have,
+their own artist page. The `feature_support_artists`  flag can be used to
+link them to, and give them their own, artist pages (this implicitly enables
+`show_support_artists`). Note that this flag only affects label mode. In
+artist mode no artist pages exist, instead the homepage *is* the one and only
+artist page (the catalog artist's page).
+
+```eno
+feature_support_artists
 ```
 
 ## Dealing with malicious behavior

@@ -34,8 +34,6 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Release {
-    pub artists: Vec<Rc<RefCell<Artist>>>,
-    pub artists_to_map: Vec<String>,
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download asset filenames.
     pub asset_basename: Option<String>,
@@ -45,11 +43,24 @@ pub struct Release {
     pub download_formats: Vec<AudioFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
+    /// The artists that are the principal authors of a release ("Album Artist" in tag lingo)
+    pub main_artists: Vec<Rc<RefCell<Artist>>>,
+    /// The order in which we encounter artists and releases when reading the
+    /// catalog is arbitrary, hence when we read a release, we might not yet
+    /// have read metadata that tells us to which artist(s) it needs to be
+    /// mapped. `main_artists_to_map` is an intermediate, name-based mapping
+    /// we store until the entire catalog is read. After that point, we
+    /// use it to build the final mapping in `main_artists`, then dispose of it.
+    pub main_artists_to_map: Vec<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub rewrite_tags: bool,
     pub runtime: u32,
     pub streaming_format: AudioFormat,
+    /// Artists that appear on the release as collaborators, features, etc.
+    pub support_artists: Vec<Rc<RefCell<Artist>>>,
+    /// See `main_artists_to_map` for what this does
+    pub support_artists_to_map: Vec<String>,
     pub text: Option<String>,
     pub title: String,
     pub track_numbering: TrackNumbering,
@@ -160,12 +171,13 @@ impl Release {
     }
 
     pub fn new(
-        artists_to_map: Vec<String>,
         assets: Rc<RefCell<ReleaseAssets>>,
         cover: Option<Rc<RefCell<Image>>>,
         date: Option<NaiveDate>,
+        main_artists_to_map: Vec<String>,
         manifest_overrides: &Overrides,
         permalink_option: Option<Permalink>,
+        support_artists_to_map: Vec<String>,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
@@ -185,8 +197,6 @@ impl Release {
         }
 
         Release {
-            artists: Vec::new(),
-            artists_to_map,
             asset_basename: None,
             assets,
             cover,
@@ -194,11 +204,15 @@ impl Release {
             download_formats: manifest_overrides.download_formats.clone(),
             download_option,
             embedding: manifest_overrides.embedding,
+            main_artists: Vec::new(),
+            main_artists_to_map,
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
             rewrite_tags: manifest_overrides.rewrite_tags,
             runtime,
             streaming_format: manifest_overrides.streaming_format,
+            support_artists: Vec::new(),
+            support_artists_to_map,
             text: manifest_overrides.release_text.clone(),
             title,
             track_numbering: manifest_overrides.release_track_numbering.clone(),
@@ -210,15 +224,15 @@ impl Release {
         let mut tag_mapping_option = if self.rewrite_tags {
             Some(TagMapping {
                 album: Some(self.title.clone()),
-                album_artist: if self.artists.is_empty() {
+                album_artist: if self.main_artists.is_empty() {
                     None
                 } else {
                     Some(
-                        self.artists
-                        .iter()
-                        .map(|artist| artist.borrow().name.clone())
-                        .collect::<Vec<String>>()
-                        .join(", ")
+                        self.main_artists
+                            .iter()
+                            .map(|artist| artist.borrow().name.clone())
+                            .collect::<Vec<String>>()
+                            .join(", ")
                     )
                 },
                 artist: None,

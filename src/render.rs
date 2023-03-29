@@ -1,5 +1,6 @@
 use indoc::formatdoc;
 use std::cell::RefCell;
+use std::cmp::Ordering;
 use std::rc::Rc;
 
 use crate::{
@@ -76,7 +77,7 @@ fn compact_release_identifier(
     release_prefix: &str,
     root_prefix: &str
 ) -> String {
-    let artists = list_artists(index_suffix, root_prefix, catalog, &release.artists);
+    let artists = list_artists(index_suffix, root_prefix, catalog, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let cover = cover_image_tiny(release_prefix, &release.cover, release_link);
 
@@ -324,13 +325,31 @@ fn layout(
     )
 }
 
+/// Render the artists of a release in the style of "Alice, Bob", where each
+/// (Alice, Bob) can be a link too, depending on the release and catalog.
+/// In *label mode*, all main artists of a release are shown and linked to
+/// their artist page. In *artist mode*, only the catalog artist is ever
+/// linked (to the site's homepage in this case). Whether support artists are
+/// listed depends on the catalog settings, by default they are not. The
+/// catalog artist and main artists are always sorted first, in that order.
 fn list_artists(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    artists: &[Rc<RefCell<Artist>>]
+    release: &Release
 ) -> String {
-    artists
+    let mut main_artists_sorted: Vec<Rc<RefCell<Artist>>> = release.main_artists.clone();
+
+    // Sort so the catalog artist comes first
+    main_artists_sorted.sort_by(|a, b| {
+        if let Some(catalog_artist) = &catalog.artist {
+            if Rc::ptr_eq(a, catalog_artist) { return Ordering::Less; }
+            if Rc::ptr_eq(b, catalog_artist) { return Ordering::Greater; }
+        }
+        Ordering::Equal
+    });
+
+    let main_artists = main_artists_sorted
         .iter()
         .map(|artist| {
             let artist_ref = artist.borrow();
@@ -350,7 +369,32 @@ fn list_artists(
             name_escaped
         })
         .collect::<Vec<String>>()
-        .join(", ")
+        .join(", ");
+
+    if catalog.feature_support_artists && !release.support_artists.is_empty() {
+        let support_artists = release.support_artists
+                .iter()
+                .map(|artist| {
+                    let artist_ref = artist.borrow();
+                    let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+                    let permalink = &artist_ref.permalink.slug;
+                    format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
+                })
+                .collect::<Vec<String>>()
+                .join(", ");
+
+        format!("{main_artists}, {support_artists}")
+    } else if catalog.show_support_artists && !release.support_artists.is_empty() {
+        let support_artists = release.support_artists
+                .iter()
+                .map(|artist| html_escape_outside_attribute(&artist.borrow().name))
+                .collect::<Vec<String>>()
+                .join(", ");
+
+        format!("{main_artists}, {support_artists}")
+    } else {
+        main_artists
+    }
 }
 
 fn releases(
@@ -358,8 +402,7 @@ fn releases(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    releases: &[Rc<RefCell<Release>>],
-    show_artists: bool
+    releases: &[Rc<RefCell<Release>>]
 ) -> String {
     let mut releases_desc_by_date = releases.to_vec();
 
@@ -374,8 +417,8 @@ fn releases(
 
             let href = format!("{root_prefix}{permalink}{index_suffix}");
 
-            let artists = if show_artists {
-                let list = list_artists(index_suffix, root_prefix, catalog, &release_ref.artists);
+            let artists = if catalog.label_mode {
+                let list = list_artists(index_suffix, root_prefix, catalog, &release_ref);
                 format!("<div>{list}</div>")
             } else {
                 String::new()
@@ -402,7 +445,7 @@ fn releases(
                         <a href="{href}" style="color: var(--color-text); font-size: var(--subtly-larger);">
                             {release_title}
                         </a>
-                        <div>{artists}</div>
+                        {artists}
                     </div>
                 </div>
             "#)

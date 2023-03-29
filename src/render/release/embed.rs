@@ -230,7 +230,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                 </div>
             </div>
         "##,
-        artists = list_artists(index_suffix, root_prefix, catalog, &release.artists),
+        artists = list_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
@@ -315,7 +315,7 @@ pub fn embed_track_html(
                 </div>
             </div>
         "##,
-        artists = list_artists(index_suffix, root_prefix, catalog, &release.artists),
+        artists = list_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
         play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)

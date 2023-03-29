@@ -34,11 +34,20 @@ const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the 
 pub struct Catalog {
     /// Stores the primary artist for "single artist" catalogs
     pub artist: Option<Rc<RefCell<Artist>>>,
+    /// All artists (main_artists + support_artists)
     pub artists: Vec<Rc<RefCell<Artist>>>,
+    /// Whether support artists should get their own
+    /// pages and be linked to them
+    pub feature_support_artists: bool,
+    /// Those artists that get their own page
+    pub featured_artists: Vec<Rc<RefCell<Artist>>>,
     pub feed_image: Option<Rc<RefCell<Image>>>,
     pub home_image: Option<Rc<RefCell<Image>>>,
     pub label_mode: bool,
+    pub main_artists: Vec<Rc<RefCell<Artist>>>,
     pub releases: Vec<Rc<RefCell<Release>>>,
+    pub show_support_artists: bool,
+    pub support_artists: Vec<Rc<RefCell<Artist>>>,
     pub text: Option<String>,
     title: Option<String>
 }
@@ -80,10 +89,10 @@ impl Catalog {
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
 
-            let release_artists = if release_mut.artists.is_empty() {
+            let main_artists = if release_mut.main_artists.is_empty() {
                 String::new()
             } else {
-                let list = release_mut.artists
+                let list = release_mut.main_artists
                     .iter()
                     .map(|artist| sanitize(&artist.borrow().name))
                     .collect::<Vec<String>>()
@@ -93,7 +102,7 @@ impl Catalog {
             };
             let release_title = sanitize(&release_mut.title);
 
-            let release_basename = format!("{release_artists}{release_title}");
+            let release_basename = format!("{main_artists}{release_title}");
 
             release_mut.asset_basename = Some(release_basename);
 
@@ -130,30 +139,65 @@ impl Catalog {
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
 
-            let release_artists_to_map: Vec<String> = release_mut.artists_to_map.drain(..).collect(); // move out of release
+            let main_artists_to_map: Vec<String> = release_mut.main_artists_to_map
+                .drain(..) // move out of release
+                .collect();
 
-            for release_artist_to_map in release_artists_to_map {
-                let release_artist_to_map_lowercase = release_artist_to_map.to_lowercase();
+            for main_artist_to_map in main_artists_to_map {
+                let main_artist_to_map_lowercase = main_artist_to_map.to_lowercase();
                 let mut any_artist_found = false;
                 for artist in &self.artists {
                     let mut artist_mut = artist.borrow_mut();
-                    if artist_mut.name.to_lowercase() == release_artist_to_map_lowercase ||
-                        artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == release_artist_to_map_lowercase) {
+                    if artist_mut.name.to_lowercase() == main_artist_to_map_lowercase ||
+                        artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == main_artist_to_map_lowercase) {
                         any_artist_found = true;
 
                         // Only assign artist to release if it hasn't already been assigned to it
-                        if !release_mut.artists.iter().any(|release_artist| Rc::ptr_eq(release_artist, artist)) {
+                        if !release_mut.main_artists.iter().any(|main_artist| Rc::ptr_eq(main_artist, artist)) {
                             artist_mut.releases.push(release.clone());
-                            release_mut.artists.push(artist.clone());
+                            release_mut.main_artists.push(artist.clone());
+                            self.main_artists.push(artist.clone());
                         }
                     }
                 }
 
                 if !any_artist_found {
-                    let new_artist = Rc::new(RefCell::new(Artist::new(&release_artist_to_map)));
+                    let new_artist = Rc::new(RefCell::new(Artist::new(&main_artist_to_map)));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
-                    release_mut.artists.push(new_artist);
+                    self.main_artists.push(new_artist.clone());
+                    release_mut.main_artists.push(new_artist);
+                }
+            }
+
+            let support_artists_to_map: Vec<String> = release_mut.support_artists_to_map
+                .drain(..) // move out of release
+                .collect();
+
+            for support_artist_to_map in support_artists_to_map {
+                let support_artist_to_map_lowercase = support_artist_to_map.to_lowercase();
+                let mut any_artist_found = false;
+                for artist in &self.artists {
+                    let mut artist_mut = artist.borrow_mut();
+                    if artist_mut.name.to_lowercase() == support_artist_to_map_lowercase ||
+                        artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == support_artist_to_map_lowercase) {
+                        any_artist_found = true;
+
+                        // Only assign artist to release if it hasn't already been assigned to it
+                        if !release_mut.support_artists.iter().any(|support_artist| Rc::ptr_eq(support_artist, artist)) {
+                            artist_mut.releases.push(release.clone());
+                            release_mut.support_artists.push(artist.clone());
+                            self.support_artists.push(artist.clone());
+                        }
+                    }
+                }
+
+                if !any_artist_found {
+                    let new_artist = Rc::new(RefCell::new(Artist::new(&support_artist_to_map)));
+                    new_artist.borrow_mut().releases.push(release.clone());
+                    self.artists.push(new_artist.clone());
+                    self.support_artists.push(new_artist.clone());
+                    release_mut.support_artists.push(new_artist);
                 }
             }
 
@@ -175,6 +219,9 @@ impl Catalog {
                     }
 
                     if !any_artist_found {
+                        // TODO: An artist created here curiously belongs neither to catalog.main_artists,
+                        //       nor catalog.support_artists. This might indicate that in fact we never
+                        //       enter into this branch at all?
                         let new_artist = Rc::new(RefCell::new(Artist::new(&track_artist_to_map)));
                         self.artists.push(new_artist.clone());
                         track.artists.push(new_artist);
@@ -188,10 +235,15 @@ impl Catalog {
         Catalog {
             artist: None,
             artists: Vec::new(),
+            feature_support_artists: false,
+            featured_artists: Vec::new(),
             feed_image: None,
             home_image: None,
             label_mode: false,
+            main_artists: Vec::new(),
             releases: Vec::new(),
+            show_support_artists: false,
+            support_artists: Vec::new(),
             text: None,
             title: None
         }
@@ -208,7 +260,13 @@ impl Catalog {
 
         catalog.map_artists();
 
-        if !catalog.label_mode {
+        if catalog.label_mode {
+            catalog.featured_artists.extend(catalog.main_artists.iter().cloned());
+
+            if catalog.feature_support_artists {
+                catalog.featured_artists.extend(catalog.support_artists.iter().cloned());
+            }
+        } else {
             catalog.set_artist();
         }
         
@@ -416,19 +474,36 @@ impl Catalog {
             );
             release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0)); // sort most often occuring title to the end of the Vec
             
-            let mut release_artists_to_map: Vec<String> = Vec::new();
+            let mut main_artists_to_map: Vec<String> = Vec::new();
+            let mut support_artists_to_map: Vec<String> = Vec::new();
+
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
                 for artist_name in artist_names {
-                    release_artists_to_map.push(artist_name.to_string());
+                    main_artists_to_map.push(artist_name.to_string());
                 }
             } else {
+                let mut track_artist_metrics = Vec::new();
+
                 for release_track in &release_tracks {
                     for track_artist_to_map in &release_track.artists_to_map {
-                        if !release_artists_to_map
-                        .iter()
-                        .any(|release_artist_to_map| release_artist_to_map == track_artist_to_map) {
-                            release_artists_to_map.push(track_artist_to_map.clone());
+                        if let Some((count, _artist)) = &mut track_artist_metrics
+                            .iter_mut()
+                            .find(|(_count, artist)| artist == track_artist_to_map) {
+                            *count += 1;
+                        } else {
+                            track_artist_metrics.push((1, track_artist_to_map.to_string()));
                         }
+                    }
+                }
+
+                track_artist_metrics.sort_by(|a, b| b.0.cmp(&a.0)); // sort most often occuring artist(s) to the start of the Vec
+
+                let max_count = track_artist_metrics.first().unwrap().0;
+                for (count, artist) in track_artist_metrics {
+                    if count == max_count {
+                        main_artists_to_map.push(artist);
+                    } else {
+                        support_artists_to_map.push(artist);
                     }
                 }
             }
@@ -461,12 +536,13 @@ impl Catalog {
             };
             
             let release = Release::new(
-                release_artists_to_map,
                 assets,
                 cover,
                 local_options.release_date,
+                main_artists_to_map,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 local_options.release_permalink,
+                support_artists_to_map,
                 title.to_string(),
                 release_tracks
             );
@@ -504,6 +580,7 @@ impl Catalog {
         Track::new(artists_to_map, assets, title)
     }
 
+    // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?
     fn set_artist(&mut self) {
         let mut releases_and_tracks_per_artist = self.artists
             .iter()
@@ -512,9 +589,9 @@ impl Catalog {
                 let mut num_tracks = 0;
                 for release in &self.releases {
                     let release_ref = release.borrow();
-                    if release_ref.artists
+                    if release_ref.main_artists
                         .iter()
-                        .any(|release_artist| Rc::ptr_eq(release_artist, artist)) {
+                        .any(|release_main_artist| Rc::ptr_eq(release_main_artist, artist)) {
                         num_releases += 1;
                     }
                     for track in &release_ref.tracks {
@@ -559,7 +636,7 @@ impl Catalog {
         String::from("Faircamp")
     }
 
-     fn validate_permalinks(&mut self) -> bool {
+    fn validate_permalinks(&mut self) -> bool {
         let mut generated_permalinks = (None, None, None, 0);
         let mut used_permalinks = HashMap::new();
 
@@ -603,7 +680,11 @@ impl Catalog {
             let release_ref = release.borrow();
 
             if let Some(previous_usage) = used_permalinks.get(&release_ref.permalink.slug) {
-                let message = format!("The {} permalink '{}' of the release '{}' conflicts with {}", mode(&release_ref.permalink), release_ref.permalink.slug, release_ref.title, format_previous_usage(previous_usage));
+                let generated_or_assigned = mode(&release_ref.permalink);
+                let slug = &release_ref.permalink.slug;
+                let title = &release_ref.title;
+                let previous_usage_formatted = format_previous_usage(previous_usage);
+                let message = format!("The {generated_or_assigned} permalink '{slug}' of the release '{title}' conflicts with {previous_usage_formatted}");
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
@@ -613,13 +694,19 @@ impl Catalog {
             }
         }
         
-        // TODO: We only need to validate this for those artists that are actually accessible via their own page
-        // TODO: We do not yet differentiate between artists that get their own page 
-        //       (i.e. because we implicitly/explicitly provide that option/data for it in the manifest) and those that don't
-        for artist in &self.artists {
+        // TODO: We could think about validating this even for non-featured
+        // artists already(especially, or maybe only if their permalinks were
+        // user-assigned). This way the behavior would be a bit more stable
+        // when someone suddenly "flips the switch" on label_mode and/or
+        // feature_supported_artists.
+        for artist in &self.featured_artists {
             let artist_ref = artist.borrow();
             if let Some(previous_usage) = used_permalinks.get(&artist_ref.permalink.slug) {
-                let message = format!("The {} permalink '{}' of the artist '{}' conflicts with {}", mode(&artist_ref.permalink), artist_ref.permalink.slug, artist_ref.name, format_previous_usage(previous_usage));
+                let generated_or_assigned = mode(&artist_ref.permalink);
+                let slug = &artist_ref.permalink.slug;
+                let name = &artist_ref.name;
+                let previous_usage_formatted = format_previous_usage(previous_usage);
+                let message = format!("The {generated_or_assigned} permalink '{slug}' of the artist '{name}' conflicts with {previous_usage_formatted}");
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
@@ -690,7 +777,7 @@ impl Catalog {
             image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
-        for artist in self.artists.iter_mut() {
+        for artist in self.featured_artists.iter_mut() {
             let mut artist_mut = artist.borrow_mut();
 
             let permalink = artist_mut.permalink.slug.to_string();
@@ -750,11 +837,11 @@ impl Catalog {
             let mut tag_mapping_option = if release_mut.rewrite_tags {
                 Some(TagMapping {
                     album: Some(release_mut.title.clone()),
-                    album_artist: if release_mut.artists.is_empty() {
+                    album_artist: if release_mut.main_artists.is_empty() {
                         None
                     } else {
                         Some(
-                            release_mut.artists
+                            release_mut.main_artists
                             .iter()
                             .map(|artist| artist.borrow().name.clone())
                             .collect::<Vec<String>>()
