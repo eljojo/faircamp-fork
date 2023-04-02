@@ -512,7 +512,10 @@ impl Catalog {
 
                 track_artist_metrics.sort_by(|a, b| b.0.cmp(&a.0)); // sort most often occuring artist(s) to the start of the Vec
 
-                let max_count = track_artist_metrics.first().unwrap().0;
+                let max_count = track_artist_metrics
+                    .first()
+                    .map(|(count, _artist)| count.to_owned())
+                    .unwrap_or(0);
                 for (count, artist) in track_artist_metrics {
                     if count == max_count {
                         main_artists_to_map.push(artist);
