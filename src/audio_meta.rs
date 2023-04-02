@@ -24,7 +24,7 @@ fn trim_and_reject_empty(string: &str) -> Option<String> {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
-    pub album_artist: Vec<String>,
+    pub album_artist: Vec<String>, // TODO: Both album_artist and artist should probably be plural (flac/vorbis allows multiple, for other containers/codecs it's emulated)
     pub artist: Vec<String>,
     pub duration_seconds: u32,
     pub lossless: bool,

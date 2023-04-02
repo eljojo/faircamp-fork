@@ -503,8 +503,11 @@ impl Catalog {
                 // Here, main_artists_to_map is set through "album artist" tags found on at least one track
                 for release_track in &release_tracks {
                     let album_artist = &release_track.assets.borrow().source_meta.album_artist;
-                    if !album_artist.is_empty() {
-                        main_artists_to_map.extend(album_artist.iter().cloned())
+
+                    for artist in album_artist {
+                        if !main_artists_to_map.contains(artist) {
+                            main_artists_to_map.push(artist.clone());
+                        }
                     }
                 }
             } else {
