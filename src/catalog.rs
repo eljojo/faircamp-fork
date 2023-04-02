@@ -491,11 +491,24 @@ impl Catalog {
             let mut main_artists_to_map: Vec<String> = Vec::new();
             let mut support_artists_to_map: Vec<String> = Vec::new();
 
+            // This sets main_artists_to_map in one of three ways, see comments in branches
             if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
+                // Here, main_artists_to_map is set manually through manifest metadata
                 for artist_name in artist_names {
                     main_artists_to_map.push(artist_name.to_string());
                 }
+            } else if release_tracks
+                .iter()
+                .any(|track| !track.assets.borrow().source_meta.album_artist.is_empty()) {
+                // Here, main_artists_to_map is set through "album artist" tags found on at least one track
+                for release_track in &release_tracks {
+                    let album_artist = &release_track.assets.borrow().source_meta.album_artist;
+                    if !album_artist.is_empty() {
+                        main_artists_to_map.extend(album_artist.iter().cloned())
+                    }
+                }
             } else {
+                // Here, main_artists_to_map is set through finding the artist(s) that appear in the "artist" tag on the highest number of tracks
                 let mut track_artist_metrics = Vec::new();
 
                 for release_track in &release_tracks {

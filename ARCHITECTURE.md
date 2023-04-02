@@ -5,6 +5,20 @@ to arrive at, so they don't have to be thought through over and over again.
 Also if changes becomes necessary the thinking process can start from an
 already documented thought process, instead of starting at zero.
 
+## Steps/algorithm to arrive at release.main_artists, release.support_artists
+
+A release has *main artist(s)* and *support artist(s)*. Picture e.g. a
+release with ten tracks by Alice, where on one track she collaborated with
+Bob. That makes Alice the main artist, and Bob a support artist on the
+release.
+
+Faircamp uses the following cascade of conditions to determine main and
+support artists, with the first that applies outranking the ones below in
+priority:
+- Manifest options `release.artist`, `release.artists` (`release.support_artist` and `release.support_artists` are *planned* to be added soon but don't exist yet)
+- `Album Artist` tag (if present on any audio file(s) in the release) adds the given artist to the main artists
+- If no `Album Artist` tag is present on any track, the artist encountered in the `Artist` tag on the highest number of tracks will be the main artist (the others will appear as support artists), in case of a tie, all artists with the same highest number of track appearances will become main artists.
+
 ## Different artists may share the same alias
 
 A catalog may have the following explicitly defined artists next to each other:

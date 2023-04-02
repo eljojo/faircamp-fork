@@ -1,4 +1,4 @@
-use id3::{self, TagLike};
+use id3::TagLike;
 use serde_derive::{Serialize, Deserialize};
 use std::path::Path;
 
@@ -24,6 +24,7 @@ fn trim_and_reject_empty(string: &str) -> Option<String> {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
+    pub album_artist: Vec<String>,
     pub artist: Vec<String>,
     pub duration_seconds: u32,
     pub lossless: bool,
@@ -52,10 +53,18 @@ impl AudioMeta {
                     None => (0, None)
                 };
 
-                if let Ok(tag) = id3::Tag::read_from_path(path) {
+                if let Ok(tag) = id3::Tag::read_from_aiff_path(path) {
                     let album = match tag.album() {
                         Some(album) => trim_and_reject_empty(album),
                         None => None
+                    };
+
+                    let album_artist = match tag.album_artist() {
+                        Some(album_artist) => match trim_and_reject_empty(album_artist) {
+                            Some(album_artist) => vec![album_artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
                     };
 
                     let artist = match tag.artist() {
@@ -73,6 +82,7 @@ impl AudioMeta {
 
                     AudioMeta {
                         album,
+                        album_artist,
                         artist,
                         duration_seconds,
                         lossless,
@@ -83,6 +93,7 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
+                        album_artist: Vec::new(),
                         artist: Vec::new(),
                         duration_seconds,
                         lossless,
@@ -105,7 +116,7 @@ impl AudioMeta {
                     // FLAC uses vorbis comments, which support multiple
                     // fields with the same key. For the artist key
                     // (where this makes sense) we make use of it. All other
-                    // keys use one the last found (and actually usable, i.e.
+                    // keys use only the last found (and actually usable, i.e.
                     // not empty) field value.
 
                     let album = match tag.get_vorbis("album") {
@@ -118,10 +129,18 @@ impl AudioMeta {
                         None => None
                     };
 
+                    let album_artist = tag
+                        .get_vorbis("albumartist")
+                        .or_else(|| tag.get_vorbis("album artist"))
+                        .map(|fields|
+                            fields.filter_map(|field| trim_and_reject_empty(field)).collect()
+                        )
+                        .unwrap_or_else(Vec::new);
+
                     let artist = tag
                         .get_vorbis("artist")
                         .map(|fields|
-                            fields.map(|field| field.to_string()).collect()
+                            fields.filter_map(|field| trim_and_reject_empty(field)).collect()
                         )
                         .unwrap_or_else(Vec::new);
 
@@ -147,6 +166,7 @@ impl AudioMeta {
                     
                     AudioMeta {
                         album,
+                        album_artist,
                         artist,
                         duration_seconds,
                         lossless,
@@ -157,6 +177,7 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
+                        album_artist: Vec::new(),
                         artist: Vec::new(),
                         duration_seconds,
                         lossless,
@@ -181,6 +202,14 @@ impl AudioMeta {
                         None => None
                     };
 
+                    let album_artist = match tag.album_artist() {
+                        Some(album_artist) => match trim_and_reject_empty(album_artist) {
+                            Some(album_artist) => vec![album_artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
+                    };
+
                     let artist = match tag.artist() {
                         Some(artist) => match trim_and_reject_empty(artist) {
                             Some(artist) => vec![artist],
@@ -196,6 +225,7 @@ impl AudioMeta {
 
                     AudioMeta {
                         album,
+                        album_artist,
                         artist,
                         duration_seconds,
                         lossless,
@@ -206,6 +236,7 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
+                        album_artist: Vec::new(),
                         artist: Vec::new(),
                         duration_seconds,
                         lossless,
@@ -224,8 +255,10 @@ impl AudioMeta {
                     None => (0, None)
                 };
                 
+                // TODO: We need to mention in documentation that ogg tags are not yet supported
                 AudioMeta {
                     album: None,
+                    album_artist: Vec::new(),
                     artist: Vec::new(),
                     duration_seconds,
                     lossless,
@@ -243,8 +276,10 @@ impl AudioMeta {
                     None => (0, None)
                 };
                 
+                // TODO: We need to mention in documentation that opus tags are not yet supported
                 AudioMeta {
                     album: None,
+                    album_artist: Vec::new(),
                     artist: Vec::new(),
                     duration_seconds,
                     lossless,
@@ -261,20 +296,61 @@ impl AudioMeta {
                     ),
                     None => (0, None)
                 };
-                
-                AudioMeta {
-                    album: None,
-                    artist: Vec::new(),
-                    duration_seconds,
-                    lossless,
-                    peaks,
-                    title: None,
-                    track_number: None
+
+                if let Ok(tag) = id3::Tag::read_from_wav_path(path) {
+                    let album = match tag.album() {
+                        Some(album) => trim_and_reject_empty(album),
+                        None => None
+                    };
+
+                    let album_artist = match tag.album_artist() {
+                        Some(album_artist) => match trim_and_reject_empty(album_artist) {
+                            Some(album_artist) => vec![album_artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
+                    };
+
+                    let artist = match tag.artist() {
+                        Some(artist) => match trim_and_reject_empty(artist) {
+                            Some(artist) => vec![artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
+                    };
+
+                    let title = match tag.title() {
+                        Some(title) => trim_and_reject_empty(title),
+                        None => None
+                    };
+
+                    AudioMeta {
+                        album,
+                        album_artist,
+                        artist,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title,
+                        track_number: tag.track()
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        album_artist: Vec::new(),
+                        artist: Vec::new(),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
                 }
             }
             _ => {
                     AudioMeta {
                     album: None,
+                    album_artist: Vec::new(),
                     artist: Vec::new(),
                     duration_seconds: 0,
                     lossless,
