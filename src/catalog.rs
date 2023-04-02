@@ -822,7 +822,7 @@ impl Catalog {
                 for asset in &poster_assets.all() {
                     util::hard_link_or_copy(
                         build.cache_dir.join(&asset.filename),
-                        build.build_dir.join(format!("{}_{}x{}.jpg", &permalink, asset.width, asset.height))
+                        build.build_dir.join(format!("{}_{}_{}x{}.jpg", &permalink, asset.format, asset.width, asset.height))
                     );
 
                     build.stats.add_image(asset.filesize_bytes);
