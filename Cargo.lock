@@ -798,6 +798,7 @@ dependencies = [
  "nanoid",
  "ogg 0.9.0",
  "opus",
+ "opus_headers",
  "pacmog",
  "pulldown-cmark",
  "rmp3",
@@ -1456,6 +1457,12 @@ dependencies = [
  "audiopus_sys",
  "libc",
 ]
+
+[[package]]
+name = "opus_headers"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afbb993947f111397c2bc536944f8dac7f54a4e73383d478efe1990b56404b60"
 
 [[package]]
 name = "os_str_bytes"

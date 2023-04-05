@@ -6,25 +6,33 @@ use std::path::Path;
 use super::DecodeResult;
 
 pub fn decode(path: &Path) -> Option<DecodeResult> {
+    let identification_header = match opus_headers::parse_from_path(path) {
+        Ok(headers) => headers.id,
+        Err(_) => return None
+    };
+
+    let channels: u16 = identification_header.channel_count as u16;
+    let sample_rate: u32 = identification_header.input_sample_rate;
+
     let mut reader = match File::open(path) {
         Ok(file) => PacketReader::new(file),
         Err(_) => return None
     };
 
-    // TODO: Should actually be based on what the ogg container says
-    let channel_count_hardcoded: u16 = 2; 
-    let sample_rate_hardcoded: u32 = 48_000;
+    // TODO: Rather an edge-case, but we should sometime check what happens
+    //       when channels > 2 (and/or if that is even possible in opus).
+    let channels_enum = if channels == 1 { Channels::Mono } else { Channels::Stereo };
 
-    let mut decoder = match Decoder::new(sample_rate_hardcoded, Channels::Stereo) {
+    let mut decoder = match Decoder::new(sample_rate, channels_enum) {
         Ok(decoder) => decoder,
         Err(_) => return None
     };
 
     let mut result = DecodeResult {
-        channels: channel_count_hardcoded, 
+        channels,
         duration: 0.0,
         sample_count: 0,
-        sample_rate: sample_rate_hardcoded,
+        sample_rate,
         samples: Vec::new()
     };
 
@@ -38,7 +46,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
             for sample in &buffer[..samples_decoded_count] {
                 result.samples.push(*sample);
             }
-            result.sample_count += samples_decoded_count as u32 / channel_count_hardcoded as u32;
+            result.sample_count += samples_decoded_count as u32 / channels as u32;
         }
     }
 

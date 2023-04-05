@@ -275,17 +275,66 @@ impl AudioMeta {
                     ),
                     None => (0, None)
                 };
-                
-                // TODO: We need to mention in documentation that opus tags are not yet supported
-                AudioMeta {
-                    album: None,
-                    album_artist: Vec::new(),
-                    artist: Vec::new(),
-                    duration_seconds,
-                    lossless,
-                    peaks,
-                    title: None,
-                    track_number: None
+
+                if let Ok(headers) = opus_headers::parse_from_path(path) {
+                    let user_comments = headers.comments.user_comments;
+
+                    let album = match user_comments.get("album") {
+                        Some(album) => trim_and_reject_empty(album),
+                        None => None
+                    };
+
+                    let album_artist = match user_comments.get("albumartist")
+                        .or_else(|| user_comments.get("album artist")) {
+                        Some(album_artist) => match trim_and_reject_empty(album_artist) {
+                            Some(album_artist) => vec![album_artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
+                    };
+
+                    let artist = match user_comments.get("artist") {
+                        Some(artist) => match trim_and_reject_empty(artist) {
+                            Some(artist) => vec![artist],
+                            None => Vec::new()
+                        },
+                        None => Vec::new()
+                    };
+
+                    let title = match user_comments.get("title") {
+                        Some(title) => trim_and_reject_empty(title),
+                        None => None
+                    };
+
+                    let track_number = match user_comments.get("tracknumber") {
+                        Some(track_number) => match track_number.trim().parse::<u32>() {
+                            Ok(number) => Some(number),
+                            Err(_) => None
+                        }
+                        None => None
+                    };
+
+                    AudioMeta {
+                        album,
+                        album_artist,
+                        artist,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title,
+                        track_number
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        album_artist: Vec::new(),
+                        artist: Vec::new(),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
                 }
             }
             "wav" => {
