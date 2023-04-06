@@ -23,7 +23,6 @@ use crate::{
     util
 };
 
-// TODO: Verify if ogg works
 // TODO: Research if aac as input is easily possible, alternatively use ffmpeg to transcode it as a slow but functional workaround
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aiff", "flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png", "webp"];
@@ -134,7 +133,19 @@ impl Catalog {
         artist
     }
 
-    // TODO: Here or earlier ensure that the artist names don't collide
+    /// For each release goes through the following mappings:
+    /// - main_artists_to_map
+    /// - support_artists_to_map
+    /// - artists_to_map (for each track of a release)
+    ///
+    /// For each of these mappings (wich are just lists of strings - artist names),
+    /// it tries to find an artist in catalog.artists that either has that name,
+    /// or an alias associating it to the name. If found, the artist is associated
+    /// with the release (either as main or support artist) or track. If not found,
+    /// an artist of that name is created and added to catalog.artists and then
+    /// associated as described before. Main and support artists are also registered
+    /// in a catalog-wide listing of main and support artists, which is then used
+    /// to determine pages and links on the site that need to be generated.
     fn map_artists(&mut self) {
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
