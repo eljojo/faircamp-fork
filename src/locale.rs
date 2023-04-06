@@ -179,8 +179,10 @@ impl Translations {
         }
     }
 
-    pub fn unlock_manual_instructions(&self, index_suffix: &str) -> String {
-        self.unlock_manual_instructions.replace("{index_suffix}", index_suffix)
+    pub fn unlock_manual_instructions(&self, page_hash: &str, index_suffix: &str) -> String {
+        self.unlock_manual_instructions
+            .replace("{page_hash}", page_hash)
+            .replace("{index_suffix}", index_suffix)
     }
 
     pub fn up_to_xxx(&self, xxx: &str) -> String {

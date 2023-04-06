@@ -91,7 +91,7 @@ Avant de commencer, sachez que des codes ou des modifications d'adresse erronés
 vous amènent à une page 404. Dans ce cas, utilisez le bouton Retour et suivez à \
 nouveau attentivement les instructions. \
 <br><br>\
-Remplacez la dernière partie de l'adresse qui ressemble à ceci - /checkout/[quelques-lettres-au-hasard]{index_suffix} - \
+Remplacez la dernière partie de l'adresse - /checkout/{page_hash}{index_suffix} - \
 avec /download/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
         up_to_xxx: String::from("Jusqu'à {xxx}"),
         xxx_or_more: String::from("{xxx} ou plus")

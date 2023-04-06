@@ -87,8 +87,7 @@ Before you embark on this please be aware that wrong codes or \
 address modifications take you to a 404 page. In this case \
 use the Back button and closely follow the instructions again.\
 <br><br>\
-Replace the final part of the address that \
-looks like this - /checkout/[some-random-letters]{index_suffix} - \
+Replace the final part of the address - /checkout/{page_hash}{index_suffix} - \
 with /download/[your-unlock-code]{index_suffix} and then press Enter."),
         up_to_xxx: String::from("Up to {xxx}"),
         xxx_or_more: String::from("{xxx} or more")

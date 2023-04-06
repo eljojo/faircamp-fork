@@ -84,9 +84,9 @@ Fehler bei der Adressänderung dich zu einer 404 Seite führen. \
 Falls das passiert, benutze den Zurück Button deines Browsers \
 und folge den Instruktionen erneut und ganz genau.\
 <br><br>\
-Ersetze den letzten Abschnitt der Adresse der in etwa so aussieht - \
-/checkout/[zufällige-buchstaben-und-ziffern]{index_suffix} - \
-mit /download/[dein-freischaltecode]{index_suffix} and dann drücke Enter."),
+Ersetze den letzten Abschnitt der Adresse - \
+/checkout/{page_hash}{index_suffix} - \
+mit /download/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
         up_to_xxx: String::from("Bis zu {xxx}"),
         xxx_or_more: String::from("{xxx} oder mehr")
     }

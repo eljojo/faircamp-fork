@@ -87,8 +87,7 @@ o modificaciones incorrectas te llevan a una pagina 404. \
 En este caso usar el botón de retroceso y sigue los \
 instrucciones de nuevo. \
 <br><br>\
-Reemplaza el parte final de la direccion que se parece
-a esto - /checkout/[letras-al-azar]{index_suffix} - \
+Reemplaza el parte final de la direccion - /checkout/{page_hash}{index_suffix} - \
 con /download/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
         up_to_xxx: String::from("Hasta {xxx}"),
         xxx_or_more: String::from("{xxx} o más")

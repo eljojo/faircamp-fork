@@ -166,13 +166,12 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .map(|text| text.to_string())
             .unwrap_or(build.locale.translations.default_unlock_text.clone());
 
+        let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
+
         let t_enter_code_here = &build.locale.translations.enter_code_here;
         let t_unlock = &build.locale.translations.unlock;
         let t_unlock_code_seems_incorrect = &build.locale.translations.unlock_code_seems_incorrect;
-        // TODO: In the message "Replace the final part of the address that looks like this -
-        //       /checkout/[some-random-letters]{index_suffix} ..." we could actually replace
-        //       [some-random-letters] with the actual letters that are present in the url?
-        let t_unlock_manual_instructions = &build.locale.translations.unlock_manual_instructions(index_suffix);
+        let t_unlock_manual_instructions = &build.locale.translations.unlock_manual_instructions(&page_hash, index_suffix);
         let content = formatdoc!(r#"
             <div class="unlock_scripted">
                 {custom_or_default_unlock_text}
