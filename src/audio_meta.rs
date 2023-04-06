@@ -247,24 +247,68 @@ impl AudioMeta {
                 }
             }
             "ogg" => {
-                let (duration_seconds, peaks) = match ogg_vorbis::decode(path) {
-                    Some(decode_result) => (
+                let (duration_seconds, peaks, comment_header) = match ogg_vorbis::decode(path) {
+                    Some((decode_result, comment_header)) => (
                         decode_result.duration as u32,
-                        Some(compute_peaks(decode_result, 320))
+                        Some(compute_peaks(decode_result, 320)),
+                        Some(comment_header)
                     ),
-                    None => (0, None)
+                    // TODO: Shall we make it a hard error when we can't determine duration?
+                    //       It creates strange states e.g. in the audio player rendering when
+                    //       we don't actually know the duration. (here and elsewhere)
+                    None => (0, None, None)
                 };
-                
-                // TODO: We need to mention in documentation that ogg tags are not yet supported
-                AudioMeta {
-                    album: None,
-                    album_artist: Vec::new(),
-                    artist: Vec::new(),
-                    duration_seconds,
-                    lossless,
-                    peaks,
-                    title: None,
-                    track_number: None
+
+                let mut album = None;
+                let mut album_artist = Vec::new();
+                let mut artist = Vec::new();
+                let mut title = None;
+                let mut track_number = None;
+
+                if let Some(comment_header) = comment_header {
+                    for (key, value) in comment_header.comment_list {
+                        match key.as_str() {
+                            "album" => if let Some(trimmed) = trim_and_reject_empty(&value) {
+                                album = Some(trimmed);
+                            }
+                            "albumartist" |
+                            "album artist" => if let Some(trimmed) = trim_and_reject_empty(&value) {
+                                album_artist.push(trimmed);
+                            }
+                            "artist" => if let Some(trimmed) = trim_and_reject_empty(&value) {
+                                artist.push(trimmed);
+                            }
+                            "title" => if let Some(trimmed) = trim_and_reject_empty(&value) {
+                                title = Some(trimmed);
+                            }
+                            "track_number" => if let Ok(number) = value.trim().parse::<u32>() {
+                                track_number = Some(number);
+                            }
+                            _ => ()
+                        }
+                    }
+
+                    AudioMeta {
+                        album,
+                        album_artist,
+                        artist,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title,
+                        track_number
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        album_artist: Vec::new(),
+                        artist: Vec::new(),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
                 }
             }
             "opus" => {

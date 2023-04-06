@@ -1,10 +1,11 @@
+use lewton::header::CommentHeader;
 use lewton::inside_ogg::OggStreamReader;
 use std::fs::File;
 use std::path::Path;
 
 use super::DecodeResult;
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Option<(DecodeResult, CommentHeader)> {
     let mut reader = match File::open(path) {
         Ok(file) => match OggStreamReader::new(file) {
             Ok(reader) => reader,
@@ -12,7 +13,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         },
         Err(_) => return None
     };
-    
+
     let mut result = DecodeResult {
         channels: reader.ident_hdr.audio_channels as u16,
         duration: 0.0,
@@ -32,5 +33,5 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         result.duration = result.sample_count as f32 / result.sample_rate as f32;
     }
 
-    Some(result)
+    Some((result, reader.comment_hdr))
 }
