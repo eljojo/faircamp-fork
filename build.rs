@@ -114,31 +114,22 @@ pub fn main() {
 }
 
 fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
-	let reference = docs.reference
-		.iter()
-		.map(|page| {
-			let active = if page == active_page { r#"class="active" "# } else { "" };
-			let slug = &page.slug;
-			let title = &page.title;
+	let section_links = |pages: &[Page]| {
+		pages
+			.iter()
+			.map(|page| {
+				let active = if page == active_page { r#"class="active" "# } else { "" };
+				let slug = &page.slug;
+				let title = &page.title;
 
-			format!(r#"<a {active}href="{slug}.html">{title}</a>"#)
-		})
-		.collect::<Vec<String>>()
-		.join("\n");
+				format!(r#"<a {active}href="{slug}.html">{title}</a>"#)
+			})
+			.collect::<Vec<String>>()
+			.join("\n")
+	};
 
-	// TODO: DRY, exactly the same as for reference above
-	let topics = docs.topics
-		.iter()
-		.map(|page| {
-			let active = if page == active_page { r#"class="active" "# } else { "" };
-			let slug = &page.slug;
-			let title = &page.title;
-
-			format!(r#"<a {active}href="{slug}.html">{title}</a>"#)
-		})
-		.collect::<Vec<String>>()
-		.join("\n");
-
+	let reference = section_links(&docs.reference);
+	let topics = section_links(&docs.topics);
 	let index_active = if active_page == &docs.index { r#" class="active""# } else { "" };
 
 	formatdoc!(r##"
