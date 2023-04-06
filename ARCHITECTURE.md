@@ -19,6 +19,17 @@ priority:
 - `Album Artist` tag (if present on any audio file(s) in the release) adds the given artist to the main artists
 - If no `Album Artist` tag is present on any track, the artist encountered in the `Artist` tag on the highest number of tracks will be the main artist (the others will appear as support artists), in case of a tie, all artists with the same highest number of track appearances will become main artists.
 
+## Steps/algorithm to arrive at catalog.artist
+
+In *artist mode* (the default), one artist is made the *catalog artist*. If
+there are multiple artists across all releases/tracks the following is the
+logic to automatically arrive at the catalog artist:
+
+- Pick the artist that is a main artist on the highest number of releases
+- In case of a tie, pick the artist among the tied ones that has the highest
+  number of track associated with them
+- If there's yet another tie, abritrarily pick the first one of the tied
+
 ## Different artists may share the same alias
 
 A catalog may have the following explicitly defined artists next to each other:
