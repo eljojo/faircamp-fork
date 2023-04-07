@@ -15,6 +15,7 @@ use crate::{
     AudioMeta,
     Build,
     Catalog,
+    Image,
     ImageAssets,
     ReleaseAssets,
     Track,
@@ -55,6 +56,12 @@ pub enum CacheOptimization {
 
 // TODO: PartialEq should be extended to a custom logic probably (first check
 //       path + size + modified, alternatively hash, etc.)
+/// This stores relevant metadata for checking whether files we are processing
+/// in the current build match files we were processing in a previous build.
+/// The hash part is not yet implemented at all, so far we only use relative
+/// path in catalog directory, size and modification date to determine equality.
+/// Eventually if the path does not match we will be able to use hash instead,
+/// to detect a file that has just moved.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SourceFileSignature {
     pub hash: String,
@@ -180,10 +187,12 @@ pub fn optimize_release_assets(assets: &mut Rc<RefCell<ReleaseAssets>>, build: &
             Some(true) => {
                 util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
                 info_cache!(
-                    "Removed cached release asset ({}) for archive with {} tracks.",
+                    "Removed cached release asset ({}) for archive with {} tracks and {}.",
                     format,
-                    assets_mut.source_file_signatures.len()  // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
-                                                             //       Possibly indication that Release + ReleaseAssets should be merged together (?) (and same story with Image/Track)
+                    // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
+                    //       Possibly indication that Release + ReleaseAssets should be merged together (?) (and same story with Image/Track)
+                    assets_mut.track_source_file_signatures.len(),
+                    if assets_mut.cover_source_file_signature.is_some() { "a cover" } else { "no cover" }
                 );
             }
             Some(false) => keep_container = true,
@@ -626,24 +635,48 @@ impl Cache {
         }
     }
     
-    pub fn get_or_create_release_assets(&mut self, tracks: &[Track]) -> Rc<RefCell<ReleaseAssets>> {
+    /// This basically checks "Do we have cached download archives which
+    /// include the given cover image and tracks?" (whether we have them
+    /// in all required formats is not yet relevant at this point). If yes
+    /// they are returned, otherwise created (but not yet computed).
+    pub fn get_or_create_release_assets(
+        &mut self,
+        cover: &Option<Rc<RefCell<Image>>>,
+        tracks: &[Track]
+    ) -> Rc<RefCell<ReleaseAssets>> {
         match self.releases
             .iter()
             .find(|assets| {
+                let assets_ref = assets.borrow();
+
+                if let Some(cover) = cover {
+                    if assets_ref.cover_source_file_signature.as_ref() !=
+                       Some(&cover.borrow().assets.borrow().source_file_signature) {
+                        return false;
+                    }
+                } else {
+                    if assets_ref.cover_source_file_signature.is_some() {
+                        return false;
+                    }
+                }
+
                 tracks
                     .iter()
-                    .zip(assets.borrow().source_file_signatures.iter())
+                    .zip(assets_ref.track_source_file_signatures.iter())
                     .all(|(track, source_file_signature)| {
                         &track.assets.borrow().source_file_signature == source_file_signature
                     })
             }) {
             Some(assets) => assets.clone(),
             None => {
+                let track_source_file_signatures = tracks
+                    .iter()
+                    .map(|track| track.assets.borrow().source_file_signature.clone())
+                    .collect();
+
                 let assets = Rc::new(RefCell::new(ReleaseAssets::new(
-                    tracks
-                        .iter()
-                        .map(|track| track.assets.borrow().source_file_signature.clone())
-                        .collect()
+                    cover.as_ref().map(|cover| cover.borrow().assets.borrow().source_file_signature.clone()),
+                    track_source_file_signatures
                 )));
                 self.releases.push(assets.clone());
                 assets

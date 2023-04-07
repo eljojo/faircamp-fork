@@ -490,14 +490,14 @@ impl Catalog {
         }
         
         if !release_tracks.is_empty() {
-            let assets = cache.get_or_create_release_assets(&release_tracks);
-            
             release_tracks.sort_by(|a, b|
                 a.assets.borrow().source_meta.track_number.cmp(
                     &b.assets.borrow().source_meta.track_number
                 )
             );
-            release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0)); // sort most often occuring title to the end of the Vec
+
+            // Sort most often occuring title to the end of the Vec
+            release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0));
             
             let mut main_artists_to_map: Vec<String> = Vec::new();
             let mut support_artists_to_map: Vec<String> = Vec::new();
@@ -522,7 +522,8 @@ impl Catalog {
                     }
                 }
             } else {
-                // Here, main_artists_to_map is set through finding the artist(s) that appear in the "artist" tag on the highest number of tracks
+                // Here, main_artists_to_map is set through finding the artist(s)
+                // that appear in the "artist" tag on the highest number of tracks.
                 let mut track_artist_metrics = Vec::new();
 
                 for release_track in &release_tracks {
@@ -537,7 +538,8 @@ impl Catalog {
                     }
                 }
 
-                track_artist_metrics.sort_by(|a, b| b.0.cmp(&a.0)); // sort most often occuring artist(s) to the start of the Vec
+                // Sort most often occuring artist(s) to the start of the Vec
+                track_artist_metrics.sort_by(|a, b| b.0.cmp(&a.0));
 
                 let max_count = track_artist_metrics
                     .first()
@@ -578,6 +580,14 @@ impl Catalog {
                 Some(image) => Some(image.clone()),
                 None => pick_best_cover_image(images)
             };
+
+            // TODO: The release assets (= downloadable archives) need to be invalidated
+            //       and recomputed based on a number of factors actually. So far we're
+            //       considering (only) the most important: If the same tracks are in
+            //       there, and the same cover, then it's an up-to-date download archive to us.
+            //       But main_artists, title, tags, etc. should probably play a role too.
+            //       Investigate and implement this in-depth at some point.
+            let assets = cache.get_or_create_release_assets(&cover, &release_tracks);
             
             let release = Release::new(
                 assets,

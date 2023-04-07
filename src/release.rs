@@ -67,17 +67,20 @@ pub struct Release {
     pub tracks: Vec<Track>
 }
 
+/// These are the downloadable zip archives for a release,
+/// not the stand-alone transcoded tracks!
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ReleaseAssets {
     pub aac: Option<Asset>,
     pub aiff: Option<Asset>,
+    pub cover_source_file_signature: Option<SourceFileSignature>,
     pub flac: Option<Asset>,
     pub mp3: Option<Asset>,
     pub ogg_vorbis: Option<Asset>,
     pub opus_48: Option<Asset>,
     pub opus_96: Option<Asset>,
     pub opus_128: Option<Asset>,
-    pub source_file_signatures: Vec<SourceFileSignature>,
+    pub track_source_file_signatures: Vec<SourceFileSignature>,
     pub uid: String,
     pub wav: Option<Asset>
 }
@@ -564,17 +567,21 @@ impl ReleaseAssets {
         }
     }
 
-    pub fn new(source_file_signatures: Vec<SourceFileSignature>) -> ReleaseAssets {
+    pub fn new(
+        cover_source_file_signature: Option<SourceFileSignature>,
+        track_source_file_signatures: Vec<SourceFileSignature>
+    ) -> ReleaseAssets {
         ReleaseAssets {
             aac: None,
             aiff: None,
+            cover_source_file_signature,
             flac: None,
             mp3: None,
             ogg_vorbis: None,
             opus_48: None,
             opus_96: None,
             opus_128: None,
-            source_file_signatures,
+            track_source_file_signatures,
             uid: util::uid(),
             wav: None
         }
