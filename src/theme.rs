@@ -5,8 +5,7 @@ use std::rc::Rc;
 use crate::Image;
 
 /// background_alpha    0-100 percent
-/// hue                 0-360 degrees
-/// hue_spread          0+ degrees
+/// h(ue)               0-360 degrees
 /// tint_back           0-100 percent
 /// tint_front          0-100 percent
 pub struct Theme {
@@ -16,8 +15,8 @@ pub struct Theme {
     pub base: ThemeBase,
     pub customized: bool,
     pub font: ThemeFont,
-    pub hue: u16,
-    pub hue_spread: i16,
+    pub link_h: u16,
+    pub text_h: u16,
     pub tint_back: u8,
     pub tint_front: u8
 }
@@ -25,15 +24,19 @@ pub struct Theme {
 /// h(ue)         0-360 degrees
 /// s(aturation)  0-100 percent
 /// l(ightness)   0-100 percent
-/// a(lpha)       0-100 percent (gets converted to 0.0-1.0 in css)
+/// a(lpha)       0.0-1.0
 pub struct ThemeBase {
     pub background_l: u8,
     pub cover_l: u8,
+    pub header_a: f32,
+    pub header_l: u8,
+    pub header_link_l: u8,
+    pub header_shadow_a: f32,
+    pub header_text_l: u8,
     pub link_l: u8,
     pub link_s: u8,
     pub link_hover_l: u8,
     pub muted_l: u8,
-    pub pane_l: u8,
     pub text_l: u8
 }
 
@@ -53,8 +56,8 @@ impl Theme {
             base: ThemeBase::DARK,
             customized: false,
             font: ThemeFont::Default,
-            hue: 0,
-            hue_spread: 0,
+            link_h: 0,
+            text_h: 0,
             tint_back: 0,
             tint_front: 0
         }
@@ -62,32 +65,104 @@ impl Theme {
 }
 
 impl ThemeBase {
-    pub const DARK: ThemeBase = ThemeBase {
-        background_l: 10,
+    pub const BLACK: ThemeBase = ThemeBase {
+        background_l: 0,
         cover_l: 13,
+        header_a: 0.8,
+        header_l: 0,
+        header_link_l: 86,
+        header_shadow_a: 0.0,
+        header_text_l: 68,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        pane_l: 4,
+        text_l: 72
+    };
+
+    pub const BLACK_ALTERNATE: ThemeBase = ThemeBase {
+        background_l: 0,
+        cover_l: 13,
+        header_a: 0.9,
+        header_l: 10,
+        header_link_l: 86,
+        header_shadow_a: 0.2,
+        header_text_l: 72,
+        link_hover_l: 82,
+        link_l: 68,
+        link_s: 62,
+        muted_l: 23,
+        text_l: 72
+    };
+
+    pub const DARK: ThemeBase = ThemeBase {
+        background_l: 10,
+        cover_l: 13,
+        header_a: 0.8,
+        header_l: 10,
+        header_link_l: 86,
+        header_shadow_a: 0.0,
+        header_text_l: 72,
+        link_hover_l: 82,
+        link_l: 68,
+        link_s: 62,
+        muted_l: 23,
         text_l: 86
     };
 
     pub const LIGHT: ThemeBase = ThemeBase {
         background_l: 90,
         cover_l: 87,
+        header_a: 0.9,
+        header_l: 90,
+        header_link_l: 14,
+        header_shadow_a: 0.0,
+        header_text_l: 14,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        pane_l: 96,
         text_l: 14
     };
-    
+
+    pub const WHITE: ThemeBase = ThemeBase {
+        background_l: 100,
+        cover_l: 87,
+        header_a: 0.9,
+        header_l: 100,
+        header_link_l: 14,
+        header_shadow_a: 0.0,
+        header_text_l: 14,
+        link_hover_l: 48,
+        link_l: 42,
+        link_s: 100,
+        muted_l: 68,
+        text_l: 14
+    };
+
+    pub const WHITE_ALTERNATE: ThemeBase = ThemeBase {
+        background_l: 100,
+        cover_l: 87,
+        header_a: 0.82,
+        header_l: 0,
+        header_link_l: 100,
+        header_shadow_a: 0.2,
+        header_text_l: 85,
+        link_hover_l: 48,
+        link_l: 42,
+        link_s: 100,
+        muted_l: 68,
+        text_l: 14
+    };
+
     pub fn from_manifest_key(key: &str) -> Option<ThemeBase> {
         match key {
+            "black" => Some(ThemeBase::BLACK),
+            "black_alternate" => Some(ThemeBase::BLACK_ALTERNATE),
             "dark" => Some(ThemeBase::DARK),
             "light" => Some(ThemeBase::LIGHT),
+            "white" => Some(ThemeBase::WHITE),
+            "white_alternate" => Some(ThemeBase::WHITE_ALTERNATE),
             _ => None
         }
     }

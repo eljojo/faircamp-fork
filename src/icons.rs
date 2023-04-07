@@ -7,7 +7,21 @@ use std::fs;
 use crate::Build;
 
 pub fn generate(build: &Build) {
-    let text_color = format!("hsl(0, 0%, {l}%)", l = build.theme.base.text_l);
+    // TODO: h and s are calculated from tint_front etc., revisit/change
+    let text_color = format!(
+        "hsl({h}deg, {s}%, {l}%)",
+        h = build.theme.text_h,
+        s = 0,
+        l = build.theme.base.text_l
+    );
+
+    // TODO: h and s are calculated from tint_front etc., revisit/change
+    let header_link_color = format!(
+        "hsl({h}deg, {s}%, {l}%)",
+        h = build.theme.text_h,
+        s = 0,
+        l = build.theme.base.header_link_l
+    );
 
     if build.base_url.is_some() {   
         let feed_svg = format!(
@@ -27,7 +41,7 @@ pub fn generate(build: &Build) {
 
     let logo_svg = format!(
         include_str!("icons/logo.svg"),
-        text_color = text_color
+        header_link_color = header_link_color
     );
     fs::write(build.build_dir.join("logo.svg"), logo_svg).unwrap();
 

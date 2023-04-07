@@ -179,7 +179,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <br><br>
 
                 <form id="unlock">
-                    <input autofocus class="unlock_code" placeholder="{t_enter_code_here}" type="text">
+                    <input class="unlock_code" placeholder="{t_enter_code_here}" type="text">
                     <button name="unlock">{t_unlock}</button>
                 </form>
                 <script>

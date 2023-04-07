@@ -33,9 +33,10 @@ a {
 .active { border-bottom: 1px dotted; }
 blockquote {
     background-color: var(--code);
-    padding: .001rem 1.4rem;
-    max-width: 33rem;
     border-radius: .2rem;
+    margin-left: 0;
+    max-width: 33rem;
+    padding: .001rem 1.4rem;
 }
 body {
     background-color: var(--background);

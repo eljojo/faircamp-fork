@@ -56,41 +56,48 @@ pub fn generate(build: &Build) {
     let mut css = formatdoc!(
         r#"
             :root {{
-                --hue: {hue}deg;
-                --hue-spread: {hue_spread}deg;
+                --link-h: {link_h}deg;
                 --tint-back: {tint_back};
                 --tint-front: {tint_front};
                 
-                --background-h: calc(var(--hue) + 3 * var(--hue-spread));
+                --background-h: var(--link-h);
                 --background-l: {background_l}%;
                 --background-s: calc({background_s}% * (var(--tint-back) / 100));
-                --cover-h: calc(var(--hue) + 2 * var(--hue-spread));
+                --cover-h: var(--link-h);
                 --cover-l: {cover_l}%;
                 --cover-s: calc({cover_s}% * (var(--tint-front) / 100));
+                --header-a: {header_a};
+                --header-l: {header_l}%;
+                --header-link-l: {header_link_l}%;
+                --header-shadow-a: {header_shadow_a};
+                --header-text-l: {header_text_l}%;
                 --link-l: {link_l}%;
                 --link-s: {link_s}%;
                 --link-hover-l: {link_hover_l}%;
-                --muted-h: calc(var(--hue) + 2 * var(--hue-spread));
+                --muted-h: var(--link-h);
                 --muted-l: {muted_l}%;
                 --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
                 --nav-s: calc({nav_s}% * (var(--tint-front) / 100));
                 --overlay-a: {overlay_a};
-                --pane-l: {pane_l}%;
-                --text-h: calc(var(--hue) + 1 * var(--hue-spread));
+                --text-h: {text_h}deg;
                 --text-l: {text_l}%;
                 --text-s: calc({text_s}% * (var(--tint-front) / 100));
             }}
             {font_declaration}
             {included_static_css}
         "#,
-        hue = theme.hue,
-        hue_spread = theme.hue_spread,
         tint_back = theme.tint_back,
         tint_front = theme.tint_front,
         background_l = theme.base.background_l,
         background_s = 41,
         cover_l = theme.base.cover_l,
         cover_s = 35,
+        header_a = theme.base.header_a,
+        header_l = theme.base.header_l,
+        header_link_l = theme.base.header_link_l,
+        header_shadow_a = theme.base.header_shadow_a,
+        header_text_l = theme.base.header_text_l,
+        link_h = theme.link_h,
         link_l = theme.base.link_l,
         link_s = theme.base.link_s,
         link_hover_l = theme.base.link_hover_l,
@@ -103,9 +110,9 @@ pub fn generate(build: &Build) {
         // transparently overlayed over the background image. Here we convert from
         // background alpha to overlay alpha (simply the inverse).
         overlay_a = 100 - theme.background_alpha,
-        pane_l = theme.base.pane_l,
+        text_h = theme.text_h,
         text_l = theme.base.text_l,
-        text_s = 94,
+        text_s = 94, // TODO: Dynamic or elsewhere defined
         included_static_css = include_str!("assets/styles.css")
     );
 

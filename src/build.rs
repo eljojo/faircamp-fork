@@ -55,7 +55,7 @@ pub struct Build {
     pub verbose: bool
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum PostBuildAction {
     None,
     Deploy,

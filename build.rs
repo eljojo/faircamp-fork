@@ -85,10 +85,10 @@ pub fn main() {
         include_bytes!("src/assets/favicon_light.png")
     ).unwrap();
 
-    let text_color = String::from("hsl(0, 0%, 100%)");
+    let header_link_color = String::from("hsl(0, 0%, 100%)");
     let logo_svg = format!(
         include_str!("src/icons/logo.svg"),
-        text_color = text_color
+        header_link_color = header_link_color
     );
     fs::write(manual_out_dir.join("logo.svg"), logo_svg).unwrap();
 

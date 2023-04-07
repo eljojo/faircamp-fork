@@ -720,17 +720,10 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "hue") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "link_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => build.theme.hue = degrees,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
-            }
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "hue_spread") {
-            match value.parse::<i16>().ok() {
-                Some(degree_offset) => build.theme.hue_spread = degree_offset,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.hue_spread' (accepts an amount of degrees as a signed integer) in {}:{}", value, path.display(), line)
+                Some(degrees) => build.theme.link_h = degrees,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.link_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
             }
         }
 
@@ -742,6 +735,13 @@ pub fn apply_options(
             } else {
                 ThemeFont::System(value)
             };
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "text_hue") {
+            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
+                Some(degrees) => build.theme.text_h = degrees,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.text_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
+            }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_back") {

@@ -171,7 +171,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         <span style="font-size: var(--subtly-larger);">{t_entire_release}</span><br>
                         <small>{primary_download_format}{primary_download_format_recommendation}</small>
                     </div>
-                    <a class="download_button" 
+                    <a class="button" 
                        download
                        href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
                        Download

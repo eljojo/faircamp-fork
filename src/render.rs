@@ -288,16 +288,16 @@ fn layout(
         formatdoc!(
             r#"
                 <script>
-                    const HUE = {hue};
-                    const HUE_SPREAD = {hue_spread};
+                    const LINK_H = {link_h};
+                    const TEXT_H = {text_h};
                     const TINT_BACK = {tint_back};
                     const TINT_FRONT = {tint_front};
                 </script>
                 {template}
             "#,
-            hue = build.theme.hue,
-            hue_spread = build.theme.hue_spread,
+            link_h = build.theme.link_h,
             template = include_str!("templates/theming_widget.html"),
+            text_h = build.theme.text_h,
             tint_back = build.theme.tint_back,
             tint_front = build.theme.tint_front
         )

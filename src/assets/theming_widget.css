@@ -15,7 +15,7 @@
     display: flex;
     margin-bottom: 1rem;
 }
-.theming_widget .option input { width: 18rem; }
+.theming_widget .option input { width: 17rem; }
 .theming_widget .option .label { margin-left: 1rem; }
 .theming_widget textarea {
     height: 10rem;
