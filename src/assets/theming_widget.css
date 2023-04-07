@@ -5,7 +5,7 @@
     color: hsl(var(--text-h), var(--text-s), var(--text-l));
     bottom: 1rem;
     padding: 1rem;
-    position: absolute;
+    position: fixed;
     right: 1rem;
     width: 28rem;
 }
