@@ -16,6 +16,7 @@ pub struct Theme {
     pub customized: bool,
     pub font: ThemeFont,
     pub link_h: u16,
+    pub round_corners: bool,
     pub text_h: u16,
     pub tint_back: u8,
     pub tint_front: u8
@@ -57,6 +58,7 @@ impl Theme {
             customized: false,
             font: ThemeFont::Default,
             link_h: 0,
+            round_corners: false,
             text_h: 0,
             tint_back: 0,
             tint_front: 0

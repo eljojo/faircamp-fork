@@ -11,6 +11,7 @@
 .undescribed_overlay {
     align-items: center;
     background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
+    border-radius: var(--cover-border-radius);
     display: none;
     font-size: var(--clearly-smaller);
     height: 100%;

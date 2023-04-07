@@ -206,6 +206,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .image img,
 .image svg {
+    border-radius: var(--cover-border-radius);
     height: 100%;
     width: 100%;
 }

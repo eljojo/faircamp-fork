@@ -63,6 +63,7 @@ pub fn generate(build: &Build) {
                 --background-h: var(--link-h);
                 --background-l: {background_l}%;
                 --background-s: calc({background_s}% * (var(--tint-back) / 100));
+                --cover-border-radius: {cover_border_radius};
                 --cover-h: var(--link-h);
                 --cover-l: {cover_l}%;
                 --cover-s: calc({cover_s}% * (var(--tint-front) / 100));
@@ -90,6 +91,7 @@ pub fn generate(build: &Build) {
         tint_front = theme.tint_front,
         background_l = theme.base.background_l,
         background_s = 41,
+        cover_border_radius = if theme.round_corners { "5%" } else { "0" },
         cover_l = theme.base.cover_l,
         cover_s = 35,
         header_a = theme.base.header_a,

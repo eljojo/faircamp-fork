@@ -727,6 +727,10 @@ pub fn apply_options(
             }
         }
 
+        if optional_flag_present(section, "round_corners") {
+            build.theme.round_corners = true;
+        }
+
         if let Some(value) = optional_field_value(section, "system_font") {
             build.theme.font = if value == "sans" {
                 ThemeFont::SystemSans
