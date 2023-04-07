@@ -37,10 +37,7 @@ de l'album elle-même. Les codes de téléchargement peuvent parfois \
 participatif ou les abonnements, alors vérifiez-les également \
 si vous en connaissez !"),
         download: String::from("Télécharger"),
-        download_choice_hints: String::from(r##"\
-Téléchargements de piste unique ou téléchargements en autres formats \
-sont disponibles dessous. Vous ne savez pas quel format choisir? \
-Consultez les <a href="#hints">conseils</a> ci-dessous."##),
+        download_choice_hints: String::from(r##"Téléchargements de piste unique ou téléchargements en autres formats sont disponibles dessous. Vous ne savez pas quel format choisir? Consultez les <a href="#hints">conseils</a> ci-dessous."##),
         download_release: String::from("Télécharger album"),
         download_with_code: String::from("Télécharger avec code"),
         embed: String::from("Intégrer"),
