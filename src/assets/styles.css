@@ -61,7 +61,7 @@ nav {
 pre { margin: 0; }
 small { font-size: var(--clearly-smaller); }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
-.additional { background-color: hsla(0, 0%, var(--text-l), 0.02); }
+.additional { background-color: hsla(0, 0%, var(--text-l), var(--release-additional-a)); }
 .additional > div {
     margin: 0 auto;
     max-width: 20rem;

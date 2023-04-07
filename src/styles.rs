@@ -80,6 +80,7 @@ pub fn generate(build: &Build) {
                 --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
                 --nav-s: calc({nav_s}% * (var(--tint-front) / 100));
                 --overlay-a: {overlay_a};
+                --release-additional-a: {release_additional_a};
                 --text-h: {text_h}deg;
                 --text-l: {text_l}%;
                 --text-s: calc({text_s}% * (var(--tint-front) / 100));
@@ -112,6 +113,7 @@ pub fn generate(build: &Build) {
         // transparently overlayed over the background image. Here we convert from
         // background alpha to overlay alpha (simply the inverse).
         overlay_a = 100 - theme.background_alpha,
+        release_additional_a = theme.base.release_additional_a,
         text_h = theme.text_h,
         text_l = theme.base.text_l,
         text_s = 94, // TODO: Dynamic or elsewhere defined

@@ -38,6 +38,7 @@ pub struct ThemeBase {
     pub link_s: u8,
     pub link_hover_l: u8,
     pub muted_l: u8,
+    pub release_additional_a: f32,
     pub text_l: u8
 }
 
@@ -79,6 +80,7 @@ impl ThemeBase {
         link_l: 68,
         link_s: 62,
         muted_l: 23,
+        release_additional_a: 0.06,
         text_l: 72
     };
 
@@ -94,6 +96,7 @@ impl ThemeBase {
         link_l: 68,
         link_s: 62,
         muted_l: 23,
+        release_additional_a: 0.06,
         text_l: 72
     };
 
@@ -109,6 +112,7 @@ impl ThemeBase {
         link_l: 68,
         link_s: 62,
         muted_l: 23,
+        release_additional_a: 0.02,
         text_l: 86
     };
 
@@ -124,6 +128,7 @@ impl ThemeBase {
         link_l: 42,
         link_s: 100,
         muted_l: 68,
+        release_additional_a: 0.03,
         text_l: 14
     };
 
@@ -139,6 +144,7 @@ impl ThemeBase {
         link_l: 42,
         link_s: 100,
         muted_l: 68,
+        release_additional_a: 0.04,
         text_l: 14
     };
 
@@ -154,6 +160,7 @@ impl ThemeBase {
         link_l: 42,
         link_s: 100,
         muted_l: 68,
+        release_additional_a: 0.04,
         text_l: 14
     };
 
