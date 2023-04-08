@@ -18,7 +18,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     };
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
-    let share_link_rendered = share_link(build, root_prefix);
+    let share_link_rendered = share_link(build);
 
     let artist_image_rendered = match &artist.image {
         Some(artist_image_unpacked) => artist_image(

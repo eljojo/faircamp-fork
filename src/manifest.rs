@@ -727,6 +727,20 @@ pub fn apply_options(
             }
         }
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "link_lightness") {
+            match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
+                Some(degrees) => build.theme.link_l = Some(degrees),
+                None => error!("Ignoring unsupported value '{}' for global 'theme.link_lightness' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "link_saturation") {
+            match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
+                Some(degrees) => build.theme.link_s = Some(degrees),
+                None => error!("Ignoring unsupported value '{}' for global 'theme.link_saturation' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
+            }
+        }
+
         if optional_flag_present(section, "round_corners") {
             build.theme.round_corners = true;
         }

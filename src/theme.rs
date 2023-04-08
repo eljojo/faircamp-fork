@@ -6,6 +6,8 @@ use crate::Image;
 
 /// background_alpha    0-100 percent
 /// h(ue)               0-360 degrees
+/// l(ightness)         0-100 percent
+/// s(aturation)        0-100 percent
 /// tint_back           0-100 percent
 /// tint_front          0-100 percent
 pub struct Theme {
@@ -16,16 +18,18 @@ pub struct Theme {
     pub customized: bool,
     pub font: ThemeFont,
     pub link_h: u16,
+    pub link_l: Option<u8>,
+    pub link_s: Option<u8>,
     pub round_corners: bool,
     pub text_h: u16,
     pub tint_back: u8,
     pub tint_front: u8
 }
 
-/// h(ue)         0-360 degrees
-/// s(aturation)  0-100 percent
-/// l(ightness)   0-100 percent
 /// a(lpha)       0.0-1.0
+/// h(ue)         0-360 degrees
+/// l(ightness)   0-100 percent
+/// s(aturation)  0-100 percent
 pub struct ThemeBase {
     pub background_l: u8,
     pub cover_l: u8,
@@ -59,6 +63,8 @@ impl Theme {
             customized: false,
             font: ThemeFont::Default,
             link_h: 0,
+            link_l: None,
+            link_s: None,
             round_corners: false,
             text_h: 0,
             tint_back: 0,

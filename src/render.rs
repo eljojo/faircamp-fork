@@ -289,6 +289,8 @@ fn layout(
             r#"
                 <script>
                     const LINK_H = {link_h};
+                    const LINK_L = {link_l};
+                    const LINK_S = {link_s};
                     const TEXT_H = {text_h};
                     const TINT_BACK = {tint_back};
                     const TINT_FRONT = {tint_front};
@@ -296,6 +298,8 @@ fn layout(
                 {template}
             "#,
             link_h = build.theme.link_h,
+            link_l = build.theme.link_l.unwrap_or(build.theme.base.link_l),
+            link_s = build.theme.link_s.unwrap_or(build.theme.base.link_s),
             template = include_str!("templates/theming_widget.html"),
             text_h = build.theme.text_h,
             tint_back = build.theme.tint_back,
@@ -454,7 +458,7 @@ fn releases(
         .join("\n")
 }
 
-pub fn share_link(build: &Build, root_prefix: &str) -> String {
+pub fn share_link(build: &Build) -> String {
     let attributes = if build.base_url.is_some() {
         format!(r##"href="#share""##)
     } else {
@@ -466,10 +470,13 @@ pub fn share_link(build: &Build, root_prefix: &str) -> String {
         format!(r#"class="disabled" data-disabled-share title="{t_share_not_available_requires_javascript}""#)
     };
 
+    // TODO: Provide all icons as SHARE_ICON etc. through crate::render?
+    //       (or share_icon(...) so we can inject translated alt texts or such)
+    let icon_share = include_str!("icons/share.svg");
     let t_share = &build.locale.translations.share;
     formatdoc!(r##"
         <a {attributes}>
-            <img alt="{t_share}" src="{root_prefix}share.svg">
+            {icon_share}
             <span>{t_share}</span>
         </a>
     "##)

@@ -2,6 +2,7 @@
     --color-background: hsl(var(--background-h), var(--background-s), var(--background-l));
     --color-cover: hsl(var(--cover-h), var(--cover-s), var(--cover-l));
     --color-link: hsl(var(--link-h), var(--link-s), var(--link-l));
+    --color-link-hover: hsl(var(--link-h), var(--link-s), var(--link-hover-l));
     --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
     --color-text: hsl(var(--text-h), var(--text-s), var(--text-l));
     --clearly-smaller: .83rem;
@@ -15,7 +16,9 @@ a {
     color: var(--color-link);
     text-decoration: none;
 }
-a:hover { color: hsl(var(--link-h), var(--link-s), var(--link-hover-l)); }
+a svg { fill: var(--color-link); }
+a:hover { color: var(--color-link-hover); }
+a:hover svg { fill: var(--color-link-hover); }
 a * { pointer-events: none; }
 body {
     background-color: var(--color-background);
@@ -58,6 +61,13 @@ nav {
         height: 3.2rem;
     }
 }
+nav svg {
+    fill: hsl(var(--text-h), var(--text-s), var(--header-text-l));
+    height: var(--boldly-larger);
+    position: relative;
+    top: .2rem;
+    width: var(--boldly-larger);
+}
 pre { margin: 0; }
 small { font-size: var(--clearly-smaller); }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
@@ -71,7 +81,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     column-gap: .2rem;
     display: flex;
 }
-.action_links img { width: var(--boldly-larger); }
+.action_links svg {
+    height: var(--boldly-larger);
+    width: var(--boldly-larger);
+}
 .additional { background-color: hsla(0, 0%, var(--text-l), var(--release-additional-a)); }
 .additional > div {
     margin: 0 auto;

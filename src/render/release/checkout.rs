@@ -15,7 +15,12 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
-    let (content, heading) = if let DownloadOption::Paid(currency, range) = &release.download_option {
+    let (
+        content,
+        breadcrumb_heading,
+        heading,
+        icon
+    ) = if let DownloadOption::Paid(currency, range) = &release.download_option {
         let currency_code = currency.code();
         let currency_symbol = currency.symbol();
 
@@ -109,57 +114,62 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .collect::<Vec<String>>()
             .join("\n");
 
-            let download_page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
+        let download_page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
-            let formats = release.download_formats
-                .iter()
-                .map(|audio_format| audio_format.user_label())
-                .collect::<Vec<&str>>()
-                .join(", ");
+        let formats = release.download_formats
+            .iter()
+            .map(|audio_format| audio_format.user_label())
+            .collect::<Vec<&str>>()
+            .join(", ");
 
-            let t_available_formats = &build.locale.translations.available_formats;
-            let t_confirm = &build.locale.translations.confirm;
-            let t_continue = &build.locale.translations.r#continue;
-            let t_made_or_arranged_payment = &build.locale.translations.made_or_arranged_payment;
-            let t_payment_options = &build.locale.translations.payment_options;
-            let content = formatdoc!(r#"
-                <form id="confirm">
-                    {price_input_rendered}
-                    <button name="confirm">{t_confirm}</button>
-                    <div style="font-size: .9rem; margin: 1rem 0;">
-                        {t_available_formats} {formats}
-                    </div>
-                </form>
-
-                <script>
-                    document.querySelector('#confirm').addEventListener('submit', event => {{
-                        event.preventDefault();
-                        document.querySelector('#confirm').style.display = 'none';
-                        document.querySelector('.payment').classList.add('active');
-                    }});
-                </script>
-
-                <div class="payment">
-                    {t_payment_options}
-
-                    {payment_options}
-
-                    <br><br>
-
-                    <input id="confirm_payment" onchange="document.querySelector('#continue').classList.toggle('disabled', !this.checked)" type="checkbox"> <label for="confirm_payment">{t_made_or_arranged_payment}</label>
-
-                    <br><br>
-
-                    <a class="button disabled"
-                       href="{release_prefix}download/{download_page_hash}{index_suffix}"
-                       id="continue"
-                       onclick="if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}">
-                        {t_continue}
-                    </a>
+        let t_available_formats = &build.locale.translations.available_formats;
+        let t_confirm = &build.locale.translations.confirm;
+        let t_continue = &build.locale.translations.r#continue;
+        let t_made_or_arranged_payment = &build.locale.translations.made_or_arranged_payment;
+        let t_payment_options = &build.locale.translations.payment_options;
+        let content = formatdoc!(r#"
+            <form id="confirm">
+                {price_input_rendered}
+                <button name="confirm">{t_confirm}</button>
+                <div style="font-size: .9rem; margin: 1rem 0;">
+                    {t_available_formats} {formats}
                 </div>
-            "#);
+            </form>
 
-            (content, build.locale.translations.buy_release.as_str())
+            <script>
+                document.querySelector('#confirm').addEventListener('submit', event => {{
+                    event.preventDefault();
+                    document.querySelector('#confirm').style.display = 'none';
+                    document.querySelector('.payment').classList.add('active');
+                }});
+            </script>
+
+            <div class="payment">
+                {t_payment_options}
+
+                {payment_options}
+
+                <br><br>
+
+                <input id="confirm_payment" onchange="document.querySelector('#continue').classList.toggle('disabled', !this.checked)" type="checkbox"> <label for="confirm_payment">{t_made_or_arranged_payment}</label>
+
+                <br><br>
+
+                <a class="button disabled"
+                   href="{release_prefix}download/{download_page_hash}{index_suffix}"
+                   id="continue"
+                   onclick="if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}">
+                    {t_continue}
+                </a>
+            </div>
+        "#);
+
+        (
+            content,
+            build.locale.translations.buy.as_str(),
+            build.locale.translations.buy_release.as_str(),
+            include_str!("../../icons/buy.svg")
+        )
     } else if let DownloadOption::Codes { unlock_text, .. } = &release.download_option {
         let custom_or_default_unlock_text = unlock_text
             .as_ref()
@@ -202,7 +212,12 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#);
 
-        (content, build.locale.translations.enter_code.as_str())
+        (
+            content,
+            build.locale.translations.unlock.as_str(),
+            build.locale.translations.enter_code.as_str(),
+            include_str!("../../icons/unlock.svg")
+        )
     } else {
         unreachable!();
     };
@@ -229,7 +244,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!("<span>{heading}</span>")
+        format!("<span>{icon} {breadcrumb_heading}</span>")
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)

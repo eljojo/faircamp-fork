@@ -130,11 +130,11 @@ pub fn embed_choices_html(
 
     let r_copy_button = copy_button(build, Some(&embed_copy_code));
 
-    let t_embed_release = &build.locale.translations.embed_release;
+    let t_embed = &build.locale.translations.embed;
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;
     let body = formatdoc!(r##"
         <div class="center_wide margin_page_top mobile_hpadding">
-            <h1>{t_embed_release}</h1>
+            <h1>{t_embed}</h1>
 
             {compact_release_identifier_rendered}
         </div>
@@ -154,10 +154,11 @@ pub fn embed_choices_html(
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
+    let embed_icon = include_str!("../../icons/embed.svg");
     let t_embed = &build.locale.translations.embed;
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!("<span>{t_embed}</span>")
+        formatdoc!("<span>{embed_icon} {t_embed}</span>")
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)

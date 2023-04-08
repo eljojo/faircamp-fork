@@ -33,10 +33,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Codes { .. } => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
+            let unlock_icon = include_str!("../icons/unlock.svg");
             let t_download_with_code = &build.locale.translations.download_with_code;
             formatdoc!(r#"
                 <a href="checkout/{page_hash}{index_suffix}">
-                    <img alt="{t_download_with_code}" src="{root_prefix}unlock.svg">
+                    {unlock_icon}
                     <span>{t_download_with_code}</span>
                 </a>
             "#)
@@ -45,10 +46,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Free => {
             let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
+            let download_icon = include_str!("../icons/download.svg");
             let t_download = &build.locale.translations.download;
             formatdoc!(r#"
                 <a href="download/{page_hash}{index_suffix}">
-                    <img alt="{t_download}" src="{root_prefix}download.svg">
+                    {download_icon}
                     <span>{t_download}</span>
                 </a>
             "#)
@@ -59,10 +61,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             } else {
                 let checkout_page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
 
+                let buy_icon = include_str!("../icons/buy.svg");
                 let t_buy = &build.locale.translations.buy;
                 formatdoc!(r#"
                     <a href="checkout/{checkout_page_hash}{index_suffix}">
-                        <img alt="{t_buy}" src="{root_prefix}buy.svg">
+                        {buy_icon}
                         <span>{t_buy}</span>
                     </a>
                 "#)
@@ -71,10 +74,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let embed_link = if release.embedding && build.base_url.is_some() {
+        let embed_icon = include_str!("../icons/embed.svg");
         let t_embed = &build.locale.translations.embed;
         formatdoc!(r#"
             <a href="embed{index_suffix}">
-                <img alt="{t_embed}" src="{root_prefix}embed.svg">
+                {embed_icon}
                 <span>{t_embed}</span>
             </a>
         "#)
@@ -148,7 +152,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         None => String::new()
     };
 
-    let share_link_rendered = share_link(build, root_prefix);
+    let share_link_rendered = share_link(build);
     let share_overlay_rendered = share_overlay(build, &share_url);
 
     let mut action_links = String::new();

@@ -1,7 +1,7 @@
 <div class="theming_widget"></div>
 <script>
     const persistence = {
-        signature: `${LINK_H}:${TEXT_H}:${TINT_BACK}:${TINT_FRONT}`
+        signature: `${LINK_H}:${LINK_L}:${LINK_S}:${TEXT_H}:${TINT_BACK}:${TINT_FRONT}`
     };
 
     let persistTimeout = null;
@@ -33,6 +33,8 @@
         // A new build with differing values, or we never persisted before
         persistence.values = {
             'link_h': LINK_H,
+            'link_l': LINK_L,
+            'link_s': LINK_S,
             'text_h': TEXT_H,
             'tint_back': TINT_BACK,
             'tint_front': TINT_FRONT
@@ -56,6 +58,30 @@
             value: persistence.values.link_h,
             variable: '--link-h',
             unit: 'deg'
+        },
+        {
+            cssVariable: 'link_s',
+            default: 0,
+            label: 'Link Saturation',
+            manifestOption: 'link_saturation',
+            range: [0, 100],
+            step: 1,
+            tooltip: 'Sets the saturation of the link color (0-100 percent)',
+            value: persistence.values.link_s,
+            variable: '--link-s',
+            unit: '%'
+        },
+        {
+            cssVariable: 'link_l',
+            default: 0,
+            label: 'Link Lightness',
+            manifestOption: 'link_lightness',
+            range: [0, 100],
+            step: 1,
+            tooltip: 'Sets the lightness of the link color (0-100 percent)',
+            value: persistence.values.link_l,
+            variable: '--link-l',
+            unit: '%'
         },
         {
             cssVariable: 'tint_back',

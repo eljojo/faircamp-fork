@@ -16,10 +16,12 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let feed_link = match &build.base_url.is_some() {
         true => {
             let t_feed = &build.locale.translations.feed;
-            let t_rss_feed = &build.locale.translations.feed;
+            let icon_feed = include_str!("../icons/feed.svg");
+            // TODO: Reuse for alt text or remove
+            // let t_rss_feed = &build.locale.translations.feed;
             format!(r#"
                 <a href="{root_prefix}feed.rss">
-                    <img alt="{t_rss_feed}" src="{root_prefix}feed.svg">
+                    {icon_feed}
                     <span>{t_feed}</span>
                 </a>
             "#)
@@ -27,7 +29,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         false => String::new()
     };
 
-    let share_link_rendered = share_link(build, root_prefix);
+    let share_link_rendered = share_link(build);
 
     let catalog_text = match &catalog.text {
         Some(text) => text.clone(),
