@@ -61,6 +61,17 @@ nav {
 pre { margin: 0; }
 small { font-size: var(--clearly-smaller); }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
+.action_links {
+    column-gap: .3rem;
+    display: flex;
+    font-size: var(--boldly-larger);
+}
+.action_links a {
+    align-items: center;
+    column-gap: .2rem;
+    display: flex;
+}
+.action_links img { width: var(--boldly-larger); }
 .additional { background-color: hsla(0, 0%, var(--text-l), var(--release-additional-a)); }
 .additional > div {
     margin: 0 auto;
@@ -183,11 +194,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .embed_syntax_special { opacity: .6; /* TODO: Solve differently */ }
 .embed_syntax_value { opacity: .8; /* TODO: Solve differently */ }
-.feed_icon {
-    position: relative;
-    top: .2rem;
-    width: 1rem;
-}
 .home_image {
     height: 40vw;
     object-fit: cover;

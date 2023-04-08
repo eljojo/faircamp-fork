@@ -17,12 +17,17 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         true => {
             let t_feed = &build.locale.translations.feed;
             let t_rss_feed = &build.locale.translations.feed;
-            format!(r#"<a href="{root_prefix}feed.rss"><img alt="{t_rss_feed}" class="feed_icon" src="{root_prefix}feed.svg" style="display: none;">{t_feed}</a>"#)
+            format!(r#"
+                <a href="{root_prefix}feed.rss">
+                    <img alt="{t_rss_feed}" src="{root_prefix}feed.svg">
+                    <span>{t_feed}</span>
+                </a>
+            "#)
         }
         false => String::new()
     };
 
-    let share_link_rendered = share_link(build);
+    let share_link_rendered = share_link(build, root_prefix);
 
     let catalog_text = match &catalog.text {
         Some(text) => text.clone(),
@@ -78,7 +83,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                     {title_escaped}
                 </h1>
                 {catalog_text}
-                <div style="font-size: var(--boldly-larger);">
+                <div class="action_links">
                     {action_links}
                 </div>
                 {featured_artists}

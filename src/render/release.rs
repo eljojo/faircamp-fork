@@ -35,7 +35,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             let t_download_with_code = &build.locale.translations.download_with_code;
             formatdoc!(r#"
-                <a href="checkout/{page_hash}{index_suffix}">{t_download_with_code}</a>
+                <a href="checkout/{page_hash}{index_suffix}">
+                    <img alt="{t_download_with_code}" src="{root_prefix}unlock.svg">
+                    <span>{t_download_with_code}</span>
+                </a>
             "#)
         },
         DownloadOption::Disabled => String::new(),
@@ -44,7 +47,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             let t_download = &build.locale.translations.download;
             formatdoc!(r#"
-                <a href="download/{page_hash}{index_suffix}">{t_download}</a>
+                <a href="download/{page_hash}{index_suffix}">
+                    <img alt="{t_download}" src="{root_prefix}download.svg">
+                    <span>{t_download}</span>
+                </a>
             "#)
         },
         DownloadOption::Paid(_currency, _range) => {
@@ -55,15 +61,23 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                 let t_buy = &build.locale.translations.buy;
                 formatdoc!(r#"
-                    <a href="checkout/{checkout_page_hash}{index_suffix}">{t_buy}</a>
+                    <a href="checkout/{checkout_page_hash}{index_suffix}">
+                        <img alt="{t_buy}" src="{root_prefix}buy.svg">
+                        <span>{t_buy}</span>
+                    </a>
                 "#)
             }
         }
     };
 
-    let t_embed = &build.locale.translations.embed;
     let embed_link = if release.embedding && build.base_url.is_some() {
-        format!(r#"<a href="embed{index_suffix}">{t_embed}</a>"#)
+        let t_embed = &build.locale.translations.embed;
+        formatdoc!(r#"
+            <a href="embed{index_suffix}">
+                <img alt="{t_embed}" src="{root_prefix}embed.svg">
+                <span>{t_embed}</span>
+            </a>
+        "#)
     } else {
         String::new()
     };
@@ -134,7 +148,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         None => String::new()
     };
 
-    let share_link_rendered = share_link(build);
+    let share_link_rendered = share_link(build, root_prefix);
     let share_overlay_rendered = share_overlay(build, &share_url);
 
     let mut action_links = String::new();
@@ -174,7 +188,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
             <div class="additional">
                 <div class="mobile_hpadding">
-                    <div style="font-size: var(--boldly-larger);">
+                    <div class="action_links">
                         {action_links}
                     </div>
                     {release_text}

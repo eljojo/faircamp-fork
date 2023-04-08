@@ -454,18 +454,25 @@ fn releases(
         .join("\n")
 }
 
-pub fn share_link(build: &Build) -> String {
-    let t_share = &build.locale.translations.share;
-    let t_share_not_available_requires_javascript = &build.locale.translations.share_not_available_requires_javascript;
-
-    match &build.base_url.is_some() {
-        true => format!(r##"<a href="#share">{t_share}</a>"##),
+pub fn share_link(build: &Build, root_prefix: &str) -> String {
+    let attributes = if build.base_url.is_some() {
+        format!(r##"href="#share""##)
+    } else {
+        let t_share_not_available_requires_javascript = &build.locale.translations.share_not_available_requires_javascript;
         // In a javascript-enabled browser, some bootstrapping happens on DOM load:
         // - class="disabled" is removed
         // - title="..."  is removed
         // - href="#share" is added
-        false => format!(r##"<a class="disabled" data-disabled-share title="{t_share_not_available_requires_javascript}">{t_share}</a>"##)
-    }
+        format!(r#"class="disabled" data-disabled-share title="{t_share_not_available_requires_javascript}""#)
+    };
+
+    let t_share = &build.locale.translations.share;
+    formatdoc!(r##"
+        <a {attributes}>
+            <img alt="{t_share}" src="{root_prefix}share.svg">
+            <span>{t_share}</span>
+        </a>
+    "##)
 }
 
 pub fn share_overlay(build: &Build, url: &str) -> String {
