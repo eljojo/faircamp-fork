@@ -61,13 +61,6 @@ nav {
         height: 3.2rem;
     }
 }
-nav svg {
-    fill: hsl(var(--text-h), var(--text-s), var(--header-text-l));
-    height: var(--boldly-larger);
-    position: relative;
-    top: .2rem;
-    width: var(--boldly-larger);
-}
 pre { margin: 0; }
 small { font-size: var(--clearly-smaller); }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
@@ -308,7 +301,14 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     white-space: nowrap;
 }
 .path a { color: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
+.path a svg { fill: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
 .path span { padding: 0 .2rem; }
+.path svg {
+    height: var(--boldly-larger);
+    position: relative;
+    top: .2rem;
+    width: var(--boldly-larger);
+}
 .release {
     display:  flex;
     flex-direction: column;

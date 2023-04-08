@@ -19,33 +19,23 @@ pub fn translations() -> Translations {
         audio_player_widget_for_release: String::from(r#"Widget de lecteur audio pour l'album "{title}""#),
         audio_player_widget_for_track: String::from(r#"Widget de lecteur audio pour le piste "{title}""#),
         available_formats: String::from("Formats disponibles:"),
-        buy: String::from("Acheter"),
-        buy_release: String::from("Acheter album"),
         close: String::from("Fermer"),
         copied: String::from("Copié"),
         copy: String::from("Copier"),
         confirm: String::from("Confirmer"),
         r#continue: String::from("Continuer"),
         cover_image: String::from("Image de couverture"),
-        default_unlock_text: String::from("\
-Les téléchargements pour cet album sont disponibles en entrant un \
-code de déverrouillage. Si vous n'avez pas encore de code, vous \
-devez en obtenir un auprès des artistes/personnes qui gèrent ce site \
-- contactez-les ou voyez s'il y a des informations sur la page \
-de l'album elle-même. Les codes de téléchargement peuvent parfois \
-être offerts en tant qu'avantages sur les campagnes de financement \
-participatif ou les abonnements, alors vérifiez-les également \
-si vous en connaissez !"),
-        download: String::from("Télécharger"),
+        default_unlock_text: String::from("Vous devez entrer un code pour déverrouiller ces téléchargements. Demandez aux opérateurs du site comment en obtenir un."),
+        downloads: String::from("Téléchargements"),
+        downloads_permalink: String::from("telechargements"),
         download_choice_hints: String::from(r##"Téléchargements de piste unique ou téléchargements en autres formats sont disponibles dessous. Vous ne savez pas quel format choisir? Consultez les <a href="#hints">conseils</a> ci-dessous."##),
-        download_with_code: String::from("Télécharger avec code"),
         embed: String::from("Intégrer"),
         embed_entire_release: String::from("Intégrer tout l'album"),
-        enter_code: String::from("Entrer Code"),
         enter_code_here: String::from("Entrer code ici"),
         entire_release: String::from("Tout l'album"),
         failed: String::from("Échoué"),
         feed: String::from("Flux RSS"),
+        fixed_price: String::from("Prix fixe:"),
         format_guide: String::from("Guide des formats:"),
         image_descriptions: String::from("Descriptions des images"),
         image_descriptions_guide: String::from("\
@@ -71,12 +61,16 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
         option: String::from("Option"),
         pay_on_liberapay: String::from("Acheter en liberapay:"),
         payment_options: String::from("Options d'achat:"),
+        purchase_downloads: String::from("Acheter des téléchargements"),
+        purchase_permalink: String::from("acheter"),
         recommended_format: String::from("Format recommandé"),
         rss_feed: String::from("Flux RSS"),
         share: String::from("Partager"),
         share_not_available_navigator_clipboard: String::from("Non disponible dans ton navigateur (navigator.clipboard n'est pas supportée)"),
         share_not_available_requires_javascript: String::from("Non disponible dans ton navigateur (nécessite JavaScript)"),
         unlock: String::from("Dégager"),
+        unlock_downloads: String::from("Dégager les téléchargements"),
+        unlock_permalink: String::from("degager"),
         unlock_code_seems_incorrect: String::from("Le code de déverrouillage semble être incorrect, veuillez vérifier les fautes de frappe."),
         unlock_manual_instructions: String::from("\
 Pour déverrouiller le téléchargement, veuillez effectuer les modifications \
@@ -86,8 +80,8 @@ Avant de commencer, sachez que des codes ou des modifications d'adresse erronés
 vous amènent à une page 404. Dans ce cas, utilisez le bouton Retour et suivez à \
 nouveau attentivement les instructions. \
 <br><br>\
-Remplacez la dernière partie de l'adresse - /checkout/{page_hash}{index_suffix} - \
-avec /download/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
+Remplacez la dernière partie de l'adresse - /degager/{page_hash}{index_suffix} - \
+avec /telechargements/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
         up_to_xxx: String::from("Jusqu'à {xxx}"),
         xxx_or_more: String::from("{xxx} ou plus")
     }

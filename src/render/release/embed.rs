@@ -158,7 +158,7 @@ pub fn embed_choices_html(
     let t_embed = &build.locale.translations.embed;
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        formatdoc!("<span>{embed_icon} {t_embed}</span>")
+        format!(r#"<a href=".{index_suffix}">{embed_icon} {t_embed}</a>"#)
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)

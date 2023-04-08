@@ -31,14 +31,15 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let download_link = match &release.download_option {
         DownloadOption::Codes { .. } => {
-            let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
+            let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+            let page_hash = build.hash_generic(&[&release.permalink.slug, t_unlock_permalink]);
 
             let unlock_icon = include_str!("../icons/unlock.svg");
-            let t_download_with_code = &build.locale.translations.download_with_code;
+            let t_downloads = &build.locale.translations.downloads;
             formatdoc!(r#"
-                <a href="checkout/{page_hash}{index_suffix}">
+                <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
                     {unlock_icon}
-                    <span>{t_download_with_code}</span>
+                    <span>{t_downloads}</span>
                 </a>
             "#)
         },
@@ -47,11 +48,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
 
             let download_icon = include_str!("../icons/download.svg");
-            let t_download = &build.locale.translations.download;
+            let t_downloads = &build.locale.translations.downloads;
             formatdoc!(r#"
                 <a href="download/{page_hash}{index_suffix}">
                     {download_icon}
-                    <span>{t_download}</span>
+                    <span>{t_downloads}</span>
                 </a>
             "#)
         },
@@ -59,14 +60,15 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             if release.payment_options.is_empty() {
                 String::new()
             } else {
-                let checkout_page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
+                let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                let page_hash = build.hash_generic(&[&release.permalink.slug, t_purchase_permalink]);
 
                 let buy_icon = include_str!("../icons/buy.svg");
-                let t_buy = &build.locale.translations.buy;
+                let t_downloads = &build.locale.translations.downloads;
                 formatdoc!(r#"
-                    <a href="checkout/{checkout_page_hash}{index_suffix}">
+                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
-                        <span>{t_buy}</span>
+                        <span>{t_downloads}</span>
                     </a>
                 "#)
             }

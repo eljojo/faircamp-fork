@@ -15,32 +15,23 @@ pub fn translations() -> Translations {
         audio_player_widget_for_release: String::from(r#"Audio Player Widget für den Release "{title}""#),
         audio_player_widget_for_track: String::from(r#"Audio Player Widget für den Track "{title}""#),
         available_formats: String::from("Verfügbare Formate:"),
-        buy: String::from("Kaufen"),
-        buy_release: String::from("Release kaufen"),
         close: String::from("Schließen"),
         copied: String::from("Kopiert"),
         copy: String::from("Kopieren"),
         confirm: String::from("Bestätigen"),
         r#continue: String::from("Fortfahren"),
         cover_image: String::from("Cover Bild"),
-        default_unlock_text: String::from("\
-Downloads für diesen Release sind verfügbar in dem du einen \
-Freischaltecode eingibst. Wenn du noch keinen hast, musst du \
-ihn von den Künstler*innen/Leuten die diese Seite betreiben \
-organisieren - kontaktiere diese oder schau ob du Informationen \
-dazu auf der Release Seite selbst findest. Downloadcodes werden \
-manchmal als Perks bei Crowdfunding Kampagnen oder Abos vergeben, \
-schau auch dort falls dir welche bekannt sind!"),
-        download: String::from("Download"),
+        default_unlock_text: String::from("Du musst einen Code eingeben um diese Downloads freizuschalten. Frag bei den Seitenbetreiber*innen nach wie du einen bekommst."),
+        downloads: String::from("Downloads"),
+        downloads_permalink: String::from("downloads"),
         download_choice_hints: String::from(r##"Einzelne Tracks oder Downloads in anderen Formaten sind unten verfügbar. Nicht sicher welches Format du nehmen sollst? Folge den <a href="#hints">Tipps</a> unten."##),
-        download_with_code: String::from("Download mit Code"),
         embed: String::from("Einbetten"),
         embed_entire_release: String::from("Den gesamten Release einbetten"),
-        enter_code: String::from("Code eingeben"),
         enter_code_here: String::from("Code hier eingeben"),
         entire_release: String::from("Gesamter Release"),
         failed: String::from("Fehler"),
         feed: String::from("Feed"),
+        fixed_price: String::from("Fixer Preis:"),
         format_guide: String::from("Format Hilfe:"),
         image_descriptions: String::from("Bildbeschreibungen"),
         image_descriptions_guide: String::from("\
@@ -66,12 +57,16 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
         option: String::from("Option"),
         pay_on_liberapay: String::from("Auf Liberapay bezahlen:"),
         payment_options: String::from("Zahlungsoptionen:"),
+        purchase_downloads: String::from("Downloads bezahlen"),
+        purchase_permalink: String::from("bezahlen"),
         recommended_format: String::from("Empfohlenes Format"),
         rss_feed: String::from("RSS Feed"),
         share: String::from("Teilen"),
         share_not_available_navigator_clipboard: String::from("In deinem Browser nicht verfügbar (navigator.clipboard wird nicht unterstützt)"),
         share_not_available_requires_javascript: String::from("In deinem Browser nicht verfügbar (benötigt JavaScript)"),
         unlock: String::from("Freischalten"),
+        unlock_downloads: String::from("Downloads freischalten"),
+        unlock_permalink: String::from("freischalten"),
         unlock_code_seems_incorrect: String::from("Der Freischaltecode scheint nicht korrekt zu sein, überprüfe ihn bitte auf Tippfehler."),
         unlock_manual_instructions: String::from("\
 Um die Downloads freizuschalten, führe bitte die unten beschriebenen \
@@ -83,8 +78,8 @@ Falls das passiert, benutze den Zurück Button deines Browsers \
 und folge den Instruktionen erneut und ganz genau.\
 <br><br>\
 Ersetze den letzten Abschnitt der Adresse - \
-/checkout/{page_hash}{index_suffix} - \
-mit /download/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
+/freischalten/{page_hash}{index_suffix} - \
+mit /downloads/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
         up_to_xxx: String::from("Bis zu {xxx}"),
         xxx_or_more: String::from("{xxx} oder mehr")
     }

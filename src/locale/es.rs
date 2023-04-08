@@ -19,32 +19,23 @@ pub fn translations() -> Translations {
         audio_player_widget_for_release: String::from(r#"Widget de reproductor de audio para la grabación "{title}""#),
         audio_player_widget_for_track: String::from(r#"Widget de reproductor de audio para la pista "{title}""#),
         available_formats: String::from("Formatos disponibles:"),
-        buy: String::from("Comprar"),
-        buy_release: String::from("Comprar grabación"),
         close: String::from("Cerrar"),
         copied: String::from("Copiado"),
         copy: String::from("Copiar"),
         confirm: String::from("Confirmar"),
         r#continue: String::from("Continuar"),
         cover_image: String::from("Imagen de tapa"),
-        default_unlock_text: String::from("\
-Las descargas de esta grabación están disponibles si entras un \
-código de desbloqueo. Si ya no tienes un código necesitas obtenir \
-uno de las artistas/personas que operan este sitio web - contacta \
-con ellas o ver si hay alguna informacion en la pagina de la \
-grabación. Los códigos de descarga pueden a veces ser ofrecidos \
-como beneficios adicionales en una campaña de financiación colectiva, \
-¡así también revisa estos si sabes de unas!"),
-        download: String::from("Descargar"),
+        default_unlock_text: String::from("Tienes que ingresar un código para desbloquear estas descargas. Pregunta a los operadores del sitio cómo obtener uno."),
+        downloads: String::from("Descargas"),
+        downloads_permalink: String::from("descargas"),
         download_choice_hints: String::from(r##"Descargas de una sola pista o en otros formatos están disponibles abajo. ¿No sabes qué elegir? Ver los <a href="#hints">consejos</a> abajo."##),
-        download_with_code: String::from("Descargar con código"),
         embed: String::from("Incrustar"),
         embed_entire_release: String::from("Incrustar la grabación entera"),
-        enter_code: String::from("Entra código"),
         enter_code_here: String::from("Entra código aquí"),
         entire_release: String::from("Grabación entera"),
         failed: String::from("Falló"),
         feed: String::from("Feed"),
+        fixed_price: String::from("Precio fijo:"),
         format_guide: String::from("Guía de formatos:"),
         image_descriptions: String::from("Descripciones de imágenes"),
         image_descriptions_guide: String::from("\
@@ -69,12 +60,16 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
         option: String::from("Opción"),
         pay_on_liberapay: String::from("Pagar en liberapay:"),
         payment_options: String::from("Opciones de pago:"),
+        purchase_downloads: String::from("Comprar descargas"),
+        purchase_permalink: String::from("comprar"),
         recommended_format: String::from("Formato recomendado"),
         rss_feed: String::from("Feed RSS"),
         share: String::from("Compartir"),
         share_not_available_navigator_clipboard: String::from("No está disponible en tu navegador (navigator.clipboard no está disponible)"),
         share_not_available_requires_javascript: String::from("No está disponible en tu navegador (necesita JavaScript)"),
         unlock: String::from("Desbloquear"),
+        unlock_downloads: String::from("Desbloquear descargas"),
+        unlock_permalink: String::from("desbloquear"),
         unlock_code_seems_incorrect: String::from("El código de desbloqueo entrado parece ser incorrecto, por favor revise si hay errores tipográficos."),
         unlock_manual_instructions: String::from("\
 Para desbloquear la descarga, por favor haz los cambios \
@@ -85,8 +80,8 @@ o modificaciones incorrectas te llevan a una pagina 404. \
 En este caso usar el botón de retroceso y sigue los \
 instrucciones de nuevo. \
 <br><br>\
-Reemplaza el parte final de la direccion - /checkout/{page_hash}{index_suffix} - \
-con /download/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
+Reemplaza el parte final de la direccion - /desbloquear/{page_hash}{index_suffix} - \
+con /descargas/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
         up_to_xxx: String::from("Hasta {xxx}"),
         xxx_or_more: String::from("{xxx} o más")
     }

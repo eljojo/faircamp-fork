@@ -154,14 +154,14 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         root_prefix,
     );
 
-    let t_download = &build.locale.translations.download;
+    let t_downloads = &build.locale.translations.downloads;
     let t_download_choice_hints = &build.locale.translations.download_choice_hints;
     let t_entire_release = &build.locale.translations.entire_release;
     let t_format_guide = &build.locale.translations.format_guide;
     let body = formatdoc!(
         r##"
             <div class="center_medium margin_page_bottom margin_page_top mobile_hpadding">
-                <h1>{t_download}</h1>
+                <h1>{t_downloads}</h1>
 
                 {compact_release_identifier_rendered}
 
@@ -213,8 +213,9 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let download_icon = include_str!("../../icons/download.svg");
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        formatdoc!("<span>{download_icon} {t_download}</span>")
+        format!(r#"<a href=".{index_suffix}">{download_icon} {t_downloads}</a>"#)
     ];
+
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }

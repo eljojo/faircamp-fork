@@ -58,8 +58,9 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 )
             }
         } else if range.start == range.end {
+            let t_fixed_price = &build.locale.translations.fixed_price;
             format!(
-                "Fixed price: {currency_symbol}{price} {currency_code}",
+                "{t_fixed_price} {currency_symbol}{price} {currency_code}",
                 price = &range.start
             )
         } else if range.start > 0.0 {
@@ -166,8 +167,8 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
         (
             content,
-            build.locale.translations.buy.as_str(),
-            build.locale.translations.buy_release.as_str(),
+            build.locale.translations.downloads.as_str(),
+            build.locale.translations.purchase_downloads.as_str(),
             include_str!("../../icons/buy.svg")
         )
     } else if let DownloadOption::Codes { unlock_text, .. } = &release.download_option {
@@ -176,8 +177,10 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .map(|text| text.to_string())
             .unwrap_or(build.locale.translations.default_unlock_text.clone());
 
-        let page_hash = build.hash_generic(&[&release.permalink.slug, "checkout"]);
+        let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+        let page_hash = build.hash_generic(&[&release.permalink.slug, t_unlock_permalink]);
 
+        let t_downloads_permalink = &build.locale.translations.downloads_permalink;
         let t_enter_code_here = &build.locale.translations.enter_code_here;
         let t_unlock = &build.locale.translations.unlock;
         let t_unlock_code_seems_incorrect = &build.locale.translations.unlock_code_seems_incorrect;
@@ -196,7 +199,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     document.querySelector('#unlock').addEventListener('submit', event => {{
                         event.preventDefault();
                         const code = document.querySelector('.unlock_code').value;
-                        const url = `../../download/${{code}}{index_suffix}`;
+                        const url = `../../{t_downloads_permalink}/${{code}}{index_suffix}`;
                         fetch(url, {{ method: 'HEAD', mode: 'no-cors' }})
                             .then(response => {{
                                 window.location = url;
@@ -214,8 +217,8 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
         (
             content,
-            build.locale.translations.unlock.as_str(),
-            build.locale.translations.enter_code.as_str(),
+            build.locale.translations.downloads.as_str(),
+            build.locale.translations.unlock_downloads.as_str(),
             include_str!("../../icons/unlock.svg")
         )
     } else {
@@ -244,7 +247,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!("<span>{icon} {breadcrumb_heading}</span>")
+        format!(r#"<a href=".{index_suffix}">{icon} {breadcrumb_heading}</a>"#)
     ];
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)

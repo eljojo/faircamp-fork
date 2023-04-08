@@ -421,25 +421,28 @@ impl Release {
     pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Codes { codes, .. } => {
-                let page_hash = build.hash_generic(&[&self.permalink.slug, "checkout"]);
+                let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                let page_hash = build.hash_generic(&[&self.permalink.slug, t_unlock_permalink]);
 
-                let checkout_page_dir = build.build_dir
+                let unlock_page_dir = build.build_dir
                     .join(&self.permalink.slug)
-                    .join("checkout")
+                    .join(t_unlock_permalink)
                     .join(page_hash);
 
-                let checkout_html = render::release::checkout::checkout_html(build, catalog, self);
-                util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
+                // TODO: Split up checkout_html into unlock_html + purchase_html - different pages!
+                let unlock_html = render::release::checkout::checkout_html(build, catalog, self);
+                util::ensure_dir_and_write_index(&unlock_page_dir, &unlock_html);
 
+                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
                 let download_dir = build.build_dir
                     .join(&self.permalink.slug)
-                    .join("download");
+                    .join(t_downloads_permalink);
 
                 let download_html = render::release::download::download_html(build, catalog, self);
 
                 for code in codes {
                     // TODO: We will need to limit the code character set to url safe characters.
-                    //       Needs to be validated when reading the input directory.
+                    //       Needs to be validated when reading the manifests.
                     let code_dir = download_dir.join(code);
                     util::ensure_dir_and_write_index(&code_dir, &download_html);
                 }
@@ -463,21 +466,23 @@ impl Release {
                         self.title
                     );
                 } else {
-                    let checkout_page_hash = build.hash_generic(&[&self.permalink.slug, "checkout"]);
+                    let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                    let purchase_page_hash = build.hash_generic(&[&self.permalink.slug, t_purchase_permalink]);
 
-                    let checkout_page_dir = build.build_dir
+                    let purchase_page_dir = build.build_dir
                         .join(&self.permalink.slug)
-                        .join("checkout")
-                        .join(checkout_page_hash);
+                        .join(t_purchase_permalink)
+                        .join(purchase_page_hash);
 
-                    let checkout_html = render::release::checkout::checkout_html(build, catalog, self);
-                    util::ensure_dir_and_write_index(&checkout_page_dir, &checkout_html);
+                    let purchase_html = render::release::checkout::checkout_html(build, catalog, self);
+                    util::ensure_dir_and_write_index(&purchase_page_dir, &purchase_html);
 
-                    let download_page_hash = build.hash_generic(&[&self.permalink.slug, "download"]);
+                    let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                    let download_page_hash = build.hash_generic(&[&self.permalink.slug, t_downloads_permalink]);
 
                     let download_page_dir = build.build_dir
                         .join(&self.permalink.slug)
-                        .join("download")
+                        .join(t_downloads_permalink)
                         .join(download_page_hash);
 
                     let download_html = render::release::download::download_html(build, catalog, self);
