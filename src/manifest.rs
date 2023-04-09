@@ -704,7 +704,10 @@ pub fn apply_options(
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {
             match ThemeBase::from_manifest_key(value.as_str()) {
                 Some(variant) => build.theme.base = variant,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are 'dark' and 'light') in {}:{}", value, path.display(), line)
+                None => {
+                    let supported = ThemeBase::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
+                    error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are {}) in {}:{}", value, supported, path.display(), line);
+                }
             }
         }
 

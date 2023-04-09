@@ -74,6 +74,17 @@ impl Theme {
 }
 
 impl ThemeBase {
+    /// If a wrong theme base is configured in a manifest, faircamp
+    /// uses this to print a hint about which ones are available.
+    pub const ALL_PRESETS: [&str; 6] = [
+        "black",
+        "black_alternate",
+        "dark",
+        "light",
+        "white",
+        "white_alternate"
+    ];
+
     pub const BLACK: ThemeBase = ThemeBase {
         background_l: 0,
         cover_l: 13,
