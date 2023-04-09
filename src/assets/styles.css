@@ -365,18 +365,16 @@ input[type="text"].disabled,
     margin-bottom: 2rem;
 }
 .unlock_code { margin-right: .3rem; }
-.vcenter_generic,
-.vcenter_release {
+.vcenter_page {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: calc(100vh - 2.5rem - 4.43rem);
 }
-.vcenter_generic { min-height: calc(100vh - 2.5rem); }
-.vcenter_release { min-height: calc(100vh - 2.5rem - 4.43rem); }
 .vpad { margin: 1rem 0; }
 .vpad_adaptive {
-    padding-bottom: 1.5rem;
+    padding-bottom: 2rem;
     padding-top: 1rem;
 }
 .waveform {
@@ -432,8 +430,7 @@ input[type="text"].disabled,
     .track.active .track_controls.outer,
     .track:hover .track_controls.outer { display: flex; }
     .track_number.outer { display: block; }
-    .vcenter_generic { min-height: calc(100vh - 3.2rem); }
-    .vcenter_release { min-height: calc(100vh - 3.2rem - 4.43rem); }
+    .vcenter_page { min-height: calc(100vh - 3.2rem - 4.43rem); }
 }
 @media (min-width: 60rem) {
     .catalog {

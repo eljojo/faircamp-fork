@@ -160,7 +160,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let t_format_guide = &build.locale.translations.format_guide;
     let body = formatdoc!(
         r##"
-            <div class="hcenter_medium mobile_hpadding vcenter_generic vpad_adaptive">
+            <div class="hcenter_medium mobile_hpadding vcenter_page vpad_adaptive">
                 <h1>{t_downloads}</h1>
 
                 {compact_release_identifier_rendered}
