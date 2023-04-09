@@ -93,7 +93,7 @@ pub fn embed_choices_html(
             let r_copy_button = copy_button(build, Some(&embed_copy_code));
 
             formatdoc!(r#"
-                <div class="center_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
+                <div class="hcenter_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
                     <div style="font-size: var(--subtly-larger);">
                         <span class="track_number">{track_number:02}</span>
                         <span>{track_title}</span>
@@ -133,14 +133,14 @@ pub fn embed_choices_html(
     let t_embed = &build.locale.translations.embed;
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;
     let body = formatdoc!(r##"
-        <div class="center_wide margin_page_top mobile_hpadding">
+        <div class="hcenter_wide margin_page_top mobile_hpadding">
             <h1>{t_embed}</h1>
 
             {compact_release_identifier_rendered}
         </div>
 
         <div style="margin-top: 2rem;">
-            <div class="center_wide embed_split mobile_hpadding">
+            <div class="hcenter_wide embed_split mobile_hpadding">
                 <span style="font-size: var(--subtly-larger);">{t_embed_entire_release}</span>
                 {r_copy_button}
             </div>
@@ -206,7 +206,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
 
     let body = formatdoc!(
         r##"
-            <div class="center_unconstrained">
+            <div class="hcenter_unconstrained">
                 <div class="vpad">
                     <div class="cover">
                         {cover}
@@ -286,7 +286,7 @@ pub fn embed_track_html(
 
     let body = formatdoc!(
         r##"
-            <div class="center_unconstrained">
+            <div class="hcenter_unconstrained">
                 <div class="vpad">
                     <div class="cover">
                         {cover}

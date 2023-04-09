@@ -173,7 +173,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="center_narrow mobile_hpadding release_vcenter vpad_adaptive">
+            <div class="hcenter_narrow mobile_hpadding vcenter_release vpad_adaptive">
                 <div class="cover">{cover}</div>
 
                 <div class="release_label">

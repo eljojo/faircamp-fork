@@ -50,7 +50,7 @@ a * { pointer-events: none; }
 }
 .artists a {
     background-color: var(--color-link);
-    border-radius: .1rem;
+    border-radius: .15rem;
     color: var(--color-background);
     padding: .1rem .2rem .2rem .2rem;
 }
@@ -72,29 +72,6 @@ body {
 .catalog_info_padded {
     max-width: 33rem;
     padding: 1rem;
-}
-.center_release {
-    flex-grow: 1;
-    margin: 1rem auto 3rem auto;
-    max-width: 20rem;
-}
-.center_medium {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 27rem;
-}
-.center_narrow {
-    margin: 0 auto;
-    max-width: 20rem;
-}
-.center_unconstrained {
-    margin: 0 auto;
-    margin-top: 8rem;
-}
-.center_wide {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 33rem;
 }
 .cover {
     background-color: var(--color-cover);
@@ -144,6 +121,24 @@ h2 {
     font-weight: 400;
     margin: 0;
 }
+.hcenter_medium {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 27rem;
+}
+.hcenter_narrow {
+    margin: 0 auto;
+    max-width: 20rem;
+}
+.hcenter_unconstrained {
+    margin: 0 auto;
+    margin-top: 8rem;
+}
+.hcenter_wide {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 33rem;
+}
 .home_image {
     height: 40vw;
     object-fit: cover;
@@ -172,7 +167,6 @@ img {
     justify-content: center;
     min-height: calc(100vh - 2.5rem);
 }
-.js_enabled audio { display: none; }
 .large_type { font-size: 1.4rem; }
 .logo {
     flex-shrink: 0;
@@ -250,13 +244,6 @@ pre { margin: 0; }
     flex-direction: column;
     margin: 1rem 0 1.5rem 0;
     row-gap: .2rem;
-}
-.release_vcenter {
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: calc(100vh - 2.5rem - 4.43rem);
 }
 .releases {
     align-content: start;
@@ -371,17 +358,22 @@ input[type="text"].disabled,
     cursor: default;
     opacity: .2; /* TODO: Make-shift way to indicate disabledness, implement properly */
 }
-.js_enabled .payment,
-.js_enabled .unlock_manual { display: none; }
 .unlock_scripted { display: none; }
-.js_enabled .unlock_scripted { display: unset; }
-.js_enabled .payment.active { display: unset; }
 #unlock {
     column-gap: 0.5rem;
     display: flex;
     margin-bottom: 2rem;
 }
 .unlock_code { margin-right: .3rem; }
+.vcenter_generic,
+.vcenter_release {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.vcenter_generic { min-height: calc(100vh - 2.5rem); }
+.vcenter_release { min-height: calc(100vh - 2.5rem - 4.43rem); }
 .vpad { margin: 1rem 0; }
 .vpad_adaptive {
     padding-bottom: 1.5rem;
@@ -397,6 +389,12 @@ input[type="text"].disabled,
     stroke-width: .025px;
 }
 .waveform path.progress { stroke-width: .06px; }
+/* In js-enabled browsers we put .js_enabled on the body on each page load */
+.js_enabled audio { display: none; }
+.js_enabled .payment,
+.js_enabled .unlock_manual { display: none; }
+.js_enabled .unlock_scripted { display: unset; }
+.js_enabled .payment.active { display: unset; }
 @media (min-width: 15rem) {
     .release:nth-child(2n+1) { grid-column-start: 1 }
     .release:nth-child(2n+2) { grid-column-start: 2 }
@@ -406,7 +404,6 @@ input[type="text"].disabled,
     .embed_code { margin-left: calc(50% - 16.5rem); }
 }
 @media (min-width: 23rem) {
-    .center_release { margin: 3rem auto; }
     .margin_page_top { margin-top: 3rem; }
     .vpad_adaptive { padding-top: 2rem; }
 }
@@ -428,7 +425,6 @@ input[type="text"].disabled,
     .release:nth-child(3n+1) { grid-column-start: 1 }
     .release:nth-child(3n+2) { grid-column-start: 2 }
     .release:nth-child(3n+3) { grid-column-start: 3 }
-    .release_vcenter { min-height: calc(100vh - 3.2rem - 4.43rem); }
     .releases { max-width: 33rem; grid-auto-columns: 0.33333fr; }
     .track.active .track_controls.inner,
     .track:hover .track_controls.inner { display: none; }
@@ -436,6 +432,8 @@ input[type="text"].disabled,
     .track.active .track_controls.outer,
     .track:hover .track_controls.outer { display: flex; }
     .track_number.outer { display: block; }
+    .vcenter_generic { min-height: calc(100vh - 3.2rem); }
+    .vcenter_release { min-height: calc(100vh - 3.2rem - 4.43rem); }
 }
 @media (min-width: 60rem) {
     .catalog {

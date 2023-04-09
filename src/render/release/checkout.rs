@@ -237,7 +237,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     );
 
     let body = formatdoc!(r#"
-        <div class="center_release mobile_hpadding">
+        <div class="hcenter_narrow mobile_hpadding vcenter_generic vpad_adaptive">
             <h1>{heading}</h1>
             {compact_release_identifier_rendered}
             {content}
