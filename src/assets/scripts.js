@@ -3,6 +3,7 @@
 // Also the alt/text and markup for the play/pause icon could drift away
 // from how we write/implement it in our statically generated code.
 const rootPrefix = document.querySelector('script').getAttribute('src').replace('scripts.js', '');
+const loadingIcon = `<img alt="Loading" src="${rootPrefix}loading.svg" style="max-width: 1em;">`;
 const pauseIcon = `<img alt="Pause" src="${rootPrefix}pause.svg" style="max-width: 1em;">`;
 const playIcon = `<img alt="Play" src="${rootPrefix}play.svg" style="max-width: 1em;">`;
 
@@ -52,17 +53,57 @@ async function mountAndPlay(container, seek) {
     const svg = container.querySelector('svg');
     const time = container.querySelector('.track_time');
 
+    // The .duration property on the audio element is unreliable because during
+    // loading it might be Infinity, or NaN, or only reflect the duration of
+    // already loaded audio. So we also consider the duration we determined
+    // when preprocessing the file.
+    // TODO: We should store and make available the preprocessed track duration
+    //       as float (right now it's int I believe), and additionally really
+    //       guarantee that we *always* know the duration. Not being able to
+    //       parse it should really be a hard error, this would make a lot of
+    //       things easier to reason about and implement.
+    const precalculatedDuration = parseInt(svg.dataset.duration);
+    const duration = () => {
+        if (audio.duration === Infinity || audio.duration === NaN) {
+            return precalculatedDuration;
+        } else {
+            return Math.max(audio.duration, precalculatedDuration);
+        }
+    };
+
     if (audio.readyState === audio.HAVE_NOTHING) {
+        container.classList.add('active');
+        controlsInner.innerHTML = loadingIcon;
+        controlsOuter.innerHTML = loadingIcon;
+        window.activeTrack = {
+            a,
+            audio,
+            container,
+            controlsInner,
+            controlsOuter,
+            duration,
+            svg,
+            time
+        };
+
         audio.load();
-        let ready = false;
-        await new Promise(resolve => {
-            const interval = setInterval(() => {
+
+        const aborted = await new Promise(resolve => {
+            const loadInterval = setInterval(() => {
                 if (audio.readyState >= audio.HAVE_CURRENT_DATA) {
-                    clearInterval(interval);
-                    resolve();
+                    delete window.activeTrack.abortLoad;
+                    clearInterval(loadInterval);
+                    resolve(false);
                 }
             }, 100);
+            window.activeTrack.abortLoad = () => {
+                delete window.activeTrack.abortLoad
+                clearInterval(loadInterval);
+                resolve(true);
+            };
         });
+
+        if (aborted) return;
     }
 
     if (!audio.dataset.endedListenerAdded) {
@@ -71,7 +112,7 @@ async function mountAndPlay(container, seek) {
         audio.addEventListener('ended', event => {
             if (window.activeTrack && window.activeTrack.audio === audio) {
                 audio.currentTime = 0;
-                clearInterval(window.activeTrack.interval);
+                clearInterval(window.activeTrack.updatePlayHeadInterval);
                 updatePlayhead(window.activeTrack, true);
                 container.classList.remove('active', 'playing');
                 controlsInner.innerHTML = playIcon;
@@ -92,13 +133,25 @@ async function mountAndPlay(container, seek) {
     controlsOuter.innerHTML = pauseIcon;
 
     if (seek) {
-        audio.currentTime = seek * audio.duration;
+        audio.currentTime = seek * duration();
     }
 
     audio.play();
 
-    window.activeTrack = { a, audio, container, controlsInner, controlsOuter, svg, time }
-    window.activeTrack.interval = setInterval(() => updatePlayhead(window.activeTrack), 200);
+    window.activeTrack = {
+        a,
+        audio,
+        container,
+        controlsInner,
+        controlsOuter,
+        duration,
+        svg,
+        time
+    };
+    window.activeTrack.updatePlayHeadInterval = setInterval(
+        () => updatePlayhead(window.activeTrack),
+        200
+    );
 }
 
 function togglePlayback(container = null, seek = null) {
@@ -110,22 +163,34 @@ function togglePlayback(container = null, seek = null) {
         }
 
         if (container === activeTrack.container) {
+            // TODO: Here we are requesting to start playback on a track
+            //       that is already loading because we previously requested
+            //       to start its playback. For now we just drop this (new)
+            //       playback request and wait for the previous one to go through.
+            //       This should be improved though - on this (new) request we might
+            //       have requested e.g. a specific seek position, this is currently
+            //       discarded, but shouldn't be.
+            if (activeTrack.abortLoad) return;
+
             if (activeTrack.audio.paused) {
                 if (seek !== null) {
-                    activeTrack.audio.currentTime = seek * activeTrack.audio.duration;
+                    activeTrack.audio.currentTime = seek * activeTrack.duration();
                 }
                 activeTrack.container.classList.add('playing');
                 activeTrack.controlsInner.innerHTML = pauseIcon;
                 activeTrack.controlsOuter.innerHTML = pauseIcon;
                 activeTrack.audio.play();
-                activeTrack.interval = setInterval(() => updatePlayhead(activeTrack), 200);
+                activeTrack.updatePlayHeadInterval = setInterval(
+                    () => updatePlayhead(activeTrack),
+                    200
+                );
             } else {
                 if (seek !== null) {
-                    activeTrack.audio.currentTime = seek * activeTrack.audio.duration;
+                    activeTrack.audio.currentTime = seek * activeTrack.duration();
                     updatePlayhead(activeTrack);
                 } else {
                     activeTrack.audio.pause();
-                    clearInterval(activeTrack.interval);
+                    clearInterval(activeTrack.updatePlayHeadInterval);
                     updatePlayhead(activeTrack);
                     activeTrack.container.classList.remove('playing');
                     activeTrack.controlsInner.innerHTML = playIcon;
@@ -133,8 +198,10 @@ function togglePlayback(container = null, seek = null) {
                 }
             }
         } else {
+            if (activeTrack.abortLoad) activeTrack.abortLoad();
+
             activeTrack.audio.pause();
-            clearInterval(activeTrack.interval);
+            clearInterval(activeTrack.updatePlayHeadInterval);
             activeTrack.audio.currentTime = 0;
             updatePlayhead(activeTrack, true);
             activeTrack.container.classList.remove('active', 'playing');
@@ -153,8 +220,8 @@ function togglePlayback(container = null, seek = null) {
 }
 
 function updatePlayhead(activeTrack, reset = false) {
-    const { audio, svg, time } = activeTrack;
-    const factor = reset ? 0 : audio.currentTime / audio.duration;
+    const { audio, duration, svg, time } = activeTrack;
+    const factor = reset ? 0 : audio.currentTime / duration();
     svg.querySelector('stop:nth-child(1)').setAttribute('offset', factor);
     svg.querySelector('stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
     time.innerHTML = reset ? '' : `${formatTime(audio.currentTime)} / `;

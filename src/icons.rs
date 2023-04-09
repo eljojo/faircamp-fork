@@ -27,6 +27,9 @@ pub fn generate(build: &Build) {
         fs::write(build.build_dir.join("visual_impairment.svg"), visual_impairment_svg).unwrap();
     }
 
+    let loading_svg = format!(include_str!("icons/loading.svg"), text_color = text_color);
+    fs::write(build.build_dir.join("loading.svg"), loading_svg).unwrap();
+
     let logo_svg = format!(include_str!("icons/logo.svg"), header_link_color = header_link_color);
     fs::write(build.build_dir.join("logo.svg"), logo_svg).unwrap();
 

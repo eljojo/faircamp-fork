@@ -126,14 +126,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             <a class="track_controls inner">{play_icon}</a>
                             <span class="track_number inner">{track_number}</span>
                             <a class="track_title" title="{track_title_attribute}">{track_title}</a>
-                            <span class="duration"><span class="track_time"></span>{duration}</span>
+                            <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
                         </span>
                         <audio controls preload="none" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
                         {waveform}
                     </div>
                 "#,
                 play_icon = play_icon(root_prefix),
-                duration = format_time(track.assets.borrow().source_meta.duration_seconds),
+                duration_formatted = format_time(track.assets.borrow().source_meta.duration_seconds),
                 streaming_format_dir = release.streaming_format.asset_dirname(),
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
