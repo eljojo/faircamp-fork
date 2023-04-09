@@ -35,7 +35,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <label for="price">{label}</label><br><br>
                 <div style="align-items: center; column-gap: .5rem; display: flex; position: relative;">
                     <span style="position: absolute; left: .5rem;">{currency_symbol}</span>
-                    <input autocomplete="off" id="price" pattern="[0-9]+([.,][0-9])?" placeholder="{placeholder}" style="padding-left: 1.5rem; width: 6rem;" type="text">
+                    <input autocomplete="off" id="price" pattern="[0-9]+([.,][0-9])?" placeholder="{placeholder}" style="padding-left: 1.5rem; width: 8rem;" type="text">
                     {currency_code}
                 </div><br> 
             "#)
