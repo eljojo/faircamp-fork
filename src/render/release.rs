@@ -173,21 +173,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="center_release mobile_hpadding" style="margin-bottom: 1.5rem;">
+            <div class="center_narrow mobile_hpadding release_vcenter vpad_adaptive">
                 <div class="cover">{cover}</div>
 
-                <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
-                    <a class="big_play_button">
-                        {play_icon}
-                    </a>
+                <div class="release_label">
+                    <h1>{release_title_escaped}</h1>
+                    <div class="release_artists">{artists}</div>
                 </div>
-
-                <div style="margin: .4rem 0 1rem 0;">
-                    <h1 style="margin-bottom: .2rem;">{release_title_escaped}</h1>
-                    <div style="font-size: var(--boldly-larger);">{artists}</div>
-                </div>
-
-                <br>
 
                 <div data-longest-duration="{longest_track_duration}"></div>
                 {tracks_rendered}
@@ -203,8 +195,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             {share_overlay_rendered}
         "##,
         artists = list_artists(index_suffix, root_prefix, catalog, release),
-        cover = cover_image(build, index_suffix, "", root_prefix, release),
-        play_icon = play_icon(root_prefix)
+        cover = cover_image(build, index_suffix, "", root_prefix, release)
     );
 
     let breadcrumbs = &[

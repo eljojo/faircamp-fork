@@ -10,8 +10,6 @@ const copyNotificationTimeouts = {};
 
 window.activeTrack = null;
 
-const bigPlayButton = document.querySelector('.big_play_button');
-
 function copyToClipboard(copyLink) {
     const notify = (success, content) => {
         if (content in copyNotificationTimeouts) {
@@ -76,7 +74,6 @@ async function mountAndPlay(container, seek) {
                 clearInterval(window.activeTrack.interval);
                 updatePlayhead(window.activeTrack, true);
                 container.classList.remove('active', 'playing');
-                bigPlayButton.innerHTML = playIcon;
                 controlsInner.innerHTML = playIcon;
                 controlsOuter.innerHTML = playIcon;
                 
@@ -91,7 +88,6 @@ async function mountAndPlay(container, seek) {
     }
 
     container.classList.add('active', 'playing');
-    bigPlayButton.innerHTML = pauseIcon;
     controlsInner.innerHTML = pauseIcon;
     controlsOuter.innerHTML = pauseIcon;
 
@@ -121,7 +117,6 @@ function togglePlayback(container = null, seek = null) {
                 activeTrack.container.classList.add('playing');
                 activeTrack.controlsInner.innerHTML = pauseIcon;
                 activeTrack.controlsOuter.innerHTML = pauseIcon;
-                bigPlayButton.innerHTML = pauseIcon;
                 activeTrack.audio.play();
                 activeTrack.interval = setInterval(() => updatePlayhead(activeTrack), 200);
             } else {
@@ -135,7 +130,6 @@ function togglePlayback(container = null, seek = null) {
                     activeTrack.container.classList.remove('playing');
                     activeTrack.controlsInner.innerHTML = playIcon;
                     activeTrack.controlsOuter.innerHTML = playIcon;
-                    bigPlayButton.innerHTML = playIcon;
                 }
             }
         } else {
@@ -146,7 +140,6 @@ function togglePlayback(container = null, seek = null) {
             activeTrack.container.classList.remove('active', 'playing');
             activeTrack.controlsInner.innerHTML = playIcon;
             activeTrack.controlsOuter.innerHTML = playIcon;
-            bigPlayButton.innerHTML = playIcon;
 
             mountAndPlay(container, seek);
         }

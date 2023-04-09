@@ -212,14 +212,9 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                         {cover}
                     </div>
 
-                    <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
-                        <a class="big_play_button">
-                            {play_icon}
-                        </a>
-                    </div>
-                    <div style="margin: .4rem 0 1rem 0;">
+                    <div class="release_label">
                         <h1>{release_title}</h1>
-                        <div>{artists}</div>
+                        <div class="release_artists">{artists}</div>
                     </div>
 
                     <div data-longest-duration="{longest_track_duration}"></div>
@@ -233,7 +228,6 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         "##,
         artists = list_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
-        play_icon = play_icon(root_prefix),
         release_title = html_escape_outside_attribute(&release.title)
     );
 
