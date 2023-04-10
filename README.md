@@ -2,11 +2,9 @@
 
 A static site generator for audio producers
 
-<img src="https://simonrepp.com/faircamp/release_mobile.png?0001"
-     alt="Screenshot of Faircamp (Mobile Layout)"
-     style="max-height: 30rem;" />
+<img src="https://simonrepp.com/faircamp/readme.png?1" alt="Three faircamp site screenshots"/>
 
-For more screenshots see the [website](https://simonrepp.com/faircamp).
+For more screenshots and a feature overview see the [website](https://simonrepp.com/faircamp).
 
 Already set on using faircamp? Then jump right into the [manual](https://simonrepp.com/faircamp/manual).
 
@@ -70,7 +68,7 @@ production-grade software, but in a very usable state, in steady development.
 
 These features are knowingly incomplete right now:
 
-- Embeds (they are available but display as a garbled mess for now)
+- Embeds (available but incomplete implementation)
 - Buy page (functionally there but rather bare in usability still)
 - No-javascript mode (faircamp sites work without javascript too, some things still need to be wrapped up though)
 
