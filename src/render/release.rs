@@ -167,6 +167,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     action_links.push_str(&share_link_rendered);
 
+    let relative_waveforms = if build.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
+
     let body = formatdoc!(
         r##"
             <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
@@ -177,7 +179,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="release_artists">{artists}</div>
                 </div>
 
-                <div data-longest-duration="{longest_track_duration}"></div>
+                <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
                 {tracks_rendered}
             </div>
             <div class="additional">

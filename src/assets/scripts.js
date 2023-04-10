@@ -287,6 +287,7 @@ function getBaseFontSizePx() {
 }
 
 function waveforms() {
+    const relativeWaveforms = !document.querySelector('[data-disable-relative-waveforms]');
     const widthPx = window.innerWidth;
 
     if (widthPx > 350) {
@@ -317,7 +318,11 @@ function waveforms() {
             waveformWidthRem = widthOverride;
         } else {
             if (longestTrackDuration > 0) {
-                waveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM * (trackDuration / longestTrackDuration);
+                if (relativeWaveforms) {
+                    waveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM * (trackDuration / longestTrackDuration);
+                } else {
+                    waveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM;
+                }
             } else {
                 waveformWidthRem = 0; // TODO: Probably nonsensical (also by 0 division later on?), for now just copied from earlier rust implementation
             }
