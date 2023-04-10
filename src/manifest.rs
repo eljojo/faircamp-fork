@@ -20,7 +20,7 @@ use crate::{
     PaymentOption,
     Permalink,
     release::TrackNumbering,
-    theme::{ThemeBase, ThemeFont},
+    theme::{CoverGenerator, ThemeBase, ThemeFont},
     util,
     WritingDirection
 };
@@ -707,6 +707,16 @@ pub fn apply_options(
                 None => {
                     let supported = ThemeBase::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
                     error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are {}) in {}:{}", value, supported, path.display(), line);
+                }
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "cover_generator") {
+            match CoverGenerator::from_manifest_key(value.as_str()) {
+                Some(cover_generator) => build.theme.cover_generator = cover_generator,
+                None => {
+                    let supported = CoverGenerator::ALL_GENERATORS.map(|key| format!("'{key}'")).join(", ");
+                    error!("Ignoring unsupported value '{}' for global 'theme.cover_generator' (supported values are {}) in {}:{}", value, supported, path.display(), line);
                 }
             }
         }

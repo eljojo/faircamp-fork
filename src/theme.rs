@@ -4,6 +4,14 @@ use std::rc::Rc;
 
 use crate::Image;
 
+pub enum CoverGenerator {
+    BestRillen,
+    GlassSplinters,
+    LooneyTunes,
+    ScratchyFaintRillen,
+    SpaceTimeRupture
+}
+
 /// background_alpha    0-100 percent
 /// h(ue)               0-360 degrees
 /// l(ightness)         0-100 percent
@@ -15,6 +23,7 @@ pub struct Theme {
     /// Contains an absolute path to the file (validity is checked when reading manifests)
     pub background_image: Option<Rc<RefCell<Image>>>,
     pub base: ThemeBase,
+    pub cover_generator: CoverGenerator,
     pub customized: bool,
     pub font: ThemeFont,
     pub link_h: u16,
@@ -54,12 +63,34 @@ pub enum ThemeFont {
     System(String)
 }
 
+impl CoverGenerator {
+    pub const ALL_GENERATORS: [&str; 5] = [
+        "best_rillen",
+        "glass_splinters",
+        "looney_tunes",
+        "scratchy_faint_rillen",
+        "space_time_rupture"
+    ];
+
+    pub fn from_manifest_key(key: &str) -> Option<CoverGenerator> {
+        match key {
+            "best_rillen" => Some(CoverGenerator::BestRillen),
+            "glass_splinters" => Some(CoverGenerator::GlassSplinters),
+            "looney_tunes" => Some(CoverGenerator::LooneyTunes),
+            "scratchy_faint_rillen" => Some(CoverGenerator::ScratchyFaintRillen),
+            "space_time_rupture" => Some(CoverGenerator::SpaceTimeRupture),
+            _ => None
+        }
+    }
+}
+
 impl Theme {
     pub fn new() -> Theme {
         Theme {
             background_alpha: 10,
             background_image: None,
             base: ThemeBase::DARK,
+            cover_generator: CoverGenerator::LooneyTunes,
             customized: false,
             font: ThemeFont::Default,
             link_h: 0,

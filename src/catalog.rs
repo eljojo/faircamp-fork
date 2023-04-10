@@ -22,6 +22,7 @@ use crate::{
     TrackAssets,
     util
 };
+use crate::theme::CoverGenerator;
 
 // TODO: Research if aac as input is easily possible, alternatively use ffmpeg to transcode it as a slow but functional workaround
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aiff", "flac", "mp3", "ogg", "opus", "wav"];
@@ -882,7 +883,23 @@ impl Catalog {
 
                 image_assets_mut.persist_to_cache(&build.cache_dir);
             } else {
-                let svg = release_mut.generate_cover(&build.theme, max_tracks_in_release);
+                let svg = match build.theme.cover_generator {
+                    CoverGenerator::BestRillen => {
+                        release_mut.generate_cover_best_rillen(&build.theme)
+                    }
+                    CoverGenerator::GlassSplinters => {
+                        release_mut.generate_cover_glass_splinters(&build.theme)
+                    }
+                    CoverGenerator::LooneyTunes => {
+                        release_mut.generate_cover_looney_tunes(&build.theme, max_tracks_in_release)
+                    }
+                    CoverGenerator::ScratchyFaintRillen => {
+                        release_mut.generate_cover_scratchy_faint_rillen(&build.theme)
+                    }
+                    CoverGenerator::SpaceTimeRupture => {
+                        release_mut.generate_cover_space_time_rupture(&build.theme)
+                    }
+                };
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();
             }
             

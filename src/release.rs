@@ -93,7 +93,7 @@ pub enum TrackNumbering {
 }
 
 impl Release {
-    pub fn generate_cover(&self, theme: &Theme, max_tracks_in_release: usize) -> String {
+    pub fn generate_cover_looney_tunes(&self, theme: &Theme, max_tracks_in_release: usize) -> String {
         // TODO: This is too simplistic, text also has text_h and text_s
         // currently (but theming may change quite a bit so no rush). Also
         // unfortunately generated covers don't interactively repaint when
@@ -168,6 +168,77 @@ impl Release {
         "##)
     }
 
+    pub fn generate_cover_space_time_rupture(&self, theme: &Theme) -> String {
+        // TODO: This is too simplistic, text also has text_h and text_s
+        // currently (but theming may change quite a bit so no rush). Also
+        // unfortunately generated covers don't interactively repaint when
+        // using the --theming-widget, but that's probably to be accepted.
+        let text_l = theme.base.text_l;
+        let edge = 64.0;
+
+        let total_duration: f32 = self.tracks
+            .iter()
+            .map(|track| track.assets.borrow().source_meta.duration_seconds)
+            .sum();
+
+        let shortest_track_duration = self.shortest_track_duration();
+
+        let longest_track_duration = self.longest_track_duration();
+
+        let mut track_offset = 0.0;
+        let points = self.tracks
+            .iter()
+            .enumerate()
+            .map(|(_track_index, track)| {
+                let source_meta = &track.assets.borrow().source_meta;
+
+                let altitude_factor = (source_meta.duration_seconds - shortest_track_duration) / (longest_track_duration - shortest_track_duration);
+                let track_arc_range = source_meta.duration_seconds / total_duration;
+
+                let fill_or_stroke = format!("hsl(0, 0%, {text_l}%)");
+                if let Some(peaks) = &source_meta.peaks {
+                    let mut samples = Vec::new();
+                    let step = 6;
+
+                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
+                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32; // 0-1
+
+                        let x_vector = ((track_offset + peak_offset * track_arc_range) * TAU).sin();
+                        let y_vector = ((track_offset + peak_offset * track_arc_range + 0.25) * TAU).sin(); // TODO: Use cos (also elsewhere)
+
+                        let x = (edge / 2.0) + ((edge / 6.0) + (edge / 6.0) * altitude_factor + (1.0 - peak) * edge / 12.0) * x_vector;
+                        let y = (edge / 2.0) + ((edge / 6.0) + (edge / 6.0) * altitude_factor + (1.0 - peak) * edge / 12.0) * y_vector;
+
+                        let command = if peak_index == 0 { "M" } else { "L" };
+                        let sample = format!("{command} {x} {y}");
+
+                        samples.push(sample);
+                    }
+
+                    let d = samples.join(" ");
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<path d="{d}" fill="none" stroke="{fill_or_stroke}" stroke-width=".06px"/>"##)
+                } else {
+                    let cx = (edge / 2.0) + (edge / 3.0) * (track_offset * TAU).sin();
+                    let cy = (edge / 2.0) + (edge / 3.0) * ((track_offset + 0.25) * TAU).sin();
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="{fill_or_stroke}" r="1"/>"##)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        formatdoc!(r#"
+            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                {points}
+            </svg>
+        "#)
+    }
+
     pub fn longest_track_duration(&self) -> f32 {
         let mut longest_track_duration = 0.0;
         for track in &self.tracks {
@@ -177,6 +248,221 @@ impl Release {
             }
         }
         longest_track_duration
+    }
+
+    pub fn generate_cover_best_rillen(&self, theme: &Theme) -> String {
+        // TODO: This is too simplistic, text also has text_h and text_s
+        // currently (but theming may change quite a bit so no rush). Also
+        // unfortunately generated covers don't interactively repaint when
+        // using the --theming-widget, but that's probably to be accepted.
+        let text_l = theme.base.text_l;
+        let edge = 64.0;
+        let radius = edge / 2.0;
+
+        let longest_track_duration = self.longest_track_duration();
+
+        let mut track_offset = 0.0;
+        let points = self.tracks
+            .iter()
+            .enumerate()
+            .map(|(track_index, track)| {
+                let source_meta = &track.assets.borrow().source_meta;
+
+                let altitude_width = radius / self.tracks.len() as f32;
+                let track_arc_range = source_meta.duration_seconds / longest_track_duration;
+
+                if let Some(peaks) = &source_meta.peaks {
+                    let mut samples = Vec::new();
+                    let step = 2;
+
+                    let mut previous = None;
+
+                    let track_compensation = 0.25 + (1.0 - track_arc_range) / 2.0;
+
+                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
+                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32 * -1.0; // 0-1
+
+                        let x_vector = ((track_compensation + peak_offset * track_arc_range) * TAU).sin();
+                        let y_vector = ((track_compensation + peak_offset * track_arc_range) * TAU).cos();
+
+                        let x = radius + ((self.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * x_vector;
+                        let y = radius + ((self.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * y_vector;
+
+                        if let Some((x_prev, y_prev)) = previous {
+                            let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
+                            let stroke_width = peak * 0.24; // .06px is our ideal for waveforms
+                            let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
+                            samples.push(sample);
+                        }
+
+                        previous = Some((x, y));
+                    }
+
+                    track_offset += track_arc_range;
+
+                    samples.join("\n")
+                } else {
+                    let cx = radius + (edge / 3.0) * (track_offset * TAU).sin();
+                    let cy = radius + (edge / 3.0) * (track_offset * TAU).cos();
+
+                    track_offset += track_arc_range;
+
+                    let fill = format!("hsl(0, 0%, {text_l}%)");
+                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="{fill}" r="1"/>"##)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        formatdoc!(r##"
+            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                {points}
+            </svg>
+        "##)
+    }
+
+    // "scratchy faint rillen"
+    pub fn generate_cover_scratchy_faint_rillen(&self, theme: &Theme) -> String {
+        // TODO: This is too simplistic, text also has text_h and text_s
+        // currently (but theming may change quite a bit so no rush). Also
+        // unfortunately generated covers don't interactively repaint when
+        // using the --theming-widget, but that's probably to be accepted.
+        let text_l = theme.base.text_l;
+        let edge = 64.0;
+        let radius = edge / 2.0;
+
+        let longest_track_duration = self.longest_track_duration();
+
+        let mut track_offset = 0.0;
+        let points = self.tracks
+            .iter()
+            .enumerate()
+            .map(|(track_index, track)| {
+                let source_meta = &track.assets.borrow().source_meta;
+
+                let altitude_width = radius / self.tracks.len() as f32;
+                let track_arc_range = source_meta.duration_seconds / longest_track_duration;
+
+                let stroke_or_fill = format!("hsl(0, 0%, {text_l}%)");
+
+                if let Some(peaks) = &source_meta.peaks {
+                    let mut samples = Vec::new();
+                    let step = 2;
+
+                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
+                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32; // 0-1
+
+                        let x_vector = (peak_offset * track_arc_range * TAU).sin();
+                        let y_vector = (peak_offset * track_arc_range * TAU).cos();
+
+                        let x = radius + ((self.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * altitude_width) * x_vector;
+                        let y = radius + ((self.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * altitude_width) * y_vector;
+
+                        let command = if peak_index == 0 { "M" } else { "L" };
+                        let sample = format!("{command} {x} {y}");
+
+                        samples.push(sample);
+                    }
+
+                    let d = samples.join(" ");
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
+                } else {
+                    let cx = radius + (edge / 3.0) * (track_offset * TAU).sin();
+                    let cy = radius + (edge / 3.0) * (track_offset * TAU).cos();
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="{stroke_or_fill}" r="1"/>"##)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        formatdoc!(r#"
+            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                {points}
+            </svg>
+        "#)
+    }
+
+    pub fn generate_cover_glass_splinters(&self, theme: &Theme) -> String {
+        // TODO: This is too simplistic, text also has text_h and text_s
+        // currently (but theming may change quite a bit so no rush). Also
+        // unfortunately generated covers don't interactively repaint when
+        // using the --theming-widget, but that's probably to be accepted.
+        let text_l = theme.base.text_l;
+        let edge = 64.0;
+
+        let total_duration: f32 = self.tracks
+            .iter()
+            .map(|track| track.assets.borrow().source_meta.duration_seconds)
+            .sum();
+
+        let shortest_track_duration = self.shortest_track_duration();
+
+        let mut gap_arc = 0.02;
+
+        let min_gap_arc = (shortest_track_duration / total_duration) / 2.0;
+        if min_gap_arc < gap_arc {
+            gap_arc = min_gap_arc;
+        }
+
+        let stroke_or_fill = format!("hsl(0, 0%, {text_l}%)");
+
+        let mut track_offset = 0.0;
+        let points = self.tracks
+            .iter()
+            .enumerate()
+            .map(|(_track_index, track)| {
+                let source_meta = &track.assets.borrow().source_meta;
+
+                let track_arc_range = source_meta.duration_seconds / total_duration;
+
+                if let Some(peaks) = &source_meta.peaks {
+                    let mut samples = Vec::new();
+                    let step = 4;
+
+                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
+                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32; // 0-1
+
+                        let x_vector = ((track_offset + peak_offset * (track_arc_range - gap_arc)) * TAU).sin();
+                        let y_vector = ((track_offset + peak_offset * (track_arc_range - gap_arc) + 0.25) * TAU).sin(); // TODO: Use cos (also elsewhere)
+
+                        let x = (edge / 2.0) + (edge / 6.0 + (1.0 - peak) * edge / 3.5) * x_vector;
+                        let y = (edge / 2.0) + (edge / 6.0 + (1.0 - peak) * edge / 3.5) * y_vector;
+
+                        let command = if peak_index == 0 { "M" } else { "L" };
+                        let sample = format!("{command} {x} {y}");
+
+                        samples.push(sample);
+                    }
+
+                    let d = samples.join(" ");
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
+
+                } else {
+                    let cx = (edge / 2.0) + (edge / 3.0) * (track_offset * TAU).sin();
+                    let cy = (edge / 2.0) + (edge / 3.0) * ((track_offset + 0.25) * TAU).sin();
+
+                    track_offset += track_arc_range;
+
+                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="#ffffff" r="1"/>"##)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        formatdoc!(r#"
+            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                {points}
+            </svg>
+        "#)
     }
 
     pub fn new(
@@ -221,6 +507,17 @@ impl Release {
             track_numbering: manifest_overrides.release_track_numbering.clone(),
             tracks
         }
+    }
+
+    fn shortest_track_duration(&self) -> f32 {
+        let mut shortest_track_duration = f32::INFINITY;
+        for track in &self.tracks {
+            let duration_seconds = &track.assets.borrow().source_meta.duration_seconds;
+            if *duration_seconds < shortest_track_duration {
+                shortest_track_duration = *duration_seconds;
+            }
+        }
+        shortest_track_duration
     }
 
     pub fn write_downloadable_files(&mut self, build: &mut Build) {
