@@ -168,11 +168,7 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
-    let longest_track_duration = release.tracks
-        .iter()
-        .map(|track| track.assets.borrow().source_meta.duration_seconds)
-        .max()
-        .unwrap();
+    let longest_track_duration = release.longest_track_duration();
 
     let tracks_rendered = release.tracks
         .iter()

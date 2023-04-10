@@ -26,7 +26,7 @@ pub struct AudioMeta {
     pub album: Option<String>,
     pub album_artist: Vec<String>, // TODO: Both album_artist and artist should probably be plural (flac/vorbis allows multiple, for other containers/codecs it's emulated)
     pub artist: Vec<String>,
-    pub duration_seconds: u32,
+    pub duration_seconds: f32,
     pub lossless: bool,
     pub peaks: Option<Vec<f32>>,
     pub title: Option<String>,
@@ -47,10 +47,10 @@ impl AudioMeta {
             "aiff" => {
                 let (duration_seconds, peaks) = match aiff::decode(path) {
                     Some(decode_result) => (
-                        decode_result.duration as u32,
+                        decode_result.duration,
                         Some(compute_peaks(decode_result, 320))
                     ),
-                    None => (0, None)
+                    None => (0.0, None)
                 };
 
                 if let Ok(tag) = id3::Tag::read_from_aiff_path(path) {
@@ -106,10 +106,10 @@ impl AudioMeta {
             "flac" => {
                 let (duration_seconds, peaks) = match flac::decode(path) {
                     Some(decode_result) => (
-                        decode_result.duration as u32,
+                        decode_result.duration,
                         Some(compute_peaks(decode_result, 320))
                     ),
-                    None => (0, None)
+                    None => (0.0, None)
                 };
 
                 if let Ok(tag) = metaflac::Tag::read_from_path(path) {
@@ -190,10 +190,10 @@ impl AudioMeta {
             "mp3" => {
                 let (duration_seconds, peaks) = match mp3::decode(path) {
                     Some(decode_result) => (
-                        decode_result.duration as u32,
+                        decode_result.duration,
                         Some(compute_peaks(decode_result, 320))
                     ),
-                    None => (0, None)
+                    None => (0.0, None)
                 };
                 
                 if let Ok(tag) = id3::Tag::read_from_path(path) {
@@ -249,14 +249,14 @@ impl AudioMeta {
             "ogg" => {
                 let (duration_seconds, peaks, comment_header) = match ogg_vorbis::decode(path) {
                     Some((decode_result, comment_header)) => (
-                        decode_result.duration as u32,
+                        decode_result.duration,
                         Some(compute_peaks(decode_result, 320)),
                         Some(comment_header)
                     ),
                     // TODO: Shall we make it a hard error when we can't determine duration?
                     //       It creates strange states e.g. in the audio player rendering when
                     //       we don't actually know the duration. (here and elsewhere)
-                    None => (0, None, None)
+                    None => (0.0, None, None)
                 };
 
                 let mut album = None;
@@ -314,10 +314,10 @@ impl AudioMeta {
             "opus" => {
                 let (duration_seconds, peaks) = match opus::decode(path) {
                     Some(decode_result) => (
-                        decode_result.duration as u32,
+                        decode_result.duration,
                         Some(compute_peaks(decode_result, 320))
                     ),
-                    None => (0, None)
+                    None => (0.0, None)
                 };
 
                 if let Ok(headers) = opus_headers::parse_from_path(path) {
@@ -384,10 +384,10 @@ impl AudioMeta {
             "wav" => {
                 let (duration_seconds, peaks) = match wav::decode(path) {
                     Some(decode_result) => (
-                        decode_result.duration as u32,
+                        decode_result.duration,
                         Some(compute_peaks(decode_result, 320))
                     ),
-                    None => (0, None)
+                    None => (0.0, None)
                 };
 
                 if let Ok(tag) = id3::Tag::read_from_wav_path(path) {
@@ -441,11 +441,11 @@ impl AudioMeta {
                 }
             }
             _ => {
-                    AudioMeta {
+                AudioMeta {
                     album: None,
                     album_artist: Vec::new(),
                     artist: Vec::new(),
-                    duration_seconds: 0,
+                    duration_seconds: 0.0,
                     lossless,
                     peaks: None,
                     title: None,

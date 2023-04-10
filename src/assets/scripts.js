@@ -62,7 +62,7 @@ async function mountAndPlay(container, seek) {
     //       guarantee that we *always* know the duration. Not being able to
     //       parse it should really be a hard error, this would make a lot of
     //       things easier to reason about and implement.
-    const precalculatedDuration = parseInt(svg.dataset.duration);
+    const precalculatedDuration = parseFloat(svg.dataset.duration);
     const duration = () => {
         if (audio.duration === Infinity || audio.duration === NaN) {
             return precalculatedDuration;
@@ -283,7 +283,7 @@ function getBaseFontSizePx() {
     const fontSize = window
         .getComputedStyle(document.documentElement)
         .getPropertyValue('font-size');
-    return parseInt(fontSize.replace('px', ''));
+    return parseFloat(fontSize.replace('px', ''));
 }
 
 function waveforms() {
@@ -309,8 +309,8 @@ function waveforms() {
     for (const svg of document.querySelectorAll('svg[data-peaks]')) {
         const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
 
-        const longestTrackDuration = parseInt(document.querySelector('[data-longest-duration]').dataset.longestDuration);
-        const trackDuration = parseInt(svg.dataset.duration);
+        const longestTrackDuration = parseFloat(document.querySelector('[data-longest-duration]').dataset.longestDuration);
+        const trackDuration = parseFloat(svg.dataset.duration);
 
         let waveformWidthRem;
         if (widthOverride) {

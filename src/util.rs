@@ -34,12 +34,20 @@ pub fn format_bytes(size: u64) -> String {
     }
 }
 
-/// Takes `seconds` and adaptively formats them as `MM:SS`, or `HH:MM:SS` if longer than one hour
-pub fn format_time(seconds: u32) -> String {
-    if seconds > SECONDS_HOUR {
-        format!("{}:{}:{:02}", seconds / SECONDS_HOUR, (seconds % SECONDS_HOUR) / 60, seconds % 60)
+/// Takes `seconds` and adaptively formats them as `M:SS`, or `H:MM:SS` if
+/// longer than one hour.
+pub fn format_time(seconds: f32) -> String {
+    let seconds_u32 = seconds as u32;
+
+    if seconds_u32 > SECONDS_HOUR {
+        let hour = seconds_u32 / SECONDS_HOUR;
+        let minute = (seconds_u32 % SECONDS_HOUR) / 60;
+        let second = seconds_u32 % 60;
+        format!("{hour}:{minute:02}:{second:02}")
     } else {
-        format!("{}:{:02}", (seconds % SECONDS_HOUR) / 60, seconds % 60)
+        let minute = seconds_u32 / 60;
+        let second = seconds_u32 % 60;
+        format!("{minute}:{second:02}")
     }
 }
 

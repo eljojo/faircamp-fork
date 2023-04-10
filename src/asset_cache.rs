@@ -27,7 +27,12 @@ use crate::{
 /// of the cache directory. When the cache layout (or critical implementation
 /// details) change, this name can be updated, prompting cache purge and rebuild
 /// for site operators picking up the new version of faircamp.
-const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_1";
+///
+/// History:
+/// - 1->2 because AudioMeta.duration_seconds changed from u32 to f32,
+///   but bincode would not pick this up and cached former u32 values
+///   would just be interpreted as f32 after the change.
+const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_2";
 
 #[derive(Clone, Debug)]
 pub struct Cache {

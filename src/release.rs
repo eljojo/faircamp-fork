@@ -55,7 +55,6 @@ pub struct Release {
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub rewrite_tags: bool,
-    pub runtime: u32,
     pub streaming_format: AudioFormat,
     /// Artists that appear on the release as collaborators, features, etc.
     pub support_artists: Vec<Rc<RefCell<Artist>>>,
@@ -103,11 +102,7 @@ impl Release {
         let edge = 64.0;
         let radius = edge / 2.0;
 
-        let longest_duration = self.tracks
-            .iter()
-            .map(|track| track.assets.borrow().source_meta.duration_seconds)
-            .max()
-            .unwrap();
+        let longest_track_duration = self.longest_track_duration();
 
         let mut track_offset = 0.0;
         let points = self.tracks
@@ -118,7 +113,7 @@ impl Release {
 
                 let altitude_range = 0.75 * self.tracks.len() as f32 / max_tracks_in_release as f32;
                 let altitude_width = radius * altitude_range / self.tracks.len() as f32;
-                let track_arc_range = source_meta.duration_seconds as f32 / longest_duration as f32;
+                let track_arc_range = source_meta.duration_seconds / longest_track_duration;
 
                 if let Some(peaks) = &source_meta.peaks {
                     let mut samples = Vec::new();
@@ -173,6 +168,17 @@ impl Release {
         "##)
     }
 
+    pub fn longest_track_duration(&self) -> f32 {
+        let mut longest_track_duration = 0.0;
+        for track in &self.tracks {
+            let duration_seconds = &track.assets.borrow().source_meta.duration_seconds;
+            if *duration_seconds > longest_track_duration {
+                longest_track_duration = *duration_seconds;
+            }
+        }
+        longest_track_duration
+    }
+
     pub fn new(
         assets: Rc<RefCell<ReleaseAssets>>,
         cover: Option<Rc<RefCell<Image>>>,
@@ -184,11 +190,6 @@ impl Release {
         title: String,
         tracks: Vec<Track>
     ) -> Release {
-        let runtime = tracks
-            .iter()
-            .map(|track| track.assets.borrow().source_meta.duration_seconds)
-            .sum();
-
         let permalink = permalink_option.unwrap_or_else(|| Permalink::generate(&title));
 
         let mut download_option = manifest_overrides.download_option.clone();
@@ -212,7 +213,6 @@ impl Release {
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
             rewrite_tags: manifest_overrides.rewrite_tags,
-            runtime,
             streaming_format: manifest_overrides.streaming_format,
             support_artists: Vec::new(),
             support_artists_to_map,
