@@ -18,6 +18,7 @@ pub fn translations() -> Translations {
         audio_format_description_wav: String::from("Fichiers volumineux non compressés – approprié uniquement pour la production audio"),
         audio_player_widget_for_release: String::from(r#"Widget de lecteur audio pour l'album "{title}""#),
         audio_player_widget_for_track: String::from(r#"Widget de lecteur audio pour le piste "{title}""#),
+        auto_generated_cover: String::from("Image de couverture générée automatiquement"),
         available_formats: String::from("Formats disponibles:"),
         close: String::from("Fermer"),
         copied: String::from("Copié"),

@@ -124,14 +124,11 @@ fn cover_image(
 ) -> String {
     let image = &release.cover;
 
-    // TODO: Auto-generating cover descriptions that fit the generated cover artwork
-    //       would be very cool, but with regards to needing translations too, right
-    //       now out of scope. Should be solved generically for the time being.
     if image.is_none() {
-        // Use generated cover
+        let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
         return formatdoc!(r##"
             <span class="image">
-                <img alt="Auto-generated cover image" src="cover.svg">
+                <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
             </span>
         "##);
     }
@@ -187,10 +184,10 @@ fn cover_tile_image(
     let image = &release.cover;
 
     if image.is_none() {
-        // Use generated cover
+        let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
         return formatdoc!(r#"
             <a class="image" href="{href}">
-                <img src="{release_prefix}cover.svg"/>
+                <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg"/>
             </a>
         "#);
     }

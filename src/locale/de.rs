@@ -14,6 +14,7 @@ pub fn translations() -> Translations {
         audio_format_description_wav: String::from("Unkomprimierte, große Dateien – Nur für Audio Produktion sinnvoll"),
         audio_player_widget_for_release: String::from(r#"Audio Player Widget für den Release "{title}""#),
         audio_player_widget_for_track: String::from(r#"Audio Player Widget für den Track "{title}""#),
+        auto_generated_cover: String::from("Automatisch generiertes Cover"),
         available_formats: String::from("Verfügbare Formate:"),
         close: String::from("Schließen"),
         copied: String::from("Kopiert"),

@@ -255,49 +255,59 @@ pub fn embed_track_html(
     base_url: &Url
 ) -> String {
     let index_suffix = build.index_suffix();
+    let release_prefix = "../../";
     let root_prefix = "../../../";
 
     let track_duration = track.assets.borrow().source_meta.duration_seconds;
 
-    let track_rendered = formatdoc!(
-        r#"
-            <div class="track_title_wrapper">
-                <span class="track_number">{track_number:02}</span>
-                <a class="track_title">
-                    {track_title} <span class="pause"></span>
-                </a>
-            </div>
-            <div class="track_waveform">
-                <audio controls preload="metadata" src="../../{track_src}"></audio>
-                {waveform} <span class="track_duration">{track_duration}</span>
-            </div>
-        "#,
-        track_duration = format_time(track_duration),
-        track_src = track.assets.borrow().get(release.streaming_format).as_ref().unwrap().filename,
-        track_title = html_escape_outside_attribute(&track.title),
-        waveform = waveform(track)
+    let track_filename = format!(
+        "{basename}{extension}",
+        basename = track.asset_basename.as_ref().unwrap(),
+        extension = release.streaming_format.extension()
+    ); 
+
+    let track_hash = build.hash(
+        &release.permalink.slug,
+        release.streaming_format.asset_dirname(),
+        &track_filename
     );
 
-    let release_prefix = "../../";
+    let track_rendered = formatdoc!(
+        r#"
+            <div class="track">
+                <a class="track_controls outer">{play_icon}</a>
+                <span class="track_number outer">{track_number}</span>
+                <span class="track_header">
+                    <a class="track_controls inner">{play_icon}</a>
+                    <span class="track_number inner">{track_number}</span>
+                    <a class="track_title" title="{track_title_attribute}">{track_title}</a>
+                    <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
+                </span>
+                <audio controls preload="none" src="{release_prefix}{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
+                {waveform}
+            </div>
+        "#,
+        duration_formatted = format_time(track_duration),
+        play_icon = play_icon(root_prefix),
+        streaming_format_dir = release.streaming_format.asset_dirname(),
+        track_number = release.track_numbering.format(track_number),
+        track_title = html_escape_outside_attribute(&track.title),
+        track_title_attribute = html_escape_inside_attribute(&track.title),
+        waveform = waveform(track)
+    );
 
     let body = formatdoc!(
         r##"
             <div class="hcenter_unconstrained">
                 <div class="vpad">
-                    <div class="cover">
-                        {cover}
+                    <div class="cover">{cover}</div>
+
+                    <div class="release_label">
+                        <h1>{release_title_escaped}</h1>
+                        <div class="release_artists">{artists}</div>
                     </div>
 
-                    <div style="justify-self: end; align-self: end; margin: .4rem 0 1rem 0;">
-                        <a class="big_play_button">
-                            {play_icon}
-                        </a>
-                    </div>
-                    <div style="margin: .4rem 0 1rem 0;">
-                        <h1>{release_title}</h1>
-                        <div>{artists}</div>
-                    </div>
-
+                    <div data-longest-duration="{track_duration}" disable-relative-wavforms></div>
                     {track_rendered}
 
                     <div>
@@ -308,8 +318,7 @@ pub fn embed_track_html(
         "##,
         artists = list_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
-        play_icon = play_icon(root_prefix),
-        release_title = html_escape_outside_attribute(&release.title)
+        release_title_escaped = html_escape_outside_attribute(&release.title)
     );
 
     embed_layout(root_prefix, &body, build, catalog, &release.title)

@@ -128,8 +128,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         {waveform}
                     </div>
                 "#,
-                play_icon = play_icon(root_prefix),
                 duration_formatted = format_time(track.assets.borrow().source_meta.duration_seconds),
+                play_icon = play_icon(root_prefix),
                 streaming_format_dir = release.streaming_format.asset_dirname(),
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
