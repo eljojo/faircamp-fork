@@ -23,7 +23,7 @@ And now without further ado, installing from source:
 Open your terminal and check out the repository:
 
 ```bash
-git checkout https://codeberg.org/simonrepp/faircamp.git
+git clone https://codeberg.org/simonrepp/faircamp.git
 ```
 
 Switch into the repository root:
