@@ -34,7 +34,25 @@ cd faircamp
 
 If you haven't yet, set up [rust](https://rust-lang.org) on your system following the official [installation instructions](https://www.rust-lang.org/tools/install).
 
-If not yet available, install [libvips](https://www.libvips.org/) on your system. A few pointers for different distros are provided below. If you have serious troubles with this step, please read on, the next step offers a workaround.
+The upcoming step that now follows can be tricky (or even impossible) on some
+systems, for this reason an alternative install path is provided as well. If
+you run into troubles with this next step, or find that your system is not
+compatible with the requirements, simply skip it - a workaround is
+described right after.
+
+So next, you need to install [libvips](https://www.libvips.org/) (including its
+header files) on your system. Many linux distributions offer separate
+packages for the library and for the headers (e.g. on debian there is a
+`libvips` and `libvips-dev` package) - it is vitally important to install
+both packages in this case (a few pointers for different
+distros are provided below).
+
+Lastly note that there is also a minimum version requirement for libvips ([v8.12.0](https://github.com/libvips/libvips/releases/tag/v8.12.0) at least).
+On some slower moving linux distributions this might pose a problem
+(e.g. debian-11 does not provide a sufficiently up-to-date libvips version
+unfortunately). If fulfilling this version requirement is not possible on
+your platform, just like if installing libvips at all poses a problem on your
+platform, skip ahead to the workaround described below.
 
 ```bash
 sudo apt install libvips-dev  # Debian, Ubuntu, etc.
@@ -42,9 +60,11 @@ sudo pacman -S libvips        # Arch
 sudo pamac install libvips    # Manjaro
 ``` 
 
-If installing libvips is an obstacle on your OS (e.g. because you are on Windows) you can
-also use an alternative build step here. Check out the [integrate-image-crate](https://codeberg.org/simonrepp/faircamp/src/branch/integrate-image-crate) branch, which replaces the
-libvips based image processing with a pure-rust library:
+If installing (a recent enough version) libvips is an obstacle on your OS
+(e.g. because you are on Windows or on a slow moving linux distro) you can
+also use an alternative build step here. Check out the [integrate-image-crate](https://codeberg.org/simonrepp/faircamp/src/branch/integrate-image-crate)
+branch, which replaces the libvips based image processing with a pure-rust
+library:
 
 ```bash
 git checkout integrate-image-crate  # only run this if you couldn't install libvips above (!)
