@@ -133,14 +133,14 @@ impl AudioMeta {
                         .get_vorbis("albumartist")
                         .or_else(|| tag.get_vorbis("album artist"))
                         .map(|fields|
-                            fields.filter_map(|field| trim_and_reject_empty(field)).collect()
+                            fields.filter_map(trim_and_reject_empty).collect()
                         )
                         .unwrap_or_else(Vec::new);
 
                     let artist = tag
                         .get_vorbis("artist")
                         .map(|fields|
-                            fields.filter_map(|field| trim_and_reject_empty(field)).collect()
+                            fields.filter_map(trim_and_reject_empty).collect()
                         )
                         .unwrap_or_else(Vec::new);
 

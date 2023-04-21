@@ -63,6 +63,7 @@ impl AudioFormat {
         AudioFormat::Wav
     ];
     pub const DEFAULT_DOWNLOAD_FORMAT: AudioFormat = AudioFormat::Opus128Kbps;
+    pub const FALLBACK_STREAMING_FORMAT: AudioFormat = AudioFormat::Mp3VbrV0;
     pub const FRUGAL_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus48Kbps;
     pub const STANDARD_STREAMING_FORMAT: AudioFormat = AudioFormat::Opus96Kbps;
 
@@ -186,7 +187,30 @@ impl AudioFormat {
                 => true
         }
     }
-    
+
+    /// The mime type that is used for the <source> tag in the streaming player.
+    /// This is implemented only for the formats that are currently used for
+    /// streaming (which are practically speaking hardcoded). If anybody wants
+    /// to research and add mime types for formats currently not used for fun,
+    /// please do provide a PR.
+    ///
+    /// References for opus:
+    /// https://datatracker.ietf.org/doc/html/rfc7845#section-9
+    /// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#audio_with_multiple_source_elements
+    pub fn source_type(&self) -> &str {
+        match self {
+            AudioFormat::Aac => unimplemented!(),
+            AudioFormat::Aiff => unimplemented!(),
+            AudioFormat::Flac => unimplemented!(),
+            AudioFormat::Mp3VbrV0 => "audio/mpeg",
+            AudioFormat::OggVorbis => unimplemented!(),
+            AudioFormat::Opus48Kbps |
+            AudioFormat::Opus96Kbps |
+            AudioFormat::Opus128Kbps => "audio/ogg; codecs=opus",
+            AudioFormat::Wav => unimplemented!()
+        }
+    }
+
     /// A more verbose, user-facing description (e.g. for a download button)
     pub fn user_label(&self) -> &str {
         match self {

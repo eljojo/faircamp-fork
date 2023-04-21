@@ -903,8 +903,6 @@ impl Catalog {
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();
             }
             
-            let streaming_format = release_mut.streaming_format;
-
             let mut tag_mapping_option = if release_mut.rewrite_tags {
                 Some(TagMapping {
                     album: Some(release_mut.title.clone()),
@@ -926,64 +924,66 @@ impl Catalog {
                 None
             };
 
-            let streaming_format_dir = build.build_dir
-                .join(&release_mut.permalink.slug)
-                .join(streaming_format.asset_dirname());
+            for streaming_format in release_mut.streaming_formats {
+                let streaming_format_dir = build.build_dir
+                    .join(&release_mut.permalink.slug)
+                    .join(streaming_format.asset_dirname());
 
-            util::ensure_dir(&streaming_format_dir);
+                util::ensure_dir(&streaming_format_dir);
 
-            let release_slug = release_mut.permalink.slug.clone();
+                let release_slug = release_mut.permalink.slug.clone();
 
-            for track in release_mut.tracks.iter_mut() {
-                if let Some(tag_mapping) = &mut tag_mapping_option {
-                    tag_mapping.artist = if track.artists.is_empty() {
-                        None
-                    } else {
-                        Some(
-                            track.artists
-                            .iter()
-                            .map(|artist| artist.borrow().name.clone())
-                            .collect::<Vec<String>>()
-                            .join(", ")
-                        )
-                    };
-                    tag_mapping.title = Some(track.title.clone());
+                for track in release_mut.tracks.iter_mut() {
+                    if let Some(tag_mapping) = &mut tag_mapping_option {
+                        tag_mapping.artist = if track.artists.is_empty() {
+                            None
+                        } else {
+                            Some(
+                                track.artists
+                                .iter()
+                                .map(|artist| artist.borrow().name.clone())
+                                .collect::<Vec<String>>()
+                                .join(", ")
+                            )
+                        };
+                        tag_mapping.title = Some(track.title.clone());
+                    }
+
+                    track.transcode_as(
+                        streaming_format,
+                        build,
+                        AssetIntent::Deliverable,
+                        &tag_mapping_option
+                    );
+
+                    let track_filename = format!(
+                        "{basename}{extension}",
+                        basename = track.asset_basename.as_ref().unwrap(),
+                        extension = streaming_format.extension()
+                    );
+
+                    let hash = build.hash(
+                        &release_slug,
+                        streaming_format.asset_dirname(),
+                        &track_filename
+                    );
+
+                    let hash_dir = streaming_format_dir.join(hash);
+
+                    util::ensure_dir(&hash_dir);
+
+                    let track_assets_ref = track.assets.borrow();
+                    let streaming_asset = track_assets_ref.get(streaming_format).as_ref().unwrap();
+
+                    util::hard_link_or_copy(
+                        build.cache_dir.join(&streaming_asset.filename),
+                        hash_dir.join(track_filename)
+                    );
+
+                    build.stats.add_track(streaming_asset.filesize_bytes);
+
+                    track.assets.borrow().persist_to_cache(&build.cache_dir);
                 }
-
-                track.transcode_as(
-                    streaming_format,
-                    build,
-                    AssetIntent::Deliverable,
-                    &tag_mapping_option
-                );
-
-                let track_filename = format!(
-                    "{basename}{extension}",
-                    basename = track.asset_basename.as_ref().unwrap(),
-                    extension = streaming_format.extension()
-                );
-
-                let hash = build.hash(
-                    &release_slug,
-                    streaming_format.asset_dirname(),
-                    &track_filename
-                );
-
-                let hash_dir = streaming_format_dir.join(hash);
-
-                util::ensure_dir(&hash_dir);
-
-                let track_assets_ref = track.assets.borrow();
-                let streaming_asset = track_assets_ref.get(streaming_format).as_ref().unwrap();
-
-                util::hard_link_or_copy(
-                    build.cache_dir.join(&streaming_asset.filename),
-                    hash_dir.join(track_filename)
-                );
-                
-                build.stats.add_track(streaming_asset.filesize_bytes);
-                
-                track.assets.borrow().persist_to_cache(&build.cache_dir);
             }
 
             if release_mut.download_option != DownloadOption::Disabled {

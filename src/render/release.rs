@@ -101,17 +101,30 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .map(|(index, track)| {
             let track_number = index + 1;
 
-            let track_filename = format!(
-                "{basename}{extension}",
-                basename = track.asset_basename.as_ref().unwrap(),
-                extension = release.streaming_format.extension()
-            ); 
+            let audio_sources = release.streaming_formats
+                .iter()
+                .map(|format| {
+                    let format_dir = format.asset_dirname();
+                    let format_extension = format.extension();
 
-            let track_hash = build.hash(
-                &release.permalink.slug,
-                release.streaming_format.asset_dirname(),
-                &track_filename
-            );
+                    let track_filename = format!(
+                        "{basename}{format_extension}",
+                        basename = track.asset_basename.as_ref().unwrap()
+                    );
+
+                    let track_hash = build.hash(
+                        &release.permalink.slug,
+                        format_dir,
+                        &track_filename
+                    );
+
+                    let source_type = format.source_type();
+                    let src = format!("{format_dir}/{track_hash}/{track_filename}");
+
+                     format!(r#"<source src="{src}" type="{source_type}">"#)
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
 
             formatdoc!(
                 r#"
@@ -124,13 +137,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             <a class="track_title" title="{track_title_attribute}">{track_title}</a>
                             <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
                         </span>
-                        <audio controls preload="none" src="{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
+                        <audio controls preload="none">
+                            {audio_sources}
+                        </audio>
                         {waveform}
                     </div>
                 "#,
                 duration_formatted = format_time(track.assets.borrow().source_meta.duration_seconds),
                 play_icon = play_icon(root_prefix),
-                streaming_format_dir = release.streaming_format.asset_dirname(),
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
                 track_title_attribute = html_escape_inside_attribute(&track.title),

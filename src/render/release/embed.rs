@@ -164,8 +164,14 @@ pub fn embed_choices_html(
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }
 
-pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, base_url: &Url) -> String {
+pub fn embed_release_html(
+    build: &Build,
+    catalog: &Catalog,
+    release: &Release,
+    base_url: &Url
+) -> String {
     let index_suffix = build.index_suffix();
+    let release_prefix = "../../";
     let root_prefix = "../../../";
 
     let longest_track_duration = release.longest_track_duration();
@@ -176,6 +182,31 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
         .map(|(index, track)| {
             let track_number = index + 1;
 
+            let audio_sources = release.streaming_formats
+                .iter()
+                .map(|format| {
+                    let format_dir = format.asset_dirname();
+                    let format_extension = format.extension();
+
+                    let track_filename = format!(
+                        "{basename}{format_extension}",
+                        basename = track.asset_basename.as_ref().unwrap()
+                    ); 
+
+                    let track_hash = build.hash(
+                        &release.permalink.slug,
+                        format_dir,
+                        &track_filename
+                    );
+
+                    let source_type = format.source_type();
+                    let src = format!("{release_prefix}{format_dir}/{track_hash}/{track_filename}");
+
+                    format!(r#"<source src="{src}" type="{source_type}">"#)
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
+
             formatdoc!(
                 r#"
                     <div class="track_title_wrapper">
@@ -185,12 +216,13 @@ pub fn embed_release_html(build: &Build, catalog: &Catalog, release: &Release, b
                         </a>
                     </div>
                     <div class="track_waveform">
-                        <audio controls preload="metadata" src="../../{track_src}"></audio>
+                        <audio controls preload="none">
+                            {audio_sources}
+                        </audio>
                         {waveform} <span class="track_duration">{track_duration}</span>
                     </div>
                 "#,
                 track_duration = format_time(track.assets.borrow().source_meta.duration_seconds),
-                track_src = track.assets.borrow().get(release.streaming_format).as_ref().unwrap().filename,
                 track_title = html_escape_outside_attribute(&track.title),
                 waveform = waveform(track)
             )
@@ -260,17 +292,30 @@ pub fn embed_track_html(
 
     let track_duration = track.assets.borrow().source_meta.duration_seconds;
 
-    let track_filename = format!(
-        "{basename}{extension}",
-        basename = track.asset_basename.as_ref().unwrap(),
-        extension = release.streaming_format.extension()
-    ); 
+    let audio_sources = release.streaming_formats
+        .iter()
+        .map(|format| {
+            let format_dir = format.asset_dirname();
+            let format_extension = format.extension();
 
-    let track_hash = build.hash(
-        &release.permalink.slug,
-        release.streaming_format.asset_dirname(),
-        &track_filename
-    );
+            let track_filename = format!(
+                "{basename}{format_extension}",
+                basename = track.asset_basename.as_ref().unwrap()
+            ); 
+
+            let track_hash = build.hash(
+                &release.permalink.slug,
+                format_dir,
+                &track_filename
+            );
+
+            let source_type = format.source_type();
+            let src = format!("{release_prefix}{format_dir}/{track_hash}/{track_filename}");
+
+            format!(r#"<source src="{src}" type="{source_type}">"#)
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
 
     let track_rendered = formatdoc!(
         r#"
@@ -283,13 +328,14 @@ pub fn embed_track_html(
                     <a class="track_title" title="{track_title_attribute}">{track_title}</a>
                     <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
                 </span>
-                <audio controls preload="none" src="{release_prefix}{streaming_format_dir}/{track_hash}/{track_filename}"></audio>
+                <audio controls preload="none">
+                    {audio_sources}
+                </audio>
                 {waveform}
             </div>
         "#,
         duration_formatted = format_time(track_duration),
         play_icon = play_icon(root_prefix),
-        streaming_format_dir = release.streaming_format.asset_dirname(),
         track_number = release.track_numbering.format(track_number),
         track_title = html_escape_outside_attribute(&track.title),
         track_title_attribute = html_escape_inside_attribute(&track.title),

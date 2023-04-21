@@ -57,12 +57,12 @@ pub struct Overrides {
     pub download_option: DownloadOption,
     pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
+    pub primary_streaming_format: AudioFormat,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<Rc<RefCell<Image>>>,
     pub release_text: Option<String>,
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
-    pub streaming_format: AudioFormat,
     pub track_artists: Option<Vec<String>>,
     pub unlock_text: Option<String>
 }
@@ -84,12 +84,12 @@ impl Overrides {
             download_option: DownloadOption::Disabled,
             embedding: true,
             payment_options: Vec::new(),
+            primary_streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
             release_artists: None,
             release_cover: None,
             release_text: None,
             release_track_numbering: TrackNumbering::Arabic,
             rewrite_tags: true,
-            streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
             track_artists: None,
             unlock_text: None
         }
@@ -667,8 +667,8 @@ pub fn apply_options(
     if let Some(section) = optional_section(&document, "streaming", path) {
         if let Some((value, line)) = optional_field_value_with_line(section, "quality") {
             match value.as_str() {
-                "standard" => overrides.streaming_format = AudioFormat::STANDARD_STREAMING_FORMAT,
-                "frugal" => overrides.streaming_format = AudioFormat::FRUGAL_STREAMING_FORMAT,
+                "standard" => overrides.primary_streaming_format = AudioFormat::STANDARD_STREAMING_FORMAT,
+                "frugal" => overrides.primary_streaming_format = AudioFormat::FRUGAL_STREAMING_FORMAT,
                 value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, frugal) in {}:{}", value, path.display(), line)
             }
         }

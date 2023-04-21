@@ -55,7 +55,9 @@ pub struct Release {
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub rewrite_tags: bool,
-    pub streaming_format: AudioFormat,
+    /// We currently use opus (in two different, configurable bitrates) as primary format,
+    /// and mp3 as a fallback, hence a hardcoded array with two items (primary format first).
+    pub streaming_formats: [AudioFormat; 2],
     /// Artists that appear on the release as collaborators, features, etc.
     pub support_artists: Vec<Rc<RefCell<Artist>>>,
     /// See `main_artists_to_map` for what this does
@@ -486,6 +488,11 @@ impl Release {
             }
         }
 
+        let streaming_formats = [
+            manifest_overrides.primary_streaming_format,
+            AudioFormat::FALLBACK_STREAMING_FORMAT
+        ];
+
         Release {
             asset_basename: None,
             assets,
@@ -499,7 +506,7 @@ impl Release {
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
             rewrite_tags: manifest_overrides.rewrite_tags,
-            streaming_format: manifest_overrides.streaming_format,
+            streaming_formats,
             support_artists: Vec::new(),
             support_artists_to_map,
             text: manifest_overrides.release_text.clone(),
