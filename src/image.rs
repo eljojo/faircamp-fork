@@ -1,5 +1,4 @@
 use chrono::{DateTime, Duration, Utc};
-use libvips::{ops::{self, Interesting, SmartcropOptions}, VipsImage};
 use serde_derive::{Serialize, Deserialize};
 use std::{
     cell::RefCell,
@@ -14,12 +13,13 @@ use crate::{
     Build,
     Cache,
     CacheOptimization,
+    ResizeMode,
     SourceFileSignature,
     util
 };
 
-const BACKGROUND_MAX_EDGE_SIZE: i32 = 1280;
-const FEED_MAX_EDGE_SIZE: i32 = 920;
+const BACKGROUND_MAX_EDGE_SIZE: u32 = 1280;
+const FEED_MAX_EDGE_SIZE: u32 = 920;
 
 /// A single, resized version of the artist image.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -27,8 +27,8 @@ pub struct ArtistAsset {
     pub filename: String,
     pub filesize_bytes: u64,
     pub format: String,
-    pub height: i32,
-    pub width: i32
+    pub height: u32,
+    pub width: u32
 }
 
 /// Represents multiple, differently sized versions of an artist image, for
@@ -48,7 +48,7 @@ pub struct ArtistAssets {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CoverAsset {
     /// Represents both height and width (covers have a square aspect ratio)
-    pub edge_size: i32,
+    pub edge_size: u32,
     pub filename: String,
     pub filesize_bytes: u64
 }
@@ -88,122 +88,6 @@ pub struct ImageAssets {
 pub struct ImgAttributes {
     pub src: String,
     pub srcset: String
-}
-
-enum ResizeMode {
-    /// Resize such that the longer edge of the image does not exceed the maximum edge size.
-    ContainInSquare { max_edge_size: i32 },
-    /// Perform a square crop, then resize to a maximum edge size.
-    CoverSquare { edge_size: i32 },
-    /// Perform a crop to a rectangle with a minimum aspect ratio if needed, then resize to a maximum width.
-    /// Aspect ratio is width / height, e.g. 16/9 = 1.7777777
-    CoverRectangle { max_aspect: f32, max_width: i32, min_aspect: f32 }
-}
-
-fn resize(
-    build: &Build,
-    path: &PathBuf,
-    resize_mode: ResizeMode
-) -> (String, (i32, i32)) {
-    let image = VipsImage::new_from_file(&build.catalog_dir.join(path).to_string_lossy()).unwrap();
-
-    let height = image.get_height();
-    let width = image.get_width();
-
-    let transformed = match resize_mode {
-        ResizeMode::ContainInSquare { max_edge_size } => {
-            info_resizing!("{:?} to contain within a square <= {}px", path, max_edge_size);
-
-            let longer_edge = std::cmp::max(height, width);
-
-            if longer_edge > max_edge_size {
-                ops::resize(&image, max_edge_size as f64 / longer_edge as f64).unwrap()
-            } else {
-                image
-            }
-        }
-        ResizeMode::CoverSquare { edge_size } => {
-            info_resizing!("{:?} to cover a square <= {}px", path, edge_size);
-
-            let smaller_edge = std::cmp::min(height, width);
-
-            let cropped_square = if height != width {
-                ops::smartcrop_with_opts(
-                    &image,
-                    smaller_edge,
-                    smaller_edge,
-                    &SmartcropOptions { interesting: Interesting::Centre }
-                ).unwrap()
-            } else {
-                image
-            };
-
-            if smaller_edge <= edge_size {
-                cropped_square
-            } else {
-                ops::resize(&cropped_square, edge_size as f64 / smaller_edge as f64).unwrap()
-            }
-        }
-        ResizeMode::CoverRectangle { max_aspect, max_width, min_aspect } => {
-            // TODO: These messages are probably rather confusing to the person running faircamp
-            //       Maybe reconsider how they should be worded, or what exactly is reported, e.g.
-            //       only reporting (once!) that the image is resized to be used as an artist image.
-            //       It's not important to the reader what exact resizing to which sizes is done.
-            //       (this is rather debug level info)
-            info_resizing!("{:?} to cover a {}-{} aspect ratio rectangle <= {}px", path, min_aspect, max_aspect, max_width);
-
-            let found_aspect = width as f32 / height as f32;
-            let cropped_rectangle = if found_aspect < min_aspect {
-                // too tall, reduce height
-                ops::smartcrop_with_opts(
-                    &image,
-                    width,
-                    (width as f32 / min_aspect).floor() as i32,
-                    &SmartcropOptions { interesting: Interesting::Centre }
-                ).unwrap()
-            } else if found_aspect > max_aspect {
-                // too wide, reduce width
-                ops::smartcrop_with_opts(
-                    &image,
-                    (max_aspect * height as f32).floor() as i32,
-                    height,
-                    &SmartcropOptions { interesting: Interesting::Centre }
-                ).unwrap()
-            } else {
-                image
-            };
-
-            let cropped_width = cropped_rectangle.get_width();
-            if cropped_width > max_width {
-                ops::resize(&cropped_rectangle, max_width as f64 / cropped_width as f64).unwrap()
-            } else {
-                cropped_rectangle
-            }
-        }
-    };
-
-    let options = ops::JpegsaveOptions {
-        interlace: true,
-        optimize_coding: true,
-        q: 80,
-        strip: true,
-        ..ops::JpegsaveOptions::default()
-    };
-
-    let target_filename = format!("{}.jpg", util::uid());
-
-    let result_dimensions = (transformed.get_width(), transformed.get_height());
-
-    match ops::jpegsave_with_opts(
-        &transformed,
-        &build.cache_dir.join(&target_filename).to_string_lossy(),
-        &options
-    ) {
-        Ok(_) => (),
-        Err(_) => println!("error: {}", build.libvips_app.error_buffer().unwrap())
-    }
-
-    (target_filename, result_dimensions)
 }
 
 impl ArtistAssets {
@@ -379,7 +263,7 @@ impl ImageAssets {
             // Viewport width > 60rem (960px at 16px font-size) = 27rem/12rem = 2.25
             // We therefore approximate it for both by limiting the aspect to 2.25.-2.5
 
-            let (fixed_filename_320, fixed_dimensions_320) = resize(
+            let (fixed_filename_320, fixed_dimensions_320) = build.image_processor.resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CoverRectangle {
@@ -403,7 +287,7 @@ impl ImageAssets {
             let mut fixed_max_640 = None;
 
             if fixed_dimensions_320.0 == 320 {
-                let (fixed_filename_480, fixed_dimensions_480) = resize(
+                let (fixed_filename_480, fixed_dimensions_480) = build.image_processor.resize(
                     build,
                     &self.source_file_signature.path,
                     ResizeMode::CoverRectangle {
@@ -424,7 +308,7 @@ impl ImageAssets {
                 });
 
                 if fixed_dimensions_480.0 == 480 {
-                    let (fixed_filename_640, fixed_dimensions_640) = resize(
+                    let (fixed_filename_640, fixed_dimensions_640) = build.image_processor.resize(
                         build,
                         &self.source_file_signature.path,
                         ResizeMode::CoverRectangle {
@@ -451,7 +335,7 @@ impl ImageAssets {
             // Viewport width @ 60rem (960px at 16px font-size) = 100vw=960px/12rem = 5
             // We therefore approximate it for both by limiting the aspect to 2.5-5
 
-            let (fluid_filename_640, fluid_dimensions_640) = resize(
+            let (fluid_filename_640, fluid_dimensions_640) = build.image_processor.resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CoverRectangle {
@@ -475,7 +359,7 @@ impl ImageAssets {
             let mut fluid_max_1280 = None;
 
             if fluid_dimensions_640.0 == 640 {
-                let (fluid_filename_960, fluid_dimensions_960) = resize(
+                let (fluid_filename_960, fluid_dimensions_960) = build.image_processor.resize(
                     build,
                     &self.source_file_signature.path,
                     ResizeMode::CoverRectangle {
@@ -496,7 +380,7 @@ impl ImageAssets {
                 });
 
                 if fluid_dimensions_960.0 == 960 {
-                    let (fluid_filename_1280, fluid_dimensions_1280) = resize(
+                    let (fluid_filename_1280, fluid_dimensions_1280) = build.image_processor.resize(
                         build,
                         &self.source_file_signature.path,
                         ResizeMode::CoverRectangle {
@@ -547,7 +431,7 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let (filename, _dimensions) = resize(
+            let (filename, _dimensions) = build.image_processor.resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE }
@@ -569,7 +453,7 @@ impl ImageAssets {
                 assets.unmark_stale();
             }
         } else {
-            let (filename_160, dimensions_160) = resize(
+            let (filename_160, dimensions_160) = build.image_processor.resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::CoverSquare { edge_size: 160 }
@@ -589,7 +473,7 @@ impl ImageAssets {
             let mut max_1280 = None;
 
             if dimensions_160.0 == 160 {
-                let (filename_320, dimensions_320) = resize(
+                let (filename_320, dimensions_320) = build.image_processor.resize(
                     build,
                     &self.source_file_signature.path,
                     ResizeMode::CoverSquare { edge_size: 320 }
@@ -604,7 +488,7 @@ impl ImageAssets {
                 });
 
                 if dimensions_320.0 == 320 {
-                    let (filename_480, dimensions_480) = resize(
+                    let (filename_480, dimensions_480) = build.image_processor.resize(
                         build,
                         &self.source_file_signature.path,
                         ResizeMode::CoverSquare { edge_size: 480 }
@@ -619,7 +503,7 @@ impl ImageAssets {
                     });
 
                     if dimensions_480.0 == 480 {
-                        let (filename_800, dimensions_800) = resize(
+                        let (filename_800, dimensions_800) = build.image_processor.resize(
                             build,
                             &self.source_file_signature.path,
                             ResizeMode::CoverSquare { edge_size: 800 }
@@ -634,7 +518,7 @@ impl ImageAssets {
                         });
 
                         if dimensions_800.0 == 800 {
-                            let (filename_1280, dimensions_1280) = resize(
+                            let (filename_1280, dimensions_1280) = build.image_processor.resize(
                                 build,
                                 &self.source_file_signature.path,
                                 ResizeMode::CoverSquare { edge_size: 1280 }
@@ -687,7 +571,7 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let (filename, _dimensions) = resize(
+            let (filename, _dimensions) = build.image_processor.resize(
                 build,
                 &self.source_file_signature.path,
                 ResizeMode::ContainInSquare { max_edge_size: FEED_MAX_EDGE_SIZE }

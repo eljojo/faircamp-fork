@@ -19,7 +19,7 @@ Are there any formats missing that are important for you? Bring it up in the [is
 ## Supported image formats
 
 - gif
-- heif
+- heif (when compiled with libvips)
 - jpg/jpeg
 - png
 - webp

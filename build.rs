@@ -5,6 +5,12 @@ use std::env;
 use std::fs::{self, DirEntry};
 use std::path::Path;
 
+#[cfg(not(any(feature = "image", feature = "libvips")))]
+compile_error!(r#"An image processing feature needs to be enabled, re-run your last command with either "--features image" added (pick this if you're unsure which to pick) or "--features libvips" (pick this if you know exactly what you're doing)"#);
+
+#[cfg(all(feature = "image", feature = "libvips"))]
+compile_error!(r#"Only one image processing feature can be enabled, remove either "--features image" or "--features libvips" from your last command"#);
+
 struct Docs {
 	index: Page,
 	reference: Vec<Page>,

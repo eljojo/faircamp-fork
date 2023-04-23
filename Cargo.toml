@@ -20,10 +20,11 @@ claxon = "0.4.3"
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs" }
 hound = "3.5.0"
 id3 = "1.6.0"
+image = { optional = true, version = "0.24.6" }
 indoc = "2.0.1"
 iso_currency = "0.4.3"
 lewton = "0.10.2"
-libvips = "1.5.1"
+libvips = { optional = true, version = "1.5.1" }
 metaflac = "0.2.5"
 nanoid = "0.4.0"
 ogg = "0.9.0"
@@ -40,3 +41,7 @@ tokio = { features = ["macros", "rt-multi-thread"], version = "1.27.0" }
 url = "2.3.1"
 webbrowser = "0.8.8"
 zip = { features = ["deflate"], version = "0.6.4" }
+
+[features]
+image = ["dep:image"]
+libvips = ["dep:libvips"]

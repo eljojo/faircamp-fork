@@ -3,7 +3,6 @@ use base64::{
     Engine
 };
 use chrono::{DateTime, Utc};
-use libvips::VipsApp;
 use std::{
     collections::hash_map::DefaultHasher,
     env,
@@ -16,6 +15,7 @@ use url::Url;
 use crate::{
     Args,
     CacheOptimization,
+    ImageProcessor,
     Locale,
     Theme,
     util
@@ -33,9 +33,9 @@ pub struct Build {
     pub deploy_destination: Option<String>,
     pub embeds_requested: bool,
     pub exclude_patterns: Vec<String>,
+    pub image_processor: ImageProcessor,
     pub include_patterns: Vec<String>,
     pub locale: Locale,
-    pub libvips_app: VipsApp,
     /// If we encounter missing image descriptions during the build we set this flag.
     /// This lets us know to inject optional css used for indicating these images.
     pub missing_image_descriptions: bool,
@@ -140,9 +140,6 @@ impl Build {
             .as_ref()
             .map(|path| path.to_path_buf())
             .unwrap_or_else(|| catalog_dir.join(".faircamp_cache"));
-        
-        let libvips_app = VipsApp::new("faircamp", false).expect("Cannot initialize libvips");
-        libvips_app.concurrency_set(2);
 
         let post_build_action = PostBuildAction::new(args);
 
@@ -161,7 +158,7 @@ impl Build {
             embeds_requested: false,
             exclude_patterns: args.exclude_patterns.clone(),
             include_patterns: args.include_patterns.clone(),
-            libvips_app,
+            image_processor: ImageProcessor::new(),
             locale,
             missing_image_descriptions: false,
             post_build_action,
