@@ -20,7 +20,11 @@ pub struct Args {
     /// Override catalog directory (default is the current working directory)
     #[clap(long = "catalog-dir")]
     pub catalog_dir: Option<PathBuf>,
-    
+
+    /// The site is rendered with every translatable interface string showing its key instead of its value (=translation)
+    #[clap(long = "debug-translations")]
+    pub debug_translations: bool,
+
     /// Deploys to the configured server via rsync after the build is finished
     #[clap(long = "deploy", short = 'd')]
     pub deploy: bool,
@@ -52,10 +56,10 @@ pub struct Args {
     /// Locally previews the build in the browser after the build is finished (usually spins up an http server, except for builds with --no-clean-urls which can be directly browsed)
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
-    
-    /// The site is rendered with every translatable interface string showing its key instead of its value (=translation)
-    #[clap(long = "debug-translations")]
-    pub debug_translations: bool,
+
+    /// Can be set in conjunction with --preview to manually configure the port used by the preview server (otherwise faircamp chooses an available port on its own)
+    #[clap(long = "preview-port")]
+    pub preview_port: Option<u16>,
 
     /// Injects a small widget into the page which allows you to interactively explore different theme color configurations
     #[clap(long = "theming-widget")]

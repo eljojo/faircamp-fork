@@ -59,7 +59,7 @@ pub struct Build {
 pub enum PostBuildAction {
     None,
     Deploy,
-    Preview
+    Preview { port: Option<u16> }
 }
 
 pub struct Stats {
@@ -187,7 +187,9 @@ impl PostBuildAction {
                 PostBuildAction::Deploy
             }
         } else if args.preview {
-            PostBuildAction::Preview
+            PostBuildAction::Preview {
+                port: args.preview_port
+            }
         } else {
             PostBuildAction::None
         }
