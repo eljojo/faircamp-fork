@@ -58,13 +58,13 @@ makes no sense to propagate.
 
 ## Faircamp is in Beta
 
-Faircamp can be stably built and run from the main branch. Feature and
-design improvements are usually rolled out piece by piece, or in larger waves every few
-weeks. Occcasional glitches in the interface might occur, sometimes only temporarily between updates.
-Some more advanced features are only half-way implemented (see below).
-Technically nothing about the catalog format is set in stone, but practically
-speaking actual changes have been few and far between. Faircamp is not
-production-grade software, but in a very usable state, in steady development.
+Faircamp can be stably built and run from the main branch. Feature and design
+improvements are usually rolled out piece by piece, or in larger waves every
+few weeks. Some more advanced features are only half-way implemented
+(see below). Technically nothing about the catalog format is set in stone,
+but practically speaking actual changes have been few and far between.
+Faircamp is not production-grade software, but in a very usable state, in
+steady development.
 
 These features are knowingly incomplete right now:
 
@@ -78,7 +78,7 @@ See faircamp's comprehensive [Manual](https://simonrepp.com/faircamp/manual).
 
 ## Build/Install
 
-See *Installing from source* in the [Installation](https://simonrepp.com/faircamp/manual/installation.html) guide in the [Manual](https://simonrepp.com/faircamp/manual). If the online version of the manual should be inaccessible, the same information is also available in the repository itself, in [01 Installation.md](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/manual/topics/01%20Installation.md).
+See the [Installation](https://simonrepp.com/faircamp/manual/installation.html) page in the [Manual](https://simonrepp.com/faircamp/manual). If the online version of the manual should be inaccessible, the same information is also available in the repository itself, in [01 Installation.md](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/manual/topics/01%20Installation.md).
 
 ## License
 
