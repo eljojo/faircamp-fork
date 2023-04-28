@@ -19,7 +19,10 @@ Are there any formats missing that are important for you? Bring it up in the [is
 ## Supported image formats
 
 - gif
-- heif (when compiled with libvips)
+- heif (*)
 - jpg/jpeg
 - png
 - webp
+
+(*) only when compiled with libvips - you can run `faircamp --version` to see
+if your install faircamp build was compiled with libvips.
