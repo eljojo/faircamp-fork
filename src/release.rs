@@ -617,14 +617,19 @@ impl Release {
 
                 util::ensure_dir(&hash_dir);
 
-                // TODO: Track might already have been copied (?) (if streaming format is identical)
-                util::hard_link_or_copy(
-                    build.cache_dir.join(&download_track_asset.filename),
-                    hash_dir.join(track_filename)
-                );
+                let target_path = hash_dir.join(&track_filename);
 
-                // TODO: Track might already have been added (?) (if streaming format is identical)
-                build.stats.add_track(download_track_asset.filesize_bytes);
+                // The track asset might already have been copied to the build directory
+                // if the download format is identical to one of the streaming formats.
+                // So we only copy and add it to the stats if that hasn't yet happened.
+                if !target_path.exists() {
+                    util::hard_link_or_copy(
+                        build.cache_dir.join(&download_track_asset.filename),
+                        target_path
+                    );
+
+                    build.stats.add_track(download_track_asset.filesize_bytes);
+                }
             }
 
             let mut release_assets_mut = self.assets.borrow_mut();
