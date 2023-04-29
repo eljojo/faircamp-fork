@@ -659,10 +659,8 @@ impl Cache {
                        Some(&cover.borrow().assets.borrow().source_file_signature) {
                         return false;
                     }
-                } else {
-                    if assets_ref.cover_source_file_signature.is_some() {
-                        return false;
-                    }
+                } else if assets_ref.cover_source_file_signature.is_some() {
+                    return false;
                 }
 
                 tracks

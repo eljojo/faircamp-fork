@@ -457,7 +457,7 @@ fn releases(
 
 pub fn share_link(build: &Build) -> String {
     let attributes = if build.base_url.is_some() {
-        format!(r##"href="#share""##)
+        String::from(r##"href="#share""##)
     } else {
         let t_share_not_available_requires_javascript = &build.locale.translations.share_not_available_requires_javascript;
         // In a javascript-enabled browser, some bootstrapping happens on DOM load:

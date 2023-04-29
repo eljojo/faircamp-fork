@@ -68,7 +68,7 @@ impl Track {
             }
         } else {
             let target_filename = format!("{}{}", util::uid(), format.extension());
-        
+
             info_transcoding!("{:?} to {}", assets_mut.source_file_signature.path, format);
             ffmpeg::transcode(
                 &build.catalog_dir.join(&assets_mut.source_file_signature.path),
