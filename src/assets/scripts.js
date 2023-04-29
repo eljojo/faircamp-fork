@@ -415,8 +415,9 @@ window.addEventListener('DOMContentLoaded', event => {
 
         const shareUrl = shareOverlay.querySelector('[data-url]');
         if (!shareUrl.getAttribute('href').length) {
-            shareUrl.setAttribute('href', window.location.href);
-            shareUrl.innerHTML = window.location.href;
+            const url = window.location.href.split('#')[0]; // discard hash if present
+            shareUrl.setAttribute('href', url);
+            shareUrl.innerHTML = url;
         }
     }
 });
