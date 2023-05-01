@@ -37,7 +37,7 @@ use args::Args;
 use artist::Artist;
 use asset::{Asset, AssetIntent};
 use asset_cache::{Cache, CacheOptimization, SourceFileSignature};
-use audio_format::AudioFormat;
+use audio_format::{AudioFormat, DownloadFormat, StreamingQuality};
 use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
 use catalog::Catalog;
@@ -48,7 +48,7 @@ use image_processor::{ImageProcessor, ResizeMode};
 use locale::{Locale, WritingDirection};
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
-use release::{Release, ReleaseAssets};
+use release::{ArchiveAssets, Release};
 use theme::Theme;
 use track::{Track, TrackAssets};
 

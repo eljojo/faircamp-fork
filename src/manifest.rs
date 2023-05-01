@@ -9,16 +9,17 @@ use std::{
 use url::Url;
 
 use crate::{
-    AudioFormat,
     Build,
     Cache,
     CacheOptimization,
     Catalog,
+    DownloadFormat,
     DownloadOption,
     Image,
     Locale,
     PaymentOption,
     Permalink,
+    StreamingQuality,
     release::TrackNumbering,
     theme::{CoverGenerator, ThemeBase, ThemeFont},
     util,
@@ -53,16 +54,16 @@ pub struct LocalOptions {
 /// in a manifest further down the hierarchy, hence it is an override.
 #[derive(Clone)]
 pub struct Overrides {
-    pub download_formats: Vec<AudioFormat>,
+    pub download_formats: Vec<DownloadFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
     pub payment_options: Vec<PaymentOption>,
-    pub primary_streaming_format: AudioFormat,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<Rc<RefCell<Image>>>,
     pub release_text: Option<String>,
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
+    pub streaming_quality: StreamingQuality,
     pub track_artists: Option<Vec<String>>,
     pub unlock_text: Option<String>
 }
@@ -80,16 +81,16 @@ impl LocalOptions {
 impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
-            download_formats: vec![AudioFormat::DEFAULT_DOWNLOAD_FORMAT],
+            download_formats: vec![DownloadFormat::DEFAULT],
             download_option: DownloadOption::Disabled,
             embedding: true,
             payment_options: Vec::new(),
-            primary_streaming_format: AudioFormat::STANDARD_STREAMING_FORMAT,
             release_artists: None,
             release_cover: None,
             release_text: None,
             release_track_numbering: TrackNumbering::Arabic,
             rewrite_tags: true,
+            streaming_quality: StreamingQuality::Standard,
             track_artists: None,
             unlock_text: None
         }
@@ -472,7 +473,7 @@ pub fn apply_options(
         }
         if let Some(value) = optional_field_value(section, "format") {
             // TODO: Implement via FromStr
-            match AudioFormat::from_manifest_key(value.as_str()) {
+            match DownloadFormat::from_manifest_key(value.as_str()) {
                 Some(format) => overrides.download_formats = vec![format],
                 // TODO: Missing line number (no element access)
                 None => error!("Ignoring invalid download.format setting value '{}' in {}", value, path.display())
@@ -484,7 +485,7 @@ pub fn apply_options(
                     .filter_map(|item| {
                         let key = item.required_value().unwrap_or(String::new());
                         // TODO: Implement via FromStr
-                        match AudioFormat::from_manifest_key(&key) {
+                        match DownloadFormat::from_manifest_key(&key) {
                             None => {
                                 error!("Ignoring invalid download.formats format specifier '{}' in {}:{}", key, path.display(), item.line_number);
                                 None
@@ -667,8 +668,8 @@ pub fn apply_options(
     if let Some(section) = optional_section(&document, "streaming", path) {
         if let Some((value, line)) = optional_field_value_with_line(section, "quality") {
             match value.as_str() {
-                "standard" => overrides.primary_streaming_format = AudioFormat::STANDARD_STREAMING_FORMAT,
-                "frugal" => overrides.primary_streaming_format = AudioFormat::FRUGAL_STREAMING_FORMAT,
+                "standard" => overrides.streaming_quality = StreamingQuality::Standard,
+                "frugal" => overrides.streaming_quality = StreamingQuality::Frugal,
                 value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, frugal) in {}:{}", value, path.display(), line)
             }
         }

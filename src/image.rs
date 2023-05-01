@@ -585,7 +585,7 @@ impl ImageAssets {
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
         let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(Cache::MANIFEST_IMAGES_DIR).join(filename)
+        cache_dir.join(Cache::IMAGE_MANIFESTS_DIR).join(filename)
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {

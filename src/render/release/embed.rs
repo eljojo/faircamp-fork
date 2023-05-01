@@ -182,7 +182,8 @@ pub fn embed_release_html(
         .map(|(index, track)| {
             let track_number = index + 1;
 
-            let audio_sources = release.streaming_formats
+            let audio_sources = release.streaming_quality
+                .formats()
                 .iter()
                 .map(|format| {
                     let format_dir = format.asset_dirname();
@@ -292,7 +293,8 @@ pub fn embed_track_html(
 
     let track_duration = track.assets.borrow().source_meta.duration_seconds;
 
-    let audio_sources = release.streaming_formats
+    let audio_sources = release.streaming_quality
+        .formats()
         .iter()
         .map(|format| {
             let format_dir = format.asset_dirname();

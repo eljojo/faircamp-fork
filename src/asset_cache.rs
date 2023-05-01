@@ -10,14 +10,15 @@ use std::{
 };
 
 use crate::{
+    ArchiveAssets,
     Asset,
     AudioFormat,
     AudioMeta,
     Build,
     Catalog,
+    DownloadFormat,
     Image,
     ImageAssets,
-    ReleaseAssets,
     Track,
     TrackAssets,
     util
@@ -32,12 +33,15 @@ use crate::{
 /// - 1->2 because AudioMeta.duration_seconds changed from u32 to f32,
 ///   but bincode would not pick this up and cached former u32 values
 ///   would just be interpreted as f32 after the change.
-const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_2";
+/// - 2->3 because we renamed "releases" to "archives" (the directory,
+///   but also everywhere in code)
+const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_3";
 
 #[derive(Clone, Debug)]
 pub struct Cache {
-    /// We register all files found in the cache root (= actual audio, image
-    /// and archive files) here before we read the cache manifests. Files
+    pub archives: Vec<Rc<RefCell<ArchiveAssets>>>,
+    /// We register all files found in the cache root (= actual archive, image
+    /// and track files) here before we read the cache manifests. Files
     /// referenced in the manifests that do not appear in the registry mean
     /// that the cache entry is corrupt (we then remove it). The other way
     /// around, every time we find a file in the registry we increase its
@@ -46,7 +50,6 @@ pub struct Cache {
     /// are orphaned and can therefore be removed.
     artifact_registry: HashMap<String, usize>,
     pub images: Vec<Rc<RefCell<ImageAssets>>>,
-    pub releases: Vec<Rc<RefCell<ReleaseAssets>>>,
     pub tracks: Vec<Rc<RefCell<TrackAssets>>>
 }
 
@@ -83,12 +86,12 @@ pub fn optimize_cache(
     cache: &mut Cache,
     catalog: &mut Catalog
 ) {
+    for archive_assets in cache.archives.iter_mut() {
+        optimize_archive_assets(archive_assets, build);
+    }
+
     for image_assets in cache.images.iter_mut() {
         optimize_image_assets(image_assets, build);
-    }
-    
-    for release_assets in cache.releases.iter_mut() {
-        optimize_release_assets(release_assets, build);
     }
     
     for track_assets in cache.tracks.iter_mut() {
@@ -98,6 +101,8 @@ pub fn optimize_cache(
     for release in &catalog.releases {
         let mut release_mut = release.borrow_mut();
 
+        optimize_archive_assets(&mut release_mut.archive_assets, build);
+
         if let Some(image) = &mut release_mut.cover {
             optimize_image_assets(&mut image.borrow_mut().assets, build);
         }
@@ -105,8 +110,37 @@ pub fn optimize_cache(
         for track in release_mut.tracks.iter_mut() {
             optimize_track_assets(&mut track.assets, build);
         }
+    }
+}
+
+pub fn optimize_archive_assets(archive_assets: &mut Rc<RefCell<ArchiveAssets>>, build: &Build) {
+    let mut archive_assets_mut = archive_assets.borrow_mut();
+    let mut keep_container = false;
+
+    for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
+        let cached_format = archive_assets_mut.get_mut(download_format);
         
-        optimize_release_assets(&mut release_mut.assets, build);
+        match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
+            Some(true) => {
+                util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
+                info_cache!(
+                    "Removed cached archive asset ({}) for archive with {} tracks and {}.",
+                    download_format.as_audio_format(),
+                    // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
+                    //       Possibly indication that Release + ArchiveAssets should be merged together (?) (and same story with Image/Track)
+                    archive_assets_mut.track_source_file_signatures.len(),
+                    if archive_assets_mut.cover_source_file_signature.is_some() { "a cover" } else { "no cover" }
+                );
+            }
+            Some(false) => keep_container = true,
+            None => ()
+        }
+    }
+
+    if keep_container {
+        archive_assets_mut.persist_to_cache(&build.cache_dir);
+    } else {
+        util::remove_file(&archive_assets_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -181,51 +215,20 @@ pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Buil
     }
 }
 
-pub fn optimize_release_assets(assets: &mut Rc<RefCell<ReleaseAssets>>, build: &Build) {
-    let mut assets_mut = assets.borrow_mut();
+pub fn optimize_track_assets(track_assets: &mut Rc<RefCell<TrackAssets>>, build: &Build) {
+    let mut track_assets_mut = track_assets.borrow_mut();
     let mut keep_container = false;
     
-    for format in AudioFormat::ALL_FORMATS {
-        let cached_format = assets_mut.get_mut(format);
-        
-        match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
-            Some(true) => {
-                util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
-                info_cache!(
-                    "Removed cached release asset ({}) for archive with {} tracks and {}.",
-                    format,
-                    // TODO: Bit awkward here that we can't easily get a pretty identifying string for the release
-                    //       Possibly indication that Release + ReleaseAssets should be merged together (?) (and same story with Image/Track)
-                    assets_mut.track_source_file_signatures.len(),
-                    if assets_mut.cover_source_file_signature.is_some() { "a cover" } else { "no cover" }
-                );
-            }
-            Some(false) => keep_container = true,
-            None => ()
-        }
-    }
-    
-    if keep_container {
-        assets_mut.persist_to_cache(&build.cache_dir);
-    } else {
-        util::remove_file(&assets_mut.manifest_path(&build.cache_dir));
-    }
-}
-
-pub fn optimize_track_assets(assets: &mut Rc<RefCell<TrackAssets>>, build: &Build) {
-    let mut assets_mut = assets.borrow_mut();
-    let mut keep_container = false;
-    
-    for format in AudioFormat::ALL_FORMATS {
-        let cached_format = assets_mut.get_mut(format);
+    for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
+        let cached_format = track_assets_mut.get_mut(audio_format);
         
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
                 util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
                 info_cache!(
                     "Removed cached track asset ({}) for {}.",
-                    format,
-                    assets_mut.source_file_signature.path.display()
+                    audio_format,
+                    track_assets_mut.source_file_signature.path.display()
                 );
             }
             Some(false) => keep_container = true,
@@ -234,9 +237,9 @@ pub fn optimize_track_assets(assets: &mut Rc<RefCell<TrackAssets>>, build: &Buil
     }
     
     if keep_container {
-        assets_mut.persist_to_cache(&build.cache_dir);
+        track_assets_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&assets_mut.manifest_path(&build.cache_dir));
+        util::remove_file(&track_assets_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -244,12 +247,12 @@ pub fn report_stale(cache: &Cache, catalog: &Catalog) {
     let mut num_unused = 0;
     let mut unused_bytesize = 0;
     
+    for assets in &cache.archives {
+        report_stale_archive_assets(assets, &mut num_unused, &mut unused_bytesize);
+    }
+
     for assets in &cache.images {
         report_stale_image_assets(assets, &mut num_unused, &mut unused_bytesize);
-    }
-    
-    for assets in &cache.releases {
-        report_stale_release_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
     
     for assets in &cache.tracks {
@@ -259,6 +262,8 @@ pub fn report_stale(cache: &Cache, catalog: &Catalog) {
     for release in &catalog.releases {
         let release_ref = release.borrow();
 
+        report_stale_archive_assets(&release_ref.archive_assets, &mut num_unused, &mut unused_bytesize);
+
         if let Some(image) = &release_ref.cover {
             report_stale_image_assets(&image.borrow().assets, &mut num_unused, &mut unused_bytesize);
         }
@@ -266,8 +271,6 @@ pub fn report_stale(cache: &Cache, catalog: &Catalog) {
         for track in &release_ref.tracks {
             report_stale_track_assets(&track.assets, &mut num_unused, &mut unused_bytesize);
         }
-        
-        report_stale_release_assets(&release_ref.assets, &mut num_unused, &mut unused_bytesize);
     }
     
     if num_unused > 0 {
@@ -278,6 +281,24 @@ pub fn report_stale(cache: &Cache, catalog: &Catalog) {
         );
     } else {
         info_cache!("No cached assets identied as obsolete.");
+    }
+}
+
+pub fn report_stale_archive_assets(
+    archive_assets: &Rc<RefCell<ArchiveAssets>>,
+    num_unused: &mut u32,
+    unused_bytesize: &mut u64
+) {
+    for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
+        if let Some(filesize_bytes) = archive_assets
+            .borrow()
+            .get(download_format)
+            .as_ref()
+            .filter(|asset| asset.marked_stale.is_some())
+            .map(|asset| asset.filesize_bytes) {
+            *num_unused += 1;
+            *unused_bytesize += filesize_bytes;
+        }
     }
 }
 
@@ -320,32 +341,15 @@ pub fn report_stale_image_assets(
     }
 }
 
-pub fn report_stale_release_assets(
-    assets: &Rc<RefCell<ReleaseAssets>>,
-    num_unused: &mut u32,
-    unused_bytesize: &mut u64) {
-    for format in AudioFormat::ALL_FORMATS {
-        if let Some(filesize_bytes) = assets
-            .borrow()
-            .get(format)
-            .as_ref()
-            .filter(|asset| asset.marked_stale.is_some())
-            .map(|asset| asset.filesize_bytes) {
-            *num_unused += 1;
-            *unused_bytesize += filesize_bytes;
-        }
-    }
-}
-
 pub fn report_stale_track_assets(
     assets: &Rc<RefCell<TrackAssets>>,
     num_unused: &mut u32,
     unused_bytesize: &mut u64
 ) {
-    for format in AudioFormat::ALL_FORMATS {
+    for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
         if let Some(filesize_bytes) = assets
             .borrow()
-            .get(format)
+            .get(audio_format)
             .as_ref()
             .filter(|asset| asset.marked_stale.is_some())
             .map(|asset| asset.filesize_bytes) {
@@ -356,14 +360,14 @@ pub fn report_stale_track_assets(
 }
 
 impl Cache {
-    pub const MANIFEST_IMAGES_DIR: &'static str = "images";
-    pub const MANIFEST_RELEASES_DIR: &'static str = "releases";
-    pub const MANIFEST_TRACKS_DIR: &'static str = "tracks";
+    pub const ARCHIVE_MANIFESTS_DIR: &'static str = "archives";
+    pub const IMAGE_MANIFESTS_DIR: &'static str = "images";
+    pub const TRACK_MANIFESTS_DIR: &'static str = "tracks";
     
     fn ensure_manifest_dirs(cache_dir: &Path) {
-        util::ensure_dir(&cache_dir.join(Cache::MANIFEST_IMAGES_DIR));
-        util::ensure_dir(&cache_dir.join(Cache::MANIFEST_RELEASES_DIR));
-        util::ensure_dir(&cache_dir.join(Cache::MANIFEST_TRACKS_DIR));
+        util::ensure_dir(&cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR));
+        util::ensure_dir(&cache_dir.join(Cache::IMAGE_MANIFESTS_DIR));
+        util::ensure_dir(&cache_dir.join(Cache::TRACK_MANIFESTS_DIR));
     }
 
     /// Scans the cache root dir and initializes a HashMap that tracks
@@ -389,11 +393,11 @@ impl Cache {
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for assets in self.images.iter_mut() {
+        for assets in self.archives.iter_mut() {
             assets.borrow_mut().mark_all_stale(timestamp);
         }
-        
-        for assets in self.releases.iter_mut() {
+
+        for assets in self.images.iter_mut() {
             assets.borrow_mut().mark_all_stale(timestamp);
         }
         
@@ -404,9 +408,9 @@ impl Cache {
 
     fn new() -> Cache {
         Cache {
+            archives: Vec::new(),
             artifact_registry: HashMap::new(),
             images: Vec::new(),
-            releases: Vec::new(),
             tracks: Vec::new()
         }
     }
@@ -430,8 +434,8 @@ impl Cache {
 
         cache.fill_registry(cache_dir);
 
+        cache.retrieve_archives(cache_dir);
         cache.retrieve_images(cache_dir);
-        cache.retrieve_releases(cache_dir);
         cache.retrieve_tracks(cache_dir);
 
         cache.remove_orphaned(cache_dir);
@@ -451,9 +455,46 @@ impl Cache {
         }
     }
 
+    fn retrieve_archives(&mut self, cache_dir: &Path) {
+        if let Ok(dir_entries) = cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR).read_dir() {
+            for dir_entry_result in dir_entries {
+                if let Ok(dir_entry) = dir_entry_result {
+                    if let Some(mut archive_assets) = ArchiveAssets::deserialize_cached(&dir_entry.path()) {
+                        let mut assets_present = false;
+
+                        for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
+                            let asset_option = archive_assets.get_mut(download_format);
+                            if let Some(asset) = &asset_option {
+                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
+                                    assets_present = true;
+                                    *usage_counter += 1;
+                                } else {
+                                    asset_option.take();
+                                }
+                            }
+                        }
+
+                        if assets_present {
+                            self.archives.push(Rc::new(RefCell::new(archive_assets)));
+                        } else {
+                            // No actual cached files present, can throw away serialized metadata too
+                            util::remove_file(&dir_entry.path());
+                        }
+                    } else {
+                        warn!(
+                            "Removing unsupported archive asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
+                            &dir_entry.path().display()
+                        );
+                        util::remove_file(&dir_entry.path());
+                    }
+                }
+            }
+        }
+    }
+
     // TODO: Should probably not quietly ignore everything that can go wrong here (here and elsewhere)
     fn retrieve_images(&mut self, cache_dir: &Path) {
-        if let Ok(dir_entries) = cache_dir.join(Cache::MANIFEST_IMAGES_DIR).read_dir() {
+        if let Ok(dir_entries) = cache_dir.join(Cache::IMAGE_MANIFESTS_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
                     if let Some(mut assets) = ImageAssets::deserialize_cached(&dir_entry.path()) {
@@ -539,52 +580,15 @@ impl Cache {
         }
     }
     
-    fn retrieve_releases(&mut self, cache_dir: &Path) {  
-        if let Ok(dir_entries) = cache_dir.join(Cache::MANIFEST_RELEASES_DIR).read_dir() {
-            for dir_entry_result in dir_entries {
-                if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(mut assets) = ReleaseAssets::deserialize_cached(&dir_entry.path()) {
-                        let mut assets_present = false;
-
-                        for format in AudioFormat::ALL_FORMATS {
-                            let asset_option = assets.get_mut(format);
-                            if let Some(asset) = &asset_option {
-                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
-                                    assets_present = true;
-                                    *usage_counter += 1;
-                                } else {
-                                    asset_option.take();
-                                }
-                            }
-                        }
-
-                        if assets_present {
-                            self.releases.push(Rc::new(RefCell::new(assets)));
-                        } else {
-                            // No actual cached files present, can throw away serialized metadata too
-                            util::remove_file(&dir_entry.path());
-                        }
-                    } else {
-                        warn!(
-                            "Removing unsupported release asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
-                            &dir_entry.path().display()
-                        );
-                        util::remove_file(&dir_entry.path());
-                    }
-                }
-            }
-        }
-    }
-    
     fn retrieve_tracks(&mut self, cache_dir: &Path) {  
-        if let Ok(dir_entries) = cache_dir.join(Cache::MANIFEST_TRACKS_DIR).read_dir() {
+        if let Ok(dir_entries) = cache_dir.join(Cache::TRACK_MANIFESTS_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(mut assets) = TrackAssets::deserialize_cached(&dir_entry.path()) {
+                    if let Some(mut track_assets) = TrackAssets::deserialize_cached(&dir_entry.path()) {
                         let mut dead_references_removed = false;
 
-                        for format in AudioFormat::ALL_FORMATS {
-                            let asset_option = assets.get_mut(format);
+                        for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
+                            let asset_option = track_assets.get_mut(audio_format);
                             if let Some(asset) = &asset_option {
                                 if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
                                     *usage_counter += 1;
@@ -597,10 +601,10 @@ impl Cache {
 
                         if dead_references_removed {
                             // Persist corrections so we don't have to re-apply them next time around
-                            assets.persist_to_cache(cache_dir);
+                            track_assets.persist_to_cache(cache_dir);
                         }
 
-                        // With images and releases we would throw away
+                        // With archives and images we would throw away
                         // serialized metadata here if no actual cached files are
                         // present. However for a track the cached metadata
                         // contains AudioMeta, which is expensively computed,
@@ -608,7 +612,7 @@ impl Cache {
                         // and only remove it if cache optimization calls for
                         // it.
 
-                        self.tracks.push(Rc::new(RefCell::new(assets)));
+                        self.tracks.push(Rc::new(RefCell::new(track_assets)));
                     } else {
                         warn!(
                             "Removing unsupported track asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
@@ -620,36 +624,17 @@ impl Cache {
             }
         }
     }
-    
-    pub fn get_or_create_image_assets(
-        &mut self,
-        build: &Build,
-        source_path: &Path
-    ) -> Rc<RefCell<ImageAssets>> {
-        let source_file_signature = SourceFileSignature::new(build, source_path);
-        
-        match self.images.iter().find(|assets|
-            assets.borrow().source_file_signature == source_file_signature
-        ) {
-            Some(assets) => assets.clone(),
-            None => {
-                let assets = Rc::new(RefCell::new(ImageAssets::new(source_file_signature)));
-                self.images.push(assets.clone());
-                assets
-            }
-        }
-    }
-    
+
     /// This basically checks "Do we have cached download archives which
     /// include the given cover image and tracks?" (whether we have them
     /// in all required formats is not yet relevant at this point). If yes
     /// they are returned, otherwise created (but not yet computed).
-    pub fn get_or_create_release_assets(
+    pub fn get_or_create_archive_assets(
         &mut self,
         cover: &Option<Rc<RefCell<Image>>>,
         tracks: &[Track]
-    ) -> Rc<RefCell<ReleaseAssets>> {
-        match self.releases
+    ) -> Rc<RefCell<ArchiveAssets>> {
+        match self.archives
             .iter()
             .find(|assets| {
                 let assets_ref = assets.borrow();
@@ -677,11 +662,30 @@ impl Cache {
                     .map(|track| track.assets.borrow().source_file_signature.clone())
                     .collect();
 
-                let assets = Rc::new(RefCell::new(ReleaseAssets::new(
+                let assets = Rc::new(RefCell::new(ArchiveAssets::new(
                     cover.as_ref().map(|cover| cover.borrow().assets.borrow().source_file_signature.clone()),
                     track_source_file_signatures
                 )));
-                self.releases.push(assets.clone());
+                self.archives.push(assets.clone());
+                assets
+            }
+        }
+    }
+
+    pub fn get_or_create_image_assets(
+        &mut self,
+        build: &Build,
+        source_path: &Path
+    ) -> Rc<RefCell<ImageAssets>> {
+        let source_file_signature = SourceFileSignature::new(build, source_path);
+
+        match self.images.iter().find(|assets|
+            assets.borrow().source_file_signature == source_file_signature
+        ) {
+            Some(assets) => assets.clone(),
+            None => {
+                let assets = Rc::new(RefCell::new(ImageAssets::new(source_file_signature)));
+                self.images.push(assets.clone());
                 assets
             }
         }

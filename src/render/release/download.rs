@@ -59,23 +59,25 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let release_downloads = sorted_formats
         .iter()
-        .map(|(format, _recommended)| {
-            let archive_filename = format!(
-                "{basename}.zip",
-                basename = release.asset_basename.as_ref().unwrap()
-            );
+        .map(|(download_format, _recommended)| {
+            let format_label = download_format.download_label();
+            let release_slug = &release.permalink.slug;
+
+            let archive_filename = format!("{}.zip", release.asset_basename.as_ref().unwrap());
 
             let archive_hash = build.hash(
-                &release.permalink.slug,
-                format.asset_dirname(),
+                release_slug,
+                download_format.as_audio_format().asset_dirname(),
                 &archive_filename
             );
 
             formatdoc!(
-                r#"<a download href="{root_prefix}{permalink}/{format_dir}/{archive_hash}/{archive_filename}">{format_label}</a>"#,
-                format_dir = format.asset_dirname(),
-                format_label = format.download_label(),
-                permalink = &release.permalink.slug
+                r#"
+                    <a download href="{root_prefix}{release_slug}/{format_dir}/{archive_hash}/{archive_filename}">
+                        {format_label}
+                    </a>
+                "#,
+                format_dir = download_format.as_audio_format().asset_dirname()
             )
         })
         .collect::<Vec<String>>()
@@ -87,24 +89,29 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         .map(|(index, track)| {
             let track_download_columns = sorted_formats
                 .iter()
-                .map(|(format, _annotation)| {
+                .map(|(download_format, _annotation)| {
+                    let format_label = download_format.download_label();
+                    let release_slug = &release.permalink.slug;
+
                     let track_filename = format!(
                         "{basename}{extension}",
                         basename = track.asset_basename.as_ref().unwrap(),
-                        extension = format.extension()
+                        extension = download_format.as_audio_format().extension()
                     ); 
 
                     let track_hash = build.hash(
-                        &release.permalink.slug,
-                        format.asset_dirname(),
+                        release_slug,
+                        download_format.as_audio_format().asset_dirname(),
                         &track_filename
                     );
 
                     format!(
-                        r#"<a download href="{root_prefix}{slug}/{format_dir}/{track_hash}/{track_filename}">{format_label}</a>"#,
-                        format_dir = format.asset_dirname(),
-                        format_label = format.download_label(),
-                        slug = &release.permalink.slug
+                        r#"
+                            <a download href="{root_prefix}{release_slug}/{format_dir}/{track_hash}/{track_filename}">
+                                {format_label}
+                            </a>
+                        "#,
+                        format_dir = download_format.as_audio_format().asset_dirname()
                     )
                 })
                 .collect::<Vec<String>>()
@@ -137,7 +144,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let primary_download_hash = build.hash(
         &release.permalink.slug,
-        primary_format.0.asset_dirname(),
+        primary_format.0.as_audio_format().asset_dirname(),
         &primary_download_filename
     );
 
@@ -205,7 +212,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "##,
         primary_download_format = primary_format.0.user_label(),
-        primary_download_format_dirname = primary_format.0.asset_dirname(),
+        primary_download_format_dirname = primary_format.0.as_audio_format().asset_dirname(),
         primary_download_format_recommendation = if primary_format.1 { format!(" ({t_recommended_format})") } else { String::new() },
         permalink = &release.permalink.slug
     );

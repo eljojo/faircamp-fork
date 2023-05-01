@@ -101,7 +101,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         .map(|(index, track)| {
             let track_number = index + 1;
 
-            let audio_sources = release.streaming_formats
+            let audio_sources = release.streaming_quality
+                .formats()
                 .iter()
                 .map(|format| {
                     let format_dir = format.asset_dirname();

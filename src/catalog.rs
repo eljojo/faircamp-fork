@@ -582,16 +582,16 @@ impl Catalog {
                 None => pick_best_cover_image(images)
             };
 
-            // TODO: The release assets (= downloadable archives) need to be invalidated
+            // TODO: The archive assets need to be invalidated
             //       and recomputed based on a number of factors actually. So far we're
             //       considering (only) the most important: If the same tracks are in
             //       there, and the same cover, then it's an up-to-date download archive to us.
             //       But main_artists, title, tags, etc. should probably play a role too.
             //       Investigate and implement this in-depth at some point.
-            let assets = cache.get_or_create_release_assets(&cover, &release_tracks);
+            let archive_assets = cache.get_or_create_archive_assets(&cover, &release_tracks);
             
             let release = Release::new(
-                assets,
+                archive_assets,
                 cover,
                 local_options.release_date,
                 main_artists_to_map,
@@ -924,7 +924,7 @@ impl Catalog {
                 None
             };
 
-            for streaming_format in release_mut.streaming_formats {
+            for streaming_format in release_mut.streaming_quality.formats() {
                 let streaming_format_dir = build.build_dir
                     .join(&release_mut.permalink.slug)
                     .join(streaming_format.asset_dirname());
