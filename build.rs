@@ -1,8 +1,10 @@
+use enolib::HtmlPrinter;
 use indoc::formatdoc;
-use pulldown_cmark::{html, Parser};
+use pulldown_cmark::{CodeBlockKind, Event, html, Parser, Tag};
 use slug::slugify;
 use std::env;
 use std::fs::{self, DirEntry};
+use std::ops::Deref;
 use std::path::Path;
 
 #[cfg(not(any(feature = "image", feature = "libvips")))]
@@ -30,6 +32,29 @@ pub fn markdown_to_html(markdown: &str) -> String {
     let mut html_output = String::new();
     let parser = Parser::new(markdown);
     
+    let mut inside_eno_codeblock = false;
+
+    let parser = parser.map(|event| {
+    	if let Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(ref language))) = event {
+    		if language.deref() == "eno" {
+    			inside_eno_codeblock = true;
+    		}
+    	} else if let Event::End(Tag::CodeBlock(_)) = event {
+    		inside_eno_codeblock = false;
+    	} else if let Event::Text(ref text) = event {
+    		if inside_eno_codeblock {
+			    let document = match enolib::parse(text) {
+			        Ok(document) => document,
+			        Err(err) => panic!("Syntax error in {} ({})", text, err)
+			    };
+			    let syntax_highlighted = document.print(&HtmlPrinter);
+    			return Event::Html(syntax_highlighted.into())
+    		}
+    	}
+
+	    event
+    });
+
     html::push_html(&mut html_output, parser);
     
     html_output

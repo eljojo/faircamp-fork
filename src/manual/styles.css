@@ -77,6 +77,10 @@ header {
     z-index: 1;
 }
 header a { color: #fff; }
+.language-eno .comment { color: #5c6370; }
+.language-eno .key { color: #e06c75; }
+.language-eno .operator { color: #56b6c2; }
+.language-eno .value { color: #3f3f3f; }
 main {
     flex-grow: 1;
     min-width: 0;
