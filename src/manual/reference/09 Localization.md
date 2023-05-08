@@ -4,10 +4,10 @@
 
 Faircamp currently ships with four languages:
 
-- English (`en`)
-- French (`fr`)
-- German (`de`)
-- Spanish (`es`)
+- English `en`
+- French `fr`
+- German `de`
+- Spanish `es`
 
 English is the default, another language can be configured like this:
 
@@ -21,7 +21,17 @@ Translation corrections or improvements are very welcome (french and spanish pro
 
 ## Unsupported languages
 
-With a (for now) unsupported language you can still set a custom language code (which will be used e.g. for the RSS feed metadata) and writing direction (`ltr` or `rtl`).
+If you are eager to use faircamp with a not yet supported language, you can
+easily help to make it happen: Open the [english locale](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/locale/en.rs),
+copy its content and just replace the english translations with the ones in
+your language. Post the results in an [issue](https://codeberg.org/simonrepp/faircamp/issues)
+or send them to simon@fdpl.io, then we'll wrap up the rest together. If you're
+code/git savvy you can also directly submit a PR. Either way, don't worry about
+making mistakes, I'll help you with the technical details, it's much appreciated.
+
+Note that even with an unsupported language you can still set a custom
+language code (which will be used e.g. for the RSS feed metadata) and writing
+direction (`ltr` or `rtl`).
 
 ```eno
 # localization
@@ -29,9 +39,3 @@ With a (for now) unsupported language you can still set a custom language code (
 language: he
 writing_direction: rtl
 ```
-
-If you are very eager about using faircamp in a not yet supported language
-(and ready to help with the translations), please do open an issue to flag it
-for prioritization. If you are familiar with coding you can already look at
-[locale.rs](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/locale.rs) to
-get a feeling what will need to be done (it's not really complex).

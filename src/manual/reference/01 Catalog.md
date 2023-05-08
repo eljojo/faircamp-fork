@@ -81,7 +81,7 @@ By default, support artists are not listed in the interface. You can use the
 show_support_artists
 ```
 
-Also by default, support artists are never linked to, and also don't have,
+Also by default, support artists are never linked to, and also don't have
 their own artist page. The `feature_support_artists`  flag can be used to
 link them to, and give them their own, artist pages (this implicitly enables
 `show_support_artists`). Note that this flag only affects label mode. In

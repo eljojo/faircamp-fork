@@ -27,7 +27,9 @@ For example, enabling FLAC and Opus downloads for people who received your downl
 code: crowdfunding2023!
 
 -- unlock_text
-You should have received the unlock code in your confirmation mail for this year's crowdfunding. Stay tuned in case you missed it, we're currently planning the next run!
+You should have received the unlock code in your confirmation mail
+for this year's crowdfunding. Stay tuned in case you missed it,
+we're currently planning the next run!
 -- unlock_text
 
 formats:
@@ -89,7 +91,7 @@ disabled
 ## All formats
 
 Lastly here's a listing of all download formats you can currently enable. In
-practice a minimal comination of a lossy state of the art format (e.g. `opus`),
+practice a minimal combination of a lossy state of the art format (e.g. `opus`),
 a lossy format with high compatibility (e.g. `mp3`) and a lossless format
 (e.g. `flac`) is recommended.
 

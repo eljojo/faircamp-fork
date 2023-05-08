@@ -1,9 +1,9 @@
 # Getting Started
 
-Before we begin let's quickly look at the input faircamp needs:
+First let's quickly look at the input faircamp needs:
 
 ```
-Superstar Artist/         <--- Top directory ("Catalog")
+The Artist/               <--- Top directory ("Catalog")
 ├─ Greatest Hits/           <--- Nested Directory ("Release")
 │  ├─ One Hit Wonder.mp3      <--- Audio File ("Track") 
 │  ├─ Summer Hit.mp3
@@ -15,12 +15,12 @@ Superstar Artist/         <--- Top directory ("Catalog")
       └─ CD Sleeve.jpg          <--- Cover image (optional)
 ```
 
-We see: Faircamp takes a *directory with arbitrarily nested
-directories* as input. The only convention to follow: *Directories
-that directly contain audio files* will be presented as *releases*
-(think albums, singles and playlists) with their own page.
+We see that faircamp takes a directory with arbitrarily nested directories as
+input. The only convention to follow: Directories that directly contain audio
+files will be presented as *releases* (think albums, singles and playlists)
+with their own page.
 
-Now to use faircamp, prepare your catalog folder (similar to `Superstar Artist/` above), `cd` into it  and run:
+To use faircamp, prepare your catalog folder (similar to `The Artist/` above), `cd` into it and run:
 
 ```
 faircamp --preview

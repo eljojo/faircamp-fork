@@ -20,7 +20,7 @@ name: Heston Exchange
 permalink: heston-exchange
 
 aliases:
-- heston exchange
+- The Heston Exchange
 - Heston Exchange (feat. Bar Foo)
 
 image:
