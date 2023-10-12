@@ -203,7 +203,11 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         const url = `../../{t_downloads_permalink}/${{code}}{index_suffix}`;
                         fetch(url, {{ method: 'HEAD', mode: 'no-cors' }})
                             .then(response => {{
-                                window.location = url;
+                                if (response.ok) {{
+                                    window.location = url;
+                                }} else {{
+                                    alert('{t_unlock_code_seems_incorrect}');
+                                }}
                             }})
                             .catch(error => {{
                                 alert('{t_unlock_code_seems_incorrect}');
