@@ -755,11 +755,12 @@ impl Release {
             }
             DownloadOption::Disabled => (),
             DownloadOption::Free  => {
-                let page_hash = build.hash_generic(&[&self.permalink.slug, "download"]);
+                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let page_hash = build.hash_generic(&[&self.permalink.slug, t_downloads_permalink]);
 
                 let download_page_dir = build.build_dir
                     .join(&self.permalink.slug)
-                    .join("download")
+                    .join(t_downloads_permalink)
                     .join(page_hash);
 
                 let download_html = render::release::download::download_html(build, catalog, self);

@@ -45,12 +45,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         },
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free => {
-            let page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
+            let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+            let page_hash = build.hash_generic(&[&release.permalink.slug, t_downloads_permalink]);
 
             let download_icon = include_str!("../icons/download.svg");
             let t_downloads = &build.locale.translations.downloads;
             formatdoc!(r#"
-                <a href="download/{page_hash}{index_suffix}">
+                <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
                     {download_icon}
                     <span>{t_downloads}</span>
                 </a>

@@ -115,7 +115,8 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .collect::<Vec<String>>()
             .join("\n");
 
-        let download_page_hash = build.hash_generic(&[&release.permalink.slug, "download"]);
+        let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+        let download_page_hash = build.hash_generic(&[&release.permalink.slug, t_downloads_permalink]);
 
         let formats = release.download_formats
             .iter()
@@ -157,7 +158,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 <br><br>
 
                 <a class="button disabled"
-                   href="{release_prefix}download/{download_page_hash}{index_suffix}"
+                   href="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}"
                    id="continue"
                    onclick="if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}">
                     {t_continue}
