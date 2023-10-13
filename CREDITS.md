@@ -7,16 +7,17 @@ rather not be listed here, no problem, just say the word.
 
 Thanks everyone for your support.
 
-[ailepet](https://codeberg.org/ailepet)
-[Dave Lane](https://davelane.nz)
-[Dave Riedstra](https://daveriedstra.com/)
-[Esi Jóhannes G.](https://esi.is/)
-[Francesco Gazzetta](https://codeberg.org/fgaz)
-[fREW Schmidt](https://blog.afoolishmanifesto.com/)
-[Friedrich](https://codeberg.org/Friedrich)
-[GoodTech](https://codeberg.org/GoodTech)
-[jd42](https://codeberg.org/jd42)
-[ncc1988](https://codeberg.org/ncc1988)
-[nOOq](https://codeberg.org/n00q)
-[Simon Repp](https://simonrepp.com)
+[ailepet](https://codeberg.org/ailepet)<br>
+[Dave Lane](https://davelane.nz)<br>
+[Dave Riedstra](https://daveriedstra.com/)<br>
+[Esi Jóhannes G.](https://esi.is/)<br>
+[Francesco Gazzetta](https://codeberg.org/fgaz)<br>
+[fREW Schmidt](https://blog.afoolishmanifesto.com/)<br>
+[Friedrich](https://codeberg.org/Friedrich)<br>
+[GoodTech](https://codeberg.org/GoodTech)<br>
+[jd42](https://codeberg.org/jd42)<br>
+[Meljoann](https://www.meljoann.com/)<br>
+[ncc1988](https://codeberg.org/ncc1988)<br>
+[nOOq](https://codeberg.org/n00q)<br>
+[Simon Repp](https://simonrepp.com)<br>
 [Samæ](https://samae.demer.se/)
