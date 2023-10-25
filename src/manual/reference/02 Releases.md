@@ -34,7 +34,19 @@ Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
 ```
 
 If you provide a cover image, use `description` to include an image description
-for it. `track_numbering` allows configuration of the numbering style
+for it.
+
+If your release has multiple principal artists (e.g. a split EP), instead of
+`artist: Alice` you can also use the following to make faircamp present two
+discrete artists as main artists of the release:
+
+```eno
+artists:
+- Alice
+- Bob
+```
+
+`track_numbering` allows configuration of the numbering style
 used - by default it's `arabic` (01 02 03 …) but can be set to `hexadecimal`
 (0x01 0x02 0x03 …), `roman` (I II
 III …) or `disabled`.
