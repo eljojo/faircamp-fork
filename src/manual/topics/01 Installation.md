@@ -13,11 +13,11 @@ Install [faircamp-git](https://aur.archlinux.org/packages/faircamp-git) from the
 
 **Debian 12, Ubuntu 23.04**
 
-Install the [.deb package (amd64) [libvips-enabled]](https://simonrepp.com/faircamp/packages/faircamp_427.aabc1b4706-1+deb12_amd64.deb)
+Install the [.deb package (amd64) [libvips-enabled]](https://simonrepp.com/faircamp/packages/faircamp_0.8.0-1+deb12_amd64.deb)
 
 **Debian 11, elementary OS, Linux Mint, Ubuntu 22.04 LTS - 22.10**
 
-Install the [.deb package (amd64)](https://simonrepp.com/faircamp/packages/faircamp_427.aabc1b4706-1+deb11_amd64.deb)
+Install the [.deb package (amd64)](https://simonrepp.com/faircamp/packages/faircamp_0.8.0-1+deb11_amd64.deb)
 
 **Fedora, CentOS, RHEL**
 
