@@ -23,6 +23,10 @@ Install the [.deb package (amd64)](https://simonrepp.com/faircamp/packages/fairc
 
 See copy/paste instructions for these platforms in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
 
+**Nix/NixOS**
+
+Install [the `faircamp` package](https://search.nixos.org/packages?show=faircamp&type=packages&query=faircamp).
+
 **Other platforms**
 
 See general build instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
