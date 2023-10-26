@@ -51,6 +51,11 @@ used - by default it's `arabic` (01 02 03 …) but can be set to `hexadecimal`
 (0x01 0x02 0x03 …), `roman` (I II
 III …) or `disabled`.
 
+Tracks are sorted by the track numbers found in the audio file metadata,
+otherwise they are alphabetically sorted. Tracks with track numbers in
+metadata are sorted before those without them, if you happen to have such
+mixed material.
+
 Note that the `date` is used for sorting only: Both on the homepage, as well
 as on artist pages (label mode) releases that have the most recent date are
 displayed on top, followed by older ones and lastly followed by those that

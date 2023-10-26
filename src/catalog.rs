@@ -491,11 +491,25 @@ impl Catalog {
         }
         
         if !release_tracks.is_empty() {
-            release_tracks.sort_by(|a, b|
-                a.assets.borrow().source_meta.track_number.cmp(
-                    &b.assets.borrow().source_meta.track_number
-                )
-            );
+            release_tracks.sort_by(|a, b| {
+                let a_assets_ref = a.assets.borrow();
+                let b_assets_ref = b.assets.borrow();
+
+                let track_numbers = (
+                    a_assets_ref.source_meta.track_number,
+                    b_assets_ref.source_meta.track_number
+                );
+
+                match track_numbers {
+                    (Some(a_track_number), Some(b_track_number)) => a_track_number.cmp(&b_track_number),
+                    (Some(_), None) => Ordering::Less,
+                    (None, Some(_)) => Ordering::Greater,
+                    // If both tracks have no track number, sort by original source file name instead
+                    (None, None) => a_assets_ref.source_file_signature.path.cmp(
+                        &b_assets_ref.source_file_signature.path
+                    )
+                }
+            });
 
             // Sort most often occuring title to the end of the Vec
             release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0));
