@@ -66,3 +66,40 @@ render the site hard to read or even unreadable. That said,
 background_alpha: 23
 background_image: squiggly_monsters_texture.jpg
 ```
+
+## Font
+
+By default, faircamp bundles and uses the [Barlow](https://tribby.com/fonts/barlow/) font
+on a generated site, but this can be configured.
+
+Using the standard sans serif font from the system of the visitor:
+
+```eno
+# theme
+
+system_font: sans
+```
+
+Using the standard monospace font from the system of the visitor:
+
+```eno
+# theme
+
+system_font: mono
+```
+
+Using a specific font (by font name) from the system of the visitor (this should have a rather specific reason, normally you probably don't want to do that):
+
+```eno
+# theme
+
+system_font: Arial
+```
+
+Bundling and using a custom font (put a `.woff` or `.woff2` file in the same directory as the manifest - other font file types are not supported!):
+
+```eno
+# theme
+
+custom_font: MyCustomSans.woff2
+```
