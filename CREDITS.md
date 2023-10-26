@@ -18,6 +18,7 @@ Thanks everyone for your support.
 [Friedrich](https://codeberg.org/Friedrich)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [jd42](https://codeberg.org/jd42)<br>
+[keef](https://key13.uk)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>

@@ -38,13 +38,21 @@ impl AudioMeta {
         info_decoding!("{:?} (Generating waveform/reading metadata)", path);
 
         let lossless = match extension {
-            "aiff" | "alac" | "flac" | "wav" => true,
-            "aac" | "mp3" | "ogg" | "opus" => false,
+            "aif" |
+            "aifc" |
+            "aiff" |
+            "alac" |
+            "flac" |
+            "wav" => true,
+            "aac" |
+            "mp3" |
+            "ogg" |
+            "opus" => false,
             _ => unimplemented!("Determination whether extension {} indicates lossless audio in the file not yet implemented.", extension)
         };
 
         match extension {
-            "aiff" => {
+            "aif" | "aifc" | "aiff" => {
                 let (duration_seconds, peaks) = match aiff::decode(path) {
                     Some(decode_result) => (
                         decode_result.duration,
