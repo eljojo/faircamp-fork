@@ -54,7 +54,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     &build.locale.translations.name_your_price,
                     None,
                     None,
-                    &build.locale.translations.any_amount
+                    &build.locale.translations.xxx_or_more("0")
                 )
             }
         } else if range.start == range.end {

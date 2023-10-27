@@ -2,7 +2,6 @@ use super::Translations;
 
 pub fn translations() -> Translations {
     Translations {
-        any_amount: String::from("Choix libre"),
         audio_format_description_aac: String::from("Qualité d'encodage moyenne – approprié si votre lecteur ne supporte pas de meilleurs formats"),
         audio_format_description_aiff: String::from("Fichiers volumineux non compressés – approprié uniquement pour la production audio"),
         audio_format_description_flac: String::from("Sans perte et compressé – idéal pour l'archivage"),
