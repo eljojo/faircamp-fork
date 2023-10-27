@@ -12,11 +12,13 @@ use crate::{
     Build,
     Cache,
     DownloadOption,
+    Extra,
     Image,
     manifest::{self, LocalOptions, Overrides},
     Permalink,
     PermalinkUsage,
     Release,
+    SourceFileSignature,
     TagMapping,
     Track,
     TrackAssets,
@@ -55,7 +57,7 @@ pub struct Catalog {
 /// Gets passed the images found in a release directory. Checks against a few
 /// hardcoded filenames (the usual suspects) to determine which image is most
 /// likely to be the intended release cover image.
-fn pick_best_cover_image(images: Vec<Rc<RefCell<Image>>>) -> Option<Rc<RefCell<Image>>> {
+fn pick_best_cover_image(images: &[Rc<RefCell<Image>>]) -> Option<Rc<RefCell<Image>>> {
     let mut cover_candidate_option: Option<(usize, _)> = None;
 
     for image in images {
@@ -78,7 +80,7 @@ fn pick_best_cover_image(images: Vec<Rc<RefCell<Image>>>) -> Option<Rc<RefCell<I
         }
     }
 
-    cover_candidate_option.map(|cover_candidate| cover_candidate.1)
+    cover_candidate_option.map(|cover_candidate| cover_candidate.1).cloned()
 }
 
 impl Catalog {
@@ -340,7 +342,6 @@ impl Catalog {
         let mut local_options = LocalOptions::new();
         let mut local_overrides = None;
         
-        let mut images = Vec::new();
         // We get the 'album' metadata from each track in a release. As each track in a
         // release could have a different 'album' specified, we count how often each
         // distinct 'album' tag is present on a track in the release, and then when we
@@ -350,6 +351,7 @@ impl Catalog {
         let mut release_tracks: Vec<Track> = Vec::new();
         
         let mut dir_paths: Vec<PathBuf> = Vec::new();
+        let mut extra_paths: Vec<PathBuf> = Vec::new();
         let mut image_paths: Vec<PathBuf> = Vec::new();
         let mut meta_paths: Vec<PathBuf> = Vec::new();
         let mut track_paths: Vec<(PathBuf, String)> = Vec::new();
@@ -418,10 +420,10 @@ impl Catalog {
                                     } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
                                         image_paths.push(path);
                                     } else {
-                                        warn!("Ignoring unsupported file '{}'", path.display());
+                                        extra_paths.push(path);
                                     }
                                 } else {
-                                    warn!("Ignoring unsupported file '{}'", path.display());
+                                    extra_paths.push(path);
                                 }
                             } else if file_type.is_symlink() {
                                 warn!("Ignoring symlink '{}'", path.display());
@@ -478,19 +480,23 @@ impl Catalog {
             release_tracks.push(track);
         }
         
-        for image_path in &image_paths {
-            let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
-
-            if build.verbose {
-                info!("Reading image {}", path_relative_to_catalog.display());
-            }
-            
-            let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
-            
-            images.push(Rc::new(RefCell::new(Image::new(assets, None))));
-        }
-        
         if !release_tracks.is_empty() {
+            // Process bare image paths into "image assets"
+            let images: Vec<_> = image_paths
+                .into_iter()
+                .map(|image_path| {
+                    let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
+
+                    if build.verbose {
+                        info!("Reading image {}", path_relative_to_catalog.display());
+                    }
+                    
+                    let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
+                    
+                    Rc::new(RefCell::new(Image::new(assets, None)))
+                })
+                .collect();
+
             release_tracks.sort_by(|a, b| {
                 let a_assets_ref = a.assets.borrow();
                 let b_assets_ref = b.assets.borrow();
@@ -593,8 +599,26 @@ impl Catalog {
 
             let cover = match &local_overrides.as_ref().unwrap_or(parent_overrides).release_cover {
                 Some(image) => Some(image.clone()),
-                None => pick_best_cover_image(images)
+                None => pick_best_cover_image(&images)
             };
+
+            let mut extras = Vec::new();
+            if local_overrides.as_ref().unwrap_or(parent_overrides).include_extras {
+                for image in images {
+                    if let Some(ref cover_unwrapped) = cover {
+                        if Rc::ptr_eq(&image, &cover_unwrapped) { continue }
+                    }
+
+                    let extra = Extra::new(image.borrow().assets.borrow().source_file_signature.clone());
+                    extras.push(extra);
+                }
+
+                for extra_path in extra_paths {
+                    let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
+                    let source_file_signature = SourceFileSignature::new(build, path_relative_to_catalog);
+                    extras.push(Extra::new(source_file_signature));
+                }
+            }
 
             // TODO: The archive assets need to be invalidated
             //       and recomputed based on a number of factors actually. So far we're
@@ -602,12 +626,17 @@ impl Catalog {
             //       there, and the same cover, then it's an up-to-date download archive to us.
             //       But main_artists, title, tags, etc. should probably play a role too.
             //       Investigate and implement this in-depth at some point.
-            let archive_assets = cache.get_or_create_archive_assets(&cover, &release_tracks);
+            let archive_assets = cache.get_or_create_archive_assets(
+                &cover,
+                &release_tracks,
+                &extras
+            );
             
             let release = Release::new(
                 archive_assets,
                 cover,
                 local_options.release_date,
+                extras,
                 main_artists_to_map,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 local_options.release_permalink,
@@ -617,9 +646,6 @@ impl Catalog {
             );
 
             self.releases.push(Rc::new(RefCell::new(release)));
-        } else if !images.is_empty() {
-            // This dir is not a release dir (no tracks found), but it contains images.
-            // Consider whether there might be anything to do with these images?
         }
         
         for dir_path in &dir_paths {

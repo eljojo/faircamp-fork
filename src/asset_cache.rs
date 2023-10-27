@@ -17,6 +17,7 @@ use crate::{
     Build,
     Catalog,
     DownloadFormat,
+    Extra,
     Image,
     ImageAssets,
     Track,
@@ -78,6 +79,7 @@ pub struct SourceFileSignature {
     /// that we can correctly re-associate files on each build, even
     /// if the catalog directory moves around on disk. 
     pub path: PathBuf,
+    /// File size in bytes
     pub size: u64
 }
     
@@ -626,13 +628,15 @@ impl Cache {
     }
 
     /// This basically checks "Do we have cached download archives which
-    /// include the given cover image and tracks?" (whether we have them
-    /// in all required formats is not yet relevant at this point). If yes
-    /// they are returned, otherwise created (but not yet computed).
+    /// include the given cover image, all tracks in the right order, and all extras?"
+    /// (whether we have the image and tracks in all required formats is not
+    /// yet relevant at this point). If yes they are returned, otherwise
+    /// created (but not yet computed).
     pub fn get_or_create_archive_assets(
         &mut self,
         cover: &Option<Rc<RefCell<Image>>>,
-        tracks: &[Track]
+        tracks: &[Track],
+        extras: &[Extra]
     ) -> Rc<RefCell<ArchiveAssets>> {
         match self.archives
             .iter()
@@ -646,6 +650,16 @@ impl Cache {
                     }
                 } else if assets_ref.cover_source_file_signature.is_some() {
                     return false;
+                }
+
+                if extras.len() != assets_ref.extra_source_file_signatures.len() {
+                    return false;
+                }
+
+                for extra in extras {
+                    if !assets_ref.extra_source_file_signatures.contains(&extra.source_file_signature) {
+                        return false;
+                    }
                 }
 
                 tracks
@@ -664,7 +678,8 @@ impl Cache {
 
                 let assets = Rc::new(RefCell::new(ArchiveAssets::new(
                     cover.as_ref().map(|cover| cover.borrow().assets.borrow().source_file_signature.clone()),
-                    track_source_file_signatures
+                    track_source_file_signatures,
+                    extras.iter().map(|extra| extra.source_file_signature.clone()).collect()
                 )));
                 self.archives.push(assets.clone());
                 assets

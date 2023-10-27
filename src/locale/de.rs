@@ -29,6 +29,7 @@ pub fn translations() -> Translations {
         embed_entire_release: String::from("Den gesamten Release einbetten"),
         enter_code_here: String::from("Code hier eingeben"),
         entire_release: String::from("Gesamter Release"),
+        extra_material: String::from("Extra Material"),
         failed: String::from("Fehler"),
         feed: String::from("Feed"),
         fixed_price: String::from("Fixer Preis:"),

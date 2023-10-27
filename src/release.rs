@@ -1,5 +1,6 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use indoc::formatdoc;
+use sanitize_filename::sanitize;
 use serde_derive::{Serialize, Deserialize};
 use std::{
     cell::RefCell,
@@ -39,6 +40,7 @@ pub struct ArchiveAssets {
     pub aac: Option<Asset>,
     pub aiff: Option<Asset>,
     pub cover_source_file_signature: Option<SourceFileSignature>,
+    pub extra_source_file_signatures: Vec<SourceFileSignature>,
     pub flac: Option<Asset>,
     pub mp3_v0: Option<Asset>,
     pub ogg_vorbis: Option<Asset>,
@@ -48,6 +50,12 @@ pub struct ArchiveAssets {
     pub track_source_file_signatures: Vec<SourceFileSignature>,
     pub uid: String,
     pub wav: Option<Asset>
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Extra {
+    pub sanitized_filename: String,
+    pub source_file_signature: SourceFileSignature
 }
 
 #[derive(Debug)]
@@ -61,6 +69,12 @@ pub struct Release {
     pub download_formats: Vec<DownloadFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
+    /// Additional files that are included in the download archive,
+    /// such as additional images, liner notes, etc.
+    pub extras: Vec<Extra>,
+    /// Whether additional files in the release directory (besides audio files,
+    /// cover image and manifest(s)) should be included in the downloads. 
+    pub include_extras: bool,
     /// The artists that are the principal authors of a release ("Album Artist" in tag lingo)
     pub main_artists: Vec<Rc<RefCell<Artist>>>,
     /// The order in which we encounter artists and releases when reading the
@@ -98,6 +112,19 @@ pub enum TrackNumbering {
     Arabic,
     Hexadecimal,
     Roman
+}
+
+impl Extra {
+    pub fn new(source_file_signature: SourceFileSignature) -> Extra {
+        let sanitized_filename = sanitize(
+            source_file_signature.path.file_name().unwrap().to_string_lossy()
+        );
+
+        Extra {
+            sanitized_filename,
+            source_file_signature
+        }
+    }
 }
 
 impl Release {
@@ -477,6 +504,7 @@ impl Release {
         archive_assets: Rc<RefCell<ArchiveAssets>>,
         cover: Option<Rc<RefCell<Image>>>,
         date: Option<NaiveDate>,
+        extras: Vec<Extra>,
         main_artists_to_map: Vec<String>,
         manifest_overrides: &Overrides,
         permalink_option: Option<Permalink>,
@@ -502,6 +530,8 @@ impl Release {
             download_formats: manifest_overrides.download_formats.clone(),
             download_option,
             embedding: manifest_overrides.embedding,
+            extras,
+            include_extras: manifest_overrides.include_extras,
             main_artists: Vec::new(),
             main_artists_to_map,
             payment_options: manifest_overrides.payment_options.clone(),
@@ -711,6 +741,18 @@ impl Release {
                     assets_mut.persist_to_cache(&build.cache_dir);
                 }
 
+                for extra in &self.extras {
+                    zip_writer.start_file(&extra.sanitized_filename, options).unwrap();
+
+                    let mut zip_inner_file = File::open(
+                        &build.catalog_dir.join(&extra.source_file_signature.path)
+                    ).unwrap();
+
+                    zip_inner_file.read_to_end(&mut buffer).unwrap();
+                    zip_writer.write_all(&buffer).unwrap();
+                    buffer.clear();
+                }
+
                 match zip_writer.finish() {
                     Ok(_) => cached_archive_asset.replace(Asset::new(build, cached_archive_filename, AssetIntent::Deliverable)),
                     Err(err) => panic!("{}", err)
@@ -744,6 +786,37 @@ impl Release {
             build.stats.add_archive(download_archive_asset.filesize_bytes);
 
             archive_assets_mut.persist_to_cache(&build.cache_dir);
+        }
+
+        // Write extras for discrete download access (outside of archives/zips)
+        if !self.extras.is_empty() {
+            for extra in &self.extras {
+                let extras_dir = release_dir.join("extras");
+
+                util::ensure_dir(&extras_dir);
+
+                let hash = build.hash(
+                    &self.permalink.slug,
+                    "extras",
+                    &extra.sanitized_filename
+                );
+
+                // TODO: We should calculate this earlier and persist it so we can reuse it for copying
+                // and for rendering the hrefs that point to it, however we need to figure out where 
+                // (or on what) to store it - that's a bit tricky. (applies in a few places)
+                let hash_dir = extras_dir.join(hash);
+
+                util::ensure_dir(&hash_dir);
+
+                let target_path = hash_dir.join(&extra.sanitized_filename);
+
+                util::hard_link_or_copy(
+                    build.catalog_dir.join(&extra.source_file_signature.path),
+                    target_path
+                );
+
+                build.stats.add_extra(extra.source_file_signature.size);
+            }
         }
     }
 
@@ -904,12 +977,14 @@ impl ArchiveAssets {
 
     pub fn new(
         cover_source_file_signature: Option<SourceFileSignature>,
-        track_source_file_signatures: Vec<SourceFileSignature>
+        track_source_file_signatures: Vec<SourceFileSignature>,
+        extra_source_file_signatures: Vec<SourceFileSignature>
     ) -> ArchiveAssets {
         ArchiveAssets {
             aac: None,
             aiff: None,
             cover_source_file_signature,
+            extra_source_file_signatures,
             flac: None,
             mp3_v0: None,
             ogg_vorbis: None,

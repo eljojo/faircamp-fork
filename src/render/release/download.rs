@@ -19,8 +19,8 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
 
-    let t_cover_image = &build.locale.translations.cover_image;
     let cover_download = if let Some(cover) = &release.cover {
+        let t_cover_image = &build.locale.translations.cover_image;
         formatdoc!(
             r#"
                 <div>
@@ -34,6 +34,45 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             "#,
             edge_size = cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().edge_size,
             permalink = &release.permalink.slug
+        )
+    } else {
+        String::new()
+    };
+
+    let extra_downloads = if !release.extras.is_empty() {
+        let t_extra_material = &build.locale.translations.extra_material;
+        let release_slug = &release.permalink.slug;
+
+        let links = release.extras
+            .iter()
+            .map(|extra| {
+                let extra_hash = build.hash(
+                    release_slug,
+                    "extras",
+                    &extra.sanitized_filename
+                );
+
+                formatdoc!(
+                    r#"
+                        <a download href="{root_prefix}{release_slug}/extras/{extra_hash}/{filename}">
+                            {filename}
+                        </a>
+                    "#,
+                    filename = extra.sanitized_filename
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(DOWNLOAD_LABEL_SEPARATOR);
+
+        formatdoc!(
+            r#"
+                <div>
+                    <span>{t_extra_material}</span>
+                    <span class="download_formats">
+                        {links}
+                    </span>
+                </div>
+            "#
         )
     } else {
         String::new()
@@ -194,6 +233,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         <span class="download_formats">{release_downloads}</span>
                     </div>
                     {cover_download}
+                    {extra_downloads}
 
                     <br>
 

@@ -64,9 +64,11 @@ pub enum PostBuildAction {
 
 pub struct Stats {
     bytes_used_archives: u64,
+    bytes_used_extras: u64,
     bytes_used_images: u64,
     bytes_used_tracks: u64,
     num_archives: u32,
+    num_extras: u32,
     num_images: u32,
     num_tracks: u32
 }
@@ -201,7 +203,12 @@ impl Stats {
         self.bytes_used_archives += filesize_bytes;
         self.num_archives += 1;
     }
-    
+
+    pub fn add_extra(&mut self, filesize_bytes: u64) {
+        self.bytes_used_extras += filesize_bytes;
+        self.num_extras += 1;
+    }
+
     pub fn add_image(&mut self, filesize_bytes: u64) {
         self.bytes_used_images += filesize_bytes;
         self.num_images += 1;
@@ -215,9 +222,11 @@ impl Stats {
     pub fn new() -> Stats {
         Stats {
             bytes_used_archives: 0,
+            bytes_used_extras: 0,
             bytes_used_images: 0,
             bytes_used_tracks: 0,
             num_archives: 0,
+            num_extras: 0,
             num_images: 0,
             num_tracks: 0
         }
@@ -225,11 +234,13 @@ impl Stats {
     
     pub fn to_string(&self) -> String {
         format!(
-            "{num_archives} archives ({bytes_used_archives}), {num_tracks} tracks ({bytes_used_tracks}) and {num_images} images ({bytes_used_images}) written",
+            "{num_archives} archives ({bytes_used_archives}), {num_tracks} tracks ({bytes_used_tracks}), {num_images} images ({bytes_used_images}) and {num_extras} extras ({bytes_used_extras}) written",
             num_archives=self.num_archives,
+            num_extras=self.num_extras,
             num_images=self.num_images,
             num_tracks=self.num_tracks,
             bytes_used_archives=util::format_bytes(self.bytes_used_archives),
+            bytes_used_extras=util::format_bytes(self.bytes_used_extras),
             bytes_used_images=util::format_bytes(self.bytes_used_images),
             bytes_used_tracks=util::format_bytes(self.bytes_used_tracks)
         )

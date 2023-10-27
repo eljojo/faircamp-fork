@@ -29,8 +29,10 @@ pub fn format_bytes(size: u64) -> String {
         format!("{}MB", size / BYTES_MB) // e.g. "64MB", "267MB", "510MB"
     } else if size >= 512 * BYTES_KB {
         format!("{:.1}MB", size as f64 / BYTES_MB as f64) // e.g. "0.5MB", "1.3MB", "62.4MB"
-    } else {
+    } else if size >= BYTES_KB {
         format!("{}KB", size / BYTES_KB) // e.g. "3KB", "267KB", "510KB"
+    } else {
+        format!("{}B", size) // e.g. "367B"
     }
 }
 

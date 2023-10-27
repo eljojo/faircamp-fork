@@ -17,10 +17,12 @@ source files onto the transcoded files, as you provided them.
 
 artist: Heston Exchange
 date: 2019-11-03
+include_extras: no
 permalink: ape-affairs-bonus-track-edition
 rewrite_tags: no
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
+
 
 cover:
 description = An ink drawing of a barren tree with monkeys in its branches
@@ -37,6 +39,12 @@ If you provide a cover image, use `description` to include an image description
 for it.
 
 The `text` field allows the use of [Markdown](https://commonmark.org/help/).
+
+Any additional files in a release directory besides the audio files, cover image
+and manifests (.eno files) are considered "extras" and by default included with
+the release downloads (think artwork, liner notes, lyrics, etc.). To turn this
+off, specify: `include_extras: no` (or respectively `yes` to turn it back on
+for single releases).
 
 If your release has multiple principal artists (e.g. a split EP), instead of
 `artist: Alice` you can also use the following to make faircamp present two

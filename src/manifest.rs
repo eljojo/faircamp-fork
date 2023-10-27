@@ -57,6 +57,7 @@ pub struct Overrides {
     pub download_formats: Vec<DownloadFormat>,
     pub download_option: DownloadOption,
     pub embedding: bool,
+    pub include_extras: bool,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<Rc<RefCell<Image>>>,
@@ -84,6 +85,7 @@ impl Overrides {
             download_formats: vec![DownloadFormat::DEFAULT],
             download_option: DownloadOption::Disabled,
             embedding: true,
+            include_extras: true,
             payment_options: Vec::new(),
             release_artists: None,
             release_cover: None,
@@ -626,6 +628,14 @@ pub fn apply_options(
                     local_options.release_date = Some(date);
                 },
                 Err(err) => error!("Ignoring invalid release.date value '{}' in {}:{} ({})", date_str, path.display(), line, err)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "include_extras") {
+            match value.as_str() {
+                "yes" => overrides.include_extras = true,
+                "no" => overrides.include_extras = false,
+                other => error!("Ignoring invalid release.include_extras value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
             }
         }
 
