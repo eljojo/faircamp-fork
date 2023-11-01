@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+- Prevent cover image from being included in release archive twice (5c9b109)
+
 ## 0.9.0
 
 - Improved french translation (Florian Antoine, 4ad9d87)
