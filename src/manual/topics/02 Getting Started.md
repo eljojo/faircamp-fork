@@ -12,7 +12,8 @@ The Artist/               <--- Top directory ("Catalog")
    └─ Live in Megacity/       <--- Nested Directory ("Release")
       ├─ Best Ballad Ever.mp3   <--- Audio File ("Track")
       ├─ Another Summer Hit.mp3
-      └─ CD Sleeve.jpg          <--- Cover image (optional)
+      ├─ CD Sleeve.jpg          <--- Cover image (optional)
+      └─ Booklet.pdf            <--- Extra files to include (optional)
 ```
 
 We see that faircamp takes a directory with arbitrarily nested directories as
