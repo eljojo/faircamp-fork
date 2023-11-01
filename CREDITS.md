@@ -8,6 +8,7 @@ rather not be listed here, no problem, just say the word.
 Thanks everyone for your support.
 
 [ailepet](https://codeberg.org/ailepet)<br>
+[Axel Minet](https://axwax.eu/)<br>
 [controlfreak](https://control.org/)<br>
 [Dave Lane](https://davelane.nz)<br>
 [Dave Riedstra](https://daveriedstra.com/)<br>
@@ -25,4 +26,6 @@ Thanks everyone for your support.
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [nOOq](https://codeberg.org/n00q)<br>
 [Simon Repp](https://simonrepp.com)<br>
-[Samæ](https://samae.demer.se/)
+[Samæ](https://samae.demer.se/)<br>
+[Venya](https://venya.soundslike.pro/)<br>
+[Yonder](https://spacey.space/@yonder)
