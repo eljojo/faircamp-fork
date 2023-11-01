@@ -933,6 +933,7 @@ impl Catalog {
                     },
                     artist: None,
                     title: None,
+                    track: None
                 })
             } else {
                 None
@@ -947,7 +948,7 @@ impl Catalog {
 
                 let release_slug = release_mut.permalink.slug.clone();
 
-                for track in release_mut.tracks.iter_mut() {
+                for (track_index, track) in release_mut.tracks.iter_mut().enumerate() {
                     if let Some(tag_mapping) = &mut tag_mapping_option {
                         tag_mapping.artist = if track.artists.is_empty() {
                             None
@@ -961,6 +962,20 @@ impl Catalog {
                             )
                         };
                         tag_mapping.title = Some(track.title.clone());
+
+                        // This does intentionally not (directly) utilize track number metadata
+                        // gathered from the original audio files, here's why:
+                        // - If all tracks came with track number metadata, the tracks will have
+                        //   been sorted by it, and hence we arrive at the same result anyway (except
+                        //   if someone supplied track number metadata that didn't regularly go from
+                        //   1 to [n] in steps of 1, which is however quite an edge case and raises
+                        //   questions also regarding presentation on the release page itself.)
+                        // - If no track metadata was supplied, we here use the same order as has
+                        //   been determined when the Release is built (alphabetical)
+                        // - If there was a mix of tracks with track numbers and tracks without, it's
+                        //   going to be a bit of a mess (hard to do anything about it), but this will
+                        //   also show on the release page itself already
+                        tag_mapping.track = Some(track_index + 1);
                     }
 
                     track.transcode_as(

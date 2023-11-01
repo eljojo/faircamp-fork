@@ -81,6 +81,14 @@ pub struct Release {
     pub text: Option<String>,
     pub title: String,
     pub track_numbering: TrackNumbering,
+    /// The order of tracks (and derived from this the track numbers) are
+    /// authoritative, i.e. when the release is constructed, tracks are
+    /// passed in the order that has been determined by track number metadata
+    /// and/or alphabetical sorting of filenames as a fallback. When the release
+    /// input files include both files with track number metadata and without,
+    /// and/or when the track numbers don't start at 1 and/or don't monotonically
+    /// increase in steps of 1 some unexpected or random track ordering and numbering
+    /// might happen, but this is somewhat impossible to avoid.
     pub tracks: Vec<Track>
 }
 
@@ -537,6 +545,7 @@ impl Release {
                 },
                 artist: None,
                 title: None,
+                track: None
             })
         } else {
             None
@@ -549,7 +558,7 @@ impl Release {
 
             util::ensure_dir(&format_dir);
 
-            for track in self.tracks.iter_mut() {
+            for (track_index, track) in self.tracks.iter_mut().enumerate() {
                 if track.assets.borrow().get(download_format.as_audio_format()).is_none() {
                     if download_format.is_lossless() && !track.assets.borrow().source_meta.lossless {
                         warn_discouraged!(
@@ -571,6 +580,20 @@ impl Release {
                             )
                         };
                         tag_mapping.title = Some(track.title.clone());
+
+                        // This does intentionally not (directly) utilize track number metadata
+                        // gathered from the original audio files, here's why:
+                        // - If all tracks came with track number metadata, the tracks will have
+                        //   been sorted by it, and hence we arrive at the same result anyway (except
+                        //   if someone supplied track number metadata that didn't regularly go from
+                        //   1 to [n] in steps of 1, which is however quite an edge case and raises
+                        //   questions also regarding presentation on the release page itself.)
+                        // - If no track metadata was supplied, we here use the same order as has
+                        //   been determined when the Release is built (alphabetical)
+                        // - If there was a mix of tracks with track numbers and tracks without, it's
+                        //   going to be a bit of a mess (hard to do anything about it), but this will
+                        //   also show on the release page itself already
+                        tag_mapping.track = Some(track_index + 1);
                     }
 
                     track.transcode_as(

@@ -13,7 +13,9 @@ pub struct TagMapping {
     pub album: Option<String>,
     pub album_artist: Option<String>,
     pub artist: Option<String>,
-    pub title: Option<String>
+    pub title: Option<String>,
+    /// Track number
+    pub track: Option<usize>
 }
 
 pub fn transcode(
@@ -44,6 +46,10 @@ pub fn transcode(
 
         if let Some(title) = &tag_mapping.title {
             command.arg("-metadata").arg(format!("title={}", title));
+        }
+
+        if let Some(track) = &tag_mapping.track {
+            command.arg("-metadata").arg(format!("track={}", track));
         }
     }
 

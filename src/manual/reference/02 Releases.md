@@ -6,11 +6,11 @@ the displayed title and artists for display in the browser, such data can
 be provided through the manifests.
 
 By default faircamp strips all metadata off the audio files that you supply
-when it transcodes them for streaming and downloading, only adding back
-those tags that it needs and manages itself, i.e. the title, artist(s),
-release artist(s) and release title. The `rewrite_tags` option lets you
-control this: Set it to 'no' and faircamp will transfer all tags 1:1 from
-the source files onto the transcoded files, as you provided them.
+when it transcodes them for streaming and downloading, only adding back those
+tags that it needs and manages itself, i.e. the title, track number, artist
+(s), release artist(s) and release title. The `rewrite_tags` option lets you
+control this: Set it to 'no' and faircamp will transfer all tags 1:1 from the
+source files onto the transcoded files, as you provided them.
 
 ```eno
 # release
