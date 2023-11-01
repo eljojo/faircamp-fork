@@ -44,7 +44,12 @@ Any additional files in a release directory besides the audio files, cover image
 and manifests (.eno files) are considered "extras" and by default included with
 the release downloads (think artwork, liner notes, lyrics, etc.). To turn this
 off, specify: `include_extras: no` (or respectively `yes` to turn it back on
-for single releases).
+for single releases). Note that if there are multiple images in the release
+directory and you don't explicitly choose which of them is the cover in your
+manifest, faircamp will use a simple heuristic to choose which of them it picks
+as the cover: "cover.jpg" before "front.jpg" before "albumg.jpg", and after
+that it will pick randomly. Note that it can also be ".png" or another format,
+only the filename before the extension is considered.
 
 If your release has multiple principal artists (e.g. a split EP), instead of
 `artist: Alice` you can also use the following to make faircamp present two
