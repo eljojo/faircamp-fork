@@ -24,7 +24,7 @@ pub enum AudioFormat {
 /// A higher-level audio format representation that only covers
 /// all audio formats that can be enabled for download. Routinely
 /// "casted" to the more generic AudioFormat where needed.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum DownloadFormat {
     Aac,
     Aiff,
@@ -46,41 +46,28 @@ pub enum StreamingQuality {
     Standard
 }
 
-/// Returns a tuple with ...
-/// - .0 => Primary audio format and whether it is recommended
-/// - .1 => Audio formats sorted by relevance for a non-expert listener, the recommended one marked as such 
+/// Returns the download formats sorted by relevance for a non-expert listener, as a tuple ...
+/// - .0 => the respective format
+/// - .1 => boolean saying whether the format is recommended
 /// Careful this does not support being called with an empty list of formats.
-pub fn prioritized_for_download(
-    download_formats: &[DownloadFormat]
-) -> ((DownloadFormat, bool), Vec<(DownloadFormat, bool)>) {
+pub fn prioritized_for_download(download_formats: &[DownloadFormat]) -> Vec<(DownloadFormat, bool)> {
     let mut sorted_formats = download_formats.to_owned();
     
     sorted_formats.sort_by_key(|format| format.download_rank());
     
-    let mut recommended_format = None;
     let mut recommendation_given = false;
-    let prioritized_formats: Vec<(DownloadFormat, bool)> = sorted_formats
+    
+    sorted_formats
         .iter()
         .map(|format| {
             if !recommendation_given && format.recommended_download() {
-                recommended_format = Some(*format);
                 recommendation_given = true;
                 (*format, true)
             } else {
                 (*format, false)
             }
         })
-        .collect();
-
-    let primary_format = match recommended_format {
-        Some(format) => (format, true),
-        None => *prioritized_formats.first().unwrap()
-    };
-
-    (
-        primary_format,
-        prioritized_formats
-    )
+        .collect()
 }
 
 impl AudioFormat {
@@ -213,30 +200,15 @@ impl DownloadFormat {
     /// A one-liner describing the format for someone unfamiliar with audio formats.
     pub fn description(&self, build: &Build) -> String {
         match self {
-            DownloadFormat::Aac => build.locale.translations.audio_format_description_aac.clone(),
-            DownloadFormat::Aiff => build.locale.translations.audio_format_description_aiff.clone(),
-            DownloadFormat::Flac => build.locale.translations.audio_format_description_flac.clone(),
-            DownloadFormat::Mp3VbrV0 => build.locale.translations.audio_format_description_mp3_vbr.clone(),
-            DownloadFormat::OggVorbis => build.locale.translations.audio_format_description_ogg_vorbis.clone(),
-            DownloadFormat::Opus48Kbps => build.locale.translations.audio_format_description_opus_48.clone(),
-            DownloadFormat::Opus96Kbps => build.locale.translations.audio_format_description_opus_96.clone(),
-            DownloadFormat::Opus128Kbps => build.locale.translations.audio_format_description_opus_128.clone(),
-            DownloadFormat::Wav => build.locale.translations.audio_format_description_wav.clone(),
-        }
-    }
-
-    /// Abbreviated labels for use as clickable download links on the Downloads page
-    pub fn download_label(&self) -> &str {
-        match self {
-            DownloadFormat::Aac => "AAC",
-            DownloadFormat::Aiff => "AIFF",
-            DownloadFormat::Flac => "FLAC",
-            DownloadFormat::Mp3VbrV0 => "MP3",
-            DownloadFormat::OggVorbis => "Ogg Vorbis",
-            DownloadFormat::Opus48Kbps => "Opus 48",
-            DownloadFormat::Opus96Kbps => "Opus 96",
-            DownloadFormat::Opus128Kbps => "Opus 128",
-            DownloadFormat::Wav => "WAV"
+            DownloadFormat::Aac |
+            DownloadFormat::OggVorbis => build.locale.translations.audio_format_average.clone(),
+            DownloadFormat::Aiff |
+            DownloadFormat::Wav => build.locale.translations.audio_format_uncompressed.clone(),
+            DownloadFormat::Flac => build.locale.translations.audio_format_flac.clone(),
+            DownloadFormat::Mp3VbrV0 => build.locale.translations.audio_format_mp3.clone(),
+            DownloadFormat::Opus48Kbps => build.locale.translations.audio_format_opus_48.clone(),
+            DownloadFormat::Opus96Kbps => build.locale.translations.audio_format_opus_96.clone(),
+            DownloadFormat::Opus128Kbps => build.locale.translations.audio_format_opus_128.clone(),
         }
     }
 

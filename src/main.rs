@@ -48,7 +48,7 @@ use image_processor::{ImageProcessor, ResizeMode};
 use locale::{Locale, WritingDirection};
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
-use release::{ArchiveAssets, Extra, Release};
+use release::{ArchiveAssets, DownloadGranularity, Extra, Release};
 use theme::Theme;
 use track::{Track, TrackAssets};
 

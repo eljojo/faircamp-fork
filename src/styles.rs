@@ -67,6 +67,7 @@ pub fn generate(build: &Build) {
                 --cover-h: var(--link-h);
                 --cover-l: {cover_l}%;
                 --cover-s: calc({cover_s}% * (var(--tint-front) / 100));
+                --faint-l: {faint_l}%;
                 --header-a: {header_a};
                 --header-l: {header_l}%;
                 --header-link-l: {header_link_l}%;
@@ -95,6 +96,7 @@ pub fn generate(build: &Build) {
         cover_border_radius = if theme.round_corners { "5%" } else { "0" },
         cover_l = theme.base.cover_l,
         cover_s = 35,
+        faint_l = theme.base.faint_l,
         header_a = theme.base.header_a,
         header_l = theme.base.header_l,
         header_link_l = theme.base.header_link_l,

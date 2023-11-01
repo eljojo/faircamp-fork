@@ -14,6 +14,7 @@ use crate::{
     CacheOptimization,
     Catalog,
     DownloadFormat,
+    DownloadGranularity,
     DownloadOption,
     Image,
     Locale,
@@ -55,6 +56,7 @@ pub struct LocalOptions {
 #[derive(Clone)]
 pub struct Overrides {
     pub download_formats: Vec<DownloadFormat>,
+    pub download_granularity: DownloadGranularity,
     pub download_option: DownloadOption,
     pub embedding: bool,
     pub include_extras: bool,
@@ -83,6 +85,7 @@ impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
             download_formats: vec![DownloadFormat::DEFAULT],
+            download_granularity: DownloadGranularity::EntireRelease,
             download_option: DownloadOption::Disabled,
             embedding: true,
             include_extras: true,
@@ -445,6 +448,7 @@ pub fn apply_options(
                 }
             };
         }
+
         optional_field_with_items(section, "codes", &mut |items: &[Item]| {
             let codes: Vec<String> = items
                     .iter()
@@ -470,9 +474,11 @@ pub fn apply_options(
                 };
             }
         });
+
         if optional_flag_present(section, "disabled") {
             overrides.download_option = DownloadOption::Disabled;
         }
+
         if let Some(value) = optional_field_value(section, "format") {
             // TODO: Implement via FromStr
             match DownloadFormat::from_manifest_key(value.as_str()) {
@@ -481,6 +487,7 @@ pub fn apply_options(
                 None => error!("Ignoring invalid download.format setting value '{}' in {}", value, path.display())
             }
         }
+
         optional_field_with_items(section, "formats", &mut |items: &[Item]| { 
             overrides.download_formats = items
                     .iter()
@@ -497,9 +504,11 @@ pub fn apply_options(
                     })
                     .collect();
         });
+
         if optional_flag_present(section, "free") {
             overrides.download_option = DownloadOption::Free;
         }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "price") {
              match DownloadOption::new_from_price_string(&value) {
                 Ok(download_option) => overrides.download_option = download_option,
@@ -512,6 +521,16 @@ pub fn apply_options(
                 )
             };
         }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "single_files") {
+            match value.as_str() {
+                "enabled" => overrides.download_granularity = DownloadGranularity::AllOptions,
+                "disabled" => overrides.download_granularity = DownloadGranularity::EntireRelease,
+                "only" => overrides.download_granularity = DownloadGranularity::SingleFiles,
+                value => error!("Ignoring unsupported download.single_files setting value '{}' (supported values are 'enabled', 'disabled' and 'only') in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Some(value) = optional_embed_value(section, "unlock_text") {
             overrides.unlock_text = Some(util::markdown_to_html(&value));
         }

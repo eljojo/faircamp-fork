@@ -88,6 +88,41 @@ Disable downloads for specific releases when they have been enabled in a manifes
 disabled
 ```
 
+## Offering single files for download
+
+By default, the generated site will only offer complete download archives with
+all files of a release (tracks, cover, extras) included.
+
+Downloads of single files of a release can be enabled in addition, but be
+aware that this significantly increases the required storage space for the
+generated site:
+
+```eno
+# download
+
+single_files: enabled
+```
+
+In some cases it may be preferable to *only* offer single file downloads,
+entirely disabling the generation and offering of complete download archives.
+This will usually require a little more space (but in some circumstances also
+a little less space) than offering only complete download archives:
+
+```eno
+# download
+
+single_files: only
+```
+
+To restore the default behavior of offering complete download archives only,
+when you've overriden it in some way in a parent manifest:
+
+```eno
+# download
+
+single_files: disabled
+```
+
 ## All formats
 
 Lastly here's a listing of all download formats you can currently enable. In

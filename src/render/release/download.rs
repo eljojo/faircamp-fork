@@ -4,12 +4,26 @@ use crate::{
     audio_format::prioritized_for_download,
     Build,
     Catalog,
+    DownloadGranularity,
     Release,
     render::{compact_release_identifier, layout},
-    util::html_escape_outside_attribute
+    util::{format_bytes, html_escape_outside_attribute}
 };
 
-const DOWNLOAD_LABEL_SEPARATOR: &str = " <small>/</small> ";
+fn download_entry(href: String, label: &str, size: u64) -> String {
+    formatdoc!(
+        r#"
+            <div class="download_entry">
+                <a download href="{href}">
+                    {label}
+                </a>
+                <span class="download_underline"></span>
+                <span>{size}</span>
+            </div>
+        "#,
+        size = format_bytes(size)
+    )
+}
 
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
@@ -17,78 +31,18 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let t_recommended_format =  &build.locale.translations.recommended_format;
 
-    let (primary_format, sorted_formats) = prioritized_for_download(&release.download_formats);
-
-    let cover_download = if let Some(cover) = &release.cover {
-        let t_cover_image = &build.locale.translations.cover_image;
-        formatdoc!(
-            r#"
-                <div>
-                    <span>{t_cover_image}</span>
-                    <span class="download_formats">
-                        <a download href="{root_prefix}{permalink}/cover_{edge_size}.jpg">
-                            JPEG
-                        </a>
-                    </span>
-                </div>
-            "#,
-            edge_size = cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().edge_size,
-            permalink = &release.permalink.slug
-        )
-    } else {
-        String::new()
-    };
-
-    let extra_downloads = if !release.extras.is_empty() {
-        let t_extra_material = &build.locale.translations.extra_material;
-        let release_slug = &release.permalink.slug;
-
-        let links = release.extras
-            .iter()
-            .map(|extra| {
-                let extra_hash = build.hash(
-                    release_slug,
-                    "extras",
-                    &extra.sanitized_filename
-                );
-
-                formatdoc!(
-                    r#"
-                        <a download href="{root_prefix}{release_slug}/extras/{extra_hash}/{filename}">
-                            {filename}
-                        </a>
-                    "#,
-                    filename = extra.sanitized_filename
-                )
-            })
-            .collect::<Vec<String>>()
-            .join(DOWNLOAD_LABEL_SEPARATOR);
-
-        formatdoc!(
-            r#"
-                <div>
-                    <span>{t_extra_material}</span>
-                    <span class="download_formats">
-                        {links}
-                    </span>
-                </div>
-            "#
-        )
-    } else {
-        String::new()
-    };
+    let sorted_formats = prioritized_for_download(&release.download_formats);
 
     let download_hints = sorted_formats
         .iter()
         .map(|(format, recommended)|
             formatdoc!(
-                r#"
-                    <small>
-                        {user_label}{download_label}: {description}{recommendation}
-                    </small>
-                "#,
+                r"
+                    <div>
+                        {user_label}: <span>{description}{recommendation}</span>
+                    </div>
+                ",
                 description = format.description(build),
-                download_label = if format.download_label() == format.user_label() { String::new() } else { format!(r#" ({})"#, format.download_label()) },
                 user_label = format.user_label(),
                 recommendation = if *recommended { format!(" ({t_recommended_format})") } else { String::new() }
             )
@@ -96,96 +50,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         .collect::<Vec<String>>()
         .join("\n");
 
-    let release_downloads = sorted_formats
-        .iter()
-        .map(|(download_format, _recommended)| {
-            let format_label = download_format.download_label();
-            let release_slug = &release.permalink.slug;
-
-            let archive_filename = format!("{}.zip", release.asset_basename.as_ref().unwrap());
-
-            let archive_hash = build.hash(
-                release_slug,
-                download_format.as_audio_format().asset_dirname(),
-                &archive_filename
-            );
-
-            formatdoc!(
-                r#"
-                    <a download href="{root_prefix}{release_slug}/{format_dir}/{archive_hash}/{archive_filename}">
-                        {format_label}
-                    </a>
-                "#,
-                format_dir = download_format.as_audio_format().asset_dirname()
-            )
-        })
-        .collect::<Vec<String>>()
-        .join(DOWNLOAD_LABEL_SEPARATOR);
-
-    let track_downloads = release.tracks
-        .iter()
-        .enumerate()
-        .map(|(index, track)| {
-            let track_download_columns = sorted_formats
-                .iter()
-                .map(|(download_format, _annotation)| {
-                    let format_label = download_format.download_label();
-                    let release_slug = &release.permalink.slug;
-
-                    let track_filename = format!(
-                        "{basename}{extension}",
-                        basename = track.asset_basename.as_ref().unwrap(),
-                        extension = download_format.as_audio_format().extension()
-                    ); 
-
-                    let track_hash = build.hash(
-                        release_slug,
-                        download_format.as_audio_format().asset_dirname(),
-                        &track_filename
-                    );
-
-                    format!(
-                        r#"
-                            <a download href="{root_prefix}{release_slug}/{format_dir}/{track_hash}/{track_filename}">
-                                {format_label}
-                            </a>
-                        "#,
-                        format_dir = download_format.as_audio_format().asset_dirname()
-                    )
-                })
-                .collect::<Vec<String>>()
-                .join(DOWNLOAD_LABEL_SEPARATOR);
-
-            formatdoc!(
-                r#"
-                    <div>
-                        <span class="track_download_option">
-                            <span class="track_number">{number}</span> {title}
-                        </span>
-                        <span class="download_formats">
-                            {track_download_columns}
-                        </span>
-                    </div>
-                "#,
-                number = release.track_numbering.format(index + 1),
-                title = html_escape_outside_attribute(&track.title)
-            )
-        })
-        .collect::<Vec<String>>()
-        .join("\n");
-
     let release_prefix = "../../";
-
-    let primary_download_filename = format!(
-        "{basename}.zip",
-        basename = release.asset_basename.as_ref().unwrap()
-    );
-
-    let primary_download_hash = build.hash(
-        &release.permalink.slug,
-        primary_format.0.as_audio_format().asset_dirname(),
-        &primary_download_filename
-    );
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
@@ -200,61 +65,167 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         root_prefix,
     );
 
+    let entire_release_downloads = if release.download_granularity != DownloadGranularity::SingleFiles {
+        let release_downloads = sorted_formats
+            .iter()
+            .map(|(download_format, _recommended)| {
+                let release_slug = &release.permalink.slug;
+
+                let archive_filename = format!("{}.zip", release.asset_basename.as_ref().unwrap());
+
+                let archive_hash = build.hash(
+                    release_slug,
+                    download_format.as_audio_format().asset_dirname(),
+                    &archive_filename
+                );
+
+                download_entry(
+                    format!(
+                        "{root_prefix}{release_slug}/{format_dir}/{archive_hash}/{archive_filename}",
+                        format_dir = download_format.as_audio_format().asset_dirname()
+                    ),
+                    download_format.user_label(),
+                    release.archive_assets.borrow().get(*download_format).as_ref().unwrap().filesize_bytes
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("");        
+
+        formatdoc!(
+            r#"
+                <div class="download_formats" style="margin-bottom: 1rem;">
+                    {release_downloads}
+                </div>
+            "#
+        )
+    } else {
+        String::new()
+    };
+
+    let single_file_downloads = if release.download_granularity != DownloadGranularity::EntireRelease {
+        let cover_download = if let Some(cover) = &release.cover {
+            download_entry(
+                format!(
+                    "{root_prefix}{permalink}/cover_{edge_size}.jpg",
+                    edge_size = cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().edge_size,
+                    permalink = &release.permalink.slug
+                ),
+                &build.locale.translations.cover_image,
+                cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().filesize_bytes
+            )
+        } else {
+            String::new()
+        };
+
+        let extra_downloads = if !release.extras.is_empty() {
+            let release_slug = &release.permalink.slug;
+
+            release.extras
+                .iter()
+                .map(|extra| {
+                    let extra_hash = build.hash(
+                        release_slug,
+                        "extras",
+                        &extra.sanitized_filename
+                    );
+
+                    download_entry(
+                        format!(
+                            "{root_prefix}{release_slug}/extras/{extra_hash}/{filename}",
+                            filename = extra.sanitized_filename
+                        ),
+                        &extra.sanitized_filename,
+                        extra.source_file_signature.size
+                    )
+                })
+                .collect::<Vec<String>>()
+                .join("")
+        } else {
+            String::new()
+        };
+ 
+        let track_downloads = release.tracks
+            .iter()
+            .enumerate()
+            .map(|(track_index, track)| {
+                let track_download_columns = sorted_formats
+                    .iter()
+                    .map(|(download_format, _annotation)| {
+                        let release_slug = &release.permalink.slug;
+
+                        let track_filename = format!(
+                            "{basename}{extension}",
+                            basename = track.asset_basename.as_ref().unwrap(),
+                            extension = download_format.as_audio_format().extension()
+                        ); 
+
+                        let track_hash = build.hash(
+                            release_slug,
+                            download_format.as_audio_format().asset_dirname(),
+                            &track_filename
+                        );
+
+                        download_entry(
+                            format!(
+                                "{root_prefix}{release_slug}/{format_dir}/{track_hash}/{track_filename}",
+                                format_dir = download_format.as_audio_format().asset_dirname()
+                            ),
+                            download_format.user_label(),
+                            track.assets.borrow().get(download_format.as_audio_format()).as_ref().unwrap().filesize_bytes
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("");
+
+                formatdoc!(
+                    r#"
+                        <span class="download_group">
+                            <span class="track_number">{number}</span>{title}
+                        </span>
+
+                        <div class="download_formats">
+                            {track_download_columns}
+                        </div>
+                    "#,
+                    number = release.track_numbering.format(track_index + 1),
+                    title = html_escape_outside_attribute(&track.title)
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        let t_extra_material = &build.locale.translations.extra_material;
+        formatdoc!(
+            r#"
+                {track_downloads}
+
+                <span class="download_group">{t_extra_material}</span>
+
+                <div class="download_formats" style="margin-bottom: 1rem;">
+                    {cover_download}
+                    {extra_downloads}
+                </div>
+            "#
+        )
+    } else {
+        String::new()
+    };
+
     let t_downloads = &build.locale.translations.downloads;
-    let t_download_choice_hints = &build.locale.translations.download_choice_hints;
-    let t_entire_release = &build.locale.translations.entire_release;
-    let t_format_guide = &build.locale.translations.format_guide;
     let body = formatdoc!(
         r##"
             <div class="hcenter_medium mobile_hpadding vcenter_page vpad_adaptive">
                 <h1>{t_downloads}</h1>
 
                 {compact_release_identifier_rendered}
-
-                <div style="align-items: center; column-gap: .3rem; display: flex; justify-content: space-between; margin-bottom: 2rem;">
-                    <div>
-                        <span style="font-size: var(--subtly-larger);">{t_entire_release}</span><br>
-                        <small>{primary_download_format}{primary_download_format_recommendation}</small>
-                    </div>
-                    <a class="button" 
-                       download
-                       href="{root_prefix}{permalink}/{primary_download_format_dirname}/{primary_download_hash}/{primary_download_filename}">
-                       Download
-                    </a>
-                </div>
-
-                <p>
-                    {t_download_choice_hints}
-                </p>
-
-                <div class="download_options">
-                    <div>
-                        <span>{t_entire_release}</span>
-                        <span class="download_formats">{release_downloads}</span>
-                    </div>
-                    {cover_download}
-                    {extra_downloads}
-
-                    <br>
-
-                    {track_downloads}
-                </div>
-
-                <br><br>
+                {entire_release_downloads}
+                {single_file_downloads}
 
                 <div class="download_hints" id="hints">
-                    <small>{t_format_guide}</small>
-
                     {download_hints}
                 </div>
-
-                <br><br><br>
             </div>
-        "##,
-        primary_download_format = primary_format.0.user_label(),
-        primary_download_format_dirname = primary_format.0.as_audio_format().asset_dirname(),
-        primary_download_format_recommendation = if primary_format.1 { format!(" ({t_recommended_format})") } else { String::new() },
-        permalink = &release.permalink.slug
+        "##
     );
 
     let download_icon = include_str!("../../icons/download.svg");
@@ -262,7 +233,6 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!(r#"<a href=".{index_suffix}">{download_icon} {t_downloads}</a>"#)
     ];
-
 
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }

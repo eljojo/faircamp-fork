@@ -2,19 +2,13 @@ use super::Translations;
 
 pub fn translations() -> Translations {
     Translations {
-        audio_format_description_aac: String::from("Average encoding quality – appropriate if your player does not support better formats"),
-        audio_format_description_aiff: String::from("Uncompressed large files – appropriate only for audio production"),
-        audio_format_description_flac: String::from("Lossless and compressed – best choice for archival"),
-        audio_format_description_mp3_vbr: String::from("Inferior encoding quality – appropriate if compatibility with older players is needed"),
-        audio_format_description_ogg_vorbis: String::from("Average encoding quality – appropriate if your player does not support better formats"),
-        // TODO: Both hints "for streaming" below address the wrong
-        // question somehow: The person reading this wants to download,
-        // streaming choice is only relevant to someone who would stream
-        // to an audience themselves?
-        audio_format_description_opus_48: String::from("State-of-the-art encoding quality at 48Kbps – best choice for high-demand streaming"),
-        audio_format_description_opus_96: String::from("State-of-the-art encoding quality at 96Kbps – best choice for streaming"),
-        audio_format_description_opus_128: String::from("State-of-the-art encoding quality at 128Kbps – best choice for offline listening"),
-        audio_format_description_wav: String::from("Uncompressed large files – appropriate only for audio production"),
+        audio_format_average: String::from("Average compression, appropriate if your player does not support better formats"),
+        audio_format_flac: String::from("Lossless and compressed, best choice for archival"),
+        audio_format_mp3: String::from("Inefficent compression, appropriate if compatibility with older players is needed"),
+        audio_format_opus_48: String::from("Excellent compression, frugal quality, good choice if space is limited"),
+        audio_format_opus_96: String::from("Excellent compression, standard quality, good choice for offline listening"),
+        audio_format_opus_128: String::from("Excellent compression, highest quality, best choice for offline listening"),
+        audio_format_uncompressed: String::from("Uncompressed large files, appropriate only for audio production"),
         audio_player_widget_for_release: String::from(r#"Audio player widget for the release "{title}""#),
         audio_player_widget_for_track: String::from(r#"Audio player widget for the track "{title}""#),
         auto_generated_cover: String::from("Automatically generated cover"),
@@ -28,16 +22,13 @@ pub fn translations() -> Translations {
         default_unlock_text: String::from("You need to enter a code to unlock these downloads. Ask the site operators for how to obtain one."),
         downloads: String::from("Downloads"),
         downloads_permalink: String::from("downloads"),
-        download_choice_hints: String::from(r##"Single track downloads or downloads in other formats are available below. Not sure what format to pick? See the <a href="#hints">hints</a> below."##),
         embed: String::from("Embed"),
         embed_entire_release: String::from("Embed the entire release"),
         enter_code_here: String::from("Enter code here"),
-        entire_release: String::from("Entire Release"),
-        extra_material: String::from("Extra Material"),
+        extra_material: String::from("Extras"),
         failed: String::from("Failed"),
         feed: String::from("Feed"),
         fixed_price: String::from("Fixed price:"),
-        format_guide: String::from("Format Guide:"),
         image_descriptions: String::from("Image Descriptions"),
         image_descriptions_guide: String::from("\
 Millions of people browse the web using screen-readers \

@@ -52,6 +52,13 @@ pub struct ArchiveAssets {
     pub wav: Option<Asset>
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum DownloadGranularity {
+    AllOptions,
+    EntireRelease,
+    SingleFiles
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Extra {
     pub sanitized_filename: String,
@@ -67,6 +74,7 @@ pub struct Release {
     pub cover: Option<Rc<RefCell<Image>>>,
     pub date: Option<NaiveDate>,
     pub download_formats: Vec<DownloadFormat>,
+    pub download_granularity: DownloadGranularity,
     pub download_option: DownloadOption,
     pub embedding: bool,
     /// Additional files that are included in the download archive,
@@ -528,6 +536,7 @@ impl Release {
             cover,
             date,
             download_formats: manifest_overrides.download_formats.clone(),
+            download_granularity: manifest_overrides.download_granularity.clone(),
             download_option,
             embedding: manifest_overrides.embedding,
             extras,
@@ -589,6 +598,7 @@ impl Release {
             util::ensure_dir(&format_dir);
 
             for (track_index, track) in self.tracks.iter_mut().enumerate() {
+                // Transcode track to required format if not yet available
                 if track.assets.borrow().get(download_format.as_audio_format()).is_none() {
                     if download_format.is_lossless() && !track.assets.borrow().source_meta.lossless {
                         warn_discouraged!(
@@ -626,170 +636,184 @@ impl Release {
                         tag_mapping.track = Some(track_index + 1);
                     }
 
+                    let asset_intent = if self.download_granularity == DownloadGranularity::EntireRelease {
+                        AssetIntent::Intermediate
+                    } else {
+                        AssetIntent::Deliverable
+                    };
+
                     track.transcode_as(
                         download_format.as_audio_format(),
                         build,
-                        AssetIntent::Deliverable,
+                        asset_intent,
                         &tag_mapping_option
                     );
 
                     track.assets.borrow().persist_to_cache(&build.cache_dir);
                 }
 
-                let mut download_track_assets_mut = track.assets.borrow_mut();
-                let download_track_asset = download_track_assets_mut
-                    .get_mut(download_format.as_audio_format())
-                    .as_mut()
-                    .unwrap();
+                // If single track downloads are enabled copy transcoded track to build
+                if self.download_granularity != DownloadGranularity::EntireRelease {
+                    let mut download_track_assets_mut = track.assets.borrow_mut();
+                    let download_track_asset = download_track_assets_mut
+                        .get_mut(download_format.as_audio_format())
+                        .as_mut()
+                        .unwrap();
 
-                download_track_asset.unmark_stale();
+                    download_track_asset.unmark_stale();
 
-                let track_filename = format!(
-                    "{basename}{extension}",
-                    basename = track.asset_basename.as_ref().unwrap(),
-                    extension = download_format.as_audio_format().extension()
-                );
-
-                let hash = build.hash(
-                    &self.permalink.slug,
-                    download_format.as_audio_format().asset_dirname(),
-                    &track_filename
-                );
-
-                // TODO: We should calculate this earlier and persist it so we can reuse it for copying
-                // and for rendering the hrefs that point to it, however we need to figure out where 
-                // (or on what) to store it - that's a bit tricky. (applies in a few places)
-                let hash_dir = format_dir.join(hash);
-
-                util::ensure_dir(&hash_dir);
-
-                let target_path = hash_dir.join(&track_filename);
-
-                // The track asset might already have been copied to the build directory
-                // if the download format is identical to one of the streaming formats.
-                // So we only copy and add it to the stats if that hasn't yet happened.
-                if !target_path.exists() {
-                    util::hard_link_or_copy(
-                        build.cache_dir.join(&download_track_asset.filename),
-                        target_path
-                    );
-
-                    build.stats.add_track(download_track_asset.filesize_bytes);
-                }
-            }
-
-            let mut archive_assets_mut = self.archive_assets.borrow_mut();
-            let cached_archive_asset = archive_assets_mut.get_mut(*download_format);
-
-            if cached_archive_asset.is_none() {
-                let cached_archive_filename = format!("{}.zip", util::uid());
-
-                info_zipping!(
-                    "Creating download archive for release '{}' ({})",
-                    self.title,
-                    download_format.as_audio_format()
-                );
-
-                let zip_file = File::create(
-                    build.cache_dir.join(&cached_archive_filename)
-                ).unwrap();
-                let mut zip_writer = ZipWriter::new(zip_file);
-                let options = FileOptions::default()
-                    .compression_method(CompressionMethod::Deflated)
-                    .unix_permissions(0o755);
-
-                let mut buffer = Vec::new();
-
-                for track in self.tracks.iter_mut() {
-                    let assets_ref = track.assets.borrow();
-                    let download_track_asset = assets_ref.get(download_format.as_audio_format()).as_ref().unwrap();
-
-                    let filename = format!(
+                    let track_filename = format!(
                         "{basename}{extension}",
                         basename = track.asset_basename.as_ref().unwrap(),
                         extension = download_format.as_audio_format().extension()
                     );
 
-                    zip_writer.start_file(&filename, options).unwrap();
+                    let hash = build.hash(
+                        &self.permalink.slug,
+                        download_format.as_audio_format().asset_dirname(),
+                        &track_filename
+                    );
 
-                    let mut zip_inner_file = File::open(
-                        &build.cache_dir.join(&download_track_asset.filename)
-                    ).unwrap();
+                    // TODO: We should calculate this earlier and persist it so we can reuse it for copying
+                    // and for rendering the hrefs that point to it, however we need to figure out where 
+                    // (or on what) to store it - that's a bit tricky. (applies in a few places)
+                    let hash_dir = format_dir.join(hash);
 
-                    zip_inner_file.read_to_end(&mut buffer).unwrap();
-                    zip_writer.write_all(&buffer).unwrap();
-                    buffer.clear();
+                    util::ensure_dir(&hash_dir);
 
-                    track.assets.borrow().persist_to_cache(&build.cache_dir);
+                    let target_path = hash_dir.join(&track_filename);
+
+                    // The track asset might already have been copied to the build directory
+                    // if the download format is identical to one of the streaming formats.
+                    // So we only copy and add it to the stats if that hasn't yet happened.
+                    if !target_path.exists() {
+                        util::hard_link_or_copy(
+                            build.cache_dir.join(&download_track_asset.filename),
+                            target_path
+                        );
+
+                        build.stats.add_track(download_track_asset.filesize_bytes);
+                    }
                 }
-
-                if let Some(cover) = &mut self.cover {
-                    let cover_mut = cover.borrow_mut();
-                    let mut assets_mut = cover_mut.assets.borrow_mut();
-                    let cover_assets = assets_mut.cover_asset(build, AssetIntent::Intermediate);
-
-                    zip_writer.start_file("cover.jpg", options).unwrap();
-
-                    let mut zip_inner_file = File::open(
-                        &build.cache_dir.join(&cover_assets.largest().filename)
-                    ).unwrap();
-
-                    zip_inner_file.read_to_end(&mut buffer).unwrap();
-                    zip_writer.write_all(&buffer).unwrap();
-                    buffer.clear();
-
-                    assets_mut.persist_to_cache(&build.cache_dir);
-                }
-
-                for extra in &self.extras {
-                    zip_writer.start_file(&extra.sanitized_filename, options).unwrap();
-
-                    let mut zip_inner_file = File::open(
-                        &build.catalog_dir.join(&extra.source_file_signature.path)
-                    ).unwrap();
-
-                    zip_inner_file.read_to_end(&mut buffer).unwrap();
-                    zip_writer.write_all(&buffer).unwrap();
-                    buffer.clear();
-                }
-
-                match zip_writer.finish() {
-                    Ok(_) => cached_archive_asset.replace(Asset::new(build, cached_archive_filename, AssetIntent::Deliverable)),
-                    Err(err) => panic!("{}", err)
-                };
             }
 
-            let download_archive_asset = cached_archive_asset.as_mut().unwrap();
+            // If entire release downloads are enabled create the zip (if not available yet) and copy it to build
+            if self.download_granularity != DownloadGranularity::SingleFiles {
+                let mut archive_assets_mut = self.archive_assets.borrow_mut();
+                let cached_archive_asset = archive_assets_mut.get_mut(*download_format);
 
-            download_archive_asset.unmark_stale();
+                // Create zip for required format if not yet available
+                if cached_archive_asset.is_none() {
+                    let cached_archive_filename = format!("{}.zip", util::uid());
 
-            let archive_filename = format!(
-                "{basename}.zip",
-                basename = self.asset_basename.as_ref().unwrap()
-            );
+                    info_zipping!(
+                        "Creating download archive for release '{}' ({})",
+                        self.title,
+                        download_format.as_audio_format()
+                    );
 
-            let hash = build.hash(
-                &self.permalink.slug,
-                download_format.as_audio_format().asset_dirname(),
-                &archive_filename
-            );
+                    let zip_file = File::create(
+                        build.cache_dir.join(&cached_archive_filename)
+                    ).unwrap();
+                    let mut zip_writer = ZipWriter::new(zip_file);
+                    let options = FileOptions::default()
+                        .compression_method(CompressionMethod::Deflated)
+                        .unix_permissions(0o755);
 
-            let hash_dir = format_dir.join(hash);
+                    let mut buffer = Vec::new();
 
-            util::ensure_dir(&hash_dir);
+                    for track in self.tracks.iter_mut() {
+                        let assets_ref = track.assets.borrow();
+                        let download_track_asset = assets_ref.get(download_format.as_audio_format()).as_ref().unwrap();
 
-            util::hard_link_or_copy(
-                build.cache_dir.join(&download_archive_asset.filename),
-                hash_dir.join(&archive_filename)
-            );
+                        let filename = format!(
+                            "{basename}{extension}",
+                            basename = track.asset_basename.as_ref().unwrap(),
+                            extension = download_format.as_audio_format().extension()
+                        );
 
-            build.stats.add_archive(download_archive_asset.filesize_bytes);
+                        zip_writer.start_file(&filename, options).unwrap();
 
-            archive_assets_mut.persist_to_cache(&build.cache_dir);
+                        let mut zip_inner_file = File::open(
+                            &build.cache_dir.join(&download_track_asset.filename)
+                        ).unwrap();
+
+                        zip_inner_file.read_to_end(&mut buffer).unwrap();
+                        zip_writer.write_all(&buffer).unwrap();
+                        buffer.clear();
+
+                        track.assets.borrow().persist_to_cache(&build.cache_dir);
+                    }
+
+                    if let Some(cover) = &mut self.cover {
+                        let cover_mut = cover.borrow_mut();
+                        let mut assets_mut = cover_mut.assets.borrow_mut();
+                        let cover_assets = assets_mut.cover_asset(build, AssetIntent::Intermediate);
+
+                        zip_writer.start_file("cover.jpg", options).unwrap();
+
+                        let mut zip_inner_file = File::open(
+                            &build.cache_dir.join(&cover_assets.largest().filename)
+                        ).unwrap();
+
+                        zip_inner_file.read_to_end(&mut buffer).unwrap();
+                        zip_writer.write_all(&buffer).unwrap();
+                        buffer.clear();
+
+                        assets_mut.persist_to_cache(&build.cache_dir);
+                    }
+
+                    for extra in &self.extras {
+                        zip_writer.start_file(&extra.sanitized_filename, options).unwrap();
+
+                        let mut zip_inner_file = File::open(
+                            &build.catalog_dir.join(&extra.source_file_signature.path)
+                        ).unwrap();
+
+                        zip_inner_file.read_to_end(&mut buffer).unwrap();
+                        zip_writer.write_all(&buffer).unwrap();
+                        buffer.clear();
+                    }
+
+                    match zip_writer.finish() {
+                        Ok(_) => cached_archive_asset.replace(Asset::new(build, cached_archive_filename, AssetIntent::Deliverable)),
+                        Err(err) => panic!("{}", err)
+                    };
+                }
+
+                // Now we copy the zip to the build
+                let download_archive_asset = cached_archive_asset.as_mut().unwrap();
+
+                download_archive_asset.unmark_stale();
+
+                let archive_filename = format!(
+                    "{basename}.zip",
+                    basename = self.asset_basename.as_ref().unwrap()
+                );
+
+                let hash = build.hash(
+                    &self.permalink.slug,
+                    download_format.as_audio_format().asset_dirname(),
+                    &archive_filename
+                );
+
+                let hash_dir = format_dir.join(hash);
+
+                util::ensure_dir(&hash_dir);
+
+                util::hard_link_or_copy(
+                    build.cache_dir.join(&download_archive_asset.filename),
+                    hash_dir.join(&archive_filename)
+                );
+
+                build.stats.add_archive(download_archive_asset.filesize_bytes);
+
+                archive_assets_mut.persist_to_cache(&build.cache_dir);
+            }
         }
 
         // Write extras for discrete download access (outside of archives/zips)
-        if !self.extras.is_empty() {
+        if !self.extras.is_empty() && self.download_granularity != DownloadGranularity::EntireRelease {
             for extra in &self.extras {
                 let extras_dir = release_dir.join("extras");
 

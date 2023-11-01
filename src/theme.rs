@@ -43,6 +43,7 @@ pub struct Theme {
 pub struct ThemeBase {
     pub background_l: u8,
     pub cover_l: u8,
+    pub faint_l: u8,
     pub header_a: f32,
     pub header_l: u8,
     pub header_link_l: u8,
@@ -121,6 +122,7 @@ impl ThemeBase {
     pub const BLACK: ThemeBase = ThemeBase {
         background_l: 0,
         cover_l: 13,
+        faint_l: 15,
         header_a: 0.8,
         header_l: 0,
         header_link_l: 86,
@@ -137,6 +139,7 @@ impl ThemeBase {
     pub const BLACK_ALTERNATE: ThemeBase = ThemeBase {
         background_l: 0,
         cover_l: 13,
+        faint_l: 15,
         header_a: 0.9,
         header_l: 10,
         header_link_l: 86,
@@ -153,6 +156,7 @@ impl ThemeBase {
     pub const DARK: ThemeBase = ThemeBase {
         background_l: 10,
         cover_l: 13,
+        faint_l: 15,
         header_a: 0.8,
         header_l: 10,
         header_link_l: 86,
@@ -169,6 +173,7 @@ impl ThemeBase {
     pub const LIGHT: ThemeBase = ThemeBase {
         background_l: 90,
         cover_l: 87,
+        faint_l: 85,
         header_a: 0.9,
         header_l: 90,
         header_link_l: 14,
@@ -185,6 +190,7 @@ impl ThemeBase {
     pub const WHITE: ThemeBase = ThemeBase {
         background_l: 100,
         cover_l: 87,
+        faint_l: 87,
         header_a: 0.9,
         header_l: 100,
         header_link_l: 14,
@@ -201,6 +207,7 @@ impl ThemeBase {
     pub const WHITE_ALTERNATE: ThemeBase = ThemeBase {
         background_l: 100,
         cover_l: 87,
+        faint_l: 87,
         header_a: 0.82,
         header_l: 0,
         header_link_l: 100,
