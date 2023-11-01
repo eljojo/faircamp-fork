@@ -112,7 +112,7 @@ body {
     position: relative;
 }
 .duration {
-    color: var(--color-text-dimmed)
+    color: var(--color-text-dimmed);
     margin-left: .2rem;
     user-select: none;
     white-space: nowrap;

@@ -36,7 +36,10 @@ use crate::{
 ///   would just be interpreted as f32 after the change.
 /// - 2->3 because we renamed "releases" to "archives" (the directory,
 ///   but also everywhere in code)
-const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_3";
+/// - 3->4 because we introduced writing track number metadata during
+///   transcoding, but we do not yet have automated cache invalidation
+///   markers for tags, so we force a rebuild for 0.9.0
+const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_4";
 
 #[derive(Clone, Debug)]
 pub struct Cache {
