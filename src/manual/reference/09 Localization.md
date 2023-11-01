@@ -2,8 +2,9 @@
 
 ## Supported languages
 
-Faircamp currently ships with four languages:
+Faircamp currently ships with five languages:
 
+- Dutch `nl`
 - English `en`
 - French `fr`
 - German `de`
@@ -17,7 +18,7 @@ English is the default, another language can be configured like this:
 language: fr
 ```
 
-Translation corrections or improvements are very welcome (french and spanish probably direly need them), just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
+Translation corrections or improvements are very welcome (dutch and spanish probably direly need them), just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
 
 ## Unsupported languages
 
