@@ -606,7 +606,12 @@ impl Catalog {
             if local_overrides.as_ref().unwrap_or(parent_overrides).include_extras {
                 for image in images {
                     if let Some(ref cover_unwrapped) = cover {
-                        if Rc::ptr_eq(&image, &cover_unwrapped) { continue }
+                        // If the image we're iterating is the cover image for this release
+                        // we don't include it as an extra (that would be redundant).
+                        if image.borrow().assets.borrow().source_file_signature ==
+                            cover_unwrapped.borrow().assets.borrow().source_file_signature {
+                            continue
+                        }
                     }
 
                     let extra = Extra::new(image.borrow().assets.borrow().source_file_signature.clone());
