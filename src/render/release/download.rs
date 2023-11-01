@@ -194,12 +194,12 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .collect::<Vec<String>>()
             .join("\n");
 
-        let t_extra_material = &build.locale.translations.extra_material;
+        let t_extras = &build.locale.translations.extras;
         formatdoc!(
             r#"
                 {track_downloads}
 
-                <span class="download_group">{t_extra_material}</span>
+                <span class="download_group">{t_extras}</span>
 
                 <div class="download_formats" style="margin-bottom: 1rem;">
                     {cover_download}

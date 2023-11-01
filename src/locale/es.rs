@@ -25,7 +25,7 @@ pub fn translations() -> Translations {
         embed: String::from("Incrustar"),
         embed_entire_release: String::from("Incrustar la grabación entera"),
         enter_code_here: String::from("Entra código aquí"),
-        extra_material: String::from("Material Extra"),
+        extras: String::from("Extras"),
         failed: String::from("Falló"),
         feed: String::from("Feed"),
         fixed_price: String::from("Precio fijo:"),

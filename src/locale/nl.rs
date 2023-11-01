@@ -25,7 +25,7 @@ pub fn translations() -> Translations {
         embed: String::from("Inzetten"),
         embed_entire_release: String::from("De heele release inzetten"),
         enter_code_here: String::from("Vul hier het code in"),
-        extra_material: String::from("Extra Materiaal"),
+        extras: String::from("Extra's"),
         failed: String::from("Mislukt"),
         feed: String::from("Feed"),
         fixed_price: String::from("Vaste prijs:"),
