@@ -34,4 +34,4 @@ Only ever known to publicly perform at birthday parties and the gym at their hom
 -- text
 ```
 
-Note that the `text` field supports markdown.
+Note that the `text` field supports [Markdown](https://commonmark.org/help/).

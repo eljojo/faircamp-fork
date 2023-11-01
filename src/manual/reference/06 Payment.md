@@ -3,7 +3,7 @@
 This sets payment options that are shown when someone wants to buy one of your
 releases. For liberapay just provide your account name. Functionality and
 options are still a bit bare here, but for now you can provide any custom
-links and information through the `custom` field (which supports markdown).
+links and information through the `custom` field (which supports [Markdown](https://commonmark.org/help/)).
 
 ```eno
 # payment

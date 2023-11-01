@@ -46,7 +46,7 @@ To enable embeds and RSS feed generation you have to set `base_url`. The value
 of `title` appears in multiple places on the site, inside the RSS Feed, etc..
 For the RSS feed an optional `feed_image` can be specified. The catalog
 `text` shows up prominently below the title on the homepage and it supports
-markdown. The `home_image` is an image that will be displayed on the homepage,
+[Markdown](https://commonmark.org/help/). The `home_image` is an image that will be displayed on the homepage,
 e.g. a logo for your label or a band photo or such.
 
 ```eno

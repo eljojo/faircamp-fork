@@ -36,6 +36,8 @@ Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
 If you provide a cover image, use `description` to include an image description
 for it.
 
+The `text` field allows the use of [Markdown](https://commonmark.org/help/).
+
 If your release has multiple principal artists (e.g. a split EP), instead of
 `artist: Alice` you can also use the following to make faircamp present two
 discrete artists as main artists of the release:
