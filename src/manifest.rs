@@ -16,6 +16,7 @@ use crate::{
     DownloadFormat,
     DownloadGranularity,
     DownloadOption,
+    Favicon,
     Image,
     Locale,
     PaymentOption,
@@ -349,6 +350,22 @@ pub fn apply_options(
                     build.base_url = Some(url);
                 }
                 Err(err) => error!("Ignoring invalid catalog.base_url setting value '{}' in {}:{} ({})", value, path.display(), line, err)
+            }
+        }
+
+        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "favicon"){
+            if let Favicon::Custom { absolute_path, .. } = &catalog.favicon {
+                warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), path_relative_to_manifest);
+            }
+
+            let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
+            if absolute_path.exists() {
+                match Favicon::custom(absolute_path) {
+                    Ok(favicon) => catalog.favicon = favicon,
+                    Err(message) => error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} ({})", path_relative_to_manifest, path.display(), line, message) 
+                }
+            } else {
+                error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
             }
         }
 

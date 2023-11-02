@@ -13,6 +13,7 @@ use crate::{
     Cache,
     DownloadOption,
     Extra,
+    Favicon,
     Image,
     manifest::{self, LocalOptions, Overrides},
     Permalink,
@@ -38,6 +39,7 @@ pub struct Catalog {
     pub artist: Option<Rc<RefCell<Artist>>>,
     /// All artists (main_artists + support_artists)
     pub artists: Vec<Rc<RefCell<Artist>>>,
+    pub favicon: Favicon,
     /// Whether support artists should get their own
     /// pages and be linked to them
     pub feature_support_artists: bool,
@@ -257,6 +259,7 @@ impl Catalog {
         Catalog {
             artist: None,
             artists: Vec::new(),
+            favicon: Favicon::Default,
             feature_support_artists: false,
             featured_artists: Vec::new(),
             feed_image: None,

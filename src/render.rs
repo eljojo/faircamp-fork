@@ -315,11 +315,12 @@ fn layout(
     format!(
         include_str!("templates/layout.html"),
         body = body,
+        breadcrumbs = breadcrumbs,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         dir_attribute = dir_attribute,
-        index_suffix = if build.clean_urls { "/" } else { "/index.html" },
+        favicon_links = catalog.favicon.header_tags(root_prefix),
         feed_meta_link = feed_meta_link,
-        breadcrumbs = breadcrumbs,
+        index_suffix = if build.clean_urls { "/" } else { "/index.html" },
         root_prefix = root_prefix,
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)

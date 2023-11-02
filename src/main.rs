@@ -15,6 +15,7 @@ mod catalog;
 mod decode;
 mod deploy;
 mod download_option;
+mod favicon;
 mod feed;
 mod ffmpeg;
 mod icons;
@@ -42,6 +43,7 @@ use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
 use catalog::Catalog;
 use download_option::DownloadOption;
+use favicon::Favicon;
 use ffmpeg::TagMapping;
 use crate::image::{Image, ImageAssets};
 use image_processor::{ImageProcessor, ResizeMode};
@@ -157,20 +159,7 @@ fn main() {
     feed::generate(&build, &catalog);
     icons::generate(&build);
 
-    fs::write(
-        build.build_dir.join("favicon.svg"),
-        include_bytes!("assets/favicon.svg")
-    ).unwrap();
-
-    fs::write(
-        build.build_dir.join("favicon_dark.png"),
-        include_bytes!("assets/favicon_dark.png")
-    ).unwrap();
-
-    fs::write(
-        build.build_dir.join("favicon_light.png"),
-        include_bytes!("assets/favicon_light.png")
-    ).unwrap();
+    catalog.favicon.write(&build);
 
     if build.base_url.is_none() {
         if build.embeds_requested {

@@ -6,6 +6,7 @@ Site-wide metadata and settings, such as the title and site URL.
 # catalog
 
 base_url: https://myawesomemusic.site/
+favicon: my_favicon.png
 feed_image: exported_logo_v3.jpg
 
 home_image:
@@ -46,11 +47,14 @@ To enable embeds and RSS feed generation you have to set `base_url`. The value
 of `title` appears in multiple places on the site, inside the RSS Feed, etc..
 For the RSS feed an optional `feed_image` can be specified. The catalog
 `text` shows up prominently below the title on the homepage and it supports
-[Markdown](https://commonmark.org/help/). The `home_image` is an image that will be displayed on the homepage,
-e.g. a logo for your label or a band photo or such.
+[Markdown](https://commonmark.org/help/). The `home_image` is an image that
+will be displayed on the homepage, e.g. a logo for your label or a band photo
+or such. A custom `favicon` can be set, this currently only supports `.png`
+and `.ico` files.
 
 ```eno
 base_url: https://myawesomemusic.site/
+favicon: my_favicon.png
 feed_image: exported_logo_v3.jpg
 title: My awesome music
 
@@ -63,8 +67,9 @@ Lorem ipsum dolor sit amet ...
 -- text
 ```
 
-Note that the `feed_image`, unlike the `home_image`, needs (and supports) no image description, this is because RSS does not support any (hence the different syntax
-to specify the image).
+Note that the `feed_image`, unlike the `home_image`, needs (and supports) no
+image description, this is because RSS does not support any (hence the
+different syntax to specify the image).
 
 ## Main & Support artists
 
