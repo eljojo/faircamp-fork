@@ -1,7 +1,7 @@
 # Building from source
 
 This provides simple, copy/pasteable build instructions for mainstream linux
-distributions. For BSD, macOS, Windows or other OSes orient yourself along
+distributions and macOS. For BSD, Windows or other OSes orient yourself along
 the general instructions in "Other platforms" at the bottom of the page.
 
 ## Arch Linux, Manjaro
@@ -26,7 +26,7 @@ That's it! If you want to uninstall faircamp at any point, run:
 cargo uninstall faircamp
 ```
 
-## Debian 12, Ubuntu 23.04
+## Debian 12, Ubuntu 23.04 - 23.10
 
 Install rust through the official [rustup](https://rustup.rs/) installer,
 then install all required dependencies through the package manager:
@@ -118,6 +118,45 @@ That's it! If you want to uninstall faircamp at any point, run:
 ```bash
 cargo uninstall faircamp
 ```
+
+## macOS
+
+Install the xcode command line tools (this requirement is not 100% confirmed,
+if you manage to build without it please report it, same if you can confirm
+it's not working without this step):
+
+```bash
+xcode-select --install
+```
+
+Then install Homebrew by following the instructions on https://brew.sh.
+
+Now install all required dependencies (if you manually installed rust via
+[rustup](https://rustup.rs/) skip the first line):
+
+```bash
+brew install rust
+brew install ffmpeg
+brew install opus
+```
+
+Now check out, build and install faircamp:
+
+```bash
+git clone https://codeberg.org/simonrepp/faircamp.git
+cd faircamp
+cargo install --features image --path .
+```
+
+That's it! If you want to uninstall faircamp at any point, run:
+
+```bash
+cargo uninstall faircamp
+```
+
+Note that installing/building with libvips has been reported to currently
+(November 2023) not work on macOS, but if you'd like to give it a shot, see
+the generic instructions for other platforms below.
 
 ## Other platforms
 
