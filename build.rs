@@ -43,11 +43,13 @@ pub fn markdown_to_html(markdown: &str) -> String {
     		inside_eno_codeblock = false;
     	} else if let Event::Text(ref text) = event {
     		if inside_eno_codeblock {
-			    let document = match enolib::parse(text) {
+    			// Fenced code comes with a trailing line break here, we trim it away
+    			let eno_source = text.trim_end();
+			    let document = match enolib::parse(eno_source) {
 			        Ok(document) => document,
 			        Err(err) => panic!("Syntax error in {} ({})", text, err)
 			    };
-			    let syntax_highlighted = document.print(&HtmlPrinter);
+			    let syntax_highlighted = document.snippet_with_options(&HtmlPrinter, false);
     			return Event::Html(syntax_highlighted.into())
     		}
     	}
