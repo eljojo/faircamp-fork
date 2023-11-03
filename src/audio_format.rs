@@ -7,6 +7,7 @@ use crate::Build;
 pub enum AudioFormat {
     Aac,
     Aiff,
+    Alac,
     Flac,
     /// VBR 220-260 KB/s (see https://trac.ffmpeg.org/wiki/Encode/MP3)
     Mp3VbrV0,
@@ -28,6 +29,7 @@ pub enum AudioFormat {
 pub enum DownloadFormat {
     Aac,
     Aiff,
+    Alac,
     Flac,
     Mp3VbrV0,
     OggVorbis,
@@ -71,9 +73,10 @@ pub fn prioritized_for_download(download_formats: &[DownloadFormat]) -> Vec<(Dow
 }
 
 impl AudioFormat {
-    pub const ALL_AUDIO_FORMATS: [AudioFormat; 11] = [
+    pub const ALL_AUDIO_FORMATS: [AudioFormat; 12] = [
         AudioFormat::Aac,
         AudioFormat::Aiff,
+        AudioFormat::Alac,
         AudioFormat::Flac,
         AudioFormat::Mp3VbrV0,
         AudioFormat::Mp3VbrV5,
@@ -91,6 +94,7 @@ impl AudioFormat {
         match self {
             AudioFormat::Aac => "aac",
             AudioFormat::Aiff => "aiff",
+            AudioFormat::Alac => "alac",
             AudioFormat::Flac => "flac",
             AudioFormat::Mp3VbrV0 => "mp3-v0",
             AudioFormat::Mp3VbrV5 => "mp3-v5",
@@ -107,6 +111,7 @@ impl AudioFormat {
         match self {
             AudioFormat::Aac => ".aac",
             AudioFormat::Aiff => ".aiff",
+            AudioFormat::Alac => ".m4a",
             AudioFormat::Flac => ".flac",
             AudioFormat::Mp3VbrV0 |
             AudioFormat::Mp3VbrV5 |
@@ -132,6 +137,7 @@ impl AudioFormat {
         match self {
             AudioFormat::Aac => unimplemented!(),
             AudioFormat::Aiff => unimplemented!(),
+            AudioFormat::Alac => unimplemented!(),
             AudioFormat::Flac => unimplemented!(),
             AudioFormat::Mp3VbrV0 |
             AudioFormat::Mp3VbrV5 |
@@ -150,6 +156,7 @@ impl std::fmt::Display for AudioFormat {
         let text = match self {
             AudioFormat::Aac => "AAC",
             AudioFormat::Aiff => "AIFF",
+            AudioFormat::Alac => "ALAC",
             AudioFormat::Flac => "FLAC",
             AudioFormat::Mp3VbrV0 => "MP3 V0",
             AudioFormat::Mp3VbrV5 => "MP3 V5",
@@ -166,9 +173,10 @@ impl std::fmt::Display for AudioFormat {
 }
 
 impl DownloadFormat {
-    pub const ALL_DOWNLOAD_FORMATS: [DownloadFormat; 9] = [
+    pub const ALL_DOWNLOAD_FORMATS: [DownloadFormat; 10] = [
         DownloadFormat::Aac,
         DownloadFormat::Aiff,
+        DownloadFormat::Alac,
         DownloadFormat::Flac,
         DownloadFormat::Mp3VbrV0,
         DownloadFormat::OggVorbis,
@@ -187,6 +195,7 @@ impl DownloadFormat {
         match self {
             DownloadFormat::Aac => AudioFormat::Aac,
             DownloadFormat::Aiff => AudioFormat::Aiff,
+            DownloadFormat::Alac => AudioFormat::Alac,
             DownloadFormat::Flac => AudioFormat::Flac,
             DownloadFormat::Mp3VbrV0 => AudioFormat::Mp3VbrV0,
             DownloadFormat::OggVorbis => AudioFormat::OggVorbis,
@@ -204,6 +213,7 @@ impl DownloadFormat {
             DownloadFormat::OggVorbis => build.locale.translations.audio_format_average.clone(),
             DownloadFormat::Aiff |
             DownloadFormat::Wav => build.locale.translations.audio_format_uncompressed.clone(),
+            DownloadFormat::Alac => build.locale.translations.audio_format_alac.clone(),
             DownloadFormat::Flac => build.locale.translations.audio_format_flac.clone(),
             DownloadFormat::Mp3VbrV0 => build.locale.translations.audio_format_mp3.clone(),
             DownloadFormat::Opus48Kbps => build.locale.translations.audio_format_opus_48.clone(),
@@ -220,9 +230,10 @@ impl DownloadFormat {
             DownloadFormat::Mp3VbrV0 => 4,
             DownloadFormat::OggVorbis => 5,
             DownloadFormat::Flac => 6,
-            DownloadFormat::Aac => 7,
-            DownloadFormat::Wav => 8,
-            DownloadFormat::Aiff => 9
+            DownloadFormat::Alac => 7,
+            DownloadFormat::Aac => 8,
+            DownloadFormat::Wav => 9,
+            DownloadFormat::Aiff => 10
         }
     }
 
@@ -230,6 +241,7 @@ impl DownloadFormat {
         match key {
             "aac" => Some(DownloadFormat::Aac),
             "aiff" => Some(DownloadFormat::Aiff),
+            "alac" => Some(DownloadFormat::Alac),
             "flac" => Some(DownloadFormat::Flac),
             "mp3" => Some(DownloadFormat::Mp3VbrV0),
             "ogg_vorbis" => Some(DownloadFormat::OggVorbis),
@@ -251,6 +263,7 @@ impl DownloadFormat {
             DownloadFormat::Opus128Kbps
                 => false,
             DownloadFormat::Aiff |
+            DownloadFormat::Alac |
             DownloadFormat::Flac |
             DownloadFormat::Wav
                 => true
@@ -263,6 +276,7 @@ impl DownloadFormat {
             DownloadFormat::Aiff |       // wasteful
             DownloadFormat::Wav          // wasteful
                 => false,
+            DownloadFormat::Alac |
             DownloadFormat::Flac |
             DownloadFormat::Mp3VbrV0 |
             DownloadFormat::OggVorbis |
@@ -278,6 +292,7 @@ impl DownloadFormat {
         match self {
             DownloadFormat::Aac => "AAC",
             DownloadFormat::Aiff => "AIFF",
+            DownloadFormat::Alac => "ALAC",
             DownloadFormat::Flac => "FLAC",
             DownloadFormat::Mp3VbrV0 => "MP3",
             DownloadFormat::OggVorbis => "Ogg Vorbis",

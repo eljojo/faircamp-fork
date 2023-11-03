@@ -17,6 +17,7 @@ pub struct Locale {
 /// a method of the same name - these are translations that need to be called
 /// as a function because they interpolate some parameter into the translation.
 pub struct Translations {
+    pub audio_format_alac: String,
     pub audio_format_average: String,
     pub audio_format_flac: String,
     pub audio_format_mp3: String,
@@ -123,6 +124,7 @@ impl Translations {
 
     pub fn keys() -> Translations {
         Translations {
+            audio_format_alac: String::from("audio_format_alac"),
             audio_format_average: String::from("audio_format_average"),
             audio_format_flac: String::from("audio_format_flac"),
             audio_format_mp3: String::from("audio_format_mp3"),

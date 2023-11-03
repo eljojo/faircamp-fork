@@ -40,6 +40,7 @@ pub struct Track {
 pub struct TrackAssets {
     pub aac: Option<Asset>,
     pub aiff: Option<Asset>,
+    pub alac: Option<Asset>,
     pub flac: Option<Asset>,
     pub mp3_v0: Option<Asset>,
     pub mp3_v5: Option<Asset>,
@@ -110,6 +111,7 @@ impl TrackAssets {
         match format {
             AudioFormat::Aac => &self.aac,
             AudioFormat::Aiff => &self.aiff,
+            AudioFormat::Alac => &self.alac,
             AudioFormat::Flac => &self.flac,
             AudioFormat::Mp3VbrV0 => &self.mp3_v0,
             AudioFormat::Mp3VbrV5 => &self.mp3_v5,
@@ -126,6 +128,7 @@ impl TrackAssets {
         match format {
             AudioFormat::Aac => &mut self.aac,
             AudioFormat::Aiff => &mut self.aiff,
+            AudioFormat::Alac => &mut self.alac,
             AudioFormat::Flac => &mut self.flac,
             AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
             AudioFormat::Mp3VbrV5 => &mut self.mp3_v5,
@@ -158,6 +161,7 @@ impl TrackAssets {
         TrackAssets {
             aac: None,
             aiff: None,
+            alac: None,
             flac: None,
             mp3_v0: None,
             mp3_v5: None,

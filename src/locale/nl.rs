@@ -2,6 +2,7 @@ use super::Translations;
 
 pub fn translations() -> Translations {
     Translations {
+        audio_format_alac: String::from("Verliesloos en gecomprimeerd, als je uitsluitend Apple-producten gebruikt, kies dan voor FLAC"),
         audio_format_average: String::from("Gemiddelde compressie, geschikt als uw speler geen betere formaten ondersteunt"),
         audio_format_flac: String::from("Verliesloos en gecomprimeerd, beste keuze voor archivering"),
         audio_format_mp3: String::from("Inefficiënte compressie, geschikt als compatibiliteit met oudere spelers nodig is"),

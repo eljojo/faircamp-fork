@@ -54,6 +54,10 @@ pub fn transcode(
     }
 
     match target_format {
+        AudioFormat::Alac => {
+            command.arg("-vn");
+            command.arg("-codec:a").arg("alac");
+        }
         AudioFormat::Mp3VbrV0 => {
             command.arg("-codec:a").arg("libmp3lame");
             command.arg("-qscale:a").arg("0");

@@ -39,6 +39,7 @@ use crate::{
 pub struct ArchiveAssets {
     pub aac: Option<Asset>,
     pub aiff: Option<Asset>,
+    pub alac: Option<Asset>,
     pub cover_source_file_signature: Option<SourceFileSignature>,
     pub extra_source_file_signatures: Vec<SourceFileSignature>,
     pub flac: Option<Asset>,
@@ -962,6 +963,7 @@ impl ArchiveAssets {
         match download_format {
             DownloadFormat::Aac => &self.aac,
             DownloadFormat::Aiff => &self.aiff,
+            DownloadFormat::Alac => &self.alac,
             DownloadFormat::Flac => &self.flac,
             DownloadFormat::Mp3VbrV0 => &self.mp3_v0,
             DownloadFormat::OggVorbis => &self.ogg_vorbis,
@@ -976,6 +978,7 @@ impl ArchiveAssets {
         match download_format {
             DownloadFormat::Aac => &mut self.aac,
             DownloadFormat::Aiff => &mut self.aiff,
+            DownloadFormat::Alac => &mut self.alac,
             DownloadFormat::Flac => &mut self.flac,
             DownloadFormat::Mp3VbrV0 => &mut self.mp3_v0,
             DownloadFormat::OggVorbis => &mut self.ogg_vorbis,
@@ -1007,6 +1010,7 @@ impl ArchiveAssets {
         ArchiveAssets {
             aac: None,
             aiff: None,
+            alac: None,
             cover_source_file_signature,
             extra_source_file_signatures,
             flac: None,

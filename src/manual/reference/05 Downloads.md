@@ -134,6 +134,7 @@ a lossy format with high compatibility (e.g. `mp3`) and a lossless format
 formats:
 - aac
 - aiff
+- alac
 - flac
 - mp3
 - ogg_vorbis
