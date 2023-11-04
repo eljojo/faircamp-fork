@@ -2,7 +2,7 @@
 authors = ["Simon Repp"]
 edition = "2021"
 name = "faircamp"
-version = "0.9.1"
+version = "0.9.2"
 
 [build-dependencies]
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs", tag = "0.3.0" }

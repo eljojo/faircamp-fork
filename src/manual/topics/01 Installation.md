@@ -13,11 +13,11 @@ Install [faircamp-git](https://aur.archlinux.org/packages/faircamp-git) from the
 
 **Debian 12, Ubuntu 23.04 - 23.10**
 
-Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_0.9.1-1+deb12_amd64.deb)
+Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_0.9.2-1+deb12_amd64.deb)
 
 **Debian 11, elementary OS, Linux Mint, Ubuntu 22.04 LTS - 22.10**
 
-Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_0.9.1-1+deb11_amd64.deb)
+Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_0.9.2-1+deb11_amd64.deb)
 
 **Fedora, CentOS, RHEL**
 

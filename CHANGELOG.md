@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2
+
+- Update enolib, pulling in a critical unicode char width parsing fix (HASH_HERE)
+
 ## 0.9.1
 
 - Prevent cover image from being included in release archive twice (5c9b109)
