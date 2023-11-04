@@ -8,10 +8,11 @@ rather not be listed here, no problem, just say the word.
 Thanks everyone for your support.
 
 [ailepet](https://codeberg.org/ailepet)<br>
-[Axel Minet](https://axwax.eu/)<br>
+[AxWax](https://axwax.eu/)<br>
 [controlfreak](https://control.org/)<br>
 [Dave Lane](https://davelane.nz)<br>
 [Dave Riedstra](https://daveriedstra.com/)<br>
+[Deborah Pickett](https://icemoonprison.com)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
 [Florian Antoine](https://codeberg.org/floriannomade/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
@@ -20,6 +21,8 @@ Thanks everyone for your support.
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [jd42](https://codeberg.org/jd42)<br>
 [keef](https://key13.uk)<br>
+[kel](https://mastodon.online/@kel)<br>
+[Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>
@@ -28,4 +31,5 @@ Thanks everyone for your support.
 [Simon Repp](https://simonrepp.com)<br>
 [Samæ](https://samae.demer.se/)<br>
 [Venya](https://venya.soundslike.pro/)<br>
-[Yonder](https://spacey.space/@yonder)
+[Yonder](https://spacey.space/@yonder)<br>
+[zzkt](https://fo.am/people/nik)
