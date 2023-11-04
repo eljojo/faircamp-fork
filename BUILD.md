@@ -17,7 +17,7 @@ Now check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
-cargo install --features libvips --path .
+cargo install --features libvips --locked --path .
 ```
 
 That's it! If you want to uninstall faircamp at any point, run:
@@ -40,7 +40,7 @@ Now check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
-cargo install --features libvips --path .
+cargo install --features libvips --locked --path .
 ```
 
 That's it! If you want to uninstall faircamp at any point, run:
@@ -63,7 +63,7 @@ Now check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
-cargo install --features image --path .
+cargo install --features image --locked --path .
 ```
 
 That's it! If you want to uninstall faircamp at any point, run:
@@ -85,7 +85,7 @@ Now check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
-cargo install --features libvips --path .
+cargo install --features libvips --locked --path .
 ```
 
 That's it! If you want to uninstall faircamp at any point, run:
@@ -110,7 +110,7 @@ Check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
-cargo install --features image --path .
+cargo install --features image --locked --path .
 ```
 
 That's it! If you want to uninstall faircamp at any point, run:
@@ -145,7 +145,7 @@ Now check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
-cargo install --features image --path .
+cargo install --features image --locked --path .
 ```
 
 That's it! If you want to uninstall faircamp at any point, run:
@@ -211,13 +211,13 @@ cd faircamp
 If you **skipped** the installation of libvips run this command:
 
 ```bash
-cargo install --features image --path .
+cargo install --features image --locked --path .
 ```
 
 If you successfully installed libvips [v8.13.3](https://github.com/libvips/libvips/releases/tag/v8.13.3) (or later) run this command:
 
 ```bash
-cargo install --features libvips --path .
+cargo install --features libvips --locked --path .
 ```
 
 **Uninstalling**
