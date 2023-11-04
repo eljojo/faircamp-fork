@@ -2,7 +2,7 @@
 
 ## 0.9.2
 
-- Update enolib, pulling in a critical unicode char width parsing fix (HASH_HERE)
+- Update enolib, pulling in a critical unicode char width parsing fix (57c3f81)
 
 ## 0.9.1
 
