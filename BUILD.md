@@ -138,6 +138,7 @@ Now install all required dependencies (if you manually installed rust via
 brew install rust
 brew install ffmpeg
 brew install opus
+brew install vips
 ```
 
 Now check out, build and install faircamp:
@@ -145,6 +146,16 @@ Now check out, build and install faircamp:
 ```bash
 git clone https://codeberg.org/simonrepp/faircamp.git
 cd faircamp
+RUSTFLAGS=`pkg-config --libs vips` cargo install --features libvips --locked --path .
+```
+
+If you run into troubles during building in the sense that the error messages
+mention "vips", "lvips", "libvips" or such, you can try the alternate command
+below for building and installing faircamp (It'd be great if you reported
+your issue though, including a copy of the error messages, so it can be
+resolved eventually).
+
+```bash
 cargo install --features image --locked --path .
 ```
 
@@ -153,10 +164,6 @@ That's it! If you want to uninstall faircamp at any point, run:
 ```bash
 cargo uninstall faircamp
 ```
-
-Note that installing/building with libvips has been reported to currently
-(November 2023) not work on macOS, but if you'd like to give it a shot, see
-the generic instructions for other platforms below.
 
 ## Other platforms
 
