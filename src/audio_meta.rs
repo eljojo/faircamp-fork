@@ -1,3 +1,11 @@
+/// Vorbis comment reference:
+/// - https://www.xiph.org/vorbis/doc/v-comment.html
+/// - https://datatracker.ietf.org/doc/html/draft-ietf-cellar-flac-04#name-standard-field-names
+/// - https://picard-docs.musicbrainz.org/en/variables/variables.html
+///
+/// ID3 reference:
+/// - http://www.unixgods.org/Ruby/ID3/docs/ID3_comparison.html
+
 use id3::TagLike;
 use serde_derive::{Serialize, Deserialize};
 use std::path::Path;
@@ -205,13 +213,29 @@ impl AudioMeta {
                 };
                 
                 if let Ok(tag) = id3::Tag::read_from_path(path) {
+                    // Due to a bug in the id3 crate, in ID3v2.2 and ID3v2.3 tags
+                    // the character '/' (slash) is replaced with '\0' (null byte).
+                    // The issue is a bit more complex than that, hence unresolved,
+                    // but as a practical workaround we are for the time being re-
+                    // replacing '\0' with '\' when we encounter it. A bugreport
+                    // for the underlying issue is found at the following url:
+                    // https://github.com/polyfloyd/rust-id3/issues/103
+                    let trim_and_reject_empty_override = match tag.version() {
+                        id3::Version::Id3v22 |
+                        id3::Version::Id3v23 => |string: &str| -> Option<String> {
+                            let repaired_string = string.replace('\0', "/");
+                            trim_and_reject_empty(&repaired_string)
+                        },
+                        id3::Version::Id3v24 => trim_and_reject_empty
+                    };
+
                     let album = match tag.album() {
-                        Some(album) => trim_and_reject_empty(album),
+                        Some(album) => trim_and_reject_empty_override(album),
                         None => None
                     };
 
                     let album_artist = match tag.album_artist() {
-                        Some(album_artist) => match trim_and_reject_empty(album_artist) {
+                        Some(album_artist) => match trim_and_reject_empty_override(album_artist) {
                             Some(album_artist) => vec![album_artist],
                             None => Vec::new()
                         },
@@ -219,7 +243,7 @@ impl AudioMeta {
                     };
 
                     let artist = match tag.artist() {
-                        Some(artist) => match trim_and_reject_empty(artist) {
+                        Some(artist) => match trim_and_reject_empty_override(artist) {
                             Some(artist) => vec![artist],
                             None => Vec::new()
                         },
@@ -227,7 +251,10 @@ impl AudioMeta {
                     };
 
                     let title = match tag.title() {
-                        Some(title) => trim_and_reject_empty(title),
+                        Some(title) => {
+                            dbg!(&title);
+                            trim_and_reject_empty_override(title)
+                        },
                         None => None
                     };
 
