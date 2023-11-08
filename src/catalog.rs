@@ -64,7 +64,7 @@ fn pick_best_cover_image(images: &[Rc<RefCell<Image>>]) -> Option<Rc<RefCell<Ima
         let priority = match image.borrow()
             .assets.borrow()
             .source_file_signature
-            .path.file_stem().unwrap().to_str().unwrap() {
+            .path.file_stem().unwrap().to_str().unwrap().to_lowercase().as_str() {
             "cover" => 1,
             "front" => 2,
             "album" => 3,

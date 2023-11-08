@@ -5,6 +5,15 @@ to arrive at, so they don't have to be thought through over and over again.
 Also if changes becomes necessary the thinking process can start from an
 already documented thought process, instead of starting at zero.
 
+## Heuristic to pick a cover image when there are multiple images
+
+The file name without extension is taken and made lowercase. If
+it equals "cover" it's our first pick, followed by "front", then
+"album". If there are e.g. both "cover.jpg" and "cover.png" in
+the directory it's going to be a random pick between the two,
+same thing if none of our "special" strings appear, then we just
+randomly pick the first image we iterate over. 
+
 ## Steps/algorithm to arrive at release.main_artists, release.support_artists
 
 A release has *main artist(s)* and *support artist(s)*. Picture e.g. a

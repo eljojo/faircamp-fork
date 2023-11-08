@@ -47,9 +47,10 @@ off, specify: `include_extras: no` (or respectively `yes` to turn it back on
 for single releases). Note that if there are multiple images in the release
 directory and you don't explicitly choose which of them is the cover in your
 manifest, faircamp will use a simple heuristic to choose which of them it picks
-as the cover: "cover.jpg" before "front.jpg" before "albumg.jpg", and after
+as the cover: "cover.jpg" before "front.jpg" before "album.jpg", and after
 that it will pick randomly. Note that it can also be ".png" or another format,
-only the filename before the extension is considered.
+only the filename before the extension is considered, and case is disregarded
+as well, so it can also be "Cover.jpg", for instance.
 
 If your release has multiple principal artists (e.g. a split EP), instead of
 `artist: Alice` you can also use the following to make faircamp present two
