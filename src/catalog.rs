@@ -531,12 +531,12 @@ impl Catalog {
                 }
             } else if release_tracks
                 .iter()
-                .any(|track| !track.assets.borrow().source_meta.album_artist.is_empty()) {
+                .any(|track| !track.assets.borrow().source_meta.album_artists.is_empty()) {
                 // Here, main_artists_to_map is set through "album artist" tags found on at least one track
                 for release_track in &release_tracks {
-                    let album_artist = &release_track.assets.borrow().source_meta.album_artist;
+                    let album_artists = &release_track.assets.borrow().source_meta.album_artists;
 
-                    for artist in album_artist {
+                    for artist in album_artists {
                         if !main_artists_to_map.contains(artist) {
                             main_artists_to_map.push(artist.clone());
                         }
@@ -669,7 +669,7 @@ impl Catalog {
         let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
             artist_names.to_vec()
         } else {
-            assets.borrow().source_meta.artist.to_vec()
+            assets.borrow().source_meta.artists.to_vec()
         };
         
         let title = assets.borrow().source_meta.title

@@ -20,6 +20,25 @@ use crate::decode::{
     wav
 };
 
+/// Sometimes a tag storing the track number might contain either only
+/// the track number ("01") or also the total track count ("01/07").
+/// We don't ever need the total track count so this is a parsing routine
+/// that extracts only the track number. This function practically also
+/// accepts nonsense like "01/boom", happily returning 1, as there's
+/// not really any harm coming from that.
+pub fn parse_track_number_ignoring_total_tracks(string: &str) -> Option<u32> {
+    let mut split_by_slash = string.trim().split('/');
+
+    if let Some(first_token) = split_by_slash.next() {
+        match first_token.trim_end().parse::<u32>() {
+            Ok(number) => Some(number),
+            Err(_) => None
+        }
+    } else {
+        None
+    }
+}
+
 /// Return None if the passed string is empty or all whitespace,
 /// otherwise pass Some(String) containing the trimmed input string. 
 fn trim_and_reject_empty(string: &str) -> Option<String> {
@@ -32,8 +51,10 @@ fn trim_and_reject_empty(string: &str) -> Option<String> {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
-    pub album_artist: Vec<String>, // TODO: Both album_artist and artist should probably be plural (flac/vorbis allows multiple, for other containers/codecs it's emulated)
-    pub artist: Vec<String>,
+    /// Vec because vorbis comments support multiple artists
+    pub album_artists: Vec<String>,
+    /// Vec because vorbis comments support multiple artists
+    pub artists: Vec<String>,
     pub duration_seconds: f32,
     pub lossless: bool,
     pub peaks: Option<Vec<f32>>,
@@ -75,7 +96,7 @@ impl AudioMeta {
                         None => None
                     };
 
-                    let album_artist = match tag.album_artist() {
+                    let album_artists = match tag.album_artist() {
                         Some(album_artist) => match trim_and_reject_empty(album_artist) {
                             Some(album_artist) => vec![album_artist],
                             None => Vec::new()
@@ -83,7 +104,7 @@ impl AudioMeta {
                         None => Vec::new()
                     };
 
-                    let artist = match tag.artist() {
+                    let artists = match tag.artist() {
                         Some(artist) => match trim_and_reject_empty(artist) {
                             Some(artist) => vec![artist],
                             None => Vec::new()
@@ -98,8 +119,8 @@ impl AudioMeta {
 
                     AudioMeta {
                         album,
-                        album_artist,
-                        artist,
+                        album_artists,
+                        artists,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -109,8 +130,8 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        album_artist: Vec::new(),
-                        artist: Vec::new(),
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -145,7 +166,7 @@ impl AudioMeta {
                         None => None
                     };
 
-                    let album_artist = tag
+                    let album_artists = tag
                         .get_vorbis("albumartist")
                         .or_else(|| tag.get_vorbis("album artist"))
                         .map(|fields|
@@ -153,7 +174,7 @@ impl AudioMeta {
                         )
                         .unwrap_or_else(Vec::new);
 
-                    let artist = tag
+                    let artists = tag
                         .get_vorbis("artist")
                         .map(|fields|
                             fields.filter_map(trim_and_reject_empty).collect()
@@ -172,18 +193,16 @@ impl AudioMeta {
 
                     let track_number = match tag.get_vorbis("tracknumber") {
                         Some(fields) => fields.fold(None, |result, field| {
-                            match field.trim().parse::<u32>() {
-                                Ok(number) => Some(number),
-                                Err(_) => result
-                            }
+                            parse_track_number_ignoring_total_tracks(field)
+                                .or(result)
                         }),
                         None => None
                     };
                     
                     AudioMeta {
                         album,
-                        album_artist,
-                        artist,
+                        album_artists,
+                        artists,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -193,8 +212,8 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        album_artist: Vec::new(),
-                        artist: Vec::new(),
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -234,7 +253,7 @@ impl AudioMeta {
                         None => None
                     };
 
-                    let album_artist = match tag.album_artist() {
+                    let album_artists = match tag.album_artist() {
                         Some(album_artist) => match trim_and_reject_empty_override(album_artist) {
                             Some(album_artist) => vec![album_artist],
                             None => Vec::new()
@@ -242,7 +261,7 @@ impl AudioMeta {
                         None => Vec::new()
                     };
 
-                    let artist = match tag.artist() {
+                    let artists = match tag.artist() {
                         Some(artist) => match trim_and_reject_empty_override(artist) {
                             Some(artist) => vec![artist],
                             None => Vec::new()
@@ -251,17 +270,14 @@ impl AudioMeta {
                     };
 
                     let title = match tag.title() {
-                        Some(title) => {
-                            dbg!(&title);
-                            trim_and_reject_empty_override(title)
-                        },
+                        Some(title) => trim_and_reject_empty_override(title),
                         None => None
                     };
 
                     AudioMeta {
                         album,
-                        album_artist,
-                        artist,
+                        album_artists,
+                        artists,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -271,8 +287,8 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        album_artist: Vec::new(),
-                        artist: Vec::new(),
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -295,8 +311,8 @@ impl AudioMeta {
                 };
 
                 let mut album = None;
-                let mut album_artist = Vec::new();
-                let mut artist = Vec::new();
+                let mut album_artists = Vec::new();
+                let mut artists = Vec::new();
                 let mut title = None;
                 let mut track_number = None;
 
@@ -308,15 +324,15 @@ impl AudioMeta {
                             }
                             "albumartist" |
                             "album artist" => if let Some(trimmed) = trim_and_reject_empty(&value) {
-                                album_artist.push(trimmed);
+                                album_artists.push(trimmed);
                             }
                             "artist" => if let Some(trimmed) = trim_and_reject_empty(&value) {
-                                artist.push(trimmed);
+                                artists.push(trimmed);
                             }
                             "title" => if let Some(trimmed) = trim_and_reject_empty(&value) {
                                 title = Some(trimmed);
                             }
-                            "track_number" => if let Ok(number) = value.trim().parse::<u32>() {
+                            "track_number" => if let Some(number) = parse_track_number_ignoring_total_tracks(&value) {
                                 track_number = Some(number);
                             }
                             _ => ()
@@ -325,8 +341,8 @@ impl AudioMeta {
 
                     AudioMeta {
                         album,
-                        album_artist,
-                        artist,
+                        album_artists,
+                        artists,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -336,8 +352,8 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        album_artist: Vec::new(),
-                        artist: Vec::new(),
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -363,7 +379,7 @@ impl AudioMeta {
                         None => None
                     };
 
-                    let album_artist = match user_comments.get("albumartist")
+                    let album_artists = match user_comments.get("albumartist")
                         .or_else(|| user_comments.get("album artist")) {
                         Some(album_artist) => match trim_and_reject_empty(album_artist) {
                             Some(album_artist) => vec![album_artist],
@@ -372,7 +388,7 @@ impl AudioMeta {
                         None => Vec::new()
                     };
 
-                    let artist = match user_comments.get("artist") {
+                    let artists = match user_comments.get("artist") {
                         Some(artist) => match trim_and_reject_empty(artist) {
                             Some(artist) => vec![artist],
                             None => Vec::new()
@@ -386,17 +402,14 @@ impl AudioMeta {
                     };
 
                     let track_number = match user_comments.get("tracknumber") {
-                        Some(track_number) => match track_number.trim().parse::<u32>() {
-                            Ok(number) => Some(number),
-                            Err(_) => None
-                        }
+                        Some(track_number) => parse_track_number_ignoring_total_tracks(track_number),
                         None => None
                     };
 
                     AudioMeta {
                         album,
-                        album_artist,
-                        artist,
+                        album_artists,
+                        artists,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -406,8 +419,8 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        album_artist: Vec::new(),
-                        artist: Vec::new(),
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -431,7 +444,7 @@ impl AudioMeta {
                         None => None
                     };
 
-                    let album_artist = match tag.album_artist() {
+                    let album_artists = match tag.album_artist() {
                         Some(album_artist) => match trim_and_reject_empty(album_artist) {
                             Some(album_artist) => vec![album_artist],
                             None => Vec::new()
@@ -439,7 +452,7 @@ impl AudioMeta {
                         None => Vec::new()
                     };
 
-                    let artist = match tag.artist() {
+                    let artists = match tag.artist() {
                         Some(artist) => match trim_and_reject_empty(artist) {
                             Some(artist) => vec![artist],
                             None => Vec::new()
@@ -454,8 +467,8 @@ impl AudioMeta {
 
                     AudioMeta {
                         album,
-                        album_artist,
-                        artist,
+                        album_artists,
+                        artists,
                         duration_seconds,
                         lossless,
                         peaks,
@@ -465,8 +478,8 @@ impl AudioMeta {
                 } else {
                     AudioMeta {
                         album: None,
-                        album_artist: Vec::new(),
-                        artist: Vec::new(),
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
                         duration_seconds,
                         lossless,
                         peaks,
@@ -478,8 +491,8 @@ impl AudioMeta {
             _ => {
                 AudioMeta {
                     album: None,
-                    album_artist: Vec::new(),
-                    artist: Vec::new(),
+                    album_artists: Vec::new(),
+                    artists: Vec::new(),
                     duration_seconds: 0.0,
                     lossless,
                     peaks: None,
