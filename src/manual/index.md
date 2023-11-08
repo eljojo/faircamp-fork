@@ -14,5 +14,8 @@ metadata that you can set in your manifests.
 
 ## Other resources
 
-- See the [website](https://simonrepp.com/faircamp) for screenshots.
-- See the [repository](https://codeberg.org/simonrepp/faircamp) for the source code.
+See the [website](https://simonrepp.com/faircamp) for further community
+resources, a feature overview, screenshots, and a list of faircamp sites to
+explore.
+
+See the [repository](https://codeberg.org/simonrepp/faircamp) for the source code.

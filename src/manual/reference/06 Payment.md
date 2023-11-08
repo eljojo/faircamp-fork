@@ -1,12 +1,16 @@
 # Payment
 
+Important: The options described here are only needed and only processed in
+conjunction with the soft paycurtain option (see the reference
+on "Downloads"). If you want to place general links for financial support
+that are not directly tied to downloads/purchases, you can put them in the
+catalog text (frontpage) and/or release page texts.
+
 This sets payment options that are shown when someone wants to purchase one of
 your releases. The idea here is simply that you provide external links to one
 or more payment, donation or patronage platforms that you use, be it
 liberapay, ko-fi, paypal, stripe, you name it. You could even link to
-bandcamp if you want your faircamp page just to be your self-controlled
-streaming page, while still hosting your music for purchase on bandcamp as
-well, why not!
+bandcamp if you want to use it in parallel with your faircamp site, why not!
 
 Each `custom` field specifies one payment option, and you can use
 [Markdown](https://commonmark.org/help/) in them.

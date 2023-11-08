@@ -25,4 +25,4 @@ Are there any formats missing that are important for you? Bring it up in the [is
 - webp
 
 (*) only when compiled with libvips - you can run `faircamp --version` to see
-if your install faircamp build was compiled with libvips.
+if your installed faircamp build was compiled with libvips.
