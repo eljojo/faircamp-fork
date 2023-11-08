@@ -87,7 +87,7 @@ impl Overrides {
             download_formats: vec![DownloadFormat::DEFAULT],
             download_granularity: DownloadGranularity::EntireRelease,
             download_option: DownloadOption::Disabled,
-            embedding: true,
+            embedding: false,
             include_extras: true,
             payment_options: Vec::new(),
             release_artists: None,
