@@ -27,10 +27,19 @@ pub fn generate(build: &Build, catalog: &Catalog) {
                     main_artists
                 };
 
+                let pub_date = match release_ref.date {
+                    Some(date) => format!(
+                        "<pubDate>{}</pubDate>",
+                        date.and_hms_opt(0, 0, 0).unwrap().and_utc().to_rfc2822()
+                    ),
+                    None => String::new()
+                };
+
                 format!(
                     include_str!("templates/feed/item.xml"),
                     description = format!("A release by {}", artists_list),
                     permalink = base_url.join(&release_ref.permalink.slug).unwrap(),
+                    pub_date = pub_date,
                     title = release_ref.title,
                 )
             })

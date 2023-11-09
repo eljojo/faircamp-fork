@@ -2,5 +2,6 @@
     <description>{description}</description>
     <guid>{permalink}</guid>
     <link>{permalink}</link>
+    {pub_date}
     <title>{title}</title>
 </item>
