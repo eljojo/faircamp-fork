@@ -88,7 +88,7 @@ pub fn transcode(
                 Err(format!("The ffmpeg child process returned an error exit code.\n\n{}", ffmpeg_output))
             }
         }
-        Err(_) => Err("The ffmpeg child process could not be executed.".to_string())
+        Err(err) => Err(format!("The ffmpeg child process could not be executed.\n\n{err}"))
     }
 }
 
