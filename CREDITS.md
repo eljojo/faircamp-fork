@@ -8,11 +8,13 @@ rather not be listed here, no problem, just say the word.
 Thanks everyone for your support.
 
 [ailepet](https://codeberg.org/ailepet)<br>
+[Alexander Cobleigh](https://cblgh.org)<br>
 [AxWax](https://axwax.eu/)<br>
 [controlfreak](https://control.org/)<br>
 [Dave Lane](https://davelane.nz)<br>
 [Dave Riedstra](https://daveriedstra.com/)<br>
 [Deborah Pickett](https://icemoonprison.com)<br>
+[Default Media Transmitter](https://defaultmediatransmitter.com/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
 [Florian Antoine](https://codeberg.org/floriannomade/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
@@ -22,14 +24,18 @@ Thanks everyone for your support.
 [jd42](https://codeberg.org/jd42)<br>
 [keef](https://key13.uk)<br>
 [kel](https://mastodon.online/@kel)<br>
+[Lime Bar](https://mastodon.social/@limebar)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [nOOq](https://codeberg.org/n00q)<br>
+[protman](https://protman.com/)<br>
+[Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Simon Repp](https://simonrepp.com)<br>
 [Samæ](https://samae.demer.se/)<br>
+[themissingcow](https://codeberg.org/themissingcow)<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
 [zzkt](https://fo.am/people/nik)
