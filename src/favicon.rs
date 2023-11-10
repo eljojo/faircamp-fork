@@ -9,7 +9,8 @@ pub enum Favicon {
         absolute_path: PathBuf,
         extension: String,
     },
-    Default
+    Default,
+    None
 }
 
 impl Favicon {
@@ -45,6 +46,7 @@ impl Favicon {
                     <link href="{root_prefix}favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
                 "#)
             }
+            Favicon::None => String::new()
         }
     }
 
@@ -72,6 +74,7 @@ impl Favicon {
                     include_bytes!("assets/favicon_light.png")
                 ).unwrap();
             }
+            Favicon::None => ()
         }
     }
 }

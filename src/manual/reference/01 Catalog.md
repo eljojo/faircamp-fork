@@ -50,7 +50,8 @@ For the RSS feed an optional `feed_image` can be specified. The catalog
 [Markdown](https://commonmark.org/help/). The `home_image` is an image that
 will be displayed on the homepage, e.g. a logo for your label or a band photo
 or such. A custom `favicon` can be set, this currently only supports `.png`
-and `.ico` files.
+and `.ico` files. `favicon: none` can be used to build the site without any
+favicon at all.
 
 ```eno
 base_url: https://myawesomemusic.site/

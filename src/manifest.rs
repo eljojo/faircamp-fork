@@ -353,19 +353,25 @@ pub fn apply_options(
             }
         }
 
-        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "favicon"){
+        if let Some((value, line)) = optional_field_value_with_line(section, "favicon"){
             if let Favicon::Custom { absolute_path, .. } = &catalog.favicon {
-                warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), path_relative_to_manifest);
+                warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), value);
+            } else if let Favicon::None = &catalog.favicon {
+                warn_global_set_repeatedly!("catalog.favicon", "none", value);
             }
 
-            let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
-            if absolute_path.exists() {
-                match Favicon::custom(absolute_path) {
-                    Ok(favicon) => catalog.favicon = favicon,
-                    Err(message) => error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} ({})", path_relative_to_manifest, path.display(), line, message) 
-                }
+            if value == "none" {
+                catalog.favicon = Favicon::None;
             } else {
-                error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
+                let absolute_path = path.parent().unwrap().join(&value);
+                if absolute_path.exists() {
+                    match Favicon::custom(absolute_path) {
+                        Ok(favicon) => catalog.favicon = favicon,
+                        Err(message) => error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} ({})", value, path.display(), line, message) 
+                    }
+                } else {
+                    error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} (The referenced file was not found)", value, path.display(), line)
+                }
             }
         }
 
