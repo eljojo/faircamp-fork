@@ -83,7 +83,7 @@ fn compact_release_identifier(
 
     format!(r#"
         <div style="align-items: center; column-gap: .8rem; display: flex; margin: 2em 0;">
-            <div style="background-color: var(--color-cover); max-width: 4rem">
+            <div style="max-width: 4rem">
                 {cover}
             </div>
             <div>

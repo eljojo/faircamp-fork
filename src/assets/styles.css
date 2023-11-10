@@ -1,6 +1,5 @@
 :root {
     --color-background: hsl(var(--background-h), var(--background-s), var(--background-l));
-/*    --color-cover: hsl(var(--cover-h), var(--cover-s), var(--cover-l));*/
     --color-faint: hsl(var(--text-h), var(--text-s), var(--faint-l));
     --color-link: hsl(var(--link-h), var(--link-s), var(--link-l));
     --color-link-hover: hsl(var(--link-h), var(--link-s), var(--link-hover-l));
@@ -76,13 +75,11 @@ body {
     padding: 1rem;
 }
 .cover {
-    background-color: var(--color-cover);
     display: block;
     max-height: 20rem;
     max-width: 20rem;
 }
 .cover_listing {
-    background-color: var(--color-cover);
     display: block;
     margin-bottom: .5rem;
 }
