@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.10.0
+
+- Augment permalink conflict errors with release directory paths (9d376b1)
+- Expose release date as item pubDate in rss feed (Default Media Transmitter, a2d8c5f)
+- Support transcoding to ALAC format (Deborah Pickett, ee8b435)
+- Introduce custom ico/png favicon support (87590a2)
+- Disable embedding by default (until fully implemented) (6d8b12d)
+- Handle total track count component when parsing track number tags (bb1dde1)
+- Disregard case in cover selection heuristic (121551d)
+- Patch upstream slash parsing issue for ID3v2.2/2.3 tagged files (c25acad)
+
 ## 0.9.2
 
 - Update enolib, pulling in a critical unicode char width parsing fix (57c3f81)
