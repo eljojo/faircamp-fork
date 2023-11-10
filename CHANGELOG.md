@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.1
+
+- Revert release date as rss item pubDate for further consideration (d006bd9)
+- Include error message on ffmpeg process failing to execute (c6c8e83)
+- Drop unused color-cover styles and variables (8785c9a)
+
 ## 0.10.0
 
 - Augment permalink conflict errors with release directory paths (9d376b1)
