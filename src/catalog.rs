@@ -16,7 +16,6 @@ use crate::{
     Favicon,
     Image,
     manifest::{self, LocalOptions, Overrides},
-    Permalink,
     PermalinkUsage,
     Release,
     SourceFileSignature,
@@ -31,7 +30,7 @@ use crate::theme::CoverGenerator;
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aif", "aifc", "aiff", "flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png", "webp"];
 
-const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through metadata (see faircamp's README.md)";
+const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through manifests (see faircamp's README.md)";
 
 #[derive(Debug)]
 pub struct Catalog {
@@ -640,6 +639,8 @@ impl Catalog {
                 &extras
             );
             
+            let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap();
+
             let release = Release::new(
                 archive_assets,
                 cover,
@@ -648,6 +649,7 @@ impl Catalog {
                 main_artists_to_map,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 local_options.release_permalink,
+                release_dir_relative_to_catalog.to_path_buf(),
                 support_artists_to_map,
                 title.to_string(),
                 release_tracks
@@ -739,9 +741,15 @@ impl Catalog {
         String::from("Faircamp")
     }
 
+    /// Checks the (either auto-generated or user-assigned) permalinks of all
+    /// artists and releases in the catalog, printing errors when any two
+    /// conflict with each other. Also prints warnings if there are
+    /// auto-generated permalinks, as these are not truly permanent and
+    /// should be replaced with manually specified ones. Returns whether any
+    /// conflicts were found.
     fn validate_permalinks(&mut self) -> bool {
         let mut generated_permalinks = (None, None, None, 0);
-        let mut used_permalinks = HashMap::new();
+        let mut used_permalinks: HashMap<String, PermalinkUsage> = HashMap::new();
 
         let mut add_generated_usage = |usage: &PermalinkUsage| {
             if generated_permalinks.2.is_some() {
@@ -762,32 +770,16 @@ impl Catalog {
             }
         };
 
-        let mode = |permalink: &Permalink| -> &str {
-            if permalink.generated { "auto-generated" } else { "user-assigned" }
-        };
-
-        let format_previous_usage = |previous_usage: &PermalinkUsage| -> String {
-            match previous_usage {
-                PermalinkUsage::Artist(artist) => {
-                    let artist_ref = artist.borrow();
-                    format!("the {} permalink of the artist '{}'", mode(&artist_ref.permalink), artist_ref.name)
-                }
-                PermalinkUsage::Release(release) => {
-                    let release_ref = release.borrow();
-                    format!("the {} permalink of the release '{}'", mode(&release_ref.permalink), release_ref.title)
-                }
-            }
-        };
-
         for release in &self.releases {
             let release_ref = release.borrow();
 
             if let Some(previous_usage) = used_permalinks.get(&release_ref.permalink.slug) {
-                let generated_or_assigned = mode(&release_ref.permalink);
+                let generated_or_assigned = &release_ref.permalink.generated_or_assigned_str();
                 let slug = &release_ref.permalink.slug;
                 let title = &release_ref.title;
-                let previous_usage_formatted = format_previous_usage(previous_usage);
-                let message = format!("The {generated_or_assigned} permalink '{slug}' of the release '{title}' conflicts with {previous_usage_formatted}");
+                let previous_usage_formatted = previous_usage.as_string();
+                let release_dir = release_ref.source_dir.display();
+                let message = format!("The {generated_or_assigned} permalink '{slug}' of the release '{title}' from directory '{release_dir}' conflicts with the {previous_usage_formatted}");
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {
@@ -798,18 +790,18 @@ impl Catalog {
         }
         
         // TODO: We could think about validating this even for non-featured
-        // artists already(especially, or maybe only if their permalinks were
+        // artists already (especially, or maybe only if their permalinks were
         // user-assigned). This way the behavior would be a bit more stable
         // when someone suddenly "flips the switch" on label_mode and/or
         // feature_supported_artists.
         for artist in &self.featured_artists {
             let artist_ref = artist.borrow();
             if let Some(previous_usage) = used_permalinks.get(&artist_ref.permalink.slug) {
-                let generated_or_assigned = mode(&artist_ref.permalink);
+                let generated_or_assigned = &artist_ref.permalink.generated_or_assigned_str();
                 let slug = &artist_ref.permalink.slug;
                 let name = &artist_ref.name;
-                let previous_usage_formatted = format_previous_usage(previous_usage);
-                let message = format!("The {generated_or_assigned} permalink '{slug}' of the artist '{name}' conflicts with {previous_usage_formatted}");
+                let previous_usage_formatted = previous_usage.as_string();
+                let message = format!("The {generated_or_assigned} permalink '{slug}' of the artist '{name}' conflicts with the {previous_usage_formatted}");
                 error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
                 return false;
             } else {

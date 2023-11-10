@@ -96,6 +96,10 @@ pub struct Release {
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub rewrite_tags: bool,
+    /// Relative path of the release directory in the catalog directory.
+    /// This is used to augment permalink conflict errors with additional
+    /// info for resolving the conflict.
+    pub source_dir: PathBuf,
     pub streaming_quality: StreamingQuality,
     /// Artists that appear on the release as collaborators, features, etc.
     pub support_artists: Vec<Rc<RefCell<Artist>>>,
@@ -517,6 +521,7 @@ impl Release {
         main_artists_to_map: Vec<String>,
         manifest_overrides: &Overrides,
         permalink_option: Option<Permalink>,
+        source_dir: PathBuf,
         support_artists_to_map: Vec<String>,
         title: String,
         tracks: Vec<Track>
@@ -547,6 +552,7 @@ impl Release {
             payment_options: manifest_overrides.payment_options.clone(),
             permalink,
             rewrite_tags: manifest_overrides.rewrite_tags,
+            source_dir,
             streaming_quality: manifest_overrides.streaming_quality,
             support_artists: Vec::new(),
             support_artists_to_map,
