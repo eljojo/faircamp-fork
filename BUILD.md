@@ -121,15 +121,7 @@ cargo uninstall faircamp
 
 ## macOS
 
-First install the xcode command line tools (this requirement is not 100%
-confirmed, if you manage to build without it please report it, same if you
-can confirm it's not working without this step):
-
-```bash
-xcode-select --install
-```
-
-Then install Homebrew by following the instructions on https://brew.sh.
+First install Homebrew by following the instructions on https://brew.sh.
 
 Now you can build and install faircamp with a single command:
 
