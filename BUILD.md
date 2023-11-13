@@ -121,9 +121,9 @@ cargo uninstall faircamp
 
 ## macOS
 
-Install the xcode command line tools (this requirement is not 100% confirmed,
-if you manage to build without it please report it, same if you can confirm
-it's not working without this step):
+First install the xcode command line tools (this requirement is not 100%
+confirmed, if you manage to build without it please report it, same if you
+can confirm it's not working without this step):
 
 ```bash
 xcode-select --install
@@ -131,38 +131,10 @@ xcode-select --install
 
 Then install Homebrew by following the instructions on https://brew.sh.
 
-Now install all required dependencies (if you manually installed rust via
-[rustup](https://rustup.rs/) skip the first line):
+Now you can build and install faircamp with a single command:
 
 ```bash
-brew install rust
-brew install ffmpeg
-brew install opus
-brew install vips
-```
-
-Now check out, build and install faircamp:
-
-```bash
-git clone https://codeberg.org/simonrepp/faircamp.git
-cd faircamp
-RUSTFLAGS=`pkg-config --libs vips` cargo install --features libvips --locked --path .
-```
-
-If you run into troubles during building in the sense that the error messages
-mention "vips", "lvips", "libvips" or such, you can try the alternate command
-below for building and installing faircamp (It'd be great if you reported
-your issue though, including a copy of the error messages, so it can be
-resolved eventually).
-
-```bash
-cargo install --features image --locked --path .
-```
-
-That's it! If you want to uninstall faircamp at any point, run:
-
-```bash
-cargo uninstall faircamp
+brew install faircamp
 ```
 
 ## Other platforms
