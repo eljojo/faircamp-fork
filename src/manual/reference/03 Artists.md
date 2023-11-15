@@ -34,4 +34,7 @@ Only ever known to publicly perform at birthday parties and the gym at their hom
 -- text
 ```
 
+For an explanation what a `permalink` is please see the "Concepts Explained" page,
+unter "Topics".
+
 Note that the `text` field supports [Markdown](https://commonmark.org/help/).

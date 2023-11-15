@@ -40,6 +40,9 @@ for it.
 
 The `text` field allows the use of [Markdown](https://commonmark.org/help/).
 
+For an explanation what a `permalink` is please see the "Concepts Explained" page,
+unter "Topics".
+
 Any additional files in a release directory besides the audio files, cover image
 and manifests (.eno files) are considered "extras" and by default included with
 the release downloads (think artwork, liner notes, lyrics, etc.). To turn this
