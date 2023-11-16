@@ -1,16 +1,25 @@
 # Faircamp Manual
 
-The manual is organized into *topics* and *reference* pages.
+The manual is organized into *topics*, *examples* and *reference* pages.
 
 ## Topics
 
 For an introduction go through the topics in order. These show how faircamp
 works in general and swiftly guide you to your first faircamp site.
 
+## Examples
+
+These each explain a fictional faircamp catalog - how the file layout is
+structured, what metadata from audio files it uses, and how the manifests are
+placed and used to customize the site for each respective usecase. This
+teaches by example, but does not necessarily show *every* feature there is in
+faircamp, so also consider going through the reference to get the full
+picture.
+
 ## Reference
 
-Beyond that, the reference pages then explain all available options and
-metadata that you can set in your manifests.
+The reference pages explain all available options and metadata that you can
+set in your manifests, giving detailed info for each setting.
 
 ## Other resources
 

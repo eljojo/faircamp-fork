@@ -14,6 +14,7 @@ compile_error!(r#"An image processing feature needs to be enabled, re-run your l
 compile_error!(r#"Only one image processing feature can be enabled, remove either "--features image" or "--features libvips" from your last command"#);
 
 struct Docs {
+	examples: Vec<Page>,
 	index: Page,
 	reference: Vec<Page>,
 	topics: Vec<Page>
@@ -89,7 +90,17 @@ pub fn main() {
 			&manual_out_dir,
 			&docs,
 			page,
-			topics_iter.peek().copied().or_else(|| docs.reference.first())
+			topics_iter.peek().copied().or_else(|| docs.examples.first())
+		);
+	}
+
+	let mut examples_iter = docs.examples.iter().peekable();
+	while let Some(page) = examples_iter.next() {
+		render_page(
+			&manual_out_dir,
+			&docs,
+			page,
+			examples_iter.peek().copied().or_else(|| docs.reference.first())
 		);
 	}
 
@@ -161,6 +172,7 @@ fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
 			.join("\n")
 	};
 
+	let examples = section_links(&docs.examples);
 	let reference = section_links(&docs.reference);
 	let topics = section_links(&docs.topics);
 	let index_active = if active_page == &docs.index { r#" class="active""# } else { "" };
@@ -195,6 +207,9 @@ fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
 							<span>Topics</span>
 							{topics}
 
+							<span>Examples</span>
+							{examples}
+
 							<span>Reference</span>
 							{reference}
 						</div>
@@ -219,10 +234,12 @@ fn read_docs() -> Docs {
 		title: String::from("Faircamp Manual")
 	};
 
+	let examples = read_pages(&Path::new(MANUAL_DIR).join("examples"));
 	let reference = read_pages(&Path::new(MANUAL_DIR).join("reference"));
 	let topics = read_pages(&Path::new(MANUAL_DIR).join("topics"));
 
 	Docs {
+		examples,
 		index,
 		reference,
 		topics
