@@ -1,0 +1,81 @@
+use super::Translations;
+
+pub fn translations() -> Translations {
+    Translations {
+        audio_format_alac: String::from("Tapsfritt og komprimert, velg dette over FLAC dersom du kun bruker Apple produkter"),
+        audio_format_average: String::from("Middels komprimering, passende dersom avspilleren din ikke støtter bedre formater"),
+        audio_format_flac: String::from("Tapsfritt og komprimert, det beste valget for arkivering"),
+        audio_format_mp3: String::from("Lite effektiv komprimering, passende dersom kompatibilitet med eldre avspillere er nødvendig"),
+        audio_format_opus_48: String::from("Utmerket kompresjon, begrenset kvalitet, et godt valg dersom det er begrenset lagringsplass"),
+        audio_format_opus_96: String::from("Utmerket kompresjon, standard kvalitet, et godt valg for å lytte frakoblet"),
+        audio_format_opus_128: String::from("Utmerket kompresjon, høyeste kvalitet, det beste valget for å lytte frakoblet"),
+        audio_format_uncompressed: String::from("Ukomprimerte store filer, kun passende for lydproduksjon"),
+        audio_player_widget_for_release: String::from(r#"Lydavspillerelement for utgivelsen "{title}""#),
+        audio_player_widget_for_track: String::from(r#"Lydavspillerelement for sporet "{title}""#),
+        auto_generated_cover: String::from("Automatisk generert omslag"),
+        available_formats: String::from("Tilgjengelige formater:"),
+        close: String::from("Lukk"),
+        copied: String::from("Kopiert"),
+        copy: String::from("Kopier"),
+        confirm: String::from("Bekreft"),
+        r#continue: String::from("Fortsett"),
+        cover_image: String::from("Omslagsbilde"),
+        default_unlock_text: String::from("Du må skrive inn en kode for å få lastet ned disse filene. Spør sidens administratorer for hvordan du kan få en."),
+        downloads: String::from("Nedlastinger"),
+        downloads_permalink: String::from("nedlastinger"),
+        embed: String::from("Bygg inn"),
+        embed_entire_release: String::from("Bygg inn hele utgivelsen"),
+        enter_code_here: String::from("Skriv inn koden her"),
+        extras: String::from("Ekstra"),
+        failed: String::from("Feilet"),
+        feed: String::from("Abonner"),
+        fixed_price: String::from("Fast pris:"),
+        image_descriptions: String::from("Bildebeskrivelser"),
+        image_descriptions_guide: String::from("\
+Millioner av mennesker leser weben ved hjelp av skjermlesere \
+på grunn av at de ikke kan se (eller ikke se godt nok). \
+Bilder uten en beskrivende tekst er utilgjengelige for dem, \
+og dette er grunnen til at vi burde gjøre en innsats for å \
+beskrive bildene for dem.<br><br>\
+\
+Se faircamp sin README filr for hvordan du legger til \
+bildebeskrivelser. Det er enkelt og gjør verden bedre \
+for blinde og svaksynte.<br><br>\
+\
+Her er noen tips for å lage gode bildebeskrivelser:<br>\
+- Noe beskrivelse er bedre enn ingen beskrivelse, ikke vær bekymret for om du gjør det feil.<br>\
+- Hold den knapp. Skriv så mye som trengs, men hold den samtidig så kort som mulig.<br>\
+- Ikke tolk. Beskriv hva som vises og som er relevant for forståelsen. Ikke gi noen videre analyse utover det.<br>\
+- Du kan beskrive farger der hvor det gir mening - mange har mistet synet i løpet av livet, og forstår og setter pris på farger."),
+        image_descriptions_permalink: String::from("image-descriptions"),
+        made_or_arranged_payment: String::from("Jeg har utført eller ordnet med betaling"),
+        missing_image_description_note: String::from("Manglende bildebeskrivelse<br>Klikk for å lære mer"),
+        name_your_price: String::from("Velg din egen pris"),
+        option: String::from("Valg"),
+        pay_on_liberapay: String::from("Betal via Liberapay"),
+        payment_options: String::from("Payment options:"),
+        purchase_downloads: String::from("Kjøp nedlastinger"),
+        purchase_permalink: String::from("kjøp"),
+        recommended_format: String::from("Anbefalt format"),
+        rss_feed: String::from("RSS-Strøm"),
+        share: String::from("Del"),
+        share_not_available_navigator_clipboard: String::from("Ikke tilgjengelig i din nettleser (navigator.clipboard er ikke støttet)"),
+        share_not_available_requires_javascript: String::from("Not available in your browser (requires JavaScript)"),
+        unlock: String::from("Lås opp"),
+        unlock_downloads: String::from("Lås opp nedlastinger"),
+        unlock_permalink: String::from("lås opp"),
+        unlock_code_seems_incorrect: String::from("Koden for å låse opp er ikke riktig, sjekk om du har noen skrivefeil."),
+        unlock_manual_instructions: String::from("\
+For å låse opp nedlastingen må du gjøre følgende endringer \
+til addressen i nettleserens addressefelt.\
+<br><br>\
+Før du prøver på dette, så vær oppmerksom på at feil kode eller \
+addresseendringer vil føre til en side som ikke finnes. Hvis det \
+skjer, bruk tilbake-knappen og prøv å følge instruksjonene nøye igjen.\
+<br><br>\
+Erstatt den siste delen av addressen - /unlock/{page_hash}{index_suffix} - \
+med /downloads/[your-unlock-code]{index_suffix} og trykk ENTER."),
+        up_to_xxx: String::from("Opp til {xxx}"),
+        xxx_or_more: String::from("{xxx} eller mer")
+    }
+}
