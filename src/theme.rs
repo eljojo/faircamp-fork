@@ -65,7 +65,7 @@ pub enum ThemeFont {
 }
 
 impl CoverGenerator {
-    pub const ALL_GENERATORS: [&str; 5] = [
+    pub const ALL_GENERATORS: [&'static str; 5] = [
         "best_rillen",
         "glass_splinters",
         "looney_tunes",
@@ -109,7 +109,7 @@ impl Theme {
 impl ThemeBase {
     /// If a wrong theme base is configured in a manifest, faircamp
     /// uses this to print a hint about which ones are available.
-    pub const ALL_PRESETS: [&str; 6] = [
+    pub const ALL_PRESETS: [&'static str; 6] = [
         "black",
         "black_alternate",
         "dark",
