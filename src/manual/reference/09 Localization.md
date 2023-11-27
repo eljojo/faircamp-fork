@@ -2,12 +2,13 @@
 
 ## Supported languages
 
-Faircamp currently ships with five languages:
+Faircamp currently ships with these languages:
 
 - Dutch `nl`
 - English `en`
 - French `fr`
 - German `de`
+- Norwegian Bokmål `nb`
 - Spanish `es`
 
 English is the default, another language can be configured like this:
