@@ -120,9 +120,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         &track_filename
                     );
 
-                    let source_type = format.source_type();
-                    let src = format!("{format_dir}/{track_hash}/{track_filename}");
+                    let track_filename_urlencoded = urlencoding::encode(&track_filename);
+                    let src = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
 
+                    let source_type = format.source_type();
                      format!(r#"<source src="{src}" type="{source_type}">"#)
                 })
                 .collect::<Vec<String>>()

@@ -79,9 +79,11 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     &archive_filename
                 );
 
+                let archive_filename_urlencoded = urlencoding::encode(&archive_filename);
+
                 download_entry(
                     format!(
-                        "{root_prefix}{release_slug}/{format_dir}/{archive_hash}/{archive_filename}",
+                        "{root_prefix}{release_slug}/{format_dir}/{archive_hash}/{archive_filename_urlencoded}",
                         format_dir = download_format.as_audio_format().asset_dirname()
                     ),
                     download_format.user_label(),
@@ -103,43 +105,58 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     };
 
     let single_file_downloads = if release.download_granularity != DownloadGranularity::EntireRelease {
-        let cover_download = if let Some(cover) = &release.cover {
-            download_entry(
-                format!(
-                    "{root_prefix}{permalink}/cover_{edge_size}.jpg",
-                    edge_size = cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().edge_size,
-                    permalink = &release.permalink.slug
-                ),
-                &build.locale.translations.cover_image,
-                cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().filesize_bytes
+        let extra_downloads = if release.cover.is_some() || !release.extras.is_empty() {
+            let cover_entry = if let Some(cover) = &release.cover {
+                download_entry(
+                    format!(
+                        "{root_prefix}{permalink}/cover_{edge_size}.jpg",
+                        edge_size = cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().edge_size,
+                        permalink = &release.permalink.slug
+                    ),
+                    &build.locale.translations.cover_image,
+                    cover.borrow().assets.borrow().cover.as_ref().unwrap().largest().filesize_bytes
+                )
+            } else {
+                String::new()
+            };
+
+            let extra_entries = if !release.extras.is_empty() {
+                let release_slug = &release.permalink.slug;
+
+                release.extras
+                    .iter()
+                    .map(|extra| {
+                        let extra_hash = build.hash(
+                            release_slug,
+                            "extras",
+                            &extra.sanitized_filename
+                        );
+
+                        let extra_filename_urlencoded = urlencoding::encode(&extra.sanitized_filename);
+
+                        download_entry(
+                            format!("{root_prefix}{release_slug}/extras/{extra_hash}/{extra_filename_urlencoded}"),
+                            &extra.sanitized_filename,
+                            extra.source_file_signature.size
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("")
+            } else {
+                String::new()
+            };
+
+            let t_extras = &build.locale.translations.extras;
+            formatdoc!(
+                r#"
+                    <span class="download_group">{t_extras}</span>
+
+                    <div class="download_formats" style="margin-bottom: 1rem;">
+                        {cover_entry}
+                        {extra_entries}
+                    </div>
+                "#
             )
-        } else {
-            String::new()
-        };
-
-        let extra_downloads = if !release.extras.is_empty() {
-            let release_slug = &release.permalink.slug;
-
-            release.extras
-                .iter()
-                .map(|extra| {
-                    let extra_hash = build.hash(
-                        release_slug,
-                        "extras",
-                        &extra.sanitized_filename
-                    );
-
-                    download_entry(
-                        format!(
-                            "{root_prefix}{release_slug}/extras/{extra_hash}/{filename}",
-                            filename = extra.sanitized_filename
-                        ),
-                        &extra.sanitized_filename,
-                        extra.source_file_signature.size
-                    )
-                })
-                .collect::<Vec<String>>()
-                .join("")
         } else {
             String::new()
         };
@@ -165,9 +182,11 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                             &track_filename
                         );
 
+                        let track_filename_urlencoded = urlencoding::encode(&track_filename);
+
                         download_entry(
                             format!(
-                                "{root_prefix}{release_slug}/{format_dir}/{track_hash}/{track_filename}",
+                                "{root_prefix}{release_slug}/{format_dir}/{track_hash}/{track_filename_urlencoded}",
                                 format_dir = download_format.as_audio_format().asset_dirname()
                             ),
                             download_format.user_label(),
@@ -194,17 +213,10 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .collect::<Vec<String>>()
             .join("\n");
 
-        let t_extras = &build.locale.translations.extras;
         formatdoc!(
             r#"
                 {track_downloads}
-
-                <span class="download_group">{t_extras}</span>
-
-                <div class="download_formats" style="margin-bottom: 1rem;">
-                    {cover_download}
-                    {extra_downloads}
-                </div>
+                {extra_downloads}
             "#
         )
     } else {
