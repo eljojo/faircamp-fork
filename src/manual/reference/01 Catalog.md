@@ -128,3 +128,21 @@ the right, for instance `freeze_download_urls: 1 April 2022` could tell you
 that your current download urls have been valid since that day. You could
 also use "2022-04", "Spring 2022" or such, given that one usually will not
 manually invalidate the urls on a daily basis.
+
+## Verifying yourself as the owner (e.g. Mastodon)
+
+Some social media platforms - Mastodon, in particular - support website
+verification using a link with a `rel="me"` attribute whose `href` attribute
+value points to the social media profile that should be verified as the
+owner of the site.
+
+On a faircamp site you can use raw html inside the catalog text to place
+an (invisible) link that verifies you as the owner, like this:
+
+```eno
+# catalog
+
+-- text
+<a rel="me" href="https://instance.example/@username" style="display: none;">Mastodon</a>
+-- text
+````
