@@ -188,7 +188,7 @@ fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
 		        <link href="favicon.svg" rel="icon" type="image/svg+xml">
 		        <link href="favicon_light.png" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
 		        <link href="favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
-		        <link href="styles.css?0" rel="stylesheet">
+		        <link href="styles.css?1" rel="stylesheet">
 			</head>
 			<body>
 				<header>

@@ -22,15 +22,12 @@
 :root {
     --background: #fafafa;
     --code: #eef0e6;
-    --header: #8eb6bf;
-    --link: #35748c;
+    --divider: #d0d0d0;
+    --header: #222;
+    --link: #02749f;
     --text: #222;
 }
-a {
-    color: var(--link);
-    text-decoration: none;
-}
-.active { border-bottom: 1px dotted; }
+a { color: var(--link); }
 blockquote {
     background-color: var(--code);
     border-radius: .2rem;
@@ -71,12 +68,15 @@ header {
     box-shadow: 0 0 1rem rgba(0, 0, 0, .1);
     box-sizing: border-box;
     display: flex;
-    height: 3.4rem;
+    height: 3rem;
     justify-content: space-between;
-    padding: 0 2rem;
+    padding: 0 1.8rem;
     z-index: 1;
 }
-header a { color: #fff; }
+header a {
+    color: #fff;
+    text-decoration: none;
+}
 .language-eno .comment { color: #5c6370; }
 .language-eno .key { color: #e06c75; }
 .language-eno .operator { color: #56b6c2; }
@@ -85,13 +85,20 @@ main {
     flex-grow: 1;
     min-width: 0;
     overflow-y: auto;
-    padding: 0 2rem;
+    padding: 0 1.8rem;
 }
 nav {
     box-sizing: border-box;
     display: flex;
     justify-content: center;
-    padding: 0 2rem;
+    padding: 0 1.8rem;
+}
+nav a { text-decoration: none; }
+nav a.active {
+    align-self: normal;
+    background-color: var(--code);
+    border-left: 0.2rem solid var(--link);
+    padding: 0 0.5rem;
 }
 .nav_inner {
     align-items: flex-start;
@@ -136,14 +143,14 @@ pre {
 }
 .split {
     display: flex;
-    height: calc(100vh - 3.4rem);
+    height: calc(100vh - 3rem);
 }
 .title {
     align-items: center;
     display: flex;
     font-size: 1.1rem;
 }
-.title img { width: 3rem; }
+.title img { width: 2.5rem; }
 
 @media (max-width: 50rem) {
     header { padding: 0 1rem; }
@@ -178,8 +185,23 @@ pre {
 @media (min-width: 50.0001rem) {
     .close_nav { display: none; }
     nav {
-        border-right: 1px solid #d0d0d0;
+        border-right: 1px solid var(--divider);
         box-shadow: 0 0 1rem hsla(0, 0%, 0%, .05);
     }
     .open_nav { display: none; }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #222;
+        --code: #2b2b2b;
+        --divider: #424242;
+        --header: #181818;
+        --link: #00b9ff;
+        --text: #dcdcdc;
+    }
+    .language-eno .comment { color: #5c6370; }
+    .language-eno .key { color: #fb626e; }
+    .language-eno .operator { color: #4fd3e3; }
+    .language-eno .value { color: #dbdbdb; }
 }
