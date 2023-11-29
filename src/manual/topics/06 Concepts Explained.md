@@ -58,3 +58,22 @@ now and in the future always reach that release page under the URL
 permalink simply gets appended to the base url of a site to make up
 the full link that you can then share with your listeners.
 
+## What is a static site generator?
+
+Most websites we interact with on a daily basis are *dynamic*. If we liken a
+website to a book for the sake of metaphor, we could say that every time we
+look at a page, that page is written from scratch and then sent to us.
+Sending an already written page is an easy task that almost any server that
+you can rent for little money accomplishes. *Writing a page* however is
+complex, and it requires a great deal of technical expertise to find the
+right server for the task and upfront and continuous time investment to keep
+the server in a state where it writes pages the way it should. A *static*
+website then, is a site that is written once, ahead of time - a book whose
+writing you finish on your own computer already, that is then transfered to a
+server, whose sole responsibility then is to send it to everyone who wants to
+read it, an easy task that it will accomplish for you for a long, long time,
+practically without maintenance, as long as you pay your monthly server bill.
+A static site generator, lastly, is the tool, the program, you use to write
+the book. Faircamp is a static site generator, and the books it writes happen
+to be music websites. This has been a lot of metaphors, hopefully some light
+has been shed on the topic.
