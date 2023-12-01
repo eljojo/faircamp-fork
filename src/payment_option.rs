@@ -1,4 +1,4 @@
-use crate::util;
+use crate::markdown;
 
 #[derive(Clone, Debug)]
 pub enum PaymentOption {
@@ -7,8 +7,8 @@ pub enum PaymentOption {
 }
 
 impl PaymentOption {
-    pub fn init_custom(markdown: &str) -> PaymentOption {
-        PaymentOption::Custom(util::markdown_to_html(markdown))
+    pub fn init_custom(markdown_text: &str) -> PaymentOption {
+        PaymentOption::Custom(markdown::to_html(markdown_text))
     }
     
     pub fn init_liberapay(account_name: &str) -> PaymentOption {

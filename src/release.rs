@@ -21,6 +21,7 @@ use crate::{
     Catalog,
     DownloadFormat,
     DownloadOption,
+    HtmlAndStripped,
     Image,
     manifest::Overrides,
     PaymentOption,
@@ -105,7 +106,7 @@ pub struct Release {
     pub support_artists: Vec<Rc<RefCell<Artist>>>,
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
-    pub text: Option<String>,
+    pub text: Option<HtmlAndStripped>,
     pub title: String,
     pub track_numbering: TrackNumbering,
     /// The order of tracks (and derived from this the track numbers) are

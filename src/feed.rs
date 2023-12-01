@@ -1,6 +1,13 @@
+/// RSS 2.0 Specification for reference:
+/// https://www.rssboard.org/rss-specification
+
 use std::fs;
 
-use crate::{Build, Catalog};
+use crate::{
+    Build,
+    Catalog,
+    util::html_escape_outside_attribute
+};
 
 pub fn generate(build: &Build, catalog: &Catalog) {
     if let Some(base_url) = &build.base_url { 
@@ -29,19 +36,18 @@ pub fn generate(build: &Build, catalog: &Catalog) {
 
                 format!(
                     include_str!("templates/feed/item.xml"),
-                    description = format!("A release by {}", artists_list),
+                    description = format!("A release by {}", html_escape_outside_attribute(&artists_list)), // TODO: Translate
                     permalink = base_url.join(&release_ref.permalink.slug).unwrap(),
-                    title = release_ref.title,
+                    title = html_escape_outside_attribute(&release_ref.title),
                 )
             })
             .collect::<Vec<String>>()
             .join("\n");
         
-        // TODO: This should maybe be stripped off html (?) - practically speaking
-        //       our markdown parser allows us to manually generate such output.
         let channel_description = catalog.text
-            .as_deref()
-            .unwrap_or("A faircamp-based music catalog"); 
+            .as_ref()
+            .map(|html_and_stripped| html_escape_outside_attribute(html_and_stripped.stripped.as_str()))
+            .unwrap_or(String::from("A faircamp-based music catalog")); // TODO: Translate
         
         let channel_title = catalog.title();
         
@@ -50,7 +56,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
                 include_str!("templates/feed/image.xml"),
                 base_url = base_url,
                 image_url = base_url.join("feed.jpg").unwrap(),
-                title = channel_title
+                title = html_escape_outside_attribute(&channel_title)
             )
         } else {
             String::new()
@@ -65,7 +71,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
             image = channel_image,
             items = channel_items,
             language = build.locale.language,
-            title = channel_title
+            title = html_escape_outside_attribute(&channel_title)
         );
         
         fs::write(build.build_dir.join("feed.rss"), xml).unwrap();

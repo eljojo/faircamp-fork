@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{Image, Permalink, Release};
+use crate::{HtmlAndStripped, Image, Permalink, Release};
 
 #[derive(Debug)]
 pub struct Artist {
@@ -10,7 +10,7 @@ pub struct Artist {
     pub name: String,
     pub permalink: Permalink,
     pub releases: Vec<Rc<RefCell<Release>>>,
-    pub text: Option<String>
+    pub text: Option<HtmlAndStripped>
 }
 
 impl Artist {
@@ -26,10 +26,4 @@ impl Artist {
             text: None
         }
     }
-}
-
-#[derive(Debug)]
-pub struct Link {
-    pub label: String,
-    pub url: String
 }

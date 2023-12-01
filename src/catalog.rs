@@ -14,6 +14,7 @@ use crate::{
     DownloadOption,
     Extra,
     Favicon,
+    HtmlAndStripped,
     Image,
     manifest::{self, LocalOptions, Overrides},
     PermalinkUsage,
@@ -51,7 +52,7 @@ pub struct Catalog {
     pub releases: Vec<Rc<RefCell<Release>>>,
     pub show_support_artists: bool,
     pub support_artists: Vec<Rc<RefCell<Artist>>>,
-    pub text: Option<String>,
+    pub text: Option<HtmlAndStripped>,
     title: Option<String>
 }
 
@@ -277,10 +278,6 @@ impl Catalog {
         let mut catalog = Catalog::new();
         
         catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default()).unwrap();
-        
-        if let Some(markdown) = catalog.text.take() {
-            catalog.text = Some(util::markdown_to_html(&markdown));
-        }
 
         catalog.map_artists();
 

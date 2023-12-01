@@ -32,8 +32,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let share_link_rendered = share_link(build);
 
     let catalog_text = match &catalog.text {
-        Some(text) => text.clone(),
-        None => String::new()
+        Some(html_and_stripped) => html_and_stripped.html.as_str(),
+        None => ""
     };
 
     // Only populated in label mode, otherwise featured_artists is empty

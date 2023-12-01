@@ -13,8 +13,8 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let root_prefix = "../";
 
     let artist_text = match &artist.text {
-        Some(text) => text.clone(),
-        None => String::new()
+        Some(html_and_stripped) => html_and_stripped.html.as_str(),
+        None => ""
     };
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);

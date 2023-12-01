@@ -17,8 +17,10 @@ use crate::{
     DownloadGranularity,
     DownloadOption,
     Favicon,
+    HtmlAndStripped,
     Image,
     Locale,
+    markdown,
     PaymentOption,
     Permalink,
     StreamingQuality,
@@ -64,7 +66,7 @@ pub struct Overrides {
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<Rc<RefCell<Image>>>,
-    pub release_text: Option<String>,
+    pub release_text: Option<HtmlAndStripped>,
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
     pub streaming_quality: StreamingQuality,
@@ -311,8 +313,8 @@ pub fn apply_options(
                     }
                 }
                 
-                if let Some(text) = optional_embed_value(section, "text") {
-                    artist_mut.text = Some(util::markdown_to_html(&text));
+                if let Some(text_markdown) = optional_embed_value(section, "text") {
+                    artist_mut.text = Some(markdown::to_html_and_stripped(&text_markdown));
                 }
             }
             Err(err) => error!("An artist was specified without a name, and therefore discarded, in {}", err_line!(path, err))
@@ -448,12 +450,14 @@ pub fn apply_options(
             }
         }
 
-        if let Some(value) = optional_embed_value(section, "text") {
-            if let Some(previous) = &catalog.text {
-                warn_global_set_repeatedly!("catalog.text", previous, value);
+        if let Some(text_markdown) = optional_embed_value(section, "text") {
+            let new_text = markdown::to_html_and_stripped(&text_markdown);
+
+            if let Some(previous_text) = &catalog.text {
+                warn_global_set_repeatedly!("catalog.text", previous_text.stripped, new_text.stripped);
             }
 
-            catalog.text = Some(value);
+            catalog.text = Some(new_text);
         }
     }
 
@@ -554,8 +558,8 @@ pub fn apply_options(
             }
         }
 
-        if let Some(value) = optional_embed_value(section, "unlock_text") {
-            overrides.unlock_text = Some(util::markdown_to_html(&value));
+        if let Some(text_markdown) = optional_embed_value(section, "unlock_text") {
+            overrides.unlock_text = Some(markdown::to_html(&text_markdown));
         }
     }
     
@@ -701,8 +705,8 @@ pub fn apply_options(
             }
         }
 
-        if let Some(value) = optional_embed_value(section, "text") {
-            overrides.release_text = Some(util::markdown_to_html(&value));
+        if let Some(text_markdown) = optional_embed_value(section, "text") {
+            overrides.release_text = Some(markdown::to_html_and_stripped(&text_markdown));
         }
 
         if let Some(value) = optional_field_value(section, "title") {
