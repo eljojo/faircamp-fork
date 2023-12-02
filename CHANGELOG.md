@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0
+
+- Support disabling the favicon altogether (e2983bd)
+- Encode filenames of archives, tracks and extras in href/src attributes (a333b57)
+- Add translations for norwegian bokmaal (Harald Eilertsen, c84262d)
+- Introduce markdown to plaintext rendering and html escapes for feed content (cb9f540)
+
 ## 0.10.1
 
 - Revert release date as rss item pubDate for further consideration (d006bd9)
