@@ -15,15 +15,19 @@ Thanks everyone for your support.
 [Dave Riedstra](https://daveriedstra.com/)<br>
 [Deborah Pickett](https://icemoonprison.com)<br>
 [Default Media Transmitter](https://defaultmediatransmitter.com/)<br>
+[Devin Canterberry](https://canterberry.cc/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
-[Florian Antoine](https://codeberg.org/floriannomade/)<br>
+[Florian Antoine](http://oooooooooo.net/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
 [fREW Schmidt](https://blog.afoolishmanifesto.com/)<br>
 [Friedrich](https://codeberg.org/Friedrich)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
+[Harald Eilertsen](https://volse.net/)<br>
+[James Fenn](https://jfenn.me/)<br>
 [jd42](https://codeberg.org/jd42)<br>
 [keef](https://key13.uk)<br>
 [kel](https://mastodon.online/@kel)<br>
+[Kristoffer Lislegaard](https://lisleg.com/)<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
@@ -32,6 +36,7 @@ Thanks everyone for your support.
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [nOOq](https://codeberg.org/n00q)<br>
 [protman](https://protman.com/)<br>
+[rakoo](https://codeberg.org/rakoo)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Simon Repp](https://simonrepp.com)<br>
 [Samæ](https://samae.demer.se/)<br>
