@@ -118,14 +118,28 @@ pub fn generate(build: &Build) {
     );
 
     if theme.background_image.is_some() {
+        // We are using a pseudo-element floating behind all other page content
+        // to display the background image. A more straight-forward way would
+        // be to use "fixed" background positioning on body itself, but Apple
+        // is seemingly not willing to implement/support this standard in their
+        // Safari browser, leaving us stuck with this work-around.
+        // See e.g. https://stackoverflow.com/questions/26372127/background-fixed-no-repeat-not-working-on-mobile
         let background_override = formatdoc!("
-            body {{
+            body::before {{
                 background:
                     linear-gradient(
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
                     ),
-                    url(background.jpg) center / cover fixed;
+                    url(background.jpg) center / cover;
+                content: '';
+                display: block;
+                height: 100vh;
+                left: 0;
+                position: fixed;
+                top: 0;
+                width: 100vw;
+                z-index: -1;
             }}
         ");
 
