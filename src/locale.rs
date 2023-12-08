@@ -7,6 +7,10 @@ mod nl;
 
 pub struct Locale {
     /// Language code such as "en", "de" etc.
+    /// This is notably used in the lang attribute on the html tag on all
+    /// generated pages, and should therefore conform to BCP 78 (for reference
+    /// see https://datatracker.ietf.org/doc/html/rfc5646 and/or the more general
+    /// https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang).
     pub language: String,
     pub translations: Translations,
     pub writing_direction: WritingDirection
