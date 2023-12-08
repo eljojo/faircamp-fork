@@ -275,6 +275,7 @@ fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog,
         body = body,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         dir_attribute = dir_attribute,
+        lang = &build.locale.language,
         root_prefix = root_prefix,
         title = html_escape_outside_attribute(title)
     )
