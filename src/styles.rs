@@ -37,9 +37,10 @@ pub fn generate(build: &Build) {
                     font-family: 'Barlow';
                     font-style: normal;
                     font-weight: 400;
+                    font-display: fallback;
                     src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
                 }}
-                {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow'; }}
+                {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }}
             "#)
         }
         ThemeFont::SystemMono => {
