@@ -1,4 +1,5 @@
 use indoc::formatdoc;
+use std::ops::Range;
 
 use crate::{
     Build,
@@ -24,39 +25,38 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         let currency_code = currency.code();
         let currency_symbol = currency.symbol();
 
-        let price_input = |
-            label: &str,
-            _max: Option<f32>,
-            _min: Option<f32>,
-            placeholder: &str
-        | {
-            // TODO: Use and enforce min/max somehow (probably js script)
+        let price_input = |range: &Range<f32>, placeholder: &str| {
+            let data_max = if range.end == f32::INFINITY {
+                String::new()
+            } else {
+                format!(r#"data-max="{}""#, range.end)
+            };
+            let min = range.start;
+
+            let t_name_your_price = &build.locale.translations.name_your_price;
             formatdoc!(r#"
-                <label for="price">{label}</label><br><br>
+                <label for="price">{t_name_your_price}</label><br><br>
                 <div style="align-items: center; column-gap: .5rem; display: flex; position: relative;">
                     <span style="position: absolute; left: .5rem;">{currency_symbol}</span>
-                    <input autocomplete="off" id="price" pattern="[0-9]+([.,][0-9])?" placeholder="{placeholder}" style="padding-left: 1.5rem; width: 8rem;" type="text">
+                    <input autocomplete="off"
+                           {data_max}
+                           data-min="{min}"
+                           id="price"
+                           pattern="[0-9]+([.,][0-9])?"
+                           placeholder="{placeholder}"
+                           style="padding-left: 1.5rem; width: 8rem;"
+                           type="text">
                     {currency_code}
-                </div><br> 
+                </div>
+                <br>
             "#)
         };
 
         let price_input_rendered = if range.end == f32::INFINITY {
-            if range.start > 0.0 {
-                price_input(
-                    &build.locale.translations.name_your_price,
-                    Some(range.start),
-                    None,
-                    &build.locale.translations.xxx_or_more(&range.start.to_string())
-                )
-            } else {
-                price_input(
-                    &build.locale.translations.name_your_price,
-                    None,
-                    None,
-                    &build.locale.translations.xxx_or_more("0")
-                )
-            }
+            price_input(
+                range,
+                &build.locale.translations.xxx_or_more(&range.start.to_string())
+            )
         } else if range.start == range.end {
             let t_fixed_price = &build.locale.translations.fixed_price;
             format!(
@@ -65,16 +65,12 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             )
         } else if range.start > 0.0 {
             price_input(
-                &build.locale.translations.name_your_price,
-                Some(range.start),
-                Some(range.end),
+                range,
                 &format!("{}-{}", range.start, range.end)
             )
         } else {
             price_input(
-                &build.locale.translations.name_your_price,
-                None,
-                Some(range.end),
+                range,
                 &build.locale.translations.up_to_xxx(&range.end.to_string())
             )
         };
@@ -130,9 +126,10 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         let t_made_or_arranged_payment = &build.locale.translations.made_or_arranged_payment;
         let t_payment_options = &build.locale.translations.payment_options;
         let content = formatdoc!(r#"
-            <form id="confirm">
+            <form action="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}"
+                  id="confirm">
                 {price_input_rendered}
-                <button name="confirm">{t_confirm}</button>
+                <button>{t_confirm}</button>
                 <div style="font-size: .9rem; margin: 1rem 0;">
                     {t_available_formats} {formats}
                 </div>
@@ -141,6 +138,33 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             <script>
                 document.querySelector('#confirm').addEventListener('submit', event => {{
                     event.preventDefault();
+
+                    const priceField = event.target.price;
+                    if (priceField) {{
+                        const max = priceField.dataset.max ? parseFloat(priceField.dataset.max) : null;
+                        const min = priceField.dataset.min ? parseFloat(priceField.dataset.min) : null;
+                        const price = parseFloat(priceField.value.replace(',', '.'));
+
+                        if (min !== null && price < min) {{
+                            // TODO: Localize (or preferably find way to avoid text)
+                            // TODO: Render in interface itself (no alert)
+                            alert(`Minimum price is ${{min}}`);
+                            return;
+                        }}
+
+                        if (max !== null && price > max) {{
+                            // TODO: Localize (or preferably find way to avoid text)
+                            // TODO: Render in interface itself (no alert)
+                            alert(`Maximum price is ${{max}}`);
+                            return;
+                        }}
+
+                        if (price === 0) {{
+                            location.href = event.target.action;
+                            return;
+                        }}
+                    }}
+
                     document.querySelector('#confirm').style.display = 'none';
                     document.querySelector('.payment').classList.add('active');
                 }});
