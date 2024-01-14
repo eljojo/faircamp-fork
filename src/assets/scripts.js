@@ -1,8 +1,6 @@
-// TODO: Revisit this at some point - assumes we only have one script, and
-// generally a bit hacky/unclean in nature.
-// Also the alt/text and markup for the play/pause icon could drift away
+// TODO: alt/text and markup for the play/pause icon could drift away
 // from how we write/implement it in our statically generated code.
-const rootPrefix = document.querySelector('script').getAttribute('src').replace('scripts.js', '');
+const rootPrefix = document.querySelector('script[data-root-prefix').dataset.rootPrefix;
 const loadingIcon = `<img alt="Loading" src="${rootPrefix}loading.svg" style="max-width: 1em;">`;
 const pauseIcon = `<img alt="Pause" src="${rootPrefix}pause.svg" style="max-width: 1em;">`;
 const playIcon = `<img alt="Play" src="${rootPrefix}play.svg" style="max-width: 1em;">`;
