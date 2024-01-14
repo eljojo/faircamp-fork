@@ -32,7 +32,7 @@ Install rust through the official [rustup](https://rustup.rs/) installer,
 then install all required dependencies through the package manager:
 
 ```bash
-sudo apt install cmake ffmpeg gcc git libvips-dev
+sudo apt install cmake ffmpeg gcc git libopus-dev libvips-dev
 ```
 
 Now check out, build and install faircamp:
