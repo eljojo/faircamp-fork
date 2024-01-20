@@ -63,7 +63,7 @@ Inside the file `saythemagicword/saythemagicword-ep/ep.eno`:
 > will then also add to the upcoming releases, so these patrons can unlock
 > all downloads by the artist.
 codes:
-- magicfanloveadd
+- magicfanlove
 - magicsuperfanspectacular
 
 formats:
