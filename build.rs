@@ -157,7 +157,7 @@ pub fn main() {
 	).unwrap();
 }
 
-fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
+fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
 	let section_links = |pages: &[Page]| {
 		pages
 			.iter()
@@ -176,6 +176,8 @@ fn layout(body: &str, title: &str, docs: &Docs, active_page: &Page) -> String {
 	let reference = section_links(&docs.reference);
 	let topics = section_links(&docs.topics);
 	let index_active = if active_page == &docs.index { r#" class="active""# } else { "" };
+
+	let title = &active_page.title;
 
 	formatdoc!(r##"
 		<!doctype html>
@@ -303,7 +305,7 @@ fn render_page(
 		content.clone()
 	};
 
-	let html = layout(&body, &page.title, docs, page);
+	let html = layout(&body, docs, page);
 
 	let out_path = manual_out_dir.join(&page.slug).with_extension("html");
 
