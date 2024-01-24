@@ -119,6 +119,24 @@ That's it! If you want to uninstall faircamp at any point, run:
 cargo uninstall faircamp
 ```
 
+## FreeBSD
+
+First install the required dependencies via FreeBSD's default package manager (ffmpeg, rust, vips).
+
+Now check out, build and install faircamp:
+
+```bash
+git clone https://codeberg.org/simonrepp/faircamp.git
+cd faircamp
+cargo install --features libvips --locked --path .
+```
+
+That's it! If you want to uninstall faircamp at any point, run:
+
+```bash
+cargo uninstall faircamp
+```
+
 ## macOS
 
 First install Homebrew by following the instructions on https://brew.sh.
