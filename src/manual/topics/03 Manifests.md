@@ -44,6 +44,6 @@ Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
 
 Note that manifest lines such as `# release` are not comments but denote
 sections (and instead `> these are comments`). For a detailed guide on the
-syntax used in the manifest files consult the [eno language guide](https://eno-lang.org/guide/), simply modifying the examples in the manual
-should get you there without any problems as well though, the example here is
-pretty much as complex as it gets.
+syntax used in the manifest files see the language guide on the [eno website](https://simonrepp.com/eno/),
+simply modifying the examples in the manual should get you there without any
+problems as well though, the example here is pretty much as complex as it gets.
