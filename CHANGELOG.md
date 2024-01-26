@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0
+
+- Make the disable_relative_waveform theme option public (5e00ddf)
+- Update eno parser, removing field/attribute/item continuations (b2a4201)
+- Fix iOS background image scaling (James Fenn, 344a87c)
+- Fix critical edge case in which certain browser extensions can break client-side js (0c5f54a)
+- Enforce configured price range in "name your price" flow, skip payment step for 0 amount (2dba5e4)
+- Add locale lang attribute to html tags (James Fenn, 0094959)
+
 ## 0.11.0
 
 - Support disabling the favicon altogether (e2983bd)
