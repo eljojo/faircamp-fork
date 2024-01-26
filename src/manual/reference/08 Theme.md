@@ -49,6 +49,24 @@ text, but the hue for this comes from `text_hue` (not from `link_hue`).
 > every page will then contain the theming widget (don't forget to turn it off
 > before deployment).
 
+## Disabling relative waveform lengths
+
+By default, the width of each track's waveform on a release page will render
+at a different length, reflecting the duration of the track in relation to
+the longest track on the release - for instance if the longest track on a
+release is about two minutes long, that one will span the full width, but
+another track that is only about one minute long will span only half of that
+width. If you publish releases whose tracks have wildly varying lengths,
+shorter tracks might get very narrow in the interface. If this is a concern
+to you, or you just generally want all tracks to be full-width as an
+aesthetic choice, you can enable this alternative behavior with this flag:
+
+```eno
+# theme
+
+disable_relative_waveforms
+```
+
 ## Background image
 
 The previously described settings are (link color aside) mostly harmless: No
@@ -69,8 +87,8 @@ background_image: squiggly_monsters_texture.jpg
 
 ## Font
 
-By default, faircamp bundles and uses the [Barlow](https://tribby.com/fonts/barlow/) font
-on a generated site, but this can be configured.
+By default, faircamp bundles and uses the [Barlow](https://tribby.com/fonts/barlow/)
+font on a generated site, but this can be configured.
 
 Using the standard sans serif font from the system of the visitor:
 
