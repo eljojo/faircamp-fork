@@ -810,8 +810,8 @@ dependencies = [
 
 [[package]]
 name = "enolib"
-version = "0.4.0"
-source = "git+https://codeberg.org/simonrepp/enolib-rs?tag=0.4.0#dc22b9114b210a6f3e16815c0d1d43bcbed551d5"
+version = "0.4.1"
+source = "git+https://codeberg.org/simonrepp/enolib-rs?tag=0.4.1#1ca85dc8af9f74f65b199b2ab6c5c94f5b119b93"
 
 [[package]]
 name = "equivalent"
