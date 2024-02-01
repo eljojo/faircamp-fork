@@ -270,60 +270,62 @@ function decode(string) {
     return peaks;
 }
 
-const MAX_TRACK_DURATION_WIDTH_EM = 20.0;
+// IMPORTANT: Keep these three in sync with css
+const PADDING_HORIZONTAL_REM = 2;
+const BREAKPOINT_REDUCED_WAVEFORM_REM = 20;
+const BREAKPOINT_MAX_WAVEFORM_REM = 30;
+
+const MAX_TRACK_DURATION_WIDTH_EM = 20;
+const REDUCED_TRACK_DURATION_WIDTH_EM = 18;
 const TRACK_HEIGHT_EM = 1.5;
 const WAVEFORM_PADDING_EM = 0.3;
 const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
 const waveformRenderState = {};
 
-function getBaseFontSizePx() {
-    const fontSize = window
-        .getComputedStyle(document.documentElement)
-        .getPropertyValue('font-size');
-    return parseFloat(fontSize.replace('px', ''));
-}
-
 function waveforms() {
-    const relativeWaveforms = !document.querySelector('[data-disable-relative-waveforms]');
-    const widthPx = window.innerWidth;
+    const baseFontSizePx = parseFloat(
+        window.getComputedStyle(document.documentElement)
+              .getPropertyValue('font-size')
+              .replace('px', '')
+    );
+    const viewportWidthRem = window.innerWidth / baseFontSizePx;
 
-    if (widthPx > 350) {
-        if (waveformRenderState.widthPx === Infinity) return;
-        waveformRenderState.widthPx = Infinity;
+    let maxWaveformWidthRem;
+    let relativeWaveforms;
+    if (viewportWidthRem >= BREAKPOINT_MAX_WAVEFORM_REM) {
+        maxWaveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM;
+        relativeWaveforms = !document.querySelector('[data-disable-relative-waveforms]');
+    } else if (viewportWidthRem >= BREAKPOINT_REDUCED_WAVEFORM_REM) {
+        maxWaveformWidthRem = REDUCED_TRACK_DURATION_WIDTH_EM;
+        relativeWaveforms = !document.querySelector('[data-disable-relative-waveforms]');
     } else {
-        if (waveformRenderState.widthPx === widthPx) return;
-        waveformRenderState.widthPx = widthPx;
+        maxWaveformWidthRem = viewportWidthRem - PADDING_HORIZONTAL_REM;
+        relativeWaveforms = false;
     }
 
-    const baseFontSizePx = getBaseFontSizePx();
+    if (waveformRenderState.widthRem === maxWaveformWidthRem) return;
 
-    let widthOverride = null
-    if (waveformRenderState.widthPx !== Infinity) {
-        const PADDING_HORIZONTAL_REM = 2; // must be kept in sync with css
-        widthOverride = (widthPx / baseFontSizePx) - PADDING_HORIZONTAL_REM;
-    }
+    const longestTrackDuration = parseFloat(document.querySelector('[data-longest-duration]').dataset.longestDuration);
 
     let trackNumber = 1;
     for (const svg of document.querySelectorAll('svg[data-peaks]')) {
         const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
 
-        const longestTrackDuration = parseFloat(document.querySelector('[data-longest-duration]').dataset.longestDuration);
         const trackDuration = parseFloat(svg.dataset.duration);
 
         let waveformWidthRem;
-        if (widthOverride) {
-            waveformWidthRem = widthOverride;
-        } else {
-            if (longestTrackDuration > 0) {
-                if (relativeWaveforms) {
-                    waveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM * (trackDuration / longestTrackDuration);
-                } else {
-                    waveformWidthRem = MAX_TRACK_DURATION_WIDTH_EM;
-                }
-            } else {
-                waveformWidthRem = 0; // TODO: Probably nonsensical (also by 0 division later on?), for now just copied from earlier rust implementation
+        if (longestTrackDuration > 0) {
+            waveformWidthRem = maxWaveformWidthRem;
+
+            if (relativeWaveforms) {
+                waveformWidthRem *= (trackDuration / longestTrackDuration);
             }
+        } else {
+            // TODO: Probably nonsensical, (copied from earlier rust implementation)
+            //       General topic/problem here is that we simply don't want a state
+            //       where we have tracks whose length we don't know.
+            waveformWidthRem = 0;
         }
 
         // Render the waveform with n samples. Prefer 0.75 samples per pixel, but if there
@@ -387,6 +389,7 @@ function waveforms() {
     }
 
     waveformRenderState.initialized = true;
+    waveformRenderState.widthRem = maxWaveformWidthRem;
 }
 
 waveforms();
