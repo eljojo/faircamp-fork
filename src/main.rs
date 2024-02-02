@@ -113,7 +113,7 @@ fn main() {
 
     catalog.write_assets(&mut build);
     
-    // Render page for all releases (homepage/index)
+    // Render homepage (page for all releases)
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
     

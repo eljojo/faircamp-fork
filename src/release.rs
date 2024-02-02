@@ -605,9 +605,13 @@ impl Release {
 
             util::ensure_dir(&format_dir);
 
+            let mut archive_assets_mut = self.archive_assets.borrow_mut();
+            let cached_archive_asset = archive_assets_mut.get_mut(*download_format);
+
             for (track_index, track) in self.tracks.iter_mut().enumerate() {
-                // Transcode track to required format if not yet available
-                if track.assets.borrow().get(download_format.as_audio_format()).is_none() {
+                // Transcode track to required format if needed and not yet available
+                if !(self.download_granularity == DownloadGranularity::EntireRelease && cached_archive_asset.is_some()) &&
+                    track.assets.borrow().get(download_format.as_audio_format()).is_none() {
                     if download_format.is_lossless() && !track.assets.borrow().source_meta.lossless {
                         warn_discouraged!(
                             "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
@@ -707,9 +711,6 @@ impl Release {
 
             // If entire release downloads are enabled create the zip (if not available yet) and copy it to build
             if self.download_granularity != DownloadGranularity::SingleFiles {
-                let mut archive_assets_mut = self.archive_assets.borrow_mut();
-                let cached_archive_asset = archive_assets_mut.get_mut(*download_format);
-
                 // Create zip for required format if not yet available
                 if cached_archive_asset.is_none() {
                     let cached_archive_filename = format!("{}.zip", util::uid());
