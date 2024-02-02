@@ -2,6 +2,9 @@
 
 With this you can adjust the visual appearance of your faircamp site.
 
+Note that the theme applies across all pages - customizations on individual
+pages are not available.
+
 ## Base
 
 ```eno
@@ -21,7 +24,7 @@ This sets the overall tone, think of it as a base preset. Choose from:
 
 If you don't set a base theme, the current default is `dark`.
 
-## Detail adjustments
+## Detail color adjustments
 
 ```eno
 # theme
@@ -49,24 +52,6 @@ text, but the hue for this comes from `text_hue` (not from `link_hue`).
 > every page will then contain the theming widget (don't forget to turn it off
 > before deployment).
 
-## Disabling relative waveform lengths
-
-By default, the width of each track's waveform on a release page will render
-at a different length, reflecting the duration of the track in relation to
-the longest track on the release - for instance if the longest track on a
-release is about two minutes long, that one will span the full width, but
-another track that is only about one minute long will span only half of that
-width. If you publish releases whose tracks have wildly varying lengths,
-shorter tracks might get very narrow in the interface. If this is a concern
-to you, or you just generally want all tracks to be full-width as an
-aesthetic choice, you can enable this alternative behavior with this flag:
-
-```eno
-# theme
-
-disable_relative_waveforms
-```
-
 ## Background image
 
 The previously described settings are (link color aside) mostly harmless: No
@@ -83,6 +68,24 @@ render the site hard to read or even unreadable. That said,
 
 background_alpha: 23
 background_image: squiggly_monsters_texture.jpg
+```
+
+## Disabling relative waveform lengths
+
+By default, the width of each track's waveform on a release page will render
+at a different length, reflecting the duration of the track in relation to
+the longest track on the release - for instance if the longest track on a
+release is about two minutes long, that one will span the full width, but
+another track that is only about one minute long will span only half of that
+width. If you publish releases whose tracks have wildly varying lengths,
+shorter tracks might get very narrow in the interface. If this is a concern
+to you, or you just generally want all tracks to be full-width as an
+aesthetic choice, you can enable this alternative behavior with this flag:
+
+```eno
+# theme
+
+disable_relative_waveforms
 ```
 
 ## Font
