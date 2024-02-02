@@ -392,10 +392,15 @@ function waveforms() {
     waveformRenderState.widthRem = maxWaveformWidthRem;
 }
 
-waveforms();
-window.addEventListener('resize', waveforms);
-
 window.addEventListener('DOMContentLoaded', event => {
+    // TODO: Potentially split player js into seperate script file
+    //       so we don't need the check, and only load the additional
+    //       js payload where it's needed.
+    if (document.querySelector('[data-peaks]')) {
+        waveforms();
+        window.addEventListener('resize', waveforms);
+    }
+
     const shareOverlay = document.querySelector('#share');
 
     if (navigator.clipboard) {
