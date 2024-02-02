@@ -2,7 +2,7 @@
 
 ## 0.12.0
 
-- Make the disable_relative_waveform theme option public (5e00ddf)
+- Make the disable_relative_waveforms theme option public (5e00ddf)
 - Update eno parser, removing field/attribute/item continuations (b2a4201)
 - Fix iOS background image scaling (James Fenn, 344a87c)
 - Fix critical edge case in which certain browser extensions can break client-side js (0c5f54a)
