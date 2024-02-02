@@ -79,6 +79,10 @@ body {
     max-height: 20rem;
     max-width: 20rem;
 }
+.cover img,
+.image img {
+    border-radius: var(--cover-border-radius);
+}
 .cover_listing {
     display: block;
     margin-bottom: .5rem;
@@ -172,7 +176,6 @@ img {
 }
 .image img,
 .image svg {
-    border-radius: var(--cover-border-radius);
     height: 100%;
     width: 100%;
 }

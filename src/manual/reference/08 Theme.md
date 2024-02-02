@@ -70,6 +70,17 @@ background_alpha: 23
 background_image: squiggly_monsters_texture.jpg
 ```
 
+## Round corners on release covers
+
+To give a softer feel to your page, enable the `round_corners` option.
+This will visually round off the corners of covers on all pages.
+
+```eno
+# theme
+
+round_corners
+```
+
 ## Disabling relative waveform lengths
 
 By default, the width of each track's waveform on a release page will render

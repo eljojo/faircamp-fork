@@ -90,7 +90,7 @@ pub fn generate(build: &Build) {
         tint_front = theme.tint_front,
         background_l = theme.base.background_l,
         background_s = 41,
-        cover_border_radius = if theme.round_corners { "5%" } else { "0" },
+        cover_border_radius = if theme.round_corners { ".8rem" } else { "0" },
         faint_l = theme.base.faint_l,
         header_a = theme.base.header_a,
         header_l = theme.base.header_l,
