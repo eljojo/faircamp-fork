@@ -9,12 +9,14 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     let t_image_descriptions_guide = &build.locale.translations.image_descriptions_guide;
     
     let body = formatdoc!(r#"
-        <div class="hcenter_wide mobile_hpadding vcenter_page vpad_adaptive">
-            <div class="vpad">
-                <h1>{t_image_descriptions}</h1>
-            </div>
-            <div class="vpad">
-                {t_image_descriptions_guide}
+        <div class="vcenter_page_outer">
+            <div class="hcenter_wide mobile_hpadding vcenter_page vpad_adaptive">
+                <div class="vpad">
+                    <h1>{t_image_descriptions}</h1>
+                </div>
+                <div class="vpad">
+                    {t_image_descriptions_guide}
+                </div>
             </div>
         </div>
     "#);

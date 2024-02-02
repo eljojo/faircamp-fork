@@ -191,23 +191,25 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let body = formatdoc!(
         r##"
-            <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
-                <div class="cover">{cover}</div>
+            <div class="vcenter_page_outer">
+                <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
+                    <div class="cover">{cover}</div>
 
-                <div class="release_label">
-                    <h1>{release_title_escaped}</h1>
-                    <div class="release_artists">{artists}</div>
-                </div>
-
-                <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
-                {tracks_rendered}
-            </div>
-            <div class="additional">
-                <div class="mobile_hpadding">
-                    <div class="action_links">
-                        {action_links}
+                    <div class="release_label">
+                        <h1>{release_title_escaped}</h1>
+                        <div class="release_artists">{artists}</div>
                     </div>
-                    {release_text}
+
+                    <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
+                    {tracks_rendered}
+                </div>
+                <div class="additional">
+                    <div class="mobile_hpadding">
+                        <div class="action_links">
+                            {action_links}
+                        </div>
+                        {release_text}
+                    </div>
                 </div>
             </div>
             {share_overlay_rendered}
