@@ -45,7 +45,6 @@ pub struct Catalog {
     pub feature_support_artists: bool,
     /// Those artists that get their own page
     pub featured_artists: Vec<Rc<RefCell<Artist>>>,
-    pub feed_image: Option<Rc<RefCell<Image>>>,
     pub home_image: Option<Rc<RefCell<Image>>>,
     pub label_mode: bool,
     pub main_artists: Vec<Rc<RefCell<Artist>>>,
@@ -262,7 +261,6 @@ impl Catalog {
             favicon: Favicon::Default,
             feature_support_artists: false,
             featured_artists: Vec::new(),
-            feed_image: None,
             home_image: None,
             label_mode: false,
             main_artists: Vec::new(),
@@ -836,25 +834,12 @@ impl Catalog {
             background_image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
-        if let Some(feed_image) = &self.feed_image {
-            let feed_image_mut = feed_image.borrow_mut();
-            let mut feed_image_assets_mut = feed_image_mut.assets.borrow_mut();
-            let image_asset = feed_image_assets_mut.feed_asset(build, AssetIntent::Deliverable);
-            
-            util::hard_link_or_copy(
-                build.cache_dir.join(&image_asset.filename),
-                build.build_dir.join("feed.jpg")
-            );
-            
-            build.stats.add_image(image_asset.filesize_bytes);
-            
-            feed_image_assets_mut.persist_to_cache(&build.cache_dir);
-        }
-
         if let Some(home_image) = &self.home_image {
-            let image_mut = home_image.borrow_mut();
-            let mut image_assets_mut = image_mut.assets.borrow_mut();
-            let poster_assets = image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
+            let home_image_mut = home_image.borrow_mut();
+            let mut home_image_assets_mut = home_image_mut.assets.borrow_mut();
+
+            // Write home image as poster image for homepage
+            let poster_assets = home_image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
 
             for asset in &poster_assets.all() {
                 util::hard_link_or_copy(
@@ -866,7 +851,19 @@ impl Catalog {
                 build.stats.add_image(asset.filesize_bytes);
             }
 
-            image_assets_mut.persist_to_cache(&build.cache_dir);
+            // Write home image as feed image
+            if build.base_url.is_some() {
+                let feed_image_asset = home_image_assets_mut.feed_asset(build, AssetIntent::Deliverable);
+
+                util::hard_link_or_copy(
+                    build.cache_dir.join(&feed_image_asset.filename),
+                    build.build_dir.join("feed.jpg")
+                );
+
+                build.stats.add_image(feed_image_asset.filesize_bytes);
+            }
+
+            home_image_assets_mut.persist_to_cache(&build.cache_dir);
         }
 
         for artist in self.featured_artists.iter_mut() {

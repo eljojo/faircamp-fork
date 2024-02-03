@@ -385,21 +385,9 @@ pub fn apply_options(
             build.url_salt = value;
         }
 
-        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image"){
-            if let Some(previous) = &catalog.feed_image {
-                warn_global_set_repeatedly!("catalog.feed_image", previous.borrow().assets.borrow().source_file_signature.path.display(), path_relative_to_manifest);
-            }
-
-            let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
-            if absolute_path.exists() {
-                let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
-
-                // TODO: Double check if the RSS feed image can specify an image description somehow
-                catalog.feed_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
-            } else {
-                error!("Ignoring invalid catalog.feed_image setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
-            }
+        // TODO: Remove this deprecation notice around may 2024 (introduced feb 2024)
+        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image") {
+            info!("From faircamp 0.13.0 onwards, feed images are auto-generated - catalog.feed_image '{}' specified in {}:{} can be removed, it won't be used anymore.", path_relative_to_manifest, path.display(), line);
         }
 
         if let Some(field) = optional_field(section, "home_image", path) {

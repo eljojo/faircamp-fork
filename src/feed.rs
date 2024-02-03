@@ -51,7 +51,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         
         let channel_title = catalog.title();
         
-        let channel_image = if catalog.feed_image.is_some() {
+        let channel_image = if catalog.home_image.is_some() {
             format!(
                 include_str!("templates/feed/image.xml"),
                 base_url = base_url,
