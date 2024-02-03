@@ -34,11 +34,23 @@ pub fn generate(build: &Build, catalog: &Catalog) {
                     main_artists
                 };
 
+                let item_description = release_ref.text
+                    .as_ref()
+                    .map(|html_and_stripped|
+                        format!(
+                            "<description>{}</description>",
+                            html_escape_outside_attribute(html_and_stripped.stripped.as_str())
+                        )
+                    )
+                    .unwrap_or(String::new());
+
+                let item_title = format!("{artists_list} – {}", release_ref.title);
+
                 format!(
                     include_str!("templates/feed/item.xml"),
-                    description = format!("A release by {}", html_escape_outside_attribute(&artists_list)), // TODO: Translate
+                    description = item_description,
                     permalink = base_url.join(&release_ref.permalink.slug).unwrap(),
-                    title = html_escape_outside_attribute(&release_ref.title),
+                    title = html_escape_outside_attribute(&item_title)
                 )
             })
             .collect::<Vec<String>>()
@@ -47,7 +59,9 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         let channel_description = catalog.text
             .as_ref()
             .map(|html_and_stripped| html_escape_outside_attribute(html_and_stripped.stripped.as_str()))
-            .unwrap_or(String::from("A faircamp-based music catalog")); // TODO: Translate
+            // TODO: Translate and/or reconsider content (e.g. integrate artist list in label mode?)
+            // Note that this is a mandatory field in RSS (https://www.rssboard.org/rss-specification#requiredChannelElements)
+            .unwrap_or(String::from("A faircamp-based music catalog"));
         
         let channel_title = catalog.title();
         

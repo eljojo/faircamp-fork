@@ -1,5 +1,5 @@
 <item>
-    <description>{description}</description>
+    {description}
     <guid>{permalink}</guid>
     <link>{permalink}</link>
     <title>{title}</title>
