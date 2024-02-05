@@ -7,38 +7,38 @@ version = "0.12.0"
 [build-dependencies]
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs", tag = "0.4.1" }
 indoc = "2.0.4"
-pulldown-cmark = { default-features = false, features = ["simd"], version = "0.9.3" }
+pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.10.0" }
 slug = "0.1.5"
 
 [dependencies]
-actix-files = "0.6.2"
-actix-web = "4.4.0"
-base64 = "0.21.5"
+actix-files = "0.6.5"
+actix-web = "4.5.1"
+base64 = "0.21.7"
 bincode = "1.3.3"
-chrono = { features = ["serde"], version = "0.4.31" }
-clap = { features = ["derive"], version = "4.4.10" }
+chrono = { features = ["serde"], version = "0.4.33" }
+clap = { features = ["derive"], version = "4.4.18" }
 claxon = "0.4.3"
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs", tag = "0.4.1" }
 hound = "3.5.1"
-id3 = "1.10.0"
-image = { optional = true, version = "0.24.7" }
+id3 = "1.12.0"
+image = { optional = true, version = "0.24.8" }
 indoc = "2.0.4"
 iso_currency = "0.4.4"
 lewton = "0.10.2"
 libvips = { optional = true, version = "1.5.1" }
 metaflac = "0.2.5"
 nanoid = "0.4.0"
-ogg = "0.9.0"
+ogg = "0.9.1"
 opus = "0.3.0"
 opus_headers = "0.1.2"
 pacmog = "0.4.1"
-pulldown-cmark = { default-features = false, features = ["simd"], version = "0.9.3" }
+pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.10.0" }
 rmp3 = { features = ["float", "simd"], version = "0.3.1" }
 sanitize-filename = "0.5.0"
-serde = "1.0.193"
-serde_derive = "1.0.193"
+serde = "1.0.196"
+serde_derive = "1.0.196"
 slug = "0.1.5"
-tokio = { features = ["macros", "rt-multi-thread"], version = "1.34.0" }
+tokio = { features = ["macros", "rt-multi-thread"], version = "1.36.0" }
 url = "2.5.0"
 urlencoding = "2.1.3"
 webbrowser = "0.8.12"

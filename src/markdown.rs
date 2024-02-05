@@ -1,4 +1,4 @@
-use pulldown_cmark::{Event, html, Parser, Tag};
+use pulldown_cmark::{Event, html, Parser, Tag, TagEnd};
 
 /// We render some incoming markdown (such as artist/catalog text)
 /// both to html as well as to plaintext stripped of any and all
@@ -36,8 +36,9 @@ pub fn to_stripped(markdown_text: &str) -> String {
 struct StrippedRenderer<'a> {
     cursor: Cursor,
     ordered_list_item_number: Option<u64>,
+    link_end_dest_url: Option<String>,
     output: String,
-    parser: Parser<'a, 'a>
+    parser: Parser<'a>
 }
 
 enum Cursor {
@@ -71,10 +72,11 @@ impl<'a> StrippedRenderer<'a> {
         }
     }
 
-    fn new(parser: Parser<'a, 'a>) -> StrippedRenderer<'a> {
+    fn new(parser: Parser<'a>) -> StrippedRenderer<'a> {
         StrippedRenderer {
             cursor: Cursor::BeginOfFile,
             parser,
+            link_end_dest_url: None,
             ordered_list_item_number: None,
             output: String::new()
         }
@@ -110,7 +112,8 @@ impl<'a> StrippedRenderer<'a> {
                             self.cursor = Cursor::EndOfLine;
                         }
                     }
-                },
+                }
+                Event::InlineHtml(_) => {}
                 Event::Rule => {
                     self.ensure_gap();
                     self.output.push_str("----------------");
@@ -130,10 +133,10 @@ impl<'a> StrippedRenderer<'a> {
     /// We pass through here after encountering an Event::Start(Tag::Image(...)).
     /// Nominally we expect an Event::Text(...) containing the image caption,
     /// followed by an Event::End(Tag::Image(...)), after which we return.
-    fn render_image(&mut self) {
+    fn render_image(&mut self, destination: &str) {
         while let Some(event) = self.parser.next() {
             match event {
-                Event::End(Tag::Image(_type, destination, _title)) => {
+                Event::End(TagEnd::Image) => {
                     self.output.push_str(&format!(" ({destination})"));
                     self.cursor = Cursor::EndOfLine;
                     return
@@ -148,12 +151,11 @@ impl<'a> StrippedRenderer<'a> {
         match tag {
             Tag::BlockQuote |
             Tag::CodeBlock(_) |
-            Tag::Heading(_, _, _) |
+            Tag::Heading { .. } |
             Tag::Paragraph => self.ensure_gap(),
-            Tag::List(ordered_list_item_number) => {
-                self.ensure_linebreak();
-                self.ordered_list_item_number = ordered_list_item_number;
-            }
+            Tag::Emphasis => {}
+            Tag::HtmlBlock => {}
+            Tag::Image { dest_url, .. } => self.render_image(&dest_url),
             Tag::Item => {
                 self.ensure_linebreak();
                 if let Some(number) = self.ordered_list_item_number {
@@ -163,12 +165,17 @@ impl<'a> StrippedRenderer<'a> {
                     self.output.push_str("- ");
                 }
             }
-            Tag::Emphasis => {}
+            Tag::Link { dest_url, .. } => {
+                self.link_end_dest_url = Some(dest_url.to_string());
+            }
+            Tag::List(ordered_list_item_number) => {
+                self.ensure_linebreak();
+                self.ordered_list_item_number = ordered_list_item_number;
+            }
             Tag::Strong => {}
-            Tag::Link(_type, _destination, _title) => {}
-            Tag::Image(_type, _destination, _title) => self.render_image(),
             // All these below are not enabled/supported in faircamp
             Tag::FootnoteDefinition(_) |
+            Tag::MetadataBlock(_) |
             Tag::Strikethrough |
             Tag::Table(_) |
             Tag::TableHead |
@@ -177,32 +184,36 @@ impl<'a> StrippedRenderer<'a> {
         }
     }
 
-    fn render_tag_end(&mut self, tag: Tag) {
+    fn render_tag_end(&mut self, tag: TagEnd) {
         match tag {
-            Tag::BlockQuote |
-            Tag::CodeBlock(_) |
-            Tag::Heading(_, _, _) |
-            Tag::Item |
-            Tag::Paragraph |
-            Tag::Emphasis => {}
-            Tag::Link(_type, destination, _title) => {
-                self.output.push_str(&format!(" ({destination})"));
+            TagEnd::BlockQuote |
+            TagEnd::CodeBlock |
+            TagEnd::Heading(_) |
+            TagEnd::Item |
+            TagEnd::Paragraph |
+            TagEnd::Emphasis => {}
+            TagEnd::HtmlBlock |
+            TagEnd::Link => {
+                if let Some(dest_url) = self.link_end_dest_url.take() {
+                    self.output.push_str(&format!(" ({dest_url})"));
+                }
                 self.cursor = Cursor::EndOfLine;
             }
-            Tag::List(_) => {
+            TagEnd::List(_) => {
                 self.ordered_list_item_number = None;
                 self.cursor = Cursor::EndOfLine;
             }
-            Tag::Strong => {}
+            TagEnd::Strong => {}
             // Never encountered here (consumed in render_image())
-            Tag::Image(_type, _destination, _title) => {}
+            TagEnd::Image => {}
             // All these below are not enabled/supported in faircamp
-            Tag::FootnoteDefinition(_) |
-            Tag::Strikethrough |
-            Tag::Table(_) |
-            Tag::TableCell |
-            Tag::TableHead |
-            Tag::TableRow => ()
+            TagEnd::FootnoteDefinition |
+            TagEnd::MetadataBlock(_) |
+            TagEnd::Strikethrough |
+            TagEnd::Table |
+            TagEnd::TableCell |
+            TagEnd::TableHead |
+            TagEnd::TableRow => ()
         }
     }
 }

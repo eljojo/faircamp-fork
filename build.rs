@@ -1,6 +1,6 @@
 use enolib::HtmlPrinter;
 use indoc::formatdoc;
-use pulldown_cmark::{CodeBlockKind, Event, html, Parser, Tag};
+use pulldown_cmark::{CodeBlockKind, Event, html, Parser, Tag, TagEnd};
 use slug::slugify;
 use std::env;
 use std::fs::{self, DirEntry};
@@ -40,7 +40,7 @@ pub fn markdown_to_html(markdown: &str) -> String {
     		if language.deref() == "eno" {
     			inside_eno_codeblock = true;
     		}
-    	} else if let Event::End(Tag::CodeBlock(_)) = event {
+    	} else if let Event::End(TagEnd::CodeBlock) = event {
     		inside_eno_codeblock = false;
     	} else if let Event::Text(ref text) = event {
     		if inside_eno_codeblock {
