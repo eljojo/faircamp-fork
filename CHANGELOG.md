@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.13.0
+
+- Introduce support for alac as input format (234b345)
+- Released round_corners theme option (c91d048)
+- Prevent edge case panic when all release tracks are in an unsupported format (5c51a6b)
+- Include artists in feed item title, release text as optional item description (b464a73)
+- Automate feed image generation, deprecate/skip manual feed_image option (26023be)
+- Let release text fully show or peek out from under the fold if there is space (fb715ea)
+- Avoid track transcoding when only archive is needed and already available (c6a14b1)
+- Ensure waveform rendering is only conditionally run on release pages (ee173a6)
+- Fix track waveform width determination at transitional viewport widths (1f72a82)
+- Pull in enolib patch fixing missing line breaks in manual (8fa4905)
+
 ## 0.12.0
 
 - Make the disable_relative_waveforms theme option public (5e00ddf)
