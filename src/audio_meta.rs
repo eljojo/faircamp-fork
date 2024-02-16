@@ -13,6 +13,7 @@ use std::path::Path;
 use crate::decode::{
     DecodeResult,
     aiff,
+    alac,
     flac,
     mp3,
     ogg_vorbis,
@@ -126,6 +127,73 @@ impl AudioMeta {
                         peaks,
                         title,
                         track_number: tag.track()
+                    }
+                } else {
+                    AudioMeta {
+                        album: None,
+                        album_artists: Vec::new(),
+                        artists: Vec::new(),
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title: None,
+                        track_number: None
+                    }
+                }
+            }
+            "alac" => {
+                let (duration_seconds, peaks) = match alac::decode(path) {
+                    Some(decode_result) => (
+                        decode_result.duration,
+                        Some(compute_peaks(decode_result, 320))
+                    ),
+                    None => (0.0, None)
+                };
+
+                if let Some(meta) = alac::decode_meta(path) {
+                    let album = match meta.album {
+                        Some(try_string) => match String::from_utf8(try_string.to_vec()) {
+                            Ok(string) => Some(string),
+                            Err(_) => None
+                        }
+                        None => None
+                    };
+
+                    let album_artists = match meta.album_artist {
+                        Some(try_string) => match String::from_utf8(try_string.to_vec()) {
+                            Ok(string) => vec![string],
+                            Err(_) => Vec::new()
+                        }
+                        None => Vec::new()
+                    };
+
+                    let artists = match meta.artist {
+                        Some(try_string) => match String::from_utf8(try_string.to_vec()) {
+                            Ok(string) => vec![string],
+                            Err(_) => Vec::new()
+                        }
+                        None => Vec::new()
+                    };
+
+                    let title = match meta.title {
+                        Some(try_string) => match String::from_utf8(try_string.to_vec()) {
+                            Ok(string) => Some(string),
+                            Err(_) => None
+                        }
+                        None => None
+                    };
+
+                    let track_number = meta.track_number.map(|number| number as u32);
+
+                    AudioMeta {
+                        album,
+                        album_artists,
+                        artists,
+                        duration_seconds,
+                        lossless,
+                        peaks,
+                        title,
+                        track_number
                     }
                 } else {
                     AudioMeta {

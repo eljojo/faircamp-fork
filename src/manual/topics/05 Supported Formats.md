@@ -10,6 +10,7 @@ Are there any formats missing that are important for you? Bring it up in the [is
 ## Supported audio formats
 
 - aiff
+- alac
 - flac
 - mp3
 - ogg

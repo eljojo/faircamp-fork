@@ -1,4 +1,5 @@
 pub mod aiff;
+pub mod alac;
 pub mod flac;
 pub mod mp3;
 pub mod ogg_vorbis;
@@ -13,5 +14,6 @@ pub struct DecodeResult {
     pub duration: f32,
     pub sample_count: u32,
     pub sample_rate: u32,
+    /// Samples are stored interleaved
     pub samples: Vec<f32>
 }
