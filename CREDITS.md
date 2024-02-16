@@ -16,6 +16,7 @@ Thanks everyone for your support.
 [Deborah Pickett](https://icemoonprison.com)<br>
 [Default Media Transmitter](https://defaultmediatransmitter.com/)<br>
 [Devin Canterberry](https://canterberry.cc/)<br>
+[DURAD](https://durad.xyz)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
 [Florian Antoine](http://oooooooooo.net/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
@@ -34,13 +35,16 @@ Thanks everyone for your support.
 [Meljoann](https://www.meljoann.com/)<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
+[n3wjack](https://n3wjack.net/)<br>
 [nOOq](https://codeberg.org/n00q)<br>
+[Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
 [rakoo](https://codeberg.org/rakoo)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
-[Simon Repp](https://simonrepp.com)<br>
 [Samæ](https://samae.demer.se/)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
+[Torsten Torsten](https://torstentorsten.de)<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
+[Wolfgang Dorninger](https://dorninger.servus.at)<br>
 [zzkt](https://fo.am/people/nik)
