@@ -892,7 +892,7 @@ impl Catalog {
             .iter()
             .map(|release| release.borrow().tracks.len())
             .max()
-            .unwrap();
+            .unwrap_or(0);
 
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
