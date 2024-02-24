@@ -290,6 +290,8 @@ impl Catalog {
                     }
                 }
             }
+
+            catalog.featured_artists.sort_unstable_by_key(|artist| artist.borrow().name.to_lowercase());
         } else {
             catalog.set_artist();
         }
