@@ -202,3 +202,34 @@ impl Translations {
         self.xxx_or_more.replace("{xxx}", xxx)
     }
 }
+
+#[test]
+fn check_translations() {
+    let locales = [
+        de::translations(),
+        en::translations(),
+        es::translations(),
+        fr::translations(),
+        nb::translations(),
+        nl::translations(),
+        pl::translations()
+    ];
+
+    for translations in &locales {
+        assert!(&translations.audio_player_widget_for_release.contains("{title}"));
+        assert!(&translations.audio_player_widget_for_track.contains("{title}"));
+        assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));
+        assert!(&translations.unlock_manual_instructions.contains("{index_suffix}"));
+        assert!(&translations.unlock_manual_instructions.contains("{page_hash}"));
+        assert!(&translations.unlock_manual_instructions.contains("{unlock_permalink}"));
+        assert!(&translations.up_to_xxx.contains("{xxx}"));
+        assert!(&translations.xxx_or_more.contains("{xxx}"));
+
+        let disallowed_char = |c: char| !c.is_ascii_alphanumeric() && c != '-' ;
+
+        assert!(!&translations.downloads_permalink.contains(disallowed_char));
+        assert!(!&translations.image_descriptions_permalink.contains(disallowed_char));
+        assert!(!&translations.purchase_permalink.contains(disallowed_char));
+        assert!(!&translations.unlock_permalink.contains(disallowed_char));
+    }
+}
