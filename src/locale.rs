@@ -4,6 +4,7 @@ mod es;
 mod fr;
 mod nb;
 mod nl;
+mod pl;
 
 pub struct Locale {
     /// Language code such as "en", "de" etc.
@@ -98,6 +99,7 @@ impl Locale {
             "fr" => Some(Locale::new("fr", fr::translations(), WritingDirection::Ltr)),
             "nb" => Some(Locale::new("nb", nb::translations(), WritingDirection::Ltr)),
             "nl" => Some(Locale::new("nl", nl::translations(), WritingDirection::Ltr)),
+            "pl" => Some(Locale::new("pl", pl::translations(), WritingDirection::Ltr)),
             _ => None
         }
     }
