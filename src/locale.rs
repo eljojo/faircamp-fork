@@ -188,8 +188,10 @@ impl Translations {
 
     pub fn unlock_manual_instructions(&self, page_hash: &str, index_suffix: &str) -> String {
         self.unlock_manual_instructions
-            .replace("{page_hash}", page_hash)
+            .replace("{downloads_permalink}", &self.downloads_permalink)
             .replace("{index_suffix}", index_suffix)
+            .replace("{page_hash}", page_hash)
+            .replace("{unlock_permalink}", &self.unlock_permalink)
     }
 
     pub fn up_to_xxx(&self, xxx: &str) -> String {

@@ -73,8 +73,8 @@ Voordat je dat doet houd er rekening mee dat verkeerde codes \
 of adreswijzigingen u naar een 404-pagina leiden. In het geval \
 gebruik de terugknop en volg de voorschriften nauwkeurig opnieuw.\
 <br><br>\
-Vervang het laatste deel van het adres - /ontsluiten/{page_hash}{index_suffix} - \
-met /downloads/[your-unlock-code]{index_suffix} en druk vervolgens op Enter."),
+Vervang het laatste deel van het adres - /{unlock_permalink}/{page_hash}{index_suffix} - \
+met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens op Enter."),
         up_to_xxx: String::from("Tot {xxx}"),
         xxx_or_more: String::from("{xxx} of meer")
     }

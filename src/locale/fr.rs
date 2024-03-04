@@ -73,8 +73,8 @@ Avant de commencer, sachez que des codes ou des modifications d'adresse erronés
 vous amènent à une page 404. Dans ce cas, utilisez le bouton Retour et suivez à \
 nouveau attentivement les instructions. \
 <br><br>\
-Remplacez la dernière partie de l'adresse - /deverouiller/{page_hash}{index_suffix} - \
-avec /telechargements/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
+Remplacez la dernière partie de l'adresse - /{unlock_permalink}/{page_hash}{index_suffix} - \
+avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
         up_to_xxx: String::from("Jusqu'à {xxx}"),
         xxx_or_more: String::from("{xxx} ou plus")
     }

@@ -55,7 +55,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         pay_on_liberapay: String::from("Betal via Liberapay"),
         payment_options: String::from("Payment options:"),
         purchase_downloads: String::from("Kjøp nedlastinger"),
-        purchase_permalink: String::from("kjøp"),
+        purchase_permalink: String::from("kjop"),
         recommended_format: String::from("Anbefalt format"),
         rss_feed: String::from("RSS-Strøm"),
         share: String::from("Del"),
@@ -63,7 +63,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         share_not_available_requires_javascript: String::from("Not available in your browser (requires JavaScript)"),
         unlock: String::from("Lås opp"),
         unlock_downloads: String::from("Lås opp nedlastinger"),
-        unlock_permalink: String::from("lås opp"),
+        unlock_permalink: String::from("las-opp"),
         unlock_code_seems_incorrect: String::from("Koden for å låse opp er ikke riktig, sjekk om du har noen skrivefeil."),
         unlock_manual_instructions: String::from("\
 For å låse opp nedlastingen må du gjøre følgende endringer \
@@ -73,8 +73,8 @@ Før du prøver på dette, så vær oppmerksom på at feil kode eller \
 addresseendringer vil føre til en side som ikke finnes. Hvis det \
 skjer, bruk tilbake-knappen og prøv å følge instruksjonene nøye igjen.\
 <br><br>\
-Erstatt den siste delen av addressen - /unlock/{page_hash}{index_suffix} - \
-med /downloads/[your-unlock-code]{index_suffix} og trykk ENTER."),
+Erstatt den siste delen av addressen - /{unlock_permalink}/{page_hash}{index_suffix} - \
+med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
         up_to_xxx: String::from("Opp til {xxx}"),
         xxx_or_more: String::from("{xxx} eller mer")
     }

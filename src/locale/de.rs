@@ -75,8 +75,8 @@ Falls das passiert, benutze den Zurück Button deines Browsers \
 und folge den Instruktionen erneut und ganz genau.\
 <br><br>\
 Ersetze den letzten Abschnitt der Adresse - \
-/freischalten/{page_hash}{index_suffix} - \
-mit /downloads/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
+/{unlock_permalink}/{page_hash}{index_suffix} - \
+mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
         up_to_xxx: String::from("Bis zu {xxx}"),
         xxx_or_more: String::from("{xxx} oder mehr")
     }
