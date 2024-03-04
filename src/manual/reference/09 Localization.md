@@ -9,6 +9,7 @@ Faircamp currently ships with these languages:
 - French `fr`
 - German `de`
 - Norwegian Bokmål `nb`
+- Polish `pl`
 - Spanish `es`
 
 English is the default, another language can be configured like this:
