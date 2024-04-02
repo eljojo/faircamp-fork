@@ -1,4 +1,4 @@
-use ::image::ImageOutputFormat;
+use ::image::ImageFormat;
 use ::image::imageops::FilterType;
 use std::fs::File;
 use std::path::PathBuf;
@@ -105,7 +105,7 @@ impl ImageProcessor {
 
 	    let mut output_file = File::create(output_path).unwrap();
 
-	    transformed.write_to(&mut output_file, ImageOutputFormat::Jpeg(80)).unwrap();
+	    transformed.write_to(&mut output_file, ImageFormat::Jpeg).unwrap();
 
 	    (output_filename, result_dimensions)
 	}
