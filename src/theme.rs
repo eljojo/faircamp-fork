@@ -33,7 +33,8 @@ pub struct Theme {
     pub round_corners: bool,
     pub text_h: u16,
     pub tint_back: u8,
-    pub tint_front: u8
+    pub tint_front: u8,
+    pub waveforms: bool
 }
 
 /// a(lpha)       0.0-1.0
@@ -101,7 +102,8 @@ impl Theme {
             round_corners: false,
             text_h: 0,
             tint_back: 0,
-            tint_front: 0
+            tint_front: 0,
+            waveforms: true
         }
     }
 }

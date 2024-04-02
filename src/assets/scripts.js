@@ -336,8 +336,10 @@ function waveforms() {
         const preferredNumSamples = Math.round(0.75 * waveformWidthRem * baseFontSizePx);
         const numSamples = Math.min(preferredNumSamples, peaks.length);
 
-        let d = `M 0,${WAVEFORM_PADDING_EM + (1 - peaks[0]) * WAVEFORM_HEIGHT}`;
+        const prevY = WAVEFORM_PADDING_EM + (1 - peaks[0]) * WAVEFORM_HEIGHT;
+        let d = `M 0,${prevY.toFixed(2)}`;
 
+        let yChangeOccured = false;
         for (let sample = 1; sample < numSamples; sample += 1) {
             const factor = sample / (numSamples - 1);
             const floatIndex = factor * (peaks.length - 1);
@@ -355,7 +357,14 @@ function waveforms() {
             const x = factor * waveformWidthRem;
             const y = WAVEFORM_PADDING_EM + (1 - peak) * WAVEFORM_HEIGHT;
 
-            d += ` L ${x},${y}`;
+            // If the y coordinate is always exactly the same on all points, the linear
+            // gradient applied to the .progress path does not show up at all (firefox).
+            // This only happens when the track is perfectly silent/same level all the
+            // way through, which currently is the case when with the disable_waveforms option.
+            // We counter this here by introducing minimal jitter on the y dimension.
+            const yJitter = (y === prevY ? '1' : '');
+
+            d += ` L ${x.toFixed(2)},${y.toFixed(2)}${yJitter}`;
         }
 
         const SVG_XMLNS = 'http://www.w3.org/2000/svg';

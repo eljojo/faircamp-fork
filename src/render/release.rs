@@ -5,20 +5,21 @@ use crate::{
     Catalog,
     DownloadOption,
     Release,
-    render::{
-        cover_image,
-        layout,
-        list_artists,
-        play_icon,
-        share_link,
-        share_overlay
-    },
-    Track,
-    util::{
-        format_time,
-        html_escape_inside_attribute,
-        html_escape_outside_attribute
-    }
+    Theme,
+    Track
+};
+use crate::render::{
+    cover_image,
+    layout,
+    list_artists,
+    play_icon,
+    share_link,
+    share_overlay
+};
+use crate::util::{
+    format_time,
+    html_escape_inside_attribute,
+    html_escape_outside_attribute
 };
 
 pub mod checkout;
@@ -154,7 +155,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 track_number = release.track_numbering.format(track_number),
                 track_title = html_escape_outside_attribute(&track.title),
                 track_title_attribute = html_escape_inside_attribute(&track.title),
-                waveform = waveform(track)
+                waveform = waveform(&build.theme, track)
             )
         })
         .collect::<Vec<String>>()
@@ -225,7 +226,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
 }
 
-fn waveform(track: &Track) -> String {
+pub fn waveform(theme: &Theme, track: &Track) -> String {
     if let Some(peaks) = &track.assets.borrow().source_meta.peaks {
         let peaks_base64 = peaks.iter()
             .map(|peak| {
@@ -247,7 +248,11 @@ fn waveform(track: &Track) -> String {
                 //   versions, so all peaks are correctly recalculated for everyone then.
                 // - Then also remove this peak_limited correction and rely on the raw
                 //   value again.
-                let peak_limited = if *peak > 1.0 { 1.0 } else { *peak };
+                let peak_limited = if theme.waveforms {
+                    if *peak > 1.0 { 1.0 } else { *peak }
+                } else {
+                    0.5
+                };
 
                 // Limit range to 0-63
                 let peak64 = ((peak_limited / 1.0) * 63.0) as u8;

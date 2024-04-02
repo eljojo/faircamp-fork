@@ -99,6 +99,16 @@ aesthetic choice, you can enable this alternative behavior with this flag:
 disable_relative_waveforms
 ```
 
+## Disabling waveforms altogether
+
+This will render all waveforms simply as flat lines.
+
+```eno
+# theme
+
+disable_waveforms
+```
+
 ## Font
 
 By default, faircamp bundles and uses the [Barlow](https://tribby.com/fonts/barlow/)
