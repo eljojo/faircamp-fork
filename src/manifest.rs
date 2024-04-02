@@ -24,10 +24,9 @@ use crate::{
     PaymentOption,
     Permalink,
     StreamingQuality,
-    release::TrackNumbering,
+    TrackNumbering,
     theme::{CoverGenerator, ThemeBase, ThemeFont},
-    util,
-    WritingDirection
+    util
 };
 
 macro_rules! err_line {
@@ -562,18 +561,10 @@ pub fn apply_options(
 
     if let Some(section) = optional_section(&document, "localization", path) {
         if let Some(value) = optional_field_value(section, "language") {
-            if let Some(locale) = Locale::from_code(&value) {
-                build.locale = locale;
-            } else {
-                build.locale.language = value;
-            }
+            build.locale = Locale::from_code(&value);
         }
         if let Some((value, line)) = optional_field_value_with_line(section, "writing_direction") {
-            match value.as_str() {
-                "ltr" => build.locale.writing_direction = WritingDirection::Ltr,
-                "rtl" => build.locale.writing_direction = WritingDirection::Rtl,
-                value => error!("Ignoring unsupported value '{}' for global 'localization.writing_direction' (supported values are 'ltr' and 'rtl') in {}:{}", value, path.display(), line)
-            }
+            info!("From faircamp 0.14.0 onwards, writing direction is determined from the language automatically - localization.writing_direction '{}' specified in {}:{} can be removed, it won't be used anymore.", value, path.display(), line);
         }
     }
     

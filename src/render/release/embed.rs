@@ -5,23 +5,22 @@ use crate::{
     Build,
     Catalog,
     Release,
-    render::{
-        compact_release_identifier,
-        copy_button,
-        cover_image,
-        layout,
-        list_artists,
-        play_icon
-    },
-    render::release::waveform,
-    Track,
-    util::{
-        format_time,
-        html_double_escape_inside_attribute,
-        html_escape_inside_attribute,
-        html_escape_outside_attribute
-    },
-    WritingDirection
+    Track
+};
+use crate::render::{
+    compact_release_identifier,
+    copy_button,
+    cover_image,
+    layout,
+    list_artists,
+    play_icon,
+    release::waveform
+};
+use crate::util::{
+    format_time,
+    html_double_escape_inside_attribute,
+    html_escape_inside_attribute,
+    html_escape_outside_attribute
 };
 
 /// Returns a two-field tuple where the fields have the following use:
@@ -265,10 +264,7 @@ pub fn embed_release_html(
 }
 
 fn embed_layout(root_prefix: &str, body: &str, build: &Build, catalog: &Catalog, title: &str) -> String {
-    let dir_attribute = match build.locale.writing_direction {
-        WritingDirection::Ltr => "",
-        WritingDirection::Rtl => "dir=\"rtl\""
-    };
+    let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
     format!(
         include_str!("../../templates/embed.html"),

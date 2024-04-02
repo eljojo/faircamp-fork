@@ -1,6 +1,6 @@
 # Localization
 
-## Supported languages
+## Available languages
 
 Faircamp currently ships with these languages:
 
@@ -22,7 +22,20 @@ language: fr
 
 Translation corrections or improvements are very welcome (dutch and spanish probably direly need them), just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
 
-## Unsupported languages
+## Not yet available languages
+
+Note that even if there are no translations for your language yet, you can still set the
+language code, which is then used to auto-determine the text direction (LTR/RTL),
+and declare the language for your content on the site and in RSS feed metadata -
+only the interface texts will still be in english.
+
+```eno
+# localization
+
+language: ar
+```
+
+## Contributing translations
 
 If you are eager to use faircamp with a not yet supported language, you can
 easily help to make it happen: Open the [english locale](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/locale/en.rs),
@@ -31,14 +44,3 @@ your language. Post the results in an [issue](https://codeberg.org/simonrepp/fai
 or send them to simon@fdpl.io, then we'll wrap up the rest together. If you're
 code/git savvy you can also directly submit a PR. Either way, don't worry about
 making mistakes, I'll help you with the technical details, it's much appreciated.
-
-Note that even with an unsupported language you can still set a custom
-language code (which will be used e.g. for the RSS feed metadata) and writing
-direction (`ltr` or `rtl`).
-
-```eno
-# localization
-
-language: he
-writing_direction: rtl
-```

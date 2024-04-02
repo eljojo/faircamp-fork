@@ -1,17 +1,17 @@
-use indoc::formatdoc;
 use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::rc::Rc;
+
+use indoc::formatdoc;
 
 use crate::{
     Artist,
     Build,
     Catalog,
     Image,
-    Release,
-    util::{html_escape_inside_attribute, html_escape_outside_attribute},
-    WritingDirection
+    Release
 };
+use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 pub mod artist;
 pub mod image_descriptions;
@@ -276,10 +276,7 @@ fn layout(
         false => String::new()
     };
 
-    let dir_attribute = match build.locale.writing_direction {
-        WritingDirection::Ltr => "",
-        WritingDirection::Rtl => "dir=\"rtl\""
-    };
+    let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
     let theming_widget = if build.theming_widget {
         formatdoc!(

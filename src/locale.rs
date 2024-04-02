@@ -13,8 +13,13 @@ pub struct Locale {
     /// see https://datatracker.ietf.org/doc/html/rfc5646 and/or the more general
     /// https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang).
     pub language: String,
+    pub text_direction: TextDirection,
     pub translations: Translations,
-    pub writing_direction: WritingDirection
+}
+
+pub enum TextDirection {
+    Ltr,
+    Rtl
 }
 
 /// A key-value mapping for every translatable string found in the interface.
@@ -80,43 +85,74 @@ pub struct Translations {
     xxx_or_more: String
 }
 
-pub enum WritingDirection {
-    Ltr,
-    Rtl
-}
-
 // TODO: Runtime-based mechanism for adding or customizing locales
 impl Locale {
     pub fn default() -> Locale {
-        Locale::new("en", en::translations(), WritingDirection::Ltr)
+        Locale::new("en", en::translations(), TextDirection::Ltr)
     }
 
-    pub fn from_code(language: &str) -> Option<Locale> {
+    pub fn from_code(language: &str) -> Locale {
         match language {
-            "de" => Some(Locale::new("de", de::translations(), WritingDirection::Ltr)),
-            "en" => Some(Locale::new("en", en::translations(), WritingDirection::Ltr)),
-            "es" => Some(Locale::new("es", es::translations(), WritingDirection::Ltr)),
-            "fr" => Some(Locale::new("fr", fr::translations(), WritingDirection::Ltr)),
-            "nb" => Some(Locale::new("nb", nb::translations(), WritingDirection::Ltr)),
-            "nl" => Some(Locale::new("nl", nl::translations(), WritingDirection::Ltr)),
-            "pl" => Some(Locale::new("pl", pl::translations(), WritingDirection::Ltr)),
-            _ => None
+            "de" => Locale::new("de", de::translations(), TextDirection::Ltr),
+            "en" => Locale::new("en", en::translations(), TextDirection::Ltr),
+            "es" => Locale::new("es", es::translations(), TextDirection::Ltr),
+            "fr" => Locale::new("fr", fr::translations(), TextDirection::Ltr),
+            "nb" => Locale::new("nb", nb::translations(), TextDirection::Ltr),
+            "nl" => Locale::new("nl", nl::translations(), TextDirection::Ltr),
+            "pl" => Locale::new("pl", pl::translations(), TextDirection::Ltr),
+            _ => Locale::new(language, en::translations(), TextDirection::from_code(language))
         }
     }
 
     pub fn keys() -> Locale {
-        Locale::new("en", Translations::keys(), WritingDirection::Ltr)
+        Locale::new("en", Translations::keys(), TextDirection::Ltr)
     }
 
-    pub fn new(
+    fn new(
         language: &str,
         translations: Translations,
-        writing_direction: WritingDirection
+        text_direction: TextDirection
     ) -> Locale {
         Locale {
             language: language.to_owned(),
-            translations,
-            writing_direction
+            text_direction,
+            translations
+        }
+    }
+}
+
+impl TextDirection {
+    /// Language codes compiled based on these (slightly diverging) lists:
+    /// - https://meta.wikimedia.org/wiki/Template:List_of_language_names_ordered_by_code
+    /// - https://localizejs.com/articles/localizing-for-right-to-left-languages-the-issues-to-consider/
+    /// - https://lingohub.com/blog/right-to-left-vs-left-to-right
+    /// - https://localizely.com/iso-639-1-list/
+    pub fn from_code(code: &str) -> TextDirection {
+        match code {
+            "ar" |
+            "arc" |
+            "arz" |
+            "ckb" |
+            "dv" |
+            "fa" |
+            "ha" |
+            "he" |
+            "khw" |
+            "ks" |
+            "ku" |
+            "ps" |
+            "sd" |
+            "ur" |
+            "uz_AF" |
+            "yi" => TextDirection::Rtl,
+            _ => TextDirection::Ltr
+        }
+    }
+
+    pub fn is_rtl(&self) -> bool {
+        match self {
+            TextDirection::Ltr => false,
+            TextDirection::Rtl => true
         }
     }
 }

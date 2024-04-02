@@ -48,11 +48,11 @@ use favicon::Favicon;
 use ffmpeg::TagMapping;
 use crate::image::{Image, ImageAssets};
 use image_processor::{ImageProcessor, ResizeMode};
-use locale::{Locale, WritingDirection};
+use locale::Locale;
 use markdown::HtmlAndStripped;
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
-use release::{ArchiveAssets, DownloadGranularity, Extra, Release};
+use release::{ArchiveAssets, DownloadGranularity, Extra, Release, TrackNumbering};
 use theme::Theme;
 use track::{Track, TrackAssets};
 
