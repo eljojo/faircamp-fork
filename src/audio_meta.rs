@@ -91,7 +91,7 @@ impl AudioMeta {
                     None => (0.0, None)
                 };
 
-                if let Ok(tag) = id3::Tag::read_from_aiff_path(path) {
+                if let Ok(tag) = id3::Tag::read_from_path(path) {
                     let album = match tag.album() {
                         Some(album) => trim_and_reject_empty(album),
                         None => None
@@ -506,7 +506,7 @@ impl AudioMeta {
                     None => (0.0, None)
                 };
 
-                if let Ok(tag) = id3::Tag::read_from_wav_path(path) {
+                if let Ok(tag) = id3::Tag::read_from_path(path) {
                     let album = match tag.album() {
                         Some(album) => trim_and_reject_empty(album),
                         None => None
