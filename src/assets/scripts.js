@@ -333,7 +333,8 @@ function waveforms() {
         // 1 samples per pixel = More detail, but more jagged
         // 0.5 samples per pixel = Smoother, but more sampling artifacts
         // 0.75 looked like a good in-between (on my low-dpi test screen anyway)
-        const numSamples = Math.min(0.75 * waveformWidthRem * baseFontSizePx, peaks.length);
+        const preferredNumSamples = Math.round(0.75 * waveformWidthRem * baseFontSizePx);
+        const numSamples = Math.min(preferredNumSamples, peaks.length);
 
         let d = `M 0,${WAVEFORM_PADDING_EM + (1 - peaks[0]) * WAVEFORM_HEIGHT}`;
 
