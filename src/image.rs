@@ -263,144 +263,68 @@ impl ImageAssets {
             // Viewport width > 60rem (960px at 16px font-size) = 27rem/12rem = 2.25
             // We therefore approximate it for both by limiting the aspect to 2.25.-2.5
 
-            let (fixed_filename_320, fixed_dimensions_320) = build.image_processor.resize(
-                build,
-                &self.source_file_signature.path,
-                ResizeMode::CoverRectangle {
+            let resize_mode_fixed_320 = ResizeMode::CoverRectangle {
+                max_aspect: 2.5,
+                max_width: 320,
+                min_aspect: 2.25
+            };
+            let fixed_max_320 = self.compute_artist_asset(build, "fixed", resize_mode_fixed_320);
+
+            let fixed_max_480 = if fixed_max_320.width == 320 {
+                let resize_mode_fixed_480 = ResizeMode::CoverRectangle {
                     max_aspect: 2.5,
-                    max_width: 320,
+                    max_width: 480,
                     min_aspect: 2.25
-                }
-            );
-
-            let fixed_metadata_320 = fs::metadata(build.cache_dir.join(&fixed_filename_320)).unwrap();
-
-            let fixed_max_320 = ArtistAsset {
-                filename: fixed_filename_320,
-                filesize_bytes: fixed_metadata_320.len(),
-                format: String::from("fixed"),
-                height: fixed_dimensions_320.1,
-                width: fixed_dimensions_320.0
+                };
+                Some(self.compute_artist_asset(build, "fixed", resize_mode_fixed_480))
+            } else {
+                None
             };
 
-            let mut fixed_max_480 = None;
-            let mut fixed_max_640 = None;
-
-            if fixed_dimensions_320.0 == 320 {
-                let (fixed_filename_480, fixed_dimensions_480) = build.image_processor.resize(
-                    build,
-                    &self.source_file_signature.path,
-                    ResizeMode::CoverRectangle {
-                        max_aspect: 2.5,
-                        max_width: 480,
-                        min_aspect: 2.25
-                    }
-                );
-
-                let fixed_metadata_480 = fs::metadata(build.cache_dir.join(&fixed_filename_480)).unwrap();
-
-                fixed_max_480 = Some(ArtistAsset {
-                    filename: fixed_filename_480,
-                    filesize_bytes: fixed_metadata_480.len(),
-                    format: String::from("fixed"),
-                    height: fixed_dimensions_480.1,
-                    width: fixed_dimensions_480.0
-                });
-
-                if fixed_dimensions_480.0 == 480 {
-                    let (fixed_filename_640, fixed_dimensions_640) = build.image_processor.resize(
-                        build,
-                        &self.source_file_signature.path,
-                        ResizeMode::CoverRectangle {
-                            max_aspect: 2.5,
-                            max_width: 640,
-                            min_aspect: 2.25
-                        }
-                    );
-
-                    let fixed_metadata_640 = fs::metadata(build.cache_dir.join(&fixed_filename_640)).unwrap();
-
-                    fixed_max_640 = Some(ArtistAsset {
-                        filename: fixed_filename_640,
-                        filesize_bytes: fixed_metadata_640.len(),
-                        format: String::from("fixed"),
-                        height: fixed_dimensions_640.1,
-                        width: fixed_dimensions_640.0
-                    });
-                }
-            }
+            let fixed_max_640 = if fixed_max_480.as_ref().is_some_and(|asset| asset.width == 480) {
+                let resize_mode_fixed_640 = ResizeMode::CoverRectangle {
+                    max_aspect: 2.5,
+                    max_width: 640,
+                    min_aspect: 2.25
+                };
+                Some(self.compute_artist_asset(build, "fixed", resize_mode_fixed_640))
+            } else {
+                None
+            };
 
             // Compute fluid sizes
             // Viewport width @ 30rem (480px at 16px font-size) = 100vw=30rem/12rem = 2.5
             // Viewport width @ 60rem (960px at 16px font-size) = 100vw=960px/12rem = 5
             // We therefore approximate it for both by limiting the aspect to 2.5-5
 
-            let (fluid_filename_640, fluid_dimensions_640) = build.image_processor.resize(
-                build,
-                &self.source_file_signature.path,
-                ResizeMode::CoverRectangle {
+            let resize_mode_fluid_640 = ResizeMode::CoverRectangle {
+                max_aspect: 5.0,
+                max_width: 640,
+                min_aspect: 2.5
+            };
+            let fluid_max_640 = self.compute_artist_asset(build, "fluid", resize_mode_fluid_640);
+
+            let fluid_max_960 = if fluid_max_640.width == 640 {
+                let resize_mode_fluid_960 = ResizeMode::CoverRectangle {
                     max_aspect: 5.0,
-                    max_width: 640,
+                    max_width: 960,
                     min_aspect: 2.5
-                }
-            );
-
-            let fluid_metadata_640 = fs::metadata(build.cache_dir.join(&fluid_filename_640)).unwrap();
-
-            let fluid_max_640 = ArtistAsset {
-                filename: fluid_filename_640,
-                filesize_bytes: fluid_metadata_640.len(),
-                format: String::from("fluid"),
-                height: fluid_dimensions_640.1,
-                width: fluid_dimensions_640.0
+                };
+                Some(self.compute_artist_asset(build, "fluid", resize_mode_fluid_960))
+            } else {
+                None
             };
 
-            let mut fluid_max_960 = None;
-            let mut fluid_max_1280 = None;
-
-            if fluid_dimensions_640.0 == 640 {
-                let (fluid_filename_960, fluid_dimensions_960) = build.image_processor.resize(
-                    build,
-                    &self.source_file_signature.path,
-                    ResizeMode::CoverRectangle {
-                        max_aspect: 5.0,
-                        max_width: 960,
-                        min_aspect: 2.5
-                    }
-                );
-
-                let fluid_metadata_960 = fs::metadata(build.cache_dir.join(&fluid_filename_960)).unwrap();
-
-                fluid_max_960 = Some(ArtistAsset {
-                    filename: fluid_filename_960,
-                    filesize_bytes: fluid_metadata_960.len(),
-                    format: String::from("fluid"),
-                    height: fluid_dimensions_960.1,
-                    width: fluid_dimensions_960.0
-                });
-
-                if fluid_dimensions_960.0 == 960 {
-                    let (fluid_filename_1280, fluid_dimensions_1280) = build.image_processor.resize(
-                        build,
-                        &self.source_file_signature.path,
-                        ResizeMode::CoverRectangle {
-                            max_aspect: 5.0,
-                            max_width: 1280,
-                            min_aspect: 2.5
-                        }
-                    );
-
-                    let fluid_metadata_1280 = fs::metadata(build.cache_dir.join(&fluid_filename_1280)).unwrap();
-
-                    fluid_max_1280 = Some(ArtistAsset {
-                        filename: fluid_filename_1280,
-                        filesize_bytes: fluid_metadata_1280.len(),
-                        format: String::from("fluid"),
-                        height: fluid_dimensions_1280.1,
-                        width: fluid_dimensions_1280.0
-                    });
-                }
-            }
+            let fluid_max_1280 = if fluid_max_960.as_ref().is_some_and(|asset| asset.width == 960) {
+                let resize_mode_fluid_1280 = ResizeMode::CoverRectangle {
+                    max_aspect: 5.0,
+                    max_width: 1280,
+                    min_aspect: 2.5
+                };
+                Some(self.compute_artist_asset(build, "fluid", resize_mode_fluid_1280))
+            } else {
+                None
+            };
 
             let artist_assets = ArtistAssets {
                 fixed_max_320,
@@ -443,6 +367,45 @@ impl ImageAssets {
         self.background.as_mut().unwrap()
     }
 
+    fn compute_artist_asset(
+        &self,
+        build: &Build,
+        format: &str,
+        resize_mode: ResizeMode
+    ) -> ArtistAsset {
+        let (filename, dimensions) = build.image_processor.resize(
+            build,
+            &self.source_file_signature.path,
+            resize_mode
+        );
+
+        let metadata = fs::metadata(build.cache_dir.join(&filename)).unwrap();
+
+        ArtistAsset {
+            filename,
+            filesize_bytes: metadata.len(),
+            format: format.to_string(),
+            height: dimensions.1,
+            width: dimensions.0
+        }
+    }
+
+    fn compute_cover_asset(&self, build: &Build, resize_mode: ResizeMode) -> CoverAsset {
+        let (filename, dimensions) = build.image_processor.resize(
+            build,
+            &self.source_file_signature.path,
+            resize_mode
+        );
+
+        let metadata = fs::metadata(build.cache_dir.join(&filename)).unwrap();
+
+        CoverAsset {
+            edge_size: dimensions.0,
+            filename,
+            filesize_bytes: metadata.len()
+        }
+    }
+
     pub fn cover_asset(
         &mut self,
         build: &Build,
@@ -453,88 +416,36 @@ impl ImageAssets {
                 assets.unmark_stale();
             }
         } else {
-            let (filename_160, dimensions_160) = build.image_processor.resize(
-                build,
-                &self.source_file_signature.path,
-                ResizeMode::CoverSquare { edge_size: 160 }
-            );
+            let resize_mode_max_160 = ResizeMode::CoverSquare { edge_size: 160 };
+            let max_160 = self.compute_cover_asset(build, resize_mode_max_160);
 
-            let metadata_160 = fs::metadata(build.cache_dir.join(&filename_160)).unwrap();
-
-            let max_160 = CoverAsset {
-                edge_size: dimensions_160.0,
-                filename: filename_160,
-                filesize_bytes: metadata_160.len()
+            let max_320 = if max_160.edge_size == 160 {
+                let resize_mode_max_320 = ResizeMode::CoverSquare { edge_size: 320 };
+                Some(self.compute_cover_asset(build, resize_mode_max_320))
+            } else {
+                None
             };
 
-            let mut max_320 = None;
-            let mut max_480 = None;
-            let mut max_800 = None;
-            let mut max_1280 = None;
+            let max_480 = if max_320.as_ref().is_some_and(|asset| asset.edge_size == 320) {
+                let resize_mode_max_480 = ResizeMode::CoverSquare { edge_size: 480 };
+                Some(self.compute_cover_asset(build, resize_mode_max_480))
+            } else {
+                None
+            };
 
-            if dimensions_160.0 == 160 {
-                let (filename_320, dimensions_320) = build.image_processor.resize(
-                    build,
-                    &self.source_file_signature.path,
-                    ResizeMode::CoverSquare { edge_size: 320 }
-                );
+            let max_800 = if max_480.as_ref().is_some_and(|asset| asset.edge_size == 480) {
+                let resize_mode_max_800 = ResizeMode::CoverSquare { edge_size: 800 };
+                Some(self.compute_cover_asset(build, resize_mode_max_800))
+            } else {
+                None
+            };
 
-                let metadata_320 = fs::metadata(build.cache_dir.join(&filename_320)).unwrap();
-
-                max_320 = Some(CoverAsset {
-                    edge_size: dimensions_320.0,
-                    filename: filename_320,
-                    filesize_bytes: metadata_320.len()
-                });
-
-                if dimensions_320.0 == 320 {
-                    let (filename_480, dimensions_480) = build.image_processor.resize(
-                        build,
-                        &self.source_file_signature.path,
-                        ResizeMode::CoverSquare { edge_size: 480 }
-                    );
-
-                    let metadata_480 = fs::metadata(build.cache_dir.join(&filename_480)).unwrap();
-
-                    max_480 = Some(CoverAsset {
-                        edge_size: dimensions_480.0,
-                        filename: filename_480,
-                        filesize_bytes: metadata_480.len()
-                    });
-
-                    if dimensions_480.0 == 480 {
-                        let (filename_800, dimensions_800) = build.image_processor.resize(
-                            build,
-                            &self.source_file_signature.path,
-                            ResizeMode::CoverSquare { edge_size: 800 }
-                        );
-
-                        let metadata_800 = fs::metadata(build.cache_dir.join(&filename_800)).unwrap();
-
-                        max_800 = Some(CoverAsset {
-                            edge_size: dimensions_800.0,
-                            filename: filename_800,
-                            filesize_bytes: metadata_800.len()
-                        });
-
-                        if dimensions_800.0 == 800 {
-                            let (filename_1280, dimensions_1280) = build.image_processor.resize(
-                                build,
-                                &self.source_file_signature.path,
-                                ResizeMode::CoverSquare { edge_size: 1280 }
-                            );
-
-                            let metadata_1280 = fs::metadata(build.cache_dir.join(&filename_1280)).unwrap();
-
-                            max_1280 = Some(CoverAsset {
-                                edge_size: dimensions_1280.0,
-                                filename: filename_1280,
-                                filesize_bytes: metadata_1280.len()
-                            });
-                        }
-                    }
-                }
-            }
+            let max_1280 = if max_800.as_ref().is_some_and(|asset| asset.edge_size == 800) {
+                let resize_mode_max_1280 = ResizeMode::CoverSquare { edge_size: 1280 };
+                Some(self.compute_cover_asset(build, resize_mode_max_1280))
+            } else {
+                None
+            };
 
             let cover_assets = CoverAssets {
                 marked_stale: match asset_intent {
