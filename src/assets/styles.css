@@ -234,6 +234,7 @@ nav {
 #overlay img {
     max-height: calc(100vh - 4rem);
     max-width: calc(100vw - 4rem);
+    object-fit: scale-down;
 }
 .path {
     color: hsl(var(--text-h), var(--text-s), var(--header-text-l));

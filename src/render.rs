@@ -152,11 +152,20 @@ fn cover_image(
         srcset = thumbnail_img.srcset
     );
 
-    let overlay_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_1280(release_prefix);
+    let cover_ref = image_assets.cover.as_ref().unwrap();
+    let overlay_img = cover_ref.img_attributes_up_to_1280(release_prefix);
+    let largest_edge_size = cover_ref.largest().edge_size;
     let overlay = formatdoc!(
         r##"
             <a id="overlay" href="#">
-                <img {alt} loading="lazy" sizes="calc(100vmin - 4rem)" src="{src}" srcset="{srcset}">
+                <img
+                    {alt}
+                    height="{largest_edge_size}"
+                    loading="lazy"
+                    sizes="calc(100vmin - 4rem)"
+                    src="{src}"
+                    srcset="{srcset}"
+                    width="{largest_edge_size}">
             </a>
         "##,
         src = overlay_img.src,
