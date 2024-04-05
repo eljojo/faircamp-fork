@@ -773,6 +773,10 @@ pub fn apply_options(
             build.theme.relative_waveforms = false;
         }
 
+        if optional_flag_present(section, "disable_waveforms") {
+            build.theme.waveforms = false;
+        }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "link_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
                 Some(degrees) => build.theme.link_h = degrees,
