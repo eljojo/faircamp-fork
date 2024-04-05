@@ -2,7 +2,7 @@
 #[cfg_attr(feature = "libvips", path = "image_processor/libvips.rs")]
 mod implementation;
 
-pub use implementation::ImageProcessor;
+pub use implementation::{ImageInMemory, ImageProcessor};
 
 pub enum ResizeMode {
     /// Resize such that the longer edge of the image does not exceed the maximum edge size.

@@ -13,6 +13,7 @@ use crate::{
     Build,
     Cache,
     CacheOptimization,
+    ImageInMemory,
     ResizeMode,
     SourceFileSignature,
     util
@@ -20,6 +21,14 @@ use crate::{
 
 const BACKGROUND_MAX_EDGE_SIZE: u32 = 1280;
 const FEED_MAX_EDGE_SIZE: u32 = 920;
+
+/// Artist/cover images are resized towards certain max widths, e.g. 320, 480, 640.
+/// The minimum width version (in the example 320) is always computed.
+/// Each other version is only computed if the width of the original image
+/// is MIN_OVERSHOOT times larger than the next smaller max width target.
+/// I.e. a 460 wide image will be resized to 320 and 460 ("towards" 480) pixels,
+/// but a 321 pixels wide image will only be resized to 320 pixels width.
+const MIN_OVERSHOOT: f32 = 1.2;
 
 /// A single, resized version of the artist image.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -258,6 +267,11 @@ impl ImageAssets {
                 assets.unmark_stale();
             }
         } else {
+            info_resizing!("{:?} for usage as an artist image", &self.source_file_signature.path);
+
+            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+            let source_width = image_in_memory.width() as f32;
+
             // Compute fixed sizes.
             // Viewport width < 30rem (480px at 16px font-size) = 100vw/40vw = 2.5
             // Viewport width > 60rem (960px at 16px font-size) = 27rem/12rem = 2.25
@@ -268,26 +282,26 @@ impl ImageAssets {
                 max_width: 320,
                 min_aspect: 2.25
             };
-            let fixed_max_320 = self.compute_artist_asset(build, "fixed", resize_mode_fixed_320);
+            let fixed_max_320 = ImageAssets::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_320);
 
-            let fixed_max_480 = if fixed_max_320.width == 320 {
+            let fixed_max_480 = if source_width > 320.0 * MIN_OVERSHOOT {
                 let resize_mode_fixed_480 = ResizeMode::CoverRectangle {
                     max_aspect: 2.5,
                     max_width: 480,
                     min_aspect: 2.25
                 };
-                Some(self.compute_artist_asset(build, "fixed", resize_mode_fixed_480))
+                Some(ImageAssets::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_480))
             } else {
                 None
             };
 
-            let fixed_max_640 = if fixed_max_480.as_ref().is_some_and(|asset| asset.width == 480) {
+            let fixed_max_640 = if source_width > 480.0 * MIN_OVERSHOOT {
                 let resize_mode_fixed_640 = ResizeMode::CoverRectangle {
                     max_aspect: 2.5,
                     max_width: 640,
                     min_aspect: 2.25
                 };
-                Some(self.compute_artist_asset(build, "fixed", resize_mode_fixed_640))
+                Some(ImageAssets::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_640))
             } else {
                 None
             };
@@ -302,26 +316,26 @@ impl ImageAssets {
                 max_width: 640,
                 min_aspect: 2.5
             };
-            let fluid_max_640 = self.compute_artist_asset(build, "fluid", resize_mode_fluid_640);
+            let fluid_max_640 = ImageAssets::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_640);
 
-            let fluid_max_960 = if fluid_max_640.width == 640 {
+            let fluid_max_960 = if source_width > 640.0 * MIN_OVERSHOOT {
                 let resize_mode_fluid_960 = ResizeMode::CoverRectangle {
                     max_aspect: 5.0,
                     max_width: 960,
                     min_aspect: 2.5
                 };
-                Some(self.compute_artist_asset(build, "fluid", resize_mode_fluid_960))
+                Some(ImageAssets::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_960))
             } else {
                 None
             };
 
-            let fluid_max_1280 = if fluid_max_960.as_ref().is_some_and(|asset| asset.width == 960) {
+            let fluid_max_1280 = if source_width > 960.0 * MIN_OVERSHOOT {
                 let resize_mode_fluid_1280 = ResizeMode::CoverRectangle {
                     max_aspect: 5.0,
                     max_width: 1280,
                     min_aspect: 2.5
                 };
-                Some(self.compute_artist_asset(build, "fluid", resize_mode_fluid_1280))
+                Some(ImageAssets::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_1280))
             } else {
                 None
             };
@@ -355,11 +369,12 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
-            let (filename, _dimensions) = build.image_processor.resize(
-                build,
-                &self.source_file_signature.path,
-                ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE }
-            );
+            info_resizing!("{:?} for usage as a background image", &self.source_file_signature.path);
+
+            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+
+            let resize_mode = ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE };
+            let (filename, _dimensions) = build.image_processor.resize(build, &image_in_memory, resize_mode);
 
             self.background.replace(Asset::new(build, filename, asset_intent));
         }
@@ -368,14 +383,14 @@ impl ImageAssets {
     }
 
     fn compute_artist_asset(
-        &self,
         build: &Build,
         format: &str,
+        image_in_memory: &ImageInMemory,
         resize_mode: ResizeMode
     ) -> ArtistAsset {
         let (filename, dimensions) = build.image_processor.resize(
             build,
-            &self.source_file_signature.path,
+            image_in_memory,
             resize_mode
         );
 
@@ -390,10 +405,14 @@ impl ImageAssets {
         }
     }
 
-    fn compute_cover_asset(&self, build: &Build, resize_mode: ResizeMode) -> CoverAsset {
+    fn compute_cover_asset(
+        build: &Build,
+        image_in_memory: &ImageInMemory,
+        resize_mode: ResizeMode
+    ) -> CoverAsset {
         let (filename, dimensions) = build.image_processor.resize(
             build,
-            &self.source_file_signature.path,
+            image_in_memory,
             resize_mode
         );
 
@@ -416,33 +435,38 @@ impl ImageAssets {
                 assets.unmark_stale();
             }
         } else {
+            info_resizing!("{:?} for usage as a cover image", &self.source_file_signature.path);
+
+            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+            let source_width = image_in_memory.width() as f32;
+
             let resize_mode_max_160 = ResizeMode::CoverSquare { edge_size: 160 };
-            let max_160 = self.compute_cover_asset(build, resize_mode_max_160);
+            let max_160 = ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_160);
 
-            let max_320 = if max_160.edge_size == 160 {
+            let max_320 = if source_width > 160.0 * MIN_OVERSHOOT {
                 let resize_mode_max_320 = ResizeMode::CoverSquare { edge_size: 320 };
-                Some(self.compute_cover_asset(build, resize_mode_max_320))
+                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_320))
             } else {
                 None
             };
 
-            let max_480 = if max_320.as_ref().is_some_and(|asset| asset.edge_size == 320) {
+            let max_480 = if source_width > 320.0 * MIN_OVERSHOOT {
                 let resize_mode_max_480 = ResizeMode::CoverSquare { edge_size: 480 };
-                Some(self.compute_cover_asset(build, resize_mode_max_480))
+                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_480))
             } else {
                 None
             };
 
-            let max_800 = if max_480.as_ref().is_some_and(|asset| asset.edge_size == 480) {
+            let max_800 = if source_width > 480.0 * MIN_OVERSHOOT {
                 let resize_mode_max_800 = ResizeMode::CoverSquare { edge_size: 800 };
-                Some(self.compute_cover_asset(build, resize_mode_max_800))
+                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_800))
             } else {
                 None
             };
 
-            let max_1280 = if max_800.as_ref().is_some_and(|asset| asset.edge_size == 800) {
+            let max_1280 = if source_width > 800.0 * MIN_OVERSHOOT {
                 let resize_mode_max_1280 = ResizeMode::CoverSquare { edge_size: 1280 };
-                Some(self.compute_cover_asset(build, resize_mode_max_1280))
+                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_1280))
             } else {
                 None
             };
@@ -482,9 +506,13 @@ impl ImageAssets {
                 asset.unmark_stale();
             }
         } else {
+            info_resizing!("{:?} for usage as a feed image", &self.source_file_signature.path);
+
+            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+
             let (filename, _dimensions) = build.image_processor.resize(
                 build,
-                &self.source_file_signature.path,
+                &image_in_memory,
                 ResizeMode::ContainInSquare { max_edge_size: FEED_MAX_EDGE_SIZE }
             );
 

@@ -47,7 +47,7 @@ use download_option::DownloadOption;
 use favicon::Favicon;
 use ffmpeg::TagMapping;
 use crate::image::{Image, ImageAssets};
-use image_processor::{ImageProcessor, ResizeMode};
+use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use locale::Locale;
 use markdown::HtmlAndStripped;
 use payment_option::PaymentOption;
