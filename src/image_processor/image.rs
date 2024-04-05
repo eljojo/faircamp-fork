@@ -23,7 +23,17 @@ impl ImageProcessor {
 	}
 
 	pub fn open(&self, build: &Build, path: &Path) -> ImageInMemory {
-		let dynamic_image = image::open(build.catalog_dir.join(path)).unwrap();
+		let unknown_representation = image::open(build.catalog_dir.join(path)).unwrap();
+
+		// After upgrading from image 24.8 to 25.1 a panic was observed when loading a PNG
+		// and saving it to JPEG after resizing, related to the image being in rgba8 (note
+		// the a(lpha) component). There is some possibly related mention of a bugfix* in 25.1
+		// in regards to encoding images containing an alpha channel to JPEG, but otherwise
+		// not really any pointers in the changelog of the relevant versions).
+		// As a fix, for now we just ensure we drop the alpha component right away if it is
+		// present, before doing any further processing.
+		// (* see https://github.com/image-rs/image/blob/main/CHANGES.md#version-0251)
+		let dynamic_image = DynamicImage::ImageRgb8(unknown_representation.into_rgb8());
 
 		ImageInMemory { dynamic_image }
 	}
