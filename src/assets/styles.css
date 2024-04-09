@@ -176,9 +176,9 @@ img {
 }
 .image img,
 .image svg {
+    aspect-ratio: 1;
     height: 100%;
     width: 100%;
-    aspect-ratio: 1;
 }
 .index_split {
     align-items: start;

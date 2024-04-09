@@ -3,6 +3,8 @@ use std::fs;
 
 use crate::{Build, theme::ThemeFont};
 
+const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
+
 /// Might need adjustment at a later point in development, if we don't use
 /// button/input anymore we can drop that again.
 const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
@@ -34,20 +36,20 @@ pub fn generate(build: &Build) {
             
             formatdoc!(r#"
                 @font-face {{
+                    font-display: fallback;
                     font-family: 'Barlow';
                     font-style: normal;
                     font-weight: 400;
-                    font-display: fallback;
                     src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
                 }}
-                {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }}
+                {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow', {FALLBACK_FONT_STACK_SANS}; }}
             "#)
         }
         ThemeFont::SystemMono => {
             format!(r#"{FONT_ELEMENTS_SELECTOR} {{ font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }}"#)
         }
         ThemeFont::SystemSans => {
-            format!(r#"{FONT_ELEMENTS_SELECTOR} {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }}"#)
+            format!(r#"{FONT_ELEMENTS_SELECTOR} {{ font-family: {FALLBACK_FONT_STACK_SANS}; }}"#)
         }
         ThemeFont::System(fonts) => {
             format!("{FONT_ELEMENTS_SELECTOR} {{ font-family: {}; }}", fonts)
