@@ -23,7 +23,6 @@ use crate::{
     DownloadOption,
     HtmlAndStripped,
     Image,
-    manifest::Overrides,
     PaymentOption,
     Permalink,
     render,
@@ -34,6 +33,7 @@ use crate::{
     Track,
     util
 };
+use crate::manifest::{LocalOptions, Overrides};
 
 /// Downloadable zip archives for a release, including cover and tracks
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -117,7 +117,8 @@ pub struct Release {
     /// and/or when the track numbers don't start at 1 and/or don't monotonically
     /// increase in steps of 1 some unexpected or random track ordering and numbering
     /// might happen, but this is somewhat impossible to avoid.
-    pub tracks: Vec<Track>
+    pub tracks: Vec<Track>,
+    pub unlisted: bool
 }
 
 #[derive(Clone, Debug)]
@@ -517,17 +518,16 @@ impl Release {
     pub fn new(
         archive_assets: Rc<RefCell<ArchiveAssets>>,
         cover: Option<Rc<RefCell<Image>>>,
-        date: Option<NaiveDate>,
         extras: Vec<Extra>,
+        local_options: LocalOptions,
         main_artists_to_map: Vec<String>,
         manifest_overrides: &Overrides,
-        permalink_option: Option<Permalink>,
         source_dir: PathBuf,
         support_artists_to_map: Vec<String>,
         title: String,
         tracks: Vec<Track>
     ) -> Release {
-        let permalink = permalink_option.unwrap_or_else(|| Permalink::generate(&title));
+        let permalink = local_options.release_permalink.unwrap_or_else(|| Permalink::generate(&title));
 
         let mut download_option = manifest_overrides.download_option.clone();
 
@@ -541,7 +541,7 @@ impl Release {
             archive_assets,
             asset_basename: None,
             cover,
-            date,
+            date: local_options.release_date,
             download_formats: manifest_overrides.download_formats.clone(),
             download_granularity: manifest_overrides.download_granularity.clone(),
             download_option,
@@ -560,7 +560,8 @@ impl Release {
             text: manifest_overrides.release_text.clone(),
             title,
             track_numbering: manifest_overrides.release_track_numbering.clone(),
-            tracks
+            tracks,
+            unlisted: local_options.unlisted_release
         }
     }
 

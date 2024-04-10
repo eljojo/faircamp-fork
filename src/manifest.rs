@@ -46,7 +46,8 @@ macro_rules! err_line {
 pub struct LocalOptions {
     pub release_date: Option<NaiveDate>,
     pub release_permalink: Option<Permalink>,
-    pub release_title: Option<String>
+    pub release_title: Option<String>,
+    pub unlisted_release: bool
 }
 
 /// Options specified in a manifest that apply to everything in the same
@@ -78,7 +79,8 @@ impl LocalOptions {
         LocalOptions {
             release_date: None,
             release_permalink: None,
-            release_title: None
+            release_title: None,
+            unlisted_release: false
         }
     }
 }
@@ -697,6 +699,10 @@ pub fn apply_options(
                 Some(variant) => overrides.release_track_numbering = variant,
                 None => error!("Ignoring unsupported value '{}' for global 'release.track_numbering' (supported values are 'disabled', 'arabic', 'roman' and 'hexadecimal') in {}:{}", value, path.display(), line)
             }
+        }
+
+        if optional_flag_present(section, "unlisted") {
+            local_options.unlisted_release = true;
         }
     }
 

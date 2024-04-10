@@ -75,3 +75,15 @@ that there are barriers to those without sight, until solved.
 Faircamp does not automatically resolve permalink conflicts because doing so
 might inadvertently break links that people out on the web are already
 using.
+
+## Visibility considerations around unlisted releases
+
+An unlisted release is never visible on the home/index page.
+
+In label mode there are some additional intricacies: An artist that has *only*
+unlisted releases is *not* visible on the home/index page, but in turn, all of
+these unlisted releases *are* visible on the artist page, as the artist page
+itself is implicitly unlisted then. If however, an artist has even just a single
+listed release, it becomes visible on the home/index page, and on the artist page
+itself all unlisted releases are not visible anymore.
+

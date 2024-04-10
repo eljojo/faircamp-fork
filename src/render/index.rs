@@ -1,11 +1,11 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use indoc::formatdoc;
 
-use crate::{
-    Build,
-    Catalog,
-    render::{artist_image, layout, releases, share_link, share_overlay},
-    util::html_escape_outside_attribute
-};
+use crate::{Artist, Build, Catalog, Release};
+use crate::render::{artist_image, layout, releases, share_link, share_overlay};
+use crate::util::html_escape_outside_attribute;
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -36,9 +36,19 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => ""
     };
 
-    // Only populated in label mode, otherwise featured_artists is empty
-    let featured_artists = if !catalog.featured_artists.is_empty() {
-        let artist_links = catalog.featured_artists
+    // catalog.featured_artists is only populated in label mode, otherwise empty
+    let featured_artists_with_listed_releases: Vec<Rc<RefCell<Artist>>> = catalog.featured_artists
+        .iter()
+        .filter_map(|artist|
+            match artist.borrow().releases.iter().any(|release| !release.borrow().unlisted) {
+                true => Some(artist.clone()),
+                false => None,
+            }
+        )
+        .collect();
+
+    let featured_artists = if !featured_artists_with_listed_releases.is_empty() {
+        let artist_links = featured_artists_with_listed_releases
             .iter()
             .map(|artist| {
                 let artist_ref = artist.borrow();
@@ -93,12 +103,22 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         </div>
     "##);
 
+    let listed_releases: Vec<Rc<RefCell<Release>>> = catalog.releases
+        .iter()
+        .filter_map(|release| {
+            match release.borrow().unlisted {
+                true => None,
+                false => Some(release.clone())
+            }
+        })
+        .collect();
+
     let releases_rendered = releases(
         build,
         index_suffix,
         root_prefix,
         catalog,
-        &catalog.releases
+        &listed_releases
     );
 
     // TODO: catalog_text criterium is a bit random because the character
@@ -106,7 +126,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     //       criterium will always be a bit arbitrary though probably.
     let index_vcentered = if
         catalog.home_image.is_none() &&
-        catalog.releases.len() <= 2 &&
+        listed_releases.len() <= 2 &&
         catalog_text.len() <= 1024 {
         "index_vcentered"
     } else {

@@ -80,3 +80,22 @@ as on artist pages (label mode) releases that have the most recent date are
 displayed on top, followed by older ones and lastly followed by those that
 have no date specified at all (those will follow no intentional order).
 Dates must be supplied strictly in the format `YYYY-MM-DD`.
+
+## Unlisted releases
+
+By including an `unlisted` flag in the release manifest/section you can
+configure a release to be generally present in the built site, but not publicly
+referenced anywhere. In other words, visitors will only be able to open an
+unlisted release page if they know the permalink. This is potentially
+interesting to do a pre-release or such for friends or collaborators.
+
+```eno
+# release
+
+unlisted
+```
+
+Note that in label mode, artists that have *only* unlisted releases will also
+be unlisted, that is, they will not appear on the home/index page. Their
+artist page however will still be generated, it too can be visited as an
+unlisted page then by those who know the permalink.

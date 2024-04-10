@@ -1,12 +1,11 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use indoc::formatdoc;
 
-use crate::{
-    Artist,
-    Build,
-    Catalog,
-    render::{artist_image, layout, releases, share_link, share_overlay},
-    util::html_escape_outside_attribute
-};
+use crate::{Artist, Build, Catalog, Release};
+use crate::render::{artist_image, layout, releases, share_link, share_overlay};
+use crate::util::html_escape_outside_attribute;
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -44,12 +43,34 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         </div>
     "##);
 
+    // If all releases are unlisted, all releases are visible on the artist page,
+    // because the artist page itself is then unlisted itself. If however a single
+    // release is listed, all unlisted releases become invisible on the artist page.
+    let visible_releases: Vec<Rc<RefCell<Release>>> = if artist.releases
+        .iter()
+        .all(|release| release.borrow().unlisted) {
+        artist.releases
+            .iter()
+            .cloned()
+            .collect()
+    } else {
+        artist.releases
+            .iter()
+            .filter_map(|release| {
+                match release.borrow().unlisted {
+                    true => None,
+                    false => Some(release.clone())
+                }
+            })
+            .collect()
+    };
+
     let releases_rendered = releases(
         build,
         index_suffix,
         root_prefix,
         catalog,
-        &artist.releases
+        &visible_releases
     );
 
     // TODO: See note in index.rs and sync the solution between there and here

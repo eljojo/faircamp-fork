@@ -13,6 +13,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
     if let Some(base_url) = &build.base_url { 
         let channel_items = catalog.releases
             .iter()
+            .filter(|release| !release.borrow().unlisted)
             .map(|release| {
                 let release_ref = release.borrow();
 

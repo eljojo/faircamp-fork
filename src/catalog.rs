@@ -640,11 +640,10 @@ impl Catalog {
             let release = Release::new(
                 archive_assets,
                 cover,
-                local_options.release_date,
                 extras,
+                local_options,
                 main_artists_to_map,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
-                local_options.release_permalink,
                 release_dir_relative_to_catalog.to_path_buf(),
                 support_artists_to_map,
                 title.to_string(),
