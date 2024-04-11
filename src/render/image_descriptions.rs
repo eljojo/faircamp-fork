@@ -1,6 +1,7 @@
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, render::layout};
+use crate::{Build, Catalog, CrawlerMeta};
+use crate::render::layout;
 
 pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     let root_prefix = "../";
@@ -27,6 +28,7 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
         build,
         catalog,
         t_image_descriptions,
-        &[]
+        &[],
+        CrawlerMeta::NoIndexNoFollow
     )
 }

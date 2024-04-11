@@ -3,6 +3,7 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
+    CrawlerMeta,
     DownloadOption,
     Release,
     Theme,
@@ -26,6 +27,8 @@ pub mod checkout;
 pub mod download;
 pub mod embed;
 
+/// The actual release page, featuring the track listing and streaming player, links
+/// to downloads, embeds, description, etc.
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
@@ -223,7 +226,17 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         format!(r#"<a href=".{index_suffix}">{release_title_escaped}</a>"#)
     ];
 
-    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
+    let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
+
+    layout(
+        root_prefix,
+        &body,
+        build,
+        catalog,
+        &release.title,
+        breadcrumbs,
+        crawler_meta
+    )
 }
 
 pub fn waveform(theme: &Theme, track: &Track) -> String {

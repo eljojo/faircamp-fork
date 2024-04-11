@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use indoc::formatdoc;
 
-use crate::{Artist, Build, Catalog, Release};
+use crate::{Build, Catalog, CrawlerMeta, Release};
 use crate::render::{artist_image, layout, releases, share_link, share_overlay};
 use crate::util::html_escape_outside_attribute;
 
@@ -17,7 +17,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         true => {
             let t_feed = &build.locale.translations.feed;
             let icon_feed = include_str!("../icons/feed.svg");
-            // TODO: Reuse for alt text or remove
+            // TODO: Interpolate into a <title>{t_rss_feed}</title> tag in the feed.svg for alt text or remove
             // let t_rss_feed = &build.locale.translations.feed;
             format!(r#"
                 <a href="{root_prefix}feed.rss">
@@ -37,19 +37,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     // catalog.featured_artists is only populated in label mode, otherwise empty
-    let featured_artists_with_listed_releases: Vec<Rc<RefCell<Artist>>> = catalog.featured_artists
-        .iter()
-        .filter_map(|artist|
-            match artist.borrow().releases.iter().any(|release| !release.borrow().unlisted) {
-                true => Some(artist.clone()),
-                false => None,
-            }
-        )
-        .collect();
-
-    let featured_artists = if !featured_artists_with_listed_releases.is_empty() {
-        let artist_links = featured_artists_with_listed_releases
+    let featured_artists = if catalog.featured_artists.iter().any(|artist| !artist.borrow().unlisted) {
+        let artist_links = catalog.featured_artists
             .iter()
+            .filter(|artist| !artist.borrow().unlisted)
             .map(|artist| {
                 let artist_ref = artist.borrow();
                 let name = &artist_ref.name;
@@ -150,5 +141,13 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         {share_overlay_rendered}
     "##);
 
-    layout(root_prefix, &body, build, catalog, &catalog_title, &[])
+    layout(
+        root_prefix,
+        &body,
+        build,
+        catalog,
+        &catalog_title,
+        &[],
+        CrawlerMeta::None
+    )
 }

@@ -53,6 +53,7 @@ use markdown::HtmlAndStripped;
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
 use release::{ArchiveAssets, DownloadGranularity, Extra, Release, TrackNumbering};
+use render::CrawlerMeta;
 use theme::Theme;
 use track::{Track, TrackAssets};
 

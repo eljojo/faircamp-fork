@@ -10,7 +10,8 @@ pub struct Artist {
     pub name: String,
     pub permalink: Permalink,
     pub releases: Vec<Rc<RefCell<Release>>>,
-    pub text: Option<HtmlAndStripped>
+    pub text: Option<HtmlAndStripped>,
+    pub unlisted: bool
 }
 
 impl Artist {
@@ -23,7 +24,8 @@ impl Artist {
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
-            text: None
+            text: None,
+            unlisted: false
         }
     }
 }

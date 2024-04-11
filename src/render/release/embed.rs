@@ -1,12 +1,7 @@
 use indoc::formatdoc;
 use url::Url;
 
-use crate::{
-    Build,
-    Catalog,
-    Release,
-    Track
-};
+use crate::{Build, Catalog, CrawlerMeta, Release, Track};
 use crate::render::{
     compact_release_identifier,
     copy_button,
@@ -160,7 +155,15 @@ pub fn embed_choices_html(
         format!(r#"<a href=".{index_suffix}">{embed_icon} {t_embed}</a>"#)
     ];
 
-    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
+    layout(
+        root_prefix,
+        &body,
+        build,
+        catalog,
+        &release.title,
+        breadcrumbs,
+        CrawlerMeta::NoIndexNoFollow
+    )
 }
 
 pub fn embed_release_html(

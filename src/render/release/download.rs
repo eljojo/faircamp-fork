@@ -1,14 +1,9 @@
 use indoc::formatdoc;
 
-use crate::{
-    audio_format::prioritized_for_download,
-    Build,
-    Catalog,
-    DownloadGranularity,
-    Release,
-    render::{compact_release_identifier, layout},
-    util::{format_bytes, html_escape_outside_attribute}
-};
+use crate::{Build, Catalog, CrawlerMeta, DownloadGranularity, Release};
+use crate::audio_format::prioritized_for_download;
+use crate::render::{compact_release_identifier, layout};
+use crate::util::{format_bytes, html_escape_outside_attribute};
 
 fn download_entry(href: String, label: &str, size: u64) -> String {
     formatdoc!(
@@ -25,6 +20,8 @@ fn download_entry(href: String, label: &str, size: u64) -> String {
     )
 }
 
+/// The download page itself, providing direct links to the (zip) archive
+/// files and/or individual tracks download links.
 pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
@@ -248,5 +245,13 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         format!(r#"<a href=".{index_suffix}">{download_icon} {t_downloads}</a>"#)
     ];
 
-    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
+    layout(
+        root_prefix,
+        &body,
+        build,
+        catalog,
+        &release.title,
+        breadcrumbs,
+        CrawlerMeta::NoIndexNoFollow
+    )
 }

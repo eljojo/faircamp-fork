@@ -1,15 +1,17 @@
-use indoc::formatdoc;
 use std::ops::Range;
+
+use indoc::formatdoc;
 
 use crate::{
     Build,
     Catalog,
+    CrawlerMeta,
     DownloadOption,
     PaymentOption,
-    Release,
-    render::{compact_release_identifier, layout},
-    util::html_escape_outside_attribute
+    Release
 };
+use crate::render::{compact_release_identifier, layout};
+use crate::util::html_escape_outside_attribute;
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
@@ -281,5 +283,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         format!(r#"<a href=".{index_suffix}">{icon} {breadcrumb_heading}</a>"#)
     ];
 
-    layout(root_prefix, &body, build, catalog, &release.title, breadcrumbs)
+    layout(
+        root_prefix,
+        &body,
+        build,
+        catalog,
+        &release.title,
+        breadcrumbs,
+        CrawlerMeta::NoIndexNoFollow
+    )
 }

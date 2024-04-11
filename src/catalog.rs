@@ -299,6 +299,8 @@ impl Catalog {
         if !catalog.validate_permalinks() { return Err(()); }
 
         catalog.compute_asset_basenames();
+
+        catalog.unlist_artists();
         
         Ok(catalog)
     }
@@ -681,6 +683,8 @@ impl Catalog {
     }
 
     // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?
+    /// Uses a heuristic to determine the main artist of the faircamp site (used only
+    /// when the site is in artist mode)
     fn set_artist(&mut self) {
         let mut releases_and_tracks_per_artist = self.artists
             .iter()
@@ -736,13 +740,24 @@ impl Catalog {
         String::from("Faircamp")
     }
 
+    /// Artists are implicitly unlisted when they have releases and all of these
+    /// releases are unlisted. This is determined and set here.
+    fn unlist_artists(&self) {
+        for artist in &self.artists {
+            let mut artist_mut = artist.borrow_mut();
+            artist_mut.unlisted =
+                !artist_mut.releases.is_empty() &&
+                artist_mut.releases.iter().all(|release| release.borrow().unlisted);
+        }
+    }
+
     /// Checks the (either auto-generated or user-assigned) permalinks of all
     /// artists and releases in the catalog, printing errors when any two
     /// conflict with each other. Also prints warnings if there are
     /// auto-generated permalinks, as these are not truly permanent and
     /// should be replaced with manually specified ones. Returns whether any
     /// conflicts were found.
-    fn validate_permalinks(&mut self) -> bool {
+    fn validate_permalinks(&self) -> bool {
         let mut generated_permalinks = (None, None, None, 0);
         let mut used_permalinks: HashMap<String, PermalinkUsage> = HashMap::new();
 

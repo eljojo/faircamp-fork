@@ -18,6 +18,20 @@ pub mod image_descriptions;
 pub mod index;
 pub mod release;
 
+pub enum CrawlerMeta {
+    None,
+    NoIndexNoFollow,
+}
+
+impl CrawlerMeta {
+    pub fn tag(&self) -> &str {
+        match self {
+            CrawlerMeta::None => "",
+            CrawlerMeta::NoIndexNoFollow => r#"<meta name="robots" content="noindex, nofollow">"#
+        }
+    }
+}
+
 fn play_icon(root_prefix: &str) -> String {
     format!(r#"<img alt="Play" src="{root_prefix}play.svg" style="max-width: 1rem;">"#)
 }
@@ -269,13 +283,16 @@ fn cover_image_tiny(
     "#)
 }
 
+/// For pages that should not be indexed by crawlers (search engines etc.),
+/// pass CrawlerMeta::NoIndexNoFollow, this adds a noindex and nofollow meta tag for crawlers.
 fn layout(
     root_prefix: &str,
     body: &str,
     build: &Build,
     catalog: &Catalog,
     title: &str,
-    breadcrumbs: &[String]
+    breadcrumbs: &[String],
+    crawler_meta: CrawlerMeta
 ) -> String {
     let feed_meta_link = match &build.base_url.is_some() {
         true => {
@@ -323,6 +340,7 @@ fn layout(
         body = body,
         breadcrumbs = breadcrumbs,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
+        crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
         favicon_links = catalog.favicon.header_tags(root_prefix),
         feed_meta_link = feed_meta_link,
