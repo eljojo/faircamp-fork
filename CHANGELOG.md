@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.14.0
+
+- Disallow crawling/indexing on unlisted and auxiliary pages (91a64e6)
+- Introduce unlisted releases (683b11d)
+- Avoid layout shifts through image and font changes during loading (James Fenn, 29c521a, e91609d)
+- Constrain fullscreen cover image display size to intrinsic image dimensions (a2fc546)
+- Resolve panic in image crate 24.9+ when attempting to save rgba8 to JPEG (d532111)
+- Optimize image resizing (re-use decoded images, determine resize by overshoot) (c347d6c)
+- Introduce disable_waveforms option (4743423, 9f07fd1)
+- Fix out of bounds sampling error in client-side waveform computation (6bc77ad)
+- Determine text direction automatically, disable writing_direction option (3ba13e0)
+- Update all depdencies to latest (4b861a9, 0b85f94)
+- Interpolate translated permalinks, fix unsafe permalinks (1e5710c)
+- Add translations for polish (Damian Szetela, 4a7a928)
+- Alphabetically sort featured artists on homepage in label mode (d9821df)
+
 ## 0.13.0
 
 - Introduce support for alac as input format (234b345)
