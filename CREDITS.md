@@ -11,6 +11,8 @@ Thanks everyone for your support.
 [Alexander Cobleigh](https://cblgh.org)<br>
 [AxWax](https://axwax.eu/)<br>
 [controlfreak](https://control.org/)<br>
+[DaforLynx](https://dafor.link/)<br>
+Damian Szetela<br>
 [Dave Lane](https://davelane.nz)<br>
 [Dave Riedstra](https://daveriedstra.com/)<br>
 [Deborah Pickett](https://icemoonprison.com)<br>
@@ -36,12 +38,14 @@ Thanks everyone for your support.
 [ncc1988](https://codeberg.org/ncc1988)<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [n3wjack](https://n3wjack.net/)<br>
+[Niklas Reppel](https://parkellipsen.de)<br>
 [nOOq](https://codeberg.org/n00q)<br>
 [Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
 [rakoo](https://codeberg.org/rakoo)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Samæ](https://samae.demer.se/)<br>
+[sknob](https://sknob.fr/)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
 [Venya](https://venya.soundslike.pro/)<br>
