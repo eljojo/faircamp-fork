@@ -36,10 +36,13 @@ function copyToClipboard(copyLink) {
 function formatTime(seconds) {
     if (seconds < 60) {
         return `0:${Math.floor(seconds).toString().padStart(2, '0')}`;
-    } else if (seconds < 3600) {
-        return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
     } else {
-        return `${Math.floor(seconds % 3600)}:${Math.floor((seconds % 3600) / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+        const secondsFormatted = Math.floor(seconds % 60).toString().padStart(2, '0');
+        if (seconds < 3600) {
+            return `${Math.floor(seconds / 60)}:${secondsFormatted}`;
+        } else {
+            return `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60).toString().padStart(2, '0')}:${secondsFormatted}`;
+        }
     }
 }
 
