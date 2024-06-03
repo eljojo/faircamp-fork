@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023 Deborah Pickett
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use chrono::{DateTime, NaiveDate, Utc};
 use indoc::formatdoc;
 use sanitize_filename::sanitize;

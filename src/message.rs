@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2021-2022 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 macro_rules! color {
     (blue) => ("\x1b[34m");
     (cyan) => ("\x1b[36m");

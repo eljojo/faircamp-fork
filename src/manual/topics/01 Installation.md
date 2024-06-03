@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Installation
 
 On debian-based Linux faircamp can already be installed via packages
@@ -13,7 +18,7 @@ provided.
 
 Install [faircamp-git](https://aur.archlinux.org/packages/faircamp-git) from the [AUR](https://aur.archlinux.org/)
 
-**Debian 12, Ubuntu 23.04 - 23.10**
+**Debian 12, Ubuntu 23.04 - 24.04**
 
 Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_0.14.0-1+deb12_amd64.deb)
 

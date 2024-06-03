@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2024 Damian Szetela
+// SPDX-FileCopyrightText: 2023 Harald Eilertsen
+// SPDX-FileCopyrightText: 2023 Deborah Pickett
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 mod de;
 mod en;
 mod es;

@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Faircamp Manual
 
 The manual is organized into *topics*, *examples* and *reference* pages.

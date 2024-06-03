@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use ::image::{DynamicImage, ImageFormat};
 use ::image::imageops::FilterType;
 use std::fs::File;

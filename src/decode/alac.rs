@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use alac::Reader;
 use mp4parse::MetadataBox;
 use std::fs::File;

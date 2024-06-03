@@ -1,3 +1,9 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023 Deborah Pickett
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Download
 
 By default your visitors can only stream your releases. There are three

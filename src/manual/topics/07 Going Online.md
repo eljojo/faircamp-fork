@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Going Online
 
 Faircamp provides you with a complete website - technically this takes the

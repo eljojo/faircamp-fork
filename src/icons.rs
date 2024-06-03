@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 //! The svg files in `icons/` are actually/also format strings and directly imported
 //! here to generate the icons. Look out for fill="{text_color}" and such in the
 //! svg files when working on existing/new icons.

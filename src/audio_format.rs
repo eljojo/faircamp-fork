@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2023 Deborah Pickett
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use crate::Build;
 
 /// Most generic/low-level audio format representation we use,

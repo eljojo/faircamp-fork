@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2022-2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Architectural Notes
 
 This file documents design decisions/thoughts that are not necessarily trivial

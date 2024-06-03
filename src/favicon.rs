@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use std::fs;
 use std::path::PathBuf;
 

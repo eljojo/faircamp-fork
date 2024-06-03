@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Electric Curtain
 
 This example catalog demonstrates various concepts using a fictional Darksynth

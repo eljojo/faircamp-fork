@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use base64::{
     engine::general_purpose::{GeneralPurpose, URL_SAFE_NO_PAD},
     Engine

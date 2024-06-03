@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Getting Started
 
 First let's quickly look at the input faircamp needs:

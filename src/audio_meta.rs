@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023 Deborah Pickett
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /// Vorbis comment reference:
 /// - https://www.xiph.org/vorbis/doc/v-comment.html
 /// - https://datatracker.ietf.org/doc/html/draft-ietf-cellar-flac-04#name-standard-field-names

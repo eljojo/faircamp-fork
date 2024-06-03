@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use pulldown_cmark::{Event, html, Parser, Tag, TagEnd};
 
 /// We render some incoming markdown (such as artist/catalog text)

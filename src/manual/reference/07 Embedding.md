@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Embedding
 
 > Heads up: Embeds are still work in progress - for the moment they will look weird or not work at all.

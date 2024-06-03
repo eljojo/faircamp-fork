@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Theme
 
 With this you can adjust the visual appearance of your faircamp site.

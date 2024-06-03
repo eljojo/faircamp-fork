@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Damian Szetela
+// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use super::Translations;
 
 pub fn translations() -> Translations {

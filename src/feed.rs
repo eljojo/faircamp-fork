@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /// RSS 2.0 Specification for reference:
 /// https://www.rssboard.org/rss-specification
 

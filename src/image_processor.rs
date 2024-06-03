@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #[cfg_attr(feature = "image", path = "image_processor/image.rs")]
 #[cfg_attr(feature = "libvips", path = "image_processor/libvips.rs")]
 mod implementation;

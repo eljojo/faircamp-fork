@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Manifests
 
 To specify metadata and settings create files with the extension `.eno` and any

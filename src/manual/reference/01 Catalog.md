@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Catalog
 
 Site-wide metadata and settings, such as the title and site URL.

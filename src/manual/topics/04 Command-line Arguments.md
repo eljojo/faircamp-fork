@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Command-line arguments
 
 Consult `faircamp --help` for the most authoritative and up-to-date information on available arguments.

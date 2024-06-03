@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use lewton::header::CommentHeader;
 use lewton::inside_ogg::OggStreamReader;
 use std::fs::File;

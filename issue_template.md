@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Issue Checklist
 
 1. If one of the following applies, please go right ahead and clear this box to post your issue:

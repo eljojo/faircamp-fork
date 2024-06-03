@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Say the Magic Word
 
 This example catalog demonstrates further concepts using the fictional

@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2021-2023 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Faircamp
 
 A static site generator for audio producers
@@ -80,10 +85,12 @@ See faircamp's comprehensive [Manual](https://simonrepp.com/faircamp/manual).
 
 See the [Installation](https://simonrepp.com/faircamp/manual/installation.html) page in the [Manual](https://simonrepp.com/faircamp/manual). If the online version of the manual should be inaccessible, the same information is also available in the repository itself, in [01 Installation.md](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/manual/topics/01%20Installation.md).
 
-## License
+## Licensing
 
 Faircamp is licensed under the [AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later.html).
 
-Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fonts/barlow/) font, licensed under the [OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
+Documentation is licensed under the [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 
-The faircamp manual re-distributes the [Fira Mono](https://github.com/mozilla/Fira) and [Titillium Web](http://nta.accademiadiurbino.it/titillium/) fonts, licensed under the [OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
+Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fonts/barlow/) font, licensed under the [OFL-1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
+
+The faircamp manual re-distributes the [Fira Mono](https://github.com/mozilla/Fira) and [Titillium Web](http://nta.accademiadiurbino.it/titillium/) fonts, licensed under the [OFL-1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).

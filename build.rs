@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use enolib::HtmlPrinter;
 use indoc::formatdoc;
 use pulldown_cmark::{CodeBlockKind, Event, html, Parser, Tag, TagEnd};

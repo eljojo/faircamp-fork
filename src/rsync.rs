@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2021 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use std::path::Path;
 use std::process::{Command, Output};
 

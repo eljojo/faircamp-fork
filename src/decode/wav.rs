@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use hound::{SampleFormat, WavReader};
 use std::path::Path;
 
