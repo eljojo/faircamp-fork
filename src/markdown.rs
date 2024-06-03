@@ -122,7 +122,9 @@ impl<'a> StrippedRenderer<'a> {
                 Event::SoftBreak => self.ensure_linebreak(),
                 Event::Start(tag) => self.render_tag_begin(tag),
                 // All these below are not enabled/supported in faircamp
+                Event::DisplayMath(_) |
                 Event::FootnoteReference(_) |
+                Event::InlineMath(_) |
                 Event::TaskListMarker(_) => ()
             }
         }
@@ -149,7 +151,7 @@ impl<'a> StrippedRenderer<'a> {
 
     fn render_tag_begin(&mut self, tag: Tag<'a>) {
         match tag {
-            Tag::BlockQuote |
+            Tag::BlockQuote(_) |
             Tag::CodeBlock(_) |
             Tag::Heading { .. } |
             Tag::Paragraph => self.ensure_gap(),

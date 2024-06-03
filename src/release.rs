@@ -10,7 +10,8 @@ use std::{
     rc::Rc
 };
 use std::f32::consts::TAU;
-use zip::{CompressionMethod, ZipWriter, write::FileOptions};
+use zip::{CompressionMethod, ZipWriter};
+use zip::write::SimpleFileOptions;
 
 use crate::{
     Artist,
@@ -726,7 +727,7 @@ impl Release {
                         build.cache_dir.join(&cached_archive_filename)
                     ).unwrap();
                     let mut zip_writer = ZipWriter::new(zip_file);
-                    let options = FileOptions::default()
+                    let options = SimpleFileOptions::default()
                         .compression_method(CompressionMethod::Deflated)
                         .unix_permissions(0o755);
 
@@ -742,7 +743,7 @@ impl Release {
                             extension = download_format.as_audio_format().extension()
                         );
 
-                        zip_writer.start_file(&filename, options).unwrap();
+                        zip_writer.start_file(&*filename, options).unwrap();
 
                         let mut zip_inner_file = File::open(
                             &build.cache_dir.join(&download_track_asset.filename)
@@ -774,7 +775,7 @@ impl Release {
                     }
 
                     for extra in &self.extras {
-                        zip_writer.start_file(&extra.sanitized_filename, options).unwrap();
+                        zip_writer.start_file(&*extra.sanitized_filename, options).unwrap();
 
                         let mut zip_inner_file = File::open(
                             &build.catalog_dir.join(&extra.source_file_signature.path)
