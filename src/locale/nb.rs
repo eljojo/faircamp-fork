@@ -65,6 +65,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         share: String::from("Del"),
         share_not_available_navigator_clipboard: String::from("Ikke tilgjengelig i din nettleser (navigator.clipboard er ikke støttet)"),
         share_not_available_requires_javascript: String::from("Not available in your browser (requires JavaScript)"),
+        unlisted: untranslated!(unlisted),
         unlock: String::from("Lås opp"),
         unlock_downloads: String::from("Lås opp nedlastinger"),
         unlock_permalink: String::from("las-opp"),

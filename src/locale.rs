@@ -4,6 +4,22 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+/// In debug builds all untranslated strings return "UNTRANSLATED"
+#[cfg(debug_assertions)]
+macro_rules! untranslated {
+    ($_key:ident) => {
+        String::from("UNTRANSLATED")
+    };
+}
+
+// In release builds all untranslated strings return an english fallback translation
+#[cfg(not(debug_assertions))]
+macro_rules! untranslated {
+    ($key:ident) => {
+        super::en::translations().$key
+    };
+}
+
 mod de;
 mod en;
 mod es;
@@ -81,6 +97,7 @@ pub struct Translations {
     pub share: String,
     pub share_not_available_navigator_clipboard: String,
     pub share_not_available_requires_javascript: String,
+    pub unlisted: String,
     pub unlock: String,
     pub unlock_downloads: String,
     /// Must be unique and only contain url-safe characters
@@ -218,6 +235,7 @@ impl Translations {
             share: String::from("share"),
             share_not_available_navigator_clipboard: String::from("share_not_available_navigator_clipboard"),
             share_not_available_requires_javascript: String::from("share_not_available_requires_javascript"),
+            unlisted: String::from("unlisted"),
             unlock: String::from("unlock"),
             unlock_downloads: String::from("unlock_downloads"),
             unlock_permalink: String::from("unlock_permalink"),

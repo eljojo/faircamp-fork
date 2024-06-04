@@ -65,6 +65,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
         share: String::from("Teilen"),
         share_not_available_navigator_clipboard: String::from("In deinem Browser nicht verfügbar (navigator.clipboard wird nicht unterstützt)"),
         share_not_available_requires_javascript: String::from("In deinem Browser nicht verfügbar (benötigt JavaScript)"),
+        unlisted: String::from("Ungelistet"),
         unlock: String::from("Freischalten"),
         unlock_downloads: String::from("Downloads freischalten"),
         unlock_permalink: String::from("freischalten"),

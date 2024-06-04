@@ -65,6 +65,7 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
         share: String::from("Deelen"),
         share_not_available_navigator_clipboard: String::from("Niet beschikbaar in je browser (navigator.clipboard is niet ondersteund)"),
         share_not_available_requires_javascript: String::from("Niet beschikbaar in je browser (vereist JavaScript)"),
+        unlisted: untranslated!(unlisted),
         unlock: String::from("Ontsluiten"),
         unlock_downloads: String::from("Downloads ontsluiten"),
         unlock_permalink: String::from("ontsluiten"),

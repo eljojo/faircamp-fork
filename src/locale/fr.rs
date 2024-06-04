@@ -66,6 +66,7 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
         share: String::from("Partager"),
         share_not_available_navigator_clipboard: String::from("Non disponible dans ton navigateur (navigator.clipboard n'est pas supportée)"),
         share_not_available_requires_javascript: String::from("Non disponible dans ton navigateur (nécessite JavaScript)"),
+        unlisted: untranslated!(unlisted),
         unlock: String::from("Déverouiller"),
         unlock_downloads: String::from("Déverouiller les téléchargements"),
         unlock_permalink: String::from("deverouiller"),

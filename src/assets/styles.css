@@ -107,7 +107,7 @@ body {
 .download_options div { margin-bottom: .5rem; }
 .download_underline {
     border-bottom: 1px solid var(--color-faint);
-    bottom: 0.1rem;
+    bottom: .1rem;
     flex-grow: 1;
     margin: 0 .2rem;
     position: relative;
@@ -120,7 +120,7 @@ body {
 }
 .embed_code { white-space: pre-wrap; }
 .embed_code_wrapper {
-    background-color: hsla(0, 0%, var(--text-l), 0.02);
+    background-color: hsla(0, 0%, var(--text-l), .02);
     box-shadow:
         inset 0 .5rem .5rem -.5rem hsla(0, 0%, 0%, .1),
         inset 0 -.5rem .5rem -.5rem hsla(0, 0%, 0%, .1);
@@ -293,7 +293,7 @@ pre { margin: 0; }
     align-items: center;
     background-color: var(--color-background);
     border-radius: .4rem;
-    box-shadow: 0 0 1rem hsla(0, 0%, 0%, 0.2);
+    box-shadow: 0 0 1rem hsla(0, 0%, 0%, .2);
     column-gap: .8rem;
     display: flex;
     margin: 4rem;
@@ -382,7 +382,7 @@ input[type="text"].disabled,
 }
 .unlock_scripted { display: none; }
 #unlock {
-    column-gap: 0.5rem;
+    column-gap: .5rem;
     display: flex;
     margin-bottom: 2rem;
 }
@@ -415,6 +415,16 @@ input[type="text"].disabled,
     stroke-width: .025px;
 }
 .waveform path.progress { stroke-width: .06px; }
+.unlisted {
+    border-radius: .2em;
+    border: 1px solid var(--color-muted);
+    color: var(--color-text-dimmed);
+    font-size: .7em;
+    margin-left: .1em;
+    padding: .2em;
+    position: relative;
+    top: -.1em;
+}
 /* In js-enabled browsers we put .js_enabled on the body on each page load */
 .js_enabled audio { display: none; }
 .js_enabled .payment,
@@ -451,7 +461,7 @@ input[type="text"].disabled,
     .release:nth-child(3n+1) { grid-column-start: 1 }
     .release:nth-child(3n+2) { grid-column-start: 2 }
     .release:nth-child(3n+3) { grid-column-start: 3 }
-    .releases { max-width: 33rem; grid-auto-columns: 0.33333fr; }
+    .releases { max-width: 33rem; grid-auto-columns: .33333fr; }
     .track.active .track_controls.inner,
     .track:hover .track_controls.inner { display: none; }
     .track_number.inner { display: none; }

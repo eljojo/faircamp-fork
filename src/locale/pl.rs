@@ -65,6 +65,7 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
         share: String::from("Udostępnij"),
         share_not_available_navigator_clipboard: String::from("Nie dostępne w twojej przeglądarce (navigator.clipboard is not supported)"),
         share_not_available_requires_javascript: String::from("Nie dostępne w twojej przeglądarce (requires JavaScript)"),
+        unlisted: untranslated!(unlisted),
         unlock: String::from("Odblokuj"),
         unlock_downloads: String::from("Odblokuj pobieranie"),
         unlock_permalink: String::from("odblokuj"),

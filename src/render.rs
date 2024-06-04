@@ -386,41 +386,48 @@ fn list_artists(
             let artist_ref = artist.borrow();
             let name_escaped = html_escape_outside_attribute(&artist_ref.name);
 
-            if catalog.label_mode {
+            if artist_ref.unlisted {
+                name_escaped
+            } else if catalog.label_mode {
                 let permalink = &artist_ref.permalink.slug;
-                return format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
-            }
-
-            if let Some(catalog_artist) = &catalog.artist {
+                format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
+            } else if let Some(catalog_artist) = &catalog.artist {
                 if Rc::ptr_eq(artist, catalog_artist) {
-                    return format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#);
+                    format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#)
+                } else {
+                    name_escaped
                 }
+            } else {
+                name_escaped
             }
-
-            name_escaped
         })
         .collect::<Vec<String>>()
         .join(", ");
 
     if catalog.feature_support_artists && !release.support_artists.is_empty() {
         let support_artists = release.support_artists
-                .iter()
-                .map(|artist| {
-                    let artist_ref = artist.borrow();
-                    let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+            .iter()
+            .map(|artist| {
+                let artist_ref = artist.borrow();
+                let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+
+                if artist_ref.unlisted {
+                    name_escaped
+                } else {
                     let permalink = &artist_ref.permalink.slug;
                     format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
-                })
-                .collect::<Vec<String>>()
-                .join(", ");
+                }
+            })
+            .collect::<Vec<String>>()
+            .join(", ");
 
         format!("{main_artists}, {support_artists}")
     } else if catalog.show_support_artists && !release.support_artists.is_empty() {
         let support_artists = release.support_artists
-                .iter()
-                .map(|artist| html_escape_outside_attribute(&artist.borrow().name))
-                .collect::<Vec<String>>()
-                .join(", ");
+            .iter()
+            .map(|artist| html_escape_outside_attribute(&artist.borrow().name))
+            .collect::<Vec<String>>()
+            .join(", ");
 
         format!("{main_artists}, {support_artists}")
     } else {
@@ -465,7 +472,7 @@ fn releases(
                 &release_ref,
                 &href
             );
-            let release_title = html_escape_outside_attribute(&release_ref.title);
+            let release_title_escaped = html_escape_outside_attribute(&release_ref.title);
 
             formatdoc!(r#"
                 <div class="release">
@@ -474,7 +481,7 @@ fn releases(
                     </div>
                     <div>
                         <a href="{href}" style="color: var(--color-text); font-size: var(--subtly-larger);">
-                            {release_title}
+                            {release_title_escaped}
                         </a>
                         {artists}
                     </div>
@@ -522,6 +529,11 @@ pub fn share_overlay(build: &Build, url: &str) -> String {
             </div>
         </div>
     "##)
+}
+
+pub fn unlisted_badge(build: &Build) -> String {
+    let t_unlisted = &build.locale.translations.unlisted;
+    format!(r#"<span class="unlisted">{t_unlisted}</span>"#)
 }
 
 fn wrap_undescribed_image(

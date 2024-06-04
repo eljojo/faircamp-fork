@@ -83,12 +83,15 @@ using.
 
 ## Visibility considerations around unlisted releases
 
-An unlisted release is never visible on the home/index page.
+- Unlisted releases are not listed anywhere, that means neither on the
+  home/index/releases page, nor on any artist's page
+- Artists that have only unlisted releases themselves become implicitly
+  unlisted, that is, their name still appears below their releases, but
+  is never linked to their page (it has to be noted though that guessing
+  the permalink of an artist is usually not too complex, so the page might
+  still be discovered if a visitor has the intent and energy to look for it)
+- A visitor that views an unlisted thing (release or artist) is made aware
+  of it through an "Unlisted" badge next to the title or name, hinting at
+  the fact that it is unwanted for the thing to be publicly shared
 
-In label mode there are some additional intricacies: An artist that has *only*
-unlisted releases is *not* visible on the home/index page, but in turn, all of
-these unlisted releases *are* visible on the artist page, as the artist page
-itself is implicitly unlisted then. If however, an artist has even just a single
-listed release, it becomes visible on the home/index page, and on the artist page
-itself all unlisted releases are not visible anymore.
 

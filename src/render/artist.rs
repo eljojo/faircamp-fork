@@ -7,7 +7,14 @@ use std::rc::Rc;
 use indoc::formatdoc;
 
 use crate::{Artist, Build, Catalog, CrawlerMeta, Release};
-use crate::render::{artist_image, layout, releases, share_link, share_overlay};
+use crate::render::{
+    artist_image,
+    layout,
+    releases,
+    share_link,
+    share_overlay,
+    unlisted_badge
+};
 use crate::util::html_escape_outside_attribute;
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
@@ -33,11 +40,17 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         None => String::new()
     };
 
+    let name_unlisted = if artist.unlisted {
+        format!("{artist_name_escaped} {}", unlisted_badge(build))
+    } else {
+        artist_name_escaped.clone()
+    };
+
     let artist_info = formatdoc!(r##"
         <div class="catalog">
             {artist_image_rendered}
             <div class="catalog_info_padded">
-                <h1>{artist_name_escaped}</h1>
+                <h1>{name_unlisted}</h1>
                 {artist_text}
                 <div class="action_links">
                     {share_link_rendered}
@@ -46,22 +59,15 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         </div>
     "##);
 
-    // If all releases are unlisted, all releases are visible on the artist page,
-    // because the artist page itself is then unlisted itself. If however a single
-    // release is listed, all unlisted releases become invisible on the artist page.
-    let visible_releases: Vec<Rc<RefCell<Release>>> = if artist.unlisted {
-        artist.releases.iter().cloned().collect()
-    } else {
-        artist.releases
-            .iter()
-            .filter_map(|release| {
-                match release.borrow().unlisted {
-                    true => None,
-                    false => Some(release.clone())
-                }
-            })
-            .collect()
-    };
+    let visible_releases: Vec<Rc<RefCell<Release>>> = artist.releases
+        .iter()
+        .filter_map(|release| {
+            match release.borrow().unlisted {
+                true => None,
+                false => Some(release.clone())
+            }
+        })
+        .collect();
 
     let releases_rendered = releases(
         build,

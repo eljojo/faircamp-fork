@@ -18,7 +18,8 @@ use crate::render::{
     list_artists,
     play_icon,
     share_link,
-    share_overlay
+    share_overlay,
+    unlisted_badge
 };
 use crate::util::{
     format_time,
@@ -196,6 +197,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let relative_waveforms = if build.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
 
+    let release_title_unlisted = if release.unlisted {
+        format!("{release_title_escaped} {}", unlisted_badge(build))
+    } else {
+        release_title_escaped.clone()
+    };
+
     let body = formatdoc!(
         r##"
             <div class="vcenter_page_outer">
@@ -203,7 +210,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="cover">{cover}</div>
 
                     <div class="release_label">
-                        <h1>{release_title_escaped}</h1>
+                        <h1>{release_title_unlisted}</h1>
                         <div class="release_artists">{artists}</div>
                     </div>
 
