@@ -16,7 +16,7 @@ provided.
 
 **Arch Linux, Manjaro**
 
-Install [faircamp-git](https://aur.archlinux.org/packages/faircamp-git) from the [AUR](https://aur.archlinux.org/)
+Install [faircamp](https://aur.archlinux.org/packages/faircamp) from the [AUR](https://aur.archlinux.org/)
 
 **Debian 12, Ubuntu 23.04 - 24.04**
 
