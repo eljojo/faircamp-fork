@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Simon Repp
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use actix_files::Files;
@@ -19,7 +19,11 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
     let bind_server = |build_dir_moving: PathBuf, port: u16| {
         HttpServer::new(move || {
             App::new()
-                .service(Files::new("/", &build_dir_moving).index_file("index.html"))
+                .service(
+                    Files::new("/", &build_dir_moving)
+                        .redirect_to_slash_directory()
+                        .index_file("index.html")
+                )
         })
             .bind((PREVIEW_IP, port))
     };
