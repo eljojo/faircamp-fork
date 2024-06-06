@@ -207,7 +207,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         </div>
                     "#,
                     number = release.track_numbering.format(track_index + 1),
-                    title = html_escape_outside_attribute(&track.title)
+                    title = html_escape_outside_attribute(&track.title())
                 )
             })
             .collect::<Vec<String>>()

@@ -54,6 +54,23 @@ A catalog may have the following explicitly defined artists next to each other:
 This allows both "Alice" and "Bob" to exist and be assigned to a track with
 metadata storing an artist "Alice (feat. Bob)".
 
+## Heuristic audio metadata
+
+If the filenames of the majority of the tracks in a release fulfill certain
+criteria, track number and title metadata is derived from the filename. This
+metadata is used as fallback if we don't have track number or title metadata
+in the audio file tag data itself.
+
+E.g.: A release with the track filenames "1. Alice Song" and "2. Bob Song" will
+result in track #1 "Alice Song" and track #2 "Bob Song". A release with
+the track filenames "1 Good Example" and "3 Things I wanted to tell you" won't
+(track numbers don't monotonically increase). A release with the track
+filenames "01 - Foo" and "02  Bar" won't (inconsistent separator) - but if
+there were a larger number of tracks in the release and only a certain
+amount of the tracks had a "wrong" separator that would be tolerated and
+"  " considered a separator exceptionally although the others would for
+instance be " - ".
+
 ## Hotlinking countermeasures
 
 Faircamp does not generally try to obfuscate anything about the site/url

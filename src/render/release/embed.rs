@@ -74,10 +74,10 @@ pub fn embed_choices_html(
         .enumerate()
         .map(|(index, track)| {
             let track_number = index + 1;
-            let track_title = html_escape_outside_attribute(&track.title);
+            let track_title = track.title();
 
             let t_audio_player_widget_for_track =
-                build.locale.translations.audio_player_widget_for_track(&track.title);
+                build.locale.translations.audio_player_widget_for_track(&track_title);
 
             let (embed_copy_code, embed_display_code) = embed_code(
                 base_url,
@@ -88,12 +88,13 @@ pub fn embed_choices_html(
             );
 
             let r_copy_button = copy_button(build, Some(&embed_copy_code));
+            let track_title_escaped = html_escape_outside_attribute(&track_title);
 
             formatdoc!(r#"
                 <div class="hcenter_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
                     <div style="font-size: var(--subtly-larger);">
                         <span class="track_number">{track_number:02}</span>
-                        <span>{track_title}</span>
+                        <span>{track_title_escaped}</span>
                     </div>
                     {r_copy_button}
                 </div>
@@ -230,7 +231,7 @@ pub fn embed_release_html(
                     </div>
                 "#,
                 track_duration = format_time(track.assets.borrow().source_meta.duration_seconds),
-                track_title = html_escape_outside_attribute(&track.title),
+                track_title = html_escape_outside_attribute(&track.title()),
                 waveform = waveform(&build.theme, track)
             )
         })
@@ -323,6 +324,8 @@ pub fn embed_track_html(
         .collect::<Vec<String>>()
         .join("\n");
 
+    let track_title = track.title();
+
     let track_rendered = formatdoc!(
         r#"
             <div class="track">
@@ -331,7 +334,7 @@ pub fn embed_track_html(
                 <span class="track_header">
                     <a class="track_controls inner">{play_icon}</a>
                     <span class="track_number inner">{track_number}</span>
-                    <a class="track_title" title="{track_title_attribute}">{track_title}</a>
+                    <a class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
                     <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
                 </span>
                 <audio controls preload="none">
@@ -343,8 +346,8 @@ pub fn embed_track_html(
         duration_formatted = format_time(track_duration),
         play_icon = play_icon(root_prefix),
         track_number = release.track_numbering.format(track_number),
-        track_title = html_escape_outside_attribute(&track.title),
-        track_title_attribute = html_escape_inside_attribute(&track.title),
+        track_title_escaped = html_escape_outside_attribute(&track_title),
+        track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
         waveform = waveform(&build.theme, track)
     );
 

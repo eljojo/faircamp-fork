@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
+use std::fs::File;
+use std::path::Path;
 
 use ogg::PacketReader;
 use opus::{Channels, Decoder};
-use std::fs::File;
-use std::path::Path;
 
 use super::DecodeResult;
 

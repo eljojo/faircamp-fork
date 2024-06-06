@@ -2,18 +2,17 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::cell::RefCell;
+use std::f32::consts::TAU;
+use std::fs::{self, File};
+use std::io::prelude::*;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+
 use chrono::{DateTime, NaiveDate, Utc};
 use indoc::formatdoc;
 use sanitize_filename::sanitize;
 use serde_derive::{Serialize, Deserialize};
-use std::{
-    cell::RefCell,
-    fs::{self, File},
-    io::prelude::*,
-    path::{Path, PathBuf},
-    rc::Rc
-};
-use std::f32::consts::TAU;
 use zip::{CompressionMethod, ZipWriter};
 use zip::write::SimpleFileOptions;
 
@@ -637,7 +636,7 @@ impl Release {
                                 .join(", ")
                             )
                         };
-                        tag_mapping.title = Some(track.title.clone());
+                        tag_mapping.title = Some(track.title());
 
                         // This does intentionally not (directly) utilize track number metadata
                         // gathered from the original audio files, here's why:

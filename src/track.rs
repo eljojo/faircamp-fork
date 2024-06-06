@@ -1,15 +1,14 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::cell::RefCell;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
-use std::{
-    cell::RefCell,
-    fs,
-    path::{Path, PathBuf},
-    rc::Rc
-};
 
 use crate::{
     Artist,
@@ -20,6 +19,7 @@ use crate::{
     Build,
     Cache,
     ffmpeg,
+    HeuristicAudioMeta,
     SourceFileSignature,
     TagMapping,
     util
@@ -37,7 +37,7 @@ pub struct Track {
     /// Used to compute the download/stream asset filenames.
     pub asset_basename: Option<String>,
     pub assets: Rc<RefCell<TrackAssets>>,
-    pub title: String
+    pub heuristic_audio_meta: Option<HeuristicAudioMeta>
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -90,15 +90,30 @@ impl Track {
     
     pub fn new(
         artists_to_map: Vec<String>,
-        assets: Rc<RefCell<TrackAssets>>,
-        title: String
+        assets: Rc<RefCell<TrackAssets>>
     ) -> Track {
         Track {
             artists: Vec::new(),
             artists_to_map,
             asset_basename: None,
             assets,
-            title
+            heuristic_audio_meta: None
+        }
+    }
+
+    pub fn title(&self) -> String {
+        let assets_ref = self.assets.borrow();
+        if let Some(title) = &assets_ref.source_meta.title {
+            title.clone()
+        } else if let Some(heuristic_audio_meta) = &self.heuristic_audio_meta {
+            heuristic_audio_meta.title.clone()
+        } else {
+            assets_ref.source_file_signature.path
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string()
         }
     }
 }

@@ -17,6 +17,7 @@ use crate::{
     DownloadOption,
     Extra,
     Favicon,
+    HeuristicAudioMeta,
     HtmlAndStripped,
     Image,
     manifest::{self, LocalOptions, Overrides},
@@ -121,10 +122,10 @@ impl Catalog {
                         .collect::<Vec<String>>()
                         .join(", ");
 
-                    format!("{} - ", list)
+                    format!("{list} - ")
                 };
                 let track_number = index + 1;
-                let track_title = sanitize(&track.title);
+                let track_title = sanitize(&track.title());
 
                 let track_basename = format!("{track_number:02} {track_artists}{track_title}");
 
@@ -475,7 +476,6 @@ impl Catalog {
             }
             
             let track = self.read_track(
-                track_path,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
                 assets
             );
@@ -500,13 +500,18 @@ impl Catalog {
                 })
                 .collect();
 
-            release_tracks.sort_by(|a, b| {
-                let a_assets_ref = a.assets.borrow();
-                let b_assets_ref = b.assets.borrow();
+            HeuristicAudioMeta::compute(&mut release_tracks);
+
+            // TODO: Print warning if all tracks have track numbers as tags but they don't start a 0/1 and don't increase monotonically
+            // TODO: Print warning if only some tracks have track numbers as tags
+
+            release_tracks.sort_by(|track_a, track_b| {
+                let assets_ref_a = track_a.assets.borrow();
+                let assets_ref_b = track_b.assets.borrow();
 
                 let track_numbers = (
-                    a_assets_ref.source_meta.track_number,
-                    b_assets_ref.source_meta.track_number
+                    assets_ref_a.source_meta.track_number.or(track_a.heuristic_audio_meta.as_ref().map(|meta| meta.track_number)),
+                    assets_ref_b.source_meta.track_number.or(track_b.heuristic_audio_meta.as_ref().map(|meta| meta.track_number))
                 );
 
                 match track_numbers {
@@ -514,8 +519,8 @@ impl Catalog {
                     (Some(_), None) => Ordering::Less,
                     (None, Some(_)) => Ordering::Greater,
                     // If both tracks have no track number, sort by original source file name instead
-                    (None, None) => a_assets_ref.source_file_signature.path.cmp(
-                        &b_assets_ref.source_file_signature.path
+                    (None, None) => assets_ref_a.source_file_signature.path.cmp(
+                        &assets_ref_b.source_file_signature.path
                     )
                 }
             });
@@ -667,7 +672,6 @@ impl Catalog {
 
     pub fn read_track(
         &mut self,
-        path: &Path,
         overrides: &Overrides,
         assets: Rc<RefCell<TrackAssets>>
     ) -> Track {
@@ -677,12 +681,7 @@ impl Catalog {
             assets.borrow().source_meta.artists.to_vec()
         };
         
-        let title = assets.borrow().source_meta.title
-            .as_ref()
-            .cloned()
-            .unwrap_or(path.file_stem().unwrap().to_str().unwrap().to_string());
-        
-        Track::new(artists_to_map, assets, title)
+        Track::new(artists_to_map, assets)
     }
 
     // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?
@@ -999,7 +998,7 @@ impl Catalog {
                                 .join(", ")
                             )
                         };
-                        tag_mapping.title = Some(track.title.clone());
+                        tag_mapping.title = Some(track.title());
 
                         // This does intentionally not (directly) utilize track number metadata
                         // gathered from the original audio files, here's why:

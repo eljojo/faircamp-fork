@@ -140,6 +140,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 .collect::<Vec<String>>()
                 .join("\n");
 
+            let track_title = track.title();
+
             formatdoc!(
                 r#"
                     <div class="track">
@@ -148,7 +150,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         <span class="track_header">
                             <a class="track_controls inner">{play_icon}</a>
                             <span class="track_number inner">{track_number}</span>
-                            <a class="track_title" title="{track_title_attribute}">{track_title}</a>
+                            <a class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
                             <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
                         </span>
                         <audio controls preload="none">
@@ -160,8 +162,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 duration_formatted = format_time(track.assets.borrow().source_meta.duration_seconds),
                 play_icon = play_icon(root_prefix),
                 track_number = release.track_numbering.format(track_number),
-                track_title = html_escape_outside_attribute(&track.title),
-                track_title_attribute = html_escape_inside_attribute(&track.title),
+                track_title_escaped = html_escape_outside_attribute(&track_title),
+                track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
                 waveform = waveform(&build.theme, track)
             )
         })

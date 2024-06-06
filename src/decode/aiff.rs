@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: 2023 Simon Repp
+// SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use pacmog::PcmReader;
 use std::fs;
 use std::path::Path;
+
+use pacmog::PcmReader;
 
 use super::DecodeResult;
 

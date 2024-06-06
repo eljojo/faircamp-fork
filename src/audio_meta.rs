@@ -10,9 +10,10 @@
 /// ID3 reference:
 /// - http://www.unixgods.org/Ruby/ID3/docs/ID3_comparison.html
 
+use std::path::Path;
+
 use id3::TagLike;
 use serde_derive::{Serialize, Deserialize};
-use std::path::Path;
 
 use crate::decode::{
     DecodeResult,
