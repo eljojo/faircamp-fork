@@ -5,7 +5,7 @@
 use indoc::formatdoc;
 use std::fs;
 
-use crate::{Build, theme::ThemeFont};
+use crate::{Build, Theme, ThemeFont};
 
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
 
@@ -13,9 +13,7 @@ const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Se
 /// button/input anymore we can drop that again.
 const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
 
-pub fn generate(build: &Build) {
-    let theme = &build.theme;
-    
+pub fn generate(build: &Build, theme: &Theme) {
     let font_declaration = match &theme.font {
         ThemeFont::Custom { extension, path } => {
             let filename = format!("custom.{}", extension);

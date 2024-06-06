@@ -321,13 +321,13 @@ fn layout(
                 </script>
                 {template}
             "#,
-            link_h = build.theme.link_h,
-            link_l = build.theme.link_l.unwrap_or(build.theme.base.link_l),
-            link_s = build.theme.link_s.unwrap_or(build.theme.base.link_s),
+            link_h = catalog.theme.link_h,
+            link_l = catalog.theme.link_l.unwrap_or(catalog.theme.base.link_l),
+            link_s = catalog.theme.link_s.unwrap_or(catalog.theme.base.link_s),
             template = include_str!("templates/theming_widget.html"),
-            text_h = build.theme.text_h,
-            tint_back = build.theme.tint_back,
-            tint_front = build.theme.tint_front
+            text_h = catalog.theme.text_h,
+            tint_back = catalog.theme.tint_back,
+            tint_front = catalog.theme.tint_front
         )
     } else {
         String::new()

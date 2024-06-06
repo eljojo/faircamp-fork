@@ -111,6 +111,7 @@ pub struct Release {
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
     pub text: Option<HtmlAndStripped>,
+    pub theme: Option<Theme>,
     pub title: String,
     pub track_numbering: TrackNumbering,
     /// The order of tracks (and derived from this the track numbers) are
@@ -562,6 +563,7 @@ impl Release {
             support_artists: Vec::new(),
             support_artists_to_map,
             text: manifest_overrides.release_text.clone(),
+            theme: None,
             title,
             track_numbering: manifest_overrides.release_track_numbering.clone(),
             tracks,

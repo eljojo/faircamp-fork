@@ -25,6 +25,7 @@ use crate::{
     Release,
     SourceFileSignature,
     TagMapping,
+    Theme,
     Track,
     TrackAssets,
     util
@@ -55,6 +56,7 @@ pub struct Catalog {
     pub show_support_artists: bool,
     pub support_artists: Vec<Rc<RefCell<Artist>>>,
     pub text: Option<HtmlAndStripped>,
+    pub theme: Theme,
     title: Option<String>
 }
 
@@ -271,6 +273,7 @@ impl Catalog {
             show_support_artists: false,
             support_artists: Vec::new(),
             text: None,
+            theme: Theme::new(),
             title: None
         }
     }
@@ -836,7 +839,7 @@ impl Catalog {
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {
-        if let Some(background_image) = &build.theme.background_image {
+        if let Some(background_image) = &self.theme.background_image {
             let background_image_mut = background_image.borrow_mut();
             let mut background_image_assets_mut = background_image_mut.assets.borrow_mut();
             let image_asset = background_image_assets_mut.background_asset(build, AssetIntent::Deliverable);
@@ -934,21 +937,21 @@ impl Catalog {
 
                 image_assets_mut.persist_to_cache(&build.cache_dir);
             } else {
-                let svg = match build.theme.cover_generator {
+                let svg = match self.theme.cover_generator {
                     CoverGenerator::BestRillen => {
-                        release_mut.generate_cover_best_rillen(&build.theme)
+                        release_mut.generate_cover_best_rillen(&self.theme)
                     }
                     CoverGenerator::GlassSplinters => {
-                        release_mut.generate_cover_glass_splinters(&build.theme)
+                        release_mut.generate_cover_glass_splinters(&self.theme)
                     }
                     CoverGenerator::LooneyTunes => {
-                        release_mut.generate_cover_looney_tunes(&build.theme, max_tracks_in_release)
+                        release_mut.generate_cover_looney_tunes(&self.theme, max_tracks_in_release)
                     }
                     CoverGenerator::ScratchyFaintRillen => {
-                        release_mut.generate_cover_scratchy_faint_rillen(&build.theme)
+                        release_mut.generate_cover_scratchy_faint_rillen(&self.theme)
                     }
                     CoverGenerator::SpaceTimeRupture => {
-                        release_mut.generate_cover_space_time_rupture(&build.theme)
+                        release_mut.generate_cover_space_time_rupture(&self.theme)
                     }
                 };
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();

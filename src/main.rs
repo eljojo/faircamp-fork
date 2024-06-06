@@ -59,7 +59,7 @@ use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
 use release::{ArchiveAssets, DownloadGranularity, Extra, Release, TrackNumbering};
 use render::CrawlerMeta;
-use theme::Theme;
+use theme::{Theme, ThemeFont};
 use track::{Track, TrackAssets};
 
 const MANUAL_URL: &str = "https://simonrepp.com/faircamp/manual/";
@@ -163,9 +163,9 @@ fn main() {
 
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
-    styles::generate(&build);
+    styles::generate(&build, &catalog.theme);
     feed::generate(&build, &catalog);
-    icons::generate(&build);
+    icons::generate(&build, &catalog.theme);
 
     catalog.favicon.write(&build);
 

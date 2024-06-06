@@ -164,7 +164,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 track_number = release.track_numbering.format(track_number),
                 track_title_escaped = html_escape_outside_attribute(&track_title),
                 track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
-                waveform = waveform(&build.theme, track)
+                waveform = waveform(&catalog.theme, track)
             )
         })
         .collect::<Vec<String>>()
@@ -197,7 +197,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     action_links.push_str(&share_link_rendered);
 
-    let relative_waveforms = if build.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
+    let relative_waveforms = if catalog.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
 
     let release_title_unlisted = if release.unlisted {
         format!("{release_title_escaped} {}", unlisted_badge(build))

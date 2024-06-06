@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! The svg files in `icons/` are actually/also format strings and directly imported
@@ -7,23 +7,23 @@
 
 use std::fs;
 
-use crate::Build;
+use crate::{Build, Theme};
 
-pub fn generate(build: &Build) {
+pub fn generate(build: &Build, theme: &Theme) {
     // TODO: h and s are calculated from tint_front etc., revisit/change
     let text_color = format!(
         "hsl({h}deg, {s}%, {l}%)",
-        h = build.theme.text_h,
+        h = theme.text_h,
         s = 0,
-        l = build.theme.base.text_l
+        l = theme.base.text_l
     );
 
     // TODO: h and s are calculated from tint_front etc., revisit/change
     let header_link_color = format!(
         "hsl({h}deg, {s}%, {l}%)",
-        h = build.theme.text_h,
+        h = theme.text_h,
         s = 0,
-        l = build.theme.base.header_link_l
+        l = theme.base.header_link_l
     );
     if build.missing_image_descriptions {
         let visual_impairment_svg = format!(include_str!("icons/visual_impairment.svg"), text_color = text_color);

@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::Image;
 
+#[derive(Debug)]
 pub enum CoverGenerator {
     BestRillen,
     GlassSplinters,
@@ -21,6 +22,7 @@ pub enum CoverGenerator {
 /// s(aturation)        0-100 percent
 /// tint_back           0-100 percent
 /// tint_front          0-100 percent
+#[derive(Debug)]
 pub struct Theme {
     pub background_alpha: u8,
     /// Contains an absolute path to the file (validity is checked when reading manifests)
@@ -44,6 +46,7 @@ pub struct Theme {
 /// h(ue)         0-360 degrees
 /// l(ightness)   0-100 percent
 /// s(aturation)  0-100 percent
+#[derive(Debug)]
 pub struct ThemeBase {
     pub background_l: u8,
     pub faint_l: u8,
@@ -60,6 +63,7 @@ pub struct ThemeBase {
     pub text_l: u8
 }
 
+#[derive(Debug)]
 pub enum ThemeFont {
     Custom { extension: String, path: PathBuf },
     Default,

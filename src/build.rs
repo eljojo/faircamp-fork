@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use base64::{
@@ -20,7 +20,6 @@ use crate::{
     CacheOptimization,
     ImageProcessor,
     Locale,
-    Theme,
     util
 };
 
@@ -44,7 +43,6 @@ pub struct Build {
     pub missing_image_descriptions: bool,
     pub post_build_action: PostBuildAction,
     pub stats: Stats,
-    pub theme: Theme,
     pub theming_widget: bool,
     /// Most asset urls contain a deterministically random (=hashed) path
     /// segment. Out of the box, a static default string is used as a salt
@@ -168,7 +166,6 @@ impl Build {
             missing_image_descriptions: false,
             post_build_action,
             stats: Stats::new(),
-            theme: Theme::new(),
             theming_widget: args.theming_widget,
             url_salt: String::from(""), // changing this can invalidate urls of already deployed faircamp sites, handle with care
             verbose: args.verbose

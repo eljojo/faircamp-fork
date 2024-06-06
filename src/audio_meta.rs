@@ -309,7 +309,7 @@ impl AudioMeta {
                     // the character '/' (slash) is replaced with '\0' (null byte).
                     // The issue is a bit more complex than that, hence unresolved,
                     // but as a practical workaround we are for the time being re-
-                    // replacing '\0' with '\' when we encounter it. A bugreport
+                    // replacing '\0' with '/' when we encounter it. A bugreport
                     // for the underlying issue is found at the following url:
                     // https://github.com/polyfloyd/rust-id3/issues/103
                     let trim_and_reject_empty_override = match tag.version() {

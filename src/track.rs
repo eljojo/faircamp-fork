@@ -22,6 +22,7 @@ use crate::{
     HeuristicAudioMeta,
     SourceFileSignature,
     TagMapping,
+    Theme,
     util
 };
 
@@ -37,7 +38,8 @@ pub struct Track {
     /// Used to compute the download/stream asset filenames.
     pub asset_basename: Option<String>,
     pub assets: Rc<RefCell<TrackAssets>>,
-    pub heuristic_audio_meta: Option<HeuristicAudioMeta>
+    pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
+    pub theme: Option<Theme>
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -97,7 +99,8 @@ impl Track {
             artists_to_map,
             asset_basename: None,
             assets,
-            heuristic_audio_meta: None
+            heuristic_audio_meta: None,
+            theme: None
         }
     }
 

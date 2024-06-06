@@ -720,15 +720,15 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
-        if build.theme.customized {
+        if catalog.theme.customized {
             warn_global_set_repeatedly!("theme");
         }
 
-        build.theme.customized = true;
+        catalog.theme.customized = true;
 
         if let Some((value, line)) = optional_field_value_with_line(section, "background_alpha") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => build.theme.background_alpha = percentage,
+                Some(percentage) => catalog.theme.background_alpha = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.background_alpha' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
@@ -740,7 +740,7 @@ pub fn apply_options(
                 let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
 
                 // TODO: Double check if the background image can specify an image description somehow
-                build.theme.background_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
+                catalog.theme.background_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
             } else {
                 error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
             }
@@ -748,7 +748,7 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {
             match ThemeBase::from_manifest_key(value.as_str()) {
-                Some(variant) => build.theme.base = variant,
+                Some(variant) => catalog.theme.base = variant,
                 None => {
                     let supported = ThemeBase::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
                     error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are {}) in {}:{}", value, supported, path.display(), line);
@@ -758,7 +758,7 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "cover_generator") {
             match CoverGenerator::from_manifest_key(value.as_str()) {
-                Some(cover_generator) => build.theme.cover_generator = cover_generator,
+                Some(cover_generator) => catalog.theme.cover_generator = cover_generator,
                 None => {
                     let supported = CoverGenerator::ALL_GENERATORS.map(|key| format!("'{key}'")).join(", ");
                     error!("Ignoring unsupported value '{}' for global 'theme.cover_generator' (supported values are {}) in {}:{}", value, supported, path.display(), line);
@@ -770,7 +770,7 @@ pub fn apply_options(
             let absolute_path = path.parent().unwrap().join(&relative_path);
             if absolute_path.exists() {
                 match ThemeFont::custom(absolute_path) {
-                    Ok(theme_font) => build.theme.font = theme_font,
+                    Ok(theme_font) => catalog.theme.font = theme_font,
                     Err(message) => error!("Ignoring invalid theme.font setting value '{}' in {}:{} ({})", relative_path, path.display(), line, message) 
                 }
             } else {
@@ -779,40 +779,40 @@ pub fn apply_options(
         }
 
         if optional_flag_present(section, "disable_relative_waveforms") {
-            build.theme.relative_waveforms = false;
+            catalog.theme.relative_waveforms = false;
         }
 
         if optional_flag_present(section, "disable_waveforms") {
-            build.theme.waveforms = false;
+            catalog.theme.waveforms = false;
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "link_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => build.theme.link_h = degrees,
+                Some(degrees) => catalog.theme.link_h = degrees,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.link_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "link_lightness") {
             match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
-                Some(degrees) => build.theme.link_l = Some(degrees),
+                Some(degrees) => catalog.theme.link_l = Some(degrees),
                 None => error!("Ignoring unsupported value '{}' for global 'theme.link_lightness' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "link_saturation") {
             match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
-                Some(degrees) => build.theme.link_s = Some(degrees),
+                Some(degrees) => catalog.theme.link_s = Some(degrees),
                 None => error!("Ignoring unsupported value '{}' for global 'theme.link_saturation' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if optional_flag_present(section, "round_corners") {
-            build.theme.round_corners = true;
+            catalog.theme.round_corners = true;
         }
 
         if let Some(value) = optional_field_value(section, "system_font") {
-            build.theme.font = if value == "sans" {
+            catalog.theme.font = if value == "sans" {
                 ThemeFont::SystemSans
             } else if value == "mono" {
                 ThemeFont::SystemMono
@@ -823,21 +823,21 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "text_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => build.theme.text_h = degrees,
+                Some(degrees) => catalog.theme.text_h = degrees,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.text_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_back") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => build.theme.tint_back = percentage,
+                Some(percentage) => catalog.theme.tint_back = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_front") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => build.theme.tint_front = percentage,
+                Some(percentage) => catalog.theme.tint_front = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
