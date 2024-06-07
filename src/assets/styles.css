@@ -17,9 +17,7 @@ a {
     color: var(--color-link);
     text-decoration: none;
 }
-a svg { fill: var(--color-link); }
 a:hover { color: var(--color-link-hover); }
-a:hover svg { fill: var(--color-link-hover); }
 a * { pointer-events: none; }
 .action_links {
     column-gap: .3rem;
@@ -192,6 +190,9 @@ img {
 .logo {
     flex-shrink: 0;
     margin-left: .1rem;
+}
+.logo svg {
+    height: 2.3rem;
     width: 2.3rem;
 }
 main { box-sizing: border-box; }
@@ -214,6 +215,23 @@ nav {
     top: 0;
     width: 100%;
     z-index: 9;
+}
+circle.loading {
+    animation: pulse 2000ms linear 0ms infinite;
+    transform-origin: 50% 50%;
+}
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(0%);
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(100%);
+    }
 }
 #overlay {
     align-items: center;
@@ -246,6 +264,7 @@ nav {
     top: -.01rem;
     white-space: nowrap;
 }
+a.logo,
 .path a { color: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
 .path a svg { fill: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
 .path span { padding: 0 .2rem; }
@@ -308,6 +327,10 @@ pre { margin: 0; }
 }
 #share:target { display: flex; }
 small { font-size: var(--clearly-smaller); }
+svg {
+    display: block;
+    fill: currentColor;
+}
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
 [data-copy] .success,
 [data-copy] .error { display: none; }
@@ -331,6 +354,18 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track_controls {
     display: none;
     top: .15rem;
+}
+.track_controls.inner,
+.track_controls.inner:hover {
+    color: var(--color-text);
+}
+.track_controls.outer,
+.track_controls.outer:hover {
+    color: var(--color-text);
+}
+.track_controls svg {
+    height: 1rem;
+    width: 1rem;
 }
 .track_number.outer { display: none; }
 .track.active .track_controls.inner,
@@ -446,8 +481,9 @@ input[type="text"].disabled,
 @media (min-width: 30rem) {
     .home_image { height: 12rem; }
     .index_split { min-height: calc(100vh - 3.2rem); }
-    .logo {
-        margin-left: .3rem;
+    .logo { margin-left: .3rem; }
+    .logo svg {
+        height: 2.5rem;
         width: 2.5rem;
     }
     .mobile_hpadding {

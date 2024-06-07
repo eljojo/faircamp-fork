@@ -18,6 +18,7 @@ pub fn translations() -> Translations {
         audio_player_widget_for_track: String::from(r#"Widget de reproductor de audio para la pista "{title}""#),
         auto_generated_cover: String::from("Imagen de tapa generada automáticamente"),
         available_formats: String::from("Formatos disponibles:"),
+        buy: untranslated!(buy),
         close: String::from("Cerrar"),
         copied: String::from("Copiado"),
         copy: String::from("Copiar"),
@@ -25,6 +26,7 @@ pub fn translations() -> Translations {
         r#continue: String::from("Continuar"),
         cover_image: String::from("Imagen de tapa"),
         default_unlock_text: String::from("Tienes que ingresar un código para desbloquear estas descargas. Pregunta a los operadores del sitio cómo obtener uno."),
+        download: untranslated!(download),
         downloads: String::from("Descargas"),
         downloads_permalink: String::from("descargas"),
         embed: String::from("Incrustar"),
@@ -51,12 +53,15 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
 - No interpretas. Describa que hay en el imagen pero no analices más allá de eso.<br>\
 - Puedes usar colores cuando tiene sentido - mucha gente solo perdan la vista mas tarde y entienden y aprecian los colores."),
         image_descriptions_permalink: String::from("descripciones-de-imagenes"),
+        loading: untranslated!(loading),
         made_or_arranged_payment: String::from("He hecho o arreglado el pago"),
         missing_image_description_note: String::from("Falta una descripción de imagen<br>Haz click para aprender más"),
         name_your_price: String::from("Nombra tu precio"),
         option: String::from("Opción"),
+        pause: untranslated!(pause),
         pay_on_liberapay: String::from("Pagar en liberapay:"),
         payment_options: String::from("Opciones de pago:"),
+        play: untranslated!(play),
         purchase_downloads: String::from("Comprar descargas"),
         purchase_permalink: String::from("comprar"),
         recommended_format: String::from("Formato recomendado"),
@@ -81,6 +86,7 @@ instrucciones de nuevo. \
 Reemplaza el parte final de la direccion - /{unlock_permalink}/{page_hash}{index_suffix} - \
 con /{downloads_permalink}/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
         up_to_xxx: String::from("Hasta {xxx}"),
+        visual_impairment: untranslated!(visual_impairment),
         xxx_or_more: String::from("{xxx} o más")
     }
 }

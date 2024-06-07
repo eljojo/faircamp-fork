@@ -16,6 +16,7 @@ use crate::{
     Release,
     Theme
 };
+use crate::icons;
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 pub mod artist;
@@ -35,10 +36,6 @@ impl CrawlerMeta {
             CrawlerMeta::NoIndexNoFollow => r#"<meta name="robots" content="noindex, nofollow">"#
         }
     }
-}
-
-fn play_icon(root_prefix: &str) -> String {
-    format!(r#"<img alt="Play" src="{root_prefix}play.svg" style="max-width: 1rem;">"#)
 }
 
 fn artist_image(
@@ -305,7 +302,7 @@ fn layout(
 ) -> String {
     let feed_meta_link = match &build.base_url.is_some() {
         true => {
-            let t_rss_feed = &build.locale.translations.feed;
+            let t_rss_feed = &build.locale.translations.rss_feed;
             format!(r#"<link rel="alternate" type="application/rss+xml" title="{t_rss_feed}" href="{root_prefix}feed.rss">"#)
         }
         false => String::new()
@@ -441,6 +438,26 @@ fn list_artists(
     }
 }
 
+/// These are rendered alongside the release player and provide prepared and translated
+/// icons for the client side script to use.
+pub fn player_icon_templates(build: &Build) -> String {
+    let pause_icon = icons::pause(&build.locale.translations.pause);
+    let play_icon = icons::play(&build.locale.translations.play);
+    let loading_icon = icons::loading(&build.locale.translations.loading);
+
+    formatdoc!(r#"
+        <template id="pause_icon">
+            {pause_icon}
+        </template>
+        <template id="play_icon">
+            {play_icon}
+        </template>
+        <template id="loading_icon">
+            {loading_icon}
+        </template>
+    "#)
+}
+
 fn releases(
     build: &Build,
     index_suffix: &str,
@@ -510,13 +527,11 @@ pub fn share_link(build: &Build) -> String {
         format!(r#"class="disabled" data-disabled-share title="{t_share_not_available_requires_javascript}""#)
     };
 
-    // TODO: Provide all icons as SHARE_ICON etc. through crate::render?
-    //       (or share_icon(...) so we can inject translated alt texts or such)
-    let icon_share = include_str!("icons/share.svg");
     let t_share = &build.locale.translations.share;
+    let share_icon = icons::share(t_share);
     formatdoc!(r##"
         <a {attributes}>
-            {icon_share}
+            {share_icon}
             <span>{t_share}</span>
         </a>
     "##)
@@ -550,12 +565,14 @@ fn wrap_undescribed_image(
     overlay: &str,
     extra_class: &str
 ) -> String {
+    let visual_impairment_icon = icons::visual_impairment(&build.locale.translations.visual_impairment);
+
     let t_image_descriptions_permalink = &build.locale.translations.image_descriptions_permalink;
     let t_missing_image_description_note = &build.locale.translations.missing_image_description_note;
     formatdoc!(r#"
         <div class="{extra_class} undescribed_wrapper">
             <a class="undescribed_icon" href="{root_prefix}{t_image_descriptions_permalink}{index_suffix}">
-                <img alt="Visual Impairment" src="{root_prefix}visual_impairment.svg">
+                {visual_impairment_icon}
             </a>
             <span class="undescribed_overlay">
                 {t_missing_image_description_note}

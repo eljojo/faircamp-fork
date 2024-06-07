@@ -165,8 +165,6 @@ fn main() {
     
     styles::generate(&build, &catalog);
     feed::generate(&build, &catalog);
-    // TODO: Switch to inline icons (?) - coloring depends on the theme of each page and even on where the icon appears! (also inline allows us hover styles and so on)
-    icons::generate(&build, &catalog.theme);
 
     catalog.favicon.write(&build);
 

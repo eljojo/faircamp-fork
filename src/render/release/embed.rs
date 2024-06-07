@@ -5,13 +5,13 @@ use indoc::formatdoc;
 use url::Url;
 
 use crate::{Build, Catalog, CrawlerMeta, Release, Track};
+use crate::icons;
 use crate::render::{
     compact_release_identifier,
     copy_button,
     cover_image,
     layout,
     list_artists,
-    play_icon,
     release::waveform
 };
 use crate::util::{
@@ -153,8 +153,8 @@ pub fn embed_choices_html(
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
-    let embed_icon = include_str!("../../icons/embed.svg");
     let t_embed = &build.locale.translations.embed;
+    let embed_icon = icons::embed(t_embed);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!(r#"<a href=".{index_suffix}">{embed_icon} {t_embed}</a>"#)
@@ -328,6 +328,7 @@ pub fn embed_track_html(
 
     let track_title = track.title();
 
+    let play_icon = icons::play(&build.locale.translations.play);
     let track_rendered = formatdoc!(
         r#"
             <div class="track">
@@ -346,7 +347,6 @@ pub fn embed_track_html(
             </div>
         "#,
         duration_formatted = format_time(track_duration),
-        play_icon = play_icon(root_prefix),
         track_number = release.track_numbering.format(track_number),
         track_title_escaped = html_escape_outside_attribute(&track_title),
         track_title_attribute_escaped = html_escape_inside_attribute(&track_title),

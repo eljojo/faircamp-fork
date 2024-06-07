@@ -18,6 +18,7 @@ pub fn translations() -> Translations {
         audio_player_widget_for_track: String::from(r#"Lydavspillerelement for sporet "{title}""#),
         auto_generated_cover: String::from("Automatisk generert omslag"),
         available_formats: String::from("Tilgjengelige formater:"),
+        buy: untranslated!(buy),
         close: String::from("Lukk"),
         copied: String::from("Kopiert"),
         copy: String::from("Kopier"),
@@ -25,6 +26,7 @@ pub fn translations() -> Translations {
         r#continue: String::from("Fortsett"),
         cover_image: String::from("Omslagsbilde"),
         default_unlock_text: String::from("Du må skrive inn en kode for å få lastet ned disse filene. Spør sidens administratorer for hvordan du kan få en."),
+        download: untranslated!(download),
         downloads: String::from("Nedlastinger"),
         downloads_permalink: String::from("nedlastinger"),
         embed: String::from("Bygg inn"),
@@ -52,12 +54,15 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
 - Ikke tolk. Beskriv hva som vises og som er relevant for forståelsen. Ikke gi noen videre analyse utover det.<br>\
 - Du kan beskrive farger der hvor det gir mening - mange har mistet synet i løpet av livet, og forstår og setter pris på farger."),
         image_descriptions_permalink: String::from("image-descriptions"),
+        loading: untranslated!(loading),
         made_or_arranged_payment: String::from("Jeg har utført eller ordnet med betaling"),
         missing_image_description_note: String::from("Manglende bildebeskrivelse<br>Klikk for å lære mer"),
         name_your_price: String::from("Velg din egen pris"),
         option: String::from("Valg"),
+        pause: untranslated!(pause),
         pay_on_liberapay: String::from("Betal via Liberapay"),
         payment_options: String::from("Payment options:"),
+        play: untranslated!(play),
         purchase_downloads: String::from("Kjøp nedlastinger"),
         purchase_permalink: String::from("kjop"),
         recommended_format: String::from("Anbefalt format"),
@@ -81,6 +86,7 @@ skjer, bruk tilbake-knappen og prøv å følge instruksjonene nøye igjen.\
 Erstatt den siste delen av addressen - /{unlock_permalink}/{page_hash}{index_suffix} - \
 med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
         up_to_xxx: String::from("Opp til {xxx}"),
+        visual_impairment: untranslated!(visual_impairment),
         xxx_or_more: String::from("{xxx} eller mer")
     }
 }

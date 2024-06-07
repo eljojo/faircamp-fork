@@ -5,6 +5,7 @@ use indoc::formatdoc;
 
 use crate::{Build, Catalog, CrawlerMeta, DownloadGranularity, Release};
 use crate::audio_format::prioritized_for_download;
+use crate::icons;
 use crate::render::{compact_release_identifier, layout};
 use crate::util::{format_bytes, html_escape_outside_attribute};
 
@@ -245,7 +246,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         "##
     );
 
-    let download_icon = include_str!("../../icons/download.svg");
+    let download_icon = icons::download(&build.locale.translations.download);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
         format!(r#"<a href=".{index_suffix}">{download_icon} {t_downloads}</a>"#)

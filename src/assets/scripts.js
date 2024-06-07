@@ -1,9 +1,9 @@
 // TODO: alt/text and markup for the play/pause icon could drift away
 // from how we write/implement it in our statically generated code.
 const rootPrefix = document.querySelector('script[data-root-prefix').dataset.rootPrefix;
-const loadingIcon = `<img alt="Loading" src="${rootPrefix}loading.svg" style="max-width: 1em;">`;
-const pauseIcon = `<img alt="Pause" src="${rootPrefix}pause.svg" style="max-width: 1em;">`;
-const playIcon = `<img alt="Play" src="${rootPrefix}play.svg" style="max-width: 1em;">`;
+const loadingIcon = document.querySelector('#loading_icon');
+const pauseIcon = document.querySelector('#pause_icon');
+const playIcon = document.querySelector('#play_icon');
 
 const copyNotificationTimeouts = {};
 
@@ -51,7 +51,7 @@ async function mountAndPlay(container, seek) {
     const audio = container.querySelector('audio');
     const controlsInner = container.querySelector('.track_controls.inner');
     const controlsOuter = container.querySelector('.track_controls.outer');
-    const svg = container.querySelector('svg');
+    const svg = container.querySelector('.waveform');
     const time = container.querySelector('.track_time');
 
     // The .duration property on the audio element is unreliable because during
@@ -74,8 +74,9 @@ async function mountAndPlay(container, seek) {
 
     if (audio.readyState === audio.HAVE_NOTHING) {
         container.classList.add('active');
-        controlsInner.innerHTML = loadingIcon;
-        controlsOuter.innerHTML = loadingIcon;
+        controlsInner.replaceChildren(loadingIcon.content.cloneNode(true));
+        controlsOuter.replaceChildren(loadingIcon.content.cloneNode(true));
+
         window.activeTrack = {
             a,
             audio,
@@ -116,8 +117,8 @@ async function mountAndPlay(container, seek) {
                 clearInterval(window.activeTrack.updatePlayHeadInterval);
                 updatePlayhead(window.activeTrack, true);
                 container.classList.remove('active', 'playing');
-                controlsInner.innerHTML = playIcon;
-                controlsOuter.innerHTML = playIcon;
+                controlsInner.replaceChildren(playIcon.content.cloneNode(true));
+                controlsOuter.replaceChildren(playIcon.content.cloneNode(true));
                 
                 const nextContainer = container.nextElementSibling;
                 if (nextContainer && nextContainer.classList.contains('track')) {
@@ -130,8 +131,8 @@ async function mountAndPlay(container, seek) {
     }
 
     container.classList.add('active', 'playing');
-    controlsInner.innerHTML = pauseIcon;
-    controlsOuter.innerHTML = pauseIcon;
+    controlsInner.replaceChildren(pauseIcon.content.cloneNode(true));
+    controlsOuter.replaceChildren(pauseIcon.content.cloneNode(true));
 
     if (seek) {
         audio.currentTime = seek * duration();
@@ -178,8 +179,8 @@ function togglePlayback(container = null, seek = null) {
                     activeTrack.audio.currentTime = seek * activeTrack.duration();
                 }
                 activeTrack.container.classList.add('playing');
-                activeTrack.controlsInner.innerHTML = pauseIcon;
-                activeTrack.controlsOuter.innerHTML = pauseIcon;
+                activeTrack.controlsInner.replaceChildren(pauseIcon.content.cloneNode(true));
+                activeTrack.controlsOuter.replaceChildren(pauseIcon.content.cloneNode(true));
                 activeTrack.audio.play();
                 activeTrack.updatePlayHeadInterval = setInterval(
                     () => updatePlayhead(activeTrack),
@@ -194,8 +195,8 @@ function togglePlayback(container = null, seek = null) {
                     clearInterval(activeTrack.updatePlayHeadInterval);
                     updatePlayhead(activeTrack);
                     activeTrack.container.classList.remove('playing');
-                    activeTrack.controlsInner.innerHTML = playIcon;
-                    activeTrack.controlsOuter.innerHTML = playIcon;
+                    activeTrack.controlsInner.replaceChildren(playIcon.content.cloneNode(true));
+                    activeTrack.controlsOuter.replaceChildren(playIcon.content.cloneNode(true));
                 }
             }
         } else {
@@ -206,8 +207,8 @@ function togglePlayback(container = null, seek = null) {
             activeTrack.audio.currentTime = 0;
             updatePlayhead(activeTrack, true);
             activeTrack.container.classList.remove('active', 'playing');
-            activeTrack.controlsInner.innerHTML = playIcon;
-            activeTrack.controlsOuter.innerHTML = playIcon;
+            activeTrack.controlsInner.replaceChildren(playIcon.content.cloneNode(true));
+            activeTrack.controlsOuter.replaceChildren(playIcon.content.cloneNode(true));
 
             mountAndPlay(container, seek);
         }

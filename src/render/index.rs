@@ -7,6 +7,7 @@ use std::rc::Rc;
 use indoc::formatdoc;
 
 use crate::{Build, Catalog, CrawlerMeta, Release};
+use crate::icons;
 use crate::render::{artist_image, layout, releases, share_link, share_overlay};
 use crate::util::html_escape_outside_attribute;
 
@@ -19,12 +20,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let feed_link = match &build.base_url.is_some() {
         true => {
             let t_feed = &build.locale.translations.feed;
-            let icon_feed = include_str!("../icons/feed.svg");
-            // TODO: Interpolate into a <title>{t_rss_feed}</title> tag in the feed.svg for alt text or remove
-            // let t_rss_feed = &build.locale.translations.feed;
+            let feed_icon = icons::feed(&build.locale.translations.rss_feed);
             format!(r#"
                 <a href="{root_prefix}feed.rss">
-                    {icon_feed}
+                    {feed_icon}
                     <span>{t_feed}</span>
                 </a>
             "#)

@@ -62,6 +62,7 @@ pub struct Translations {
     audio_player_widget_for_track: String,
     pub auto_generated_cover: String,
     pub available_formats: String,
+    pub buy: String,
     pub close: String,
     pub copied: String,
     pub copy: String,
@@ -69,6 +70,7 @@ pub struct Translations {
     pub r#continue: String,
     pub cover_image: String,
     pub default_unlock_text: String,
+    pub download: String,
     pub downloads: String,
     /// Must be unique and only contain url-safe characters
     pub downloads_permalink: String,
@@ -83,12 +85,15 @@ pub struct Translations {
     pub image_descriptions_guide: String,
     /// Must be unique and only contain url-safe characters
     pub image_descriptions_permalink: String,
+    pub loading: String,
     pub made_or_arranged_payment: String,
     pub missing_image_description_note: String,
     pub name_your_price: String,
     pub option: String,
+    pub pause: String,
     pub pay_on_liberapay: String,
     pub payment_options: String,
+    pub play: String,
     pub purchase_downloads: String,
     /// Must be unique and only contain url-safe characters
     pub purchase_permalink: String,
@@ -105,6 +110,7 @@ pub struct Translations {
     pub unlock_code_seems_incorrect: String,
     unlock_manual_instructions: String,
     up_to_xxx: String,
+    pub visual_impairment: String,
     xxx_or_more: String
 }
 
@@ -203,6 +209,7 @@ impl Translations {
             audio_player_widget_for_track: String::from("audio_player_widget_for_track"),
             auto_generated_cover: String::from("audio_player_widget_for_track"),
             available_formats: String::from("available_formats"),
+            buy: String::from("buy"),
             close: String::from("close"),
             copied: String::from("copied"),
             copy: String::from("copy"),
@@ -210,6 +217,7 @@ impl Translations {
             r#continue: String::from("continue"),
             cover_image: String::from("cover_image"),
             default_unlock_text: String::from("default_unlock_text"),
+            download: String::from("download"),
             downloads: String::from("downloads"),
             downloads_permalink: String::from("downloads_permalink"),
             embed: String::from("embed"),
@@ -222,12 +230,15 @@ impl Translations {
             image_descriptions: String::from("image_descriptions"),
             image_descriptions_guide: String::from("image_descriptions_guide"),
             image_descriptions_permalink: String::from("image_descriptions_permalink"),
+            loading: String::from("loading"),
             made_or_arranged_payment: String::from("made_or_arranged_payment"),
             missing_image_description_note: String::from("missing_image_description_note"),
             name_your_price: String::from("name_your_price"),
             option: String::from("option"),
+            pause: String::from("pause"),
             pay_on_liberapay: String::from("pay_on_liberapay"),
             payment_options: String::from("payment_options"),
+            play: String::from("play"),
             purchase_downloads: String::from("purchase_downloads"),
             purchase_permalink: String::from("purchase_permalink"),
             recommended_format: String::from("recommended_format"),
@@ -242,6 +253,7 @@ impl Translations {
             unlock_code_seems_incorrect: String::from("unlock_code_seems_incorrect"),
             unlock_manual_instructions: String::from("unlock_manual_instructions"),
             up_to_xxx: String::from("up_to_xxx"),
+            visual_impairment: String::from("visual_impairment"),
             xxx_or_more: String::from("xxx_or_more")
         }
     }

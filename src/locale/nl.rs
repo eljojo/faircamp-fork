@@ -18,6 +18,7 @@ pub fn translations() -> Translations {
         audio_player_widget_for_track: String::from(r#"Audiospelerwidget voor de track "{title}""#),
         auto_generated_cover: String::from("Automatisch gegenereerde omslagafbeelding"),
         available_formats: String::from("Beschikbare formaten:"),
+        buy: untranslated!(buy),
         close: String::from("Sluiten"),
         copied: String::from("Gekopieerd"),
         copy: String::from("Kopiëren"),
@@ -25,6 +26,7 @@ pub fn translations() -> Translations {
         r#continue: String::from("Voortzetten"),
         cover_image: String::from("Omslagafbeelding"),
         default_unlock_text: String::from("Jij moet een code invullen om deze downloads te ontsluiten. Vraag de websitebeheerder hoe je er een kan verkrijgen."),
+        download: untranslated!(download),
         downloads: String::from("Downloads"),
         downloads_permalink: String::from("downloads"),
         embed: String::from("Inzetten"),
@@ -52,12 +54,15 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
 - Niet interpreteren. Beschrijf wat er is en relevant voor het begrip ervan, analyseer niet verder dan dat.<br>\
 - Je kunt kleuren gebruiken waar dat zinvol is; veel mensen zijn pas later hun gezichtsvermogen kwijtgeraakt en begrijpen en waarderen kleuren."),
         image_descriptions_permalink: String::from("afbeeldingsomschrijvingen"),
+        loading: untranslated!(loading),
         made_or_arranged_payment: String::from("Ik heb de betaling gedaan of geregeld"),
         missing_image_description_note: String::from("Ontbrekende afbeeldingsomschrijving<br>Klik om meer te leren"),
         name_your_price: String::from("Noem je prijs"),
         option: String::from("Optie"),
+        pause: untranslated!(pause),
         pay_on_liberapay: String::from("Op liberapay betaalen:"),
         payment_options: String::from("Betalingsmogelijkheden:"),
+        play: untranslated!(play),
         purchase_downloads: String::from("Downloads kopen"),
         purchase_permalink: String::from("kopen"),
         recommended_format: String::from("Aanbevolen Formaat"),
@@ -81,6 +86,7 @@ gebruik de terugknop en volg de voorschriften nauwkeurig opnieuw.\
 Vervang het laatste deel van het adres - /{unlock_permalink}/{page_hash}{index_suffix} - \
 met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens op Enter."),
         up_to_xxx: String::from("Tot {xxx}"),
+        visual_impairment: untranslated!(visual_impairment),
         xxx_or_more: String::from("{xxx} of meer")
     }
 }

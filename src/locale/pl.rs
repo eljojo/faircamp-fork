@@ -18,6 +18,7 @@ pub fn translations() -> Translations {
         audio_player_widget_for_track: String::from(r#"Odtwarzacz audio dla utworu "{title}""#),
         auto_generated_cover: String::from("Automatycznie wygenerowana okładka"),
         available_formats: String::from("Dostępne czczionki:"),
+        buy: untranslated!(buy),
         close: String::from("Zamknij"),
         copied: String::from("Skopiowane"),
         copy: String::from("Kopiuj"),
@@ -25,6 +26,7 @@ pub fn translations() -> Translations {
         r#continue: String::from("Kontynuuj"),
         cover_image: String::from("Okładka"),
         default_unlock_text: String::from("Musisz podać kod aby odblokować pobieranie. Spytaj administratora strony jak dostać jeden."),
+        download: untranslated!(download),
         downloads: String::from("Pobieranie"),
         downloads_permalink: String::from("pobieranie"),
         embed: String::from("Osadź"),
@@ -52,12 +54,15 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
 - Nie interpretuj. Opisz co tam jest co jest niezbędne do zrozumienia, nie analizuj ponad to.<br>\
 - Używaj kolorów jeśli to ma sens - wiele ludzi straciło wzrok później i rozumieją i doceniają kolory."),
         image_descriptions_permalink: String::from("opisy-obrazkow"),
+        loading: untranslated!(loading),
         made_or_arranged_payment: String::from("Zrobiłem albo ustawiłem zapłatę"),
         missing_image_description_note: String::from("Brakujący opis obrazka<br>Kliknij by dowiedzieć się więcej"),
         name_your_price: String::from("Ustal swoją cenę"),
         option: String::from("Opcja"),
+        pause: untranslated!(pause),
         pay_on_liberapay: String::from("Zapłać przez liberapay:"),
         payment_options: String::from("Opcje płatności:"),
+        play: untranslated!(play),
         purchase_downloads: String::from("Kup pobranie"),
         purchase_permalink: String::from("zakup"),
         recommended_format: String::from("Polecany Format"),
@@ -81,6 +86,7 @@ użyj guzika Wstecz i precyzyjnie podążaj za instrukcjami.\
 Zamień ostatnią część adresu - /{unlock_permalink}/{page_hash}{index_suffix} - \
 na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij Enter."),
         up_to_xxx: String::from("Aż do {xxx}"),
+        visual_impairment: untranslated!(visual_impairment),
         xxx_or_more: String::from("{xxx} i więcej")
     }
 }

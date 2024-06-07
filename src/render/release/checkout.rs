@@ -13,6 +13,7 @@ use crate::{
     PaymentOption,
     Release
 };
+use crate::icons;
 use crate::render::{compact_release_identifier, layout};
 use crate::util::html_escape_outside_attribute;
 
@@ -195,11 +196,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#);
 
+        let buy_icon = icons::buy(&build.locale.translations.buy); // TODO: "Purchase" ? (also everywhere else this occurs and in code then of course too)
+
         (
             content,
             build.locale.translations.downloads.as_str(),
             build.locale.translations.purchase_downloads.as_str(),
-            include_str!("../../icons/buy.svg")
+            buy_icon
         )
     } else if let DownloadOption::Codes { unlock_text, .. } = &release.download_option {
         let custom_or_default_unlock_text = unlock_text
@@ -249,11 +252,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#);
 
+        let unlock_icon = icons::unlock(&build.locale.translations.unlock);
+
         (
             content,
             build.locale.translations.downloads.as_str(),
             build.locale.translations.unlock_downloads.as_str(),
-            include_str!("../../icons/unlock.svg")
+            unlock_icon
         )
     } else {
         unreachable!();

@@ -19,6 +19,7 @@ pub fn translations() -> Translations {
         audio_player_widget_for_track: String::from(r#"Widget de lecteur audio pour la piste "{title}""#),
         auto_generated_cover: String::from("Image de couverture générée automatiquement"),
         available_formats: String::from("Formats disponibles:"),
+        buy: untranslated!(buy),
         close: String::from("Fermer"),
         copied: String::from("Copié"),
         copy: String::from("Copier"),
@@ -26,6 +27,7 @@ pub fn translations() -> Translations {
         r#continue: String::from("Continuer"),
         cover_image: String::from("Image de couverture"),
         default_unlock_text: String::from("Vous devez entrer un code pour déverrouiller ces téléchargements. Demandez au gestionnaire du site comment en obtenir un."),
+        download: untranslated!(download),
         downloads: String::from("Téléchargements"),
         downloads_permalink: String::from("telechargements"),
         embed: String::from("Intégrer"),
@@ -53,12 +55,15 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
 - N'interprétez pas. Décrivez ce qui est là et pertinent pour la compréhension, n'analysez pas au-delà.<br>\
 - Vous pouvez utiliser des couleurs là où cela a du sens - beaucoup de gens n'ont perdu la vue que plus tard et comprennent et apprécient les coleurs."),
         image_descriptions_permalink: String::from("descriptions-des-images"),
+        loading: untranslated!(loading),
         made_or_arranged_payment: String::from("J'ai effectué ou organisé le paiement"),
         missing_image_description_note: String::from("Description de l'image manquante<br>Cliquez pour en savoir plus"),
         name_your_price: String::from("Choisis ton prix"),
         option: String::from("Option"),
+        pause: untranslated!(pause),
         pay_on_liberapay: String::from("Acheter avec liberapay:"),
         payment_options: String::from("Options d'achat:"),
+        play: untranslated!(play),
         purchase_downloads: String::from("Acheter des téléchargements"),
         purchase_permalink: String::from("acheter"),
         recommended_format: String::from("Format recommandé"),
@@ -82,6 +87,7 @@ nouveau attentivement les instructions. \
 Remplacez la dernière partie de l'adresse - /{unlock_permalink}/{page_hash}{index_suffix} - \
 avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
         up_to_xxx: String::from("Jusqu'à {xxx}"),
+        visual_impairment: untranslated!(visual_impairment),
         xxx_or_more: String::from("{xxx} ou plus")
     }
 }

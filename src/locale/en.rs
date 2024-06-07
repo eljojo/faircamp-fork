@@ -18,6 +18,7 @@ pub fn translations() -> Translations {
         audio_player_widget_for_track: String::from(r#"Audio player widget for the track "{title}""#),
         auto_generated_cover: String::from("Automatically generated cover"),
         available_formats: String::from("Available formats:"),
+        buy: String::from("Buy"),
         close: String::from("Close"),
         copied: String::from("Copied"),
         copy: String::from("Copy"),
@@ -25,6 +26,7 @@ pub fn translations() -> Translations {
         r#continue: String::from("Continue"),
         cover_image: String::from("Cover Image"),
         default_unlock_text: String::from("You need to enter a code to unlock these downloads. Ask the site operators for how to obtain one."),
+        download: String::from("Download"),
         downloads: String::from("Downloads"),
         downloads_permalink: String::from("downloads"),
         embed: String::from("Embed"),
@@ -52,12 +54,15 @@ Here are some tips for writing good image descriptions:<br>\
 - Don't interpret. Describe what is there and relevant for its understanding, don't analyze beyond that.<br>\
 - You can use colors where it makes sense - many people only lost their sight later on and understand and appreciate colors."),
         image_descriptions_permalink: String::from("image-descriptions"),
+        loading: String::from("Loading"),
         made_or_arranged_payment: String::from("I have made or arranged the payment"),
         missing_image_description_note: String::from("Missing image description<br>Click to learn more"),
         name_your_price: String::from("Name your price"),
         option: String::from("Option"),
+        pause: String::from("Pause"),
         pay_on_liberapay: String::from("Pay on liberapay:"),
         payment_options: String::from("Payment options:"),
+        play: String::from("Play"),
         purchase_downloads: String::from("Purchase downloads"),
         purchase_permalink: String::from("purchase"),
         recommended_format: String::from("Recommended Format"),
@@ -81,6 +86,7 @@ use the Back button and closely follow the instructions again.\
 Replace the final part of the address - /{unlock_permalink}/{page_hash}{index_suffix} - \
 with /{downloads_permalink}/[your-unlock-code]{index_suffix} and then press Enter."),
         up_to_xxx: String::from("Up to {xxx}"),
+        visual_impairment: String::from("Visual Impairment"),
         xxx_or_more: String::from("{xxx} or more")
     }
 }

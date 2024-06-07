@@ -16,11 +16,12 @@ use crate::render::{
     cover_image,
     layout,
     list_artists,
-    play_icon,
+    player_icon_templates,
     share_link,
     share_overlay,
     unlisted_badge
 };
+use crate::icons;
 use crate::util::{
     format_time,
     html_escape_inside_attribute,
@@ -42,7 +43,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let t_unlock_permalink = &build.locale.translations.unlock_permalink;
             let page_hash = build.hash_generic(&[&release.permalink.slug, t_unlock_permalink]);
 
-            let unlock_icon = include_str!("../icons/unlock.svg");
+            let unlock_icon = icons::unlock(&build.locale.translations.unlock);
             let t_downloads = &build.locale.translations.downloads;
             formatdoc!(r#"
                 <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
@@ -56,7 +57,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let t_downloads_permalink = &build.locale.translations.downloads_permalink;
             let page_hash = build.hash_generic(&[&release.permalink.slug, t_downloads_permalink]);
 
-            let download_icon = include_str!("../icons/download.svg");
+            let download_icon = icons::download(&build.locale.translations.download);
             let t_downloads = &build.locale.translations.downloads;
             formatdoc!(r#"
                 <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
@@ -72,7 +73,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 let t_purchase_permalink = &build.locale.translations.purchase_permalink;
                 let page_hash = build.hash_generic(&[&release.permalink.slug, t_purchase_permalink]);
 
-                let buy_icon = include_str!("../icons/buy.svg");
+                let buy_icon = icons::buy(&build.locale.translations.buy);
                 let t_downloads = &build.locale.translations.downloads;
                 formatdoc!(r#"
                     <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
@@ -85,8 +86,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let embed_link = if release.embedding && build.base_url.is_some() {
-        let embed_icon = include_str!("../icons/embed.svg");
         let t_embed = &build.locale.translations.embed;
+        let embed_icon = icons::embed(t_embed);
         formatdoc!(r#"
             <a href="embed{index_suffix}">
                 {embed_icon}
@@ -135,13 +136,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     let src = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
 
                     let source_type = format.source_type();
-                     format!(r#"<source src="{src}" type="{source_type}">"#)
+                    format!(r#"<source src="{src}" type="{source_type}">"#)
                 })
                 .collect::<Vec<String>>()
                 .join("\n");
 
             let track_title = track.title();
 
+            let play_icon = icons::play(&build.locale.translations.play);
             formatdoc!(
                 r#"
                     <div class="track">
@@ -160,7 +162,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     </div>
                 "#,
                 duration_formatted = format_time(track.assets.borrow().source_meta.duration_seconds),
-                play_icon = play_icon(root_prefix),
                 track_number = release.track_numbering.format(track_number),
                 track_title_escaped = html_escape_outside_attribute(&track_title),
                 track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
@@ -205,6 +206,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         release_title_escaped.clone()
     };
 
+    let r_player_icon_templates = player_icon_templates(build);
+
     let body = formatdoc!(
         r##"
             <div class="vcenter_page_outer">
@@ -218,6 +221,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
                     <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
                     {tracks_rendered}
+                    {r_player_icon_templates}
                 </div>
                 <div class="additional">
                     <div class="mobile_hpadding">

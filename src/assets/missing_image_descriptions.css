@@ -1,13 +1,21 @@
 .undescribed_icon {
     background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .5);
     border-radius: .4rem;
+    color: var(--color-text);
     padding: .3em;
     position: absolute;
     right: .4rem;
     top: .4rem;
     z-index: 3;
 }
-.undescribed_icon img { width: 1.5em; }
+a.undescribed_icon,
+a.undescribed_icon:hover {
+    color: var(--color-text);
+}
+.undescribed_icon svg {
+    height: 1.5rem;
+    width: 1.5rem;
+}
 .undescribed_overlay {
     align-items: center;
     background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
