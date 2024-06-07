@@ -12,8 +12,9 @@ use crate::{
     Artist,
     Build,
     Catalog,
-    Image,
-    Release
+    DescribedImage,
+    Release,
+    Theme
 };
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
@@ -45,18 +46,17 @@ fn artist_image(
     index_suffix: &str,
     root_prefix: &str,
     permalink: &str,
-    image: &Rc<RefCell<Image>>
+    described_image: &DescribedImage
 ) -> String {
-    let image_ref = image.borrow();
-    let image_assets = image_ref.assets.borrow();
+    let image_ref = described_image.image.borrow();
 
-    let alt = match &image_ref.description {
+    let alt = match &described_image.description {
         Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
         None => String::new()
     };
 
-    let poster_fixed_img = image_assets.artist.as_ref().unwrap().img_attributes_fixed(permalink, root_prefix);
-    let poster_fluid_img = image_assets.artist.as_ref().unwrap().img_attributes_fluid(permalink, root_prefix);
+    let poster_fixed_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fixed(permalink, root_prefix);
+    let poster_fluid_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fluid(permalink, root_prefix);
     let poster = formatdoc!(
         r##"
             <span class="home_image">
@@ -80,7 +80,7 @@ fn artist_image(
         srcset_fluid = poster_fluid_img.srcset
     );
 
-    if image_ref.description.is_some() {
+    if described_image.description.is_some() {
         poster
     } else {
         wrap_undescribed_image(build, index_suffix, root_prefix, &poster, "", "home_image")
@@ -88,6 +88,7 @@ fn artist_image(
 }
 
 fn compact_release_identifier(
+    build: &Build,
     catalog: &Catalog,
     index_suffix: &str,
     release: &Release,
@@ -97,7 +98,7 @@ fn compact_release_identifier(
 ) -> String {
     let artists = list_artists(index_suffix, root_prefix, catalog, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let cover = cover_image_tiny(release_prefix, &release.cover, release_link);
+    let cover = cover_image_tiny(build, release_prefix, &release.cover, release_link);
 
     format!(r#"
         <div style="align-items: center; column-gap: .8rem; display: flex; margin: 2em 0;">
@@ -140,63 +141,63 @@ fn cover_image(
     root_prefix: &str,
     release: &Release
 ) -> String {
-    let image = &release.cover;
+    match &release.cover {
+        Some (described_image) => {
+            let image_ref = described_image.image.borrow();
 
-    if image.is_none() {
-        let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
-        return formatdoc!(r##"
-            <span class="image">
-                <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
-            </span>
-        "##);
-    }
+            let alt = match &described_image.description {
+                Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
+                None => String::new()
+            };
 
-    let image_ref = image.as_ref().unwrap().borrow();
-    let image_assets = image_ref.assets.borrow();
+            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(release_prefix);
+            let thumbnail = formatdoc!(
+                r##"
+                    <a class="image" href="#overlay">
+                        <img{alt} sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
+                    </a>
+                "##,
+                src = thumbnail_img.src,
+                srcset = thumbnail_img.srcset
+            );
 
-    let alt = match &image_ref.description {
-        Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
-        None => String::new()
-    };
+            let cover_ref = image_ref.cover_assets.as_ref().unwrap();
+            let overlay_img = cover_ref.img_attributes_up_to_1280(release_prefix);
+            let largest_edge_size = cover_ref.largest().edge_size;
+            let overlay = formatdoc!(
+                r##"
+                    <a id="overlay" href="#">
+                        <img
+                            {alt}
+                            height="{largest_edge_size}"
+                            loading="lazy"
+                            sizes="calc(100vmin - 4rem)"
+                            src="{src}"
+                            srcset="{srcset}"
+                            width="{largest_edge_size}">
+                    </a>
+                "##,
+                src = overlay_img.src,
+                srcset = overlay_img.srcset
+            );
 
-    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_480(release_prefix);
-    let thumbnail = formatdoc!(
-        r##"
-            <a class="image" href="#overlay">
-                <img{alt} sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
-            </a>
-        "##,
-        src = thumbnail_img.src,
-        srcset = thumbnail_img.srcset
-    );
-
-    let cover_ref = image_assets.cover.as_ref().unwrap();
-    let overlay_img = cover_ref.img_attributes_up_to_1280(release_prefix);
-    let largest_edge_size = cover_ref.largest().edge_size;
-    let overlay = formatdoc!(
-        r##"
-            <a id="overlay" href="#">
-                <img
-                    {alt}
-                    height="{largest_edge_size}"
-                    loading="lazy"
-                    sizes="calc(100vmin - 4rem)"
-                    src="{src}"
-                    srcset="{srcset}"
-                    width="{largest_edge_size}">
-            </a>
-        "##,
-        src = overlay_img.src,
-        srcset = overlay_img.srcset
-    );
-
-    if image_ref.description.is_some() {
-        formatdoc!("
-            {thumbnail}
-            {overlay}
-        ")
-    } else {
-        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
+            if described_image.description.is_some() {
+                formatdoc!("
+                    {thumbnail}
+                    {overlay}
+                ")
+            } else {
+                wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
+            }
+        }
+        None => {
+            let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+            formatdoc!(r#"
+                <span class="image">
+                    <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
+                </span>
+            "#)
+        }
     }
 }
 
@@ -208,83 +209,86 @@ fn cover_tile_image(
     release: &Release,
     href: &str
 ) -> String {
-    let image = &release.cover;
+    match &release.cover {
+        Some(described_image) => {
+            let image_ref = described_image.image.borrow();
 
-    if image.is_none() {
-        let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
-        return formatdoc!(r#"
-            <a class="image" href="{href}">
-                <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg"/>
-            </a>
-        "#);
-    }
+            let alt = match &described_image.description {
+                Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
+                None => String::new()
+            };
 
-    let image_ref = image.as_ref().unwrap().borrow();
-    let image_assets = image_ref.assets.borrow();
+            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_320(release_prefix);
+            let thumbnail = formatdoc!(
+                r##"
+                    <a class="image" href="{href}">
+                        <img{alt}
+                            loading="lazy"
+                            sizes="
+                                (min-width: 60rem) 20rem,
+                                (min-width: 30rem) calc((100vw - 4rem) * 0.333),
+                                (min-width: 15rem) calc((100vw - 3rem) * 0.5),
+                                calc(100vw - 2rem)
+                            "
+                            src="{src}"
+                            srcset="{srcset}">
+                    </a>
+                "##,
+                src = thumbnail_img.src,
+                srcset = thumbnail_img.srcset
+            );
 
-    let alt = match &image_ref.description {
-        Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
-        None => String::new()
-    };
-
-    let thumbnail_img = image_assets.cover.as_ref().unwrap().img_attributes_up_to_320(release_prefix);
-    let thumbnail = formatdoc!(
-        r##"
-            <a class="image" href="{href}">
-                <img{alt}
-                    loading="lazy"
-                    sizes="
-                        (min-width: 60rem) 20rem,
-                        (min-width: 30rem) calc((100vw - 4rem) * 0.333),
-                        (min-width: 15rem) calc((100vw - 3rem) * 0.5),
-                        calc(100vw - 2rem)
-                    "
-                    src="{src}"
-                    srcset="{srcset}">
-            </a>
-        "##,
-        src = thumbnail_img.src,
-        srcset = thumbnail_img.srcset
-    );
-
-    if image_ref.description.is_some() {
-        thumbnail
-    } else {
-        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, "", "")
+            if described_image.description.is_some() {
+                thumbnail
+            } else {
+                wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, "", "")
+            }
+        }
+        None => {
+            let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+            formatdoc!(r#"
+                <a class="image" href="{href}">
+                    <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg"/>
+                </a>
+            "#)
+        }
     }
 }
 
 fn cover_image_tiny(
+    build: &Build,
     release_prefix: &str,
-    image: &Option<Rc<RefCell<Image>>>,
+    image: &Option<DescribedImage>,
     href_url: &str
 ) -> String {
-    if image.is_none() {
-        return formatdoc!(r#"
-            <a class="image" href="{href_url}">
-                <img alt="Auto-generated cover image" src="{release_prefix}cover.svg">
-            </a>
-        "#);
+    match image {
+        Some(described_image) => {
+            let image_ref = described_image.image.borrow();
+            let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+            let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
+
+            let alt = if let Some(description) = &described_image.description {
+                let alt = html_escape_inside_attribute(description);
+                format!(r#" alt="{alt}""#)
+            } else {
+                String::new()
+            };
+
+            formatdoc!(r#"
+                <a class="image" href="{href_url}">
+                    <img{alt} loading="lazy" src="{src}">
+                </a>
+            "#)
+        }
+        None => {
+            let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+            formatdoc!(r#"
+                <a class="image" href="{href_url}">
+                    <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
+                </a>
+            "#)
+        }
     }
-
-    let image_ref = image.as_ref().unwrap().borrow();
-    let image_assets = image_ref.assets.borrow();
-
-    let asset = &image_assets.cover.as_ref().unwrap().max_160;
-    let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
-
-    let alt = if let Some(description) = &image_ref.description {
-        let alt = html_escape_inside_attribute(description);
-        format!(r#" alt="{alt}""#)
-    } else {
-        String::new()
-    };
-
-    formatdoc!(r#"
-        <a class="image" href="{href_url}">
-            <img{alt} loading="lazy" src="{src}">
-        </a>
-    "#)
 }
 
 /// For pages that should not be indexed by crawlers (search engines etc.),
@@ -294,6 +298,7 @@ fn layout(
     body: &str,
     build: &Build,
     catalog: &Catalog,
+    theme: &Theme,
     title: &str,
     breadcrumbs: &[String],
     crawler_meta: CrawlerMeta
@@ -351,6 +356,7 @@ fn layout(
         index_suffix = if build.clean_urls { "/" } else { "/index.html" },
         lang = &build.locale.language,
         root_prefix = root_prefix,
+        theme_stylesheet_filename = theme.stylesheet_filename(),
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)
     )

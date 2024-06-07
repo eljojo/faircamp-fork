@@ -1,14 +1,11 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::fs;
+use std::path::Path;
+
 use chrono::NaiveDate;
 use enolib::{prelude::*, Document, Field, Item, Section};
-use std::{
-    cell::RefCell,
-    fs,
-    path::Path,
-    rc::Rc
-};
 use url::Url;
 
 use crate::{
@@ -16,21 +13,22 @@ use crate::{
     Cache,
     CacheOptimization,
     Catalog,
+    DescribedImage,
     DownloadFormat,
     DownloadGranularity,
     DownloadOption,
     Favicon,
     HtmlAndStripped,
-    Image,
     Locale,
     markdown,
     PaymentOption,
     Permalink,
     StreamingQuality,
+    Theme,
     TrackNumbering,
-    theme::{CoverGenerator, ThemeBase, ThemeFont},
     util
 };
+use crate::theme::{CoverGenerator, ThemeBase, ThemeFont};
 
 macro_rules! err_line {
     ($path:expr, $error:expr) => {
@@ -68,11 +66,12 @@ pub struct Overrides {
     pub include_extras: bool,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
-    pub release_cover: Option<Rc<RefCell<Image>>>,
+    pub release_cover: Option<DescribedImage>,
     pub release_text: Option<HtmlAndStripped>,
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
     pub streaming_quality: StreamingQuality,
+    pub theme: Theme,
     pub track_artists: Option<Vec<String>>,
     pub unlock_text: Option<String>
 }
@@ -103,6 +102,7 @@ impl Overrides {
             release_track_numbering: TrackNumbering::Arabic,
             rewrite_tags: true,
             streaming_quality: StreamingQuality::Standard,
+            theme: Theme::new(),
             track_artists: None,
             unlock_text: None
         }
@@ -299,9 +299,9 @@ pub fn apply_options(
                                 };
 
                                 let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                                let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
+                                let image = cache.get_or_create_image(build, path_relative_to_catalog);
 
-                                artist_mut.image = Some(Rc::new(RefCell::new(Image::new(assets, description))));
+                                artist_mut.image = Some(DescribedImage::new(description, image));
                             } else {
                                 error!("Ignoring invalid artist.image.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
                             }
@@ -409,9 +409,9 @@ pub fn apply_options(
                         };
 
                         let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                        let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
+                        let image = cache.get_or_create_image(build, path_relative_to_catalog);
 
-                        catalog.home_image = Some(Rc::new(RefCell::new(Image::new(assets, description))));
+                        catalog.home_image = Some(DescribedImage::new(description, image));
                     } else {
                         error!("Ignoring invalid catalog.home_image.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
                     }
@@ -638,9 +638,9 @@ pub fn apply_options(
                         };
 
                         let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                        let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
+                        let image = cache.get_or_create_image(build, path_relative_to_catalog);
 
-                        overrides.release_cover = Some(Rc::new(RefCell::new(Image::new(assets, description))));
+                        overrides.release_cover = Some(DescribedImage::new(description, image));
                     } else {
                         error!("Ignoring invalid release.cover.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
                     }
@@ -720,15 +720,10 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
-        if catalog.theme.customized {
-            warn_global_set_repeatedly!("theme");
-        }
-
-        catalog.theme.customized = true;
 
         if let Some((value, line)) = optional_field_value_with_line(section, "background_alpha") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => catalog.theme.background_alpha = percentage,
+                Some(percentage) => overrides.theme.background_alpha = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.background_alpha' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
@@ -737,10 +732,9 @@ pub fn apply_options(
             let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
             if absolute_path.exists() {
                 let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
+                let image = cache.get_or_create_image(build, path_relative_to_catalog);
 
-                // TODO: Double check if the background image can specify an image description somehow
-                catalog.theme.background_image = Some(Rc::new(RefCell::new(Image::new(assets, None))));
+                overrides.theme.background_image = Some(image);
             } else {
                 error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
             }
@@ -748,7 +742,7 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {
             match ThemeBase::from_manifest_key(value.as_str()) {
-                Some(variant) => catalog.theme.base = variant,
+                Some(variant) => overrides.theme.base = variant,
                 None => {
                     let supported = ThemeBase::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
                     error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are {}) in {}:{}", value, supported, path.display(), line);
@@ -758,7 +752,7 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "cover_generator") {
             match CoverGenerator::from_manifest_key(value.as_str()) {
-                Some(cover_generator) => catalog.theme.cover_generator = cover_generator,
+                Some(cover_generator) => overrides.theme.cover_generator = cover_generator,
                 None => {
                     let supported = CoverGenerator::ALL_GENERATORS.map(|key| format!("'{key}'")).join(", ");
                     error!("Ignoring unsupported value '{}' for global 'theme.cover_generator' (supported values are {}) in {}:{}", value, supported, path.display(), line);
@@ -770,7 +764,7 @@ pub fn apply_options(
             let absolute_path = path.parent().unwrap().join(&relative_path);
             if absolute_path.exists() {
                 match ThemeFont::custom(absolute_path) {
-                    Ok(theme_font) => catalog.theme.font = theme_font,
+                    Ok(theme_font) => overrides.theme.font = theme_font,
                     Err(message) => error!("Ignoring invalid theme.font setting value '{}' in {}:{} ({})", relative_path, path.display(), line, message) 
                 }
             } else {
@@ -779,40 +773,40 @@ pub fn apply_options(
         }
 
         if optional_flag_present(section, "disable_relative_waveforms") {
-            catalog.theme.relative_waveforms = false;
+            overrides.theme.relative_waveforms = false;
         }
 
         if optional_flag_present(section, "disable_waveforms") {
-            catalog.theme.waveforms = false;
+            overrides.theme.waveforms = false;
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "link_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => catalog.theme.link_h = degrees,
+                Some(degrees) => overrides.theme.link_h = degrees,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.link_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "link_lightness") {
             match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
-                Some(degrees) => catalog.theme.link_l = Some(degrees),
+                Some(degrees) => overrides.theme.link_l = Some(degrees),
                 None => error!("Ignoring unsupported value '{}' for global 'theme.link_lightness' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "link_saturation") {
             match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
-                Some(degrees) => catalog.theme.link_s = Some(degrees),
+                Some(degrees) => overrides.theme.link_s = Some(degrees),
                 None => error!("Ignoring unsupported value '{}' for global 'theme.link_saturation' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if optional_flag_present(section, "round_corners") {
-            catalog.theme.round_corners = true;
+            overrides.theme.round_corners = true;
         }
 
         if let Some(value) = optional_field_value(section, "system_font") {
-            catalog.theme.font = if value == "sans" {
+            overrides.theme.font = if value == "sans" {
                 ThemeFont::SystemSans
             } else if value == "mono" {
                 ThemeFont::SystemMono
@@ -823,21 +817,21 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "text_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => catalog.theme.text_h = degrees,
+                Some(degrees) => overrides.theme.text_h = degrees,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.text_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_back") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => catalog.theme.tint_back = percentage,
+                Some(percentage) => overrides.theme.tint_back = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "tint_front") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => catalog.theme.tint_front = percentage,
+                Some(percentage) => overrides.theme.tint_front = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }

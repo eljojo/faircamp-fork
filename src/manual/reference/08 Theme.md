@@ -7,8 +7,10 @@
 
 With this you can adjust the visual appearance of your faircamp site.
 
-Note that the theme applies across all pages - customizations on individual
-pages are not available.
+Theme customizations can be made in a top-level manifest at the root of the
+catalog (setting the theme for the homepage and all release pages), but
+they can also be made locally for a group of releases or for each release
+on its own (added in 0.15.0).
 
 ## Base
 

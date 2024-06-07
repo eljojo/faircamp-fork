@@ -14,13 +14,13 @@ use crate::{
     AssetIntent,
     Build,
     Cache,
+    DescribedImage,
     DownloadOption,
     Extra,
     Favicon,
     HeuristicAudioMeta,
     HtmlAndStripped,
     Image,
-    manifest::{self, LocalOptions, Overrides},
     PermalinkUsage,
     Release,
     SourceFileSignature,
@@ -30,7 +30,9 @@ use crate::{
     TrackAssets,
     util
 };
+use crate::manifest::{self, LocalOptions, Overrides};
 use crate::theme::CoverGenerator;
+use crate::util::url_safe_hash;
 
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aif", "aifc", "aiff", "alac", "flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png", "webp"];
@@ -49,7 +51,7 @@ pub struct Catalog {
     pub feature_support_artists: bool,
     /// Those artists that get their own page
     pub featured_artists: Vec<Rc<RefCell<Artist>>>,
-    pub home_image: Option<Rc<RefCell<Image>>>,
+    pub home_image: Option<DescribedImage>,
     pub label_mode: bool,
     pub main_artists: Vec<Rc<RefCell<Artist>>>,
     pub releases: Vec<Rc<RefCell<Release>>>,
@@ -63,12 +65,11 @@ pub struct Catalog {
 /// Gets passed the images found in a release directory. Checks against a few
 /// hardcoded filenames (the usual suspects) to determine which image is most
 /// likely to be the intended release cover image.
-fn pick_best_cover_image(images: &[Rc<RefCell<Image>>]) -> Option<Rc<RefCell<Image>>> {
-    let mut cover_candidate_option: Option<(usize, _)> = None;
+fn pick_best_cover_image(images: &[Image]) -> Option<DescribedImage> {
+    let mut cover_candidate_option: Option<(usize, &Image)> = None;
 
     for image in images {
         let priority = match image.borrow()
-            .assets.borrow()
             .source_file_signature
             .path.file_stem().unwrap().to_str().unwrap().to_lowercase().as_str() {
             "cover" => 1,
@@ -86,7 +87,8 @@ fn pick_best_cover_image(images: &[Rc<RefCell<Image>>]) -> Option<Rc<RefCell<Ima
         }
     }
 
-    cover_candidate_option.map(|cover_candidate| cover_candidate.1).cloned()
+    cover_candidate_option
+        .map(|cover_candidate| DescribedImage::new(None, cover_candidate.1.clone()))
 }
 
 impl Catalog {
@@ -487,8 +489,8 @@ impl Catalog {
         }
         
         if !release_tracks.is_empty() {
-            // Process bare image paths into "image assets"
-            let images: Vec<_> = image_paths
+            // Process bare image paths into Image representations
+            let images: Vec<Image> = image_paths
                 .into_iter()
                 .map(|image_path| {
                     let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
@@ -497,9 +499,7 @@ impl Catalog {
                         info!("Reading image {}", path_relative_to_catalog.display());
                     }
                     
-                    let assets = cache.get_or_create_image_assets(build, path_relative_to_catalog);
-                    
-                    Rc::new(RefCell::new(Image::new(assets, None)))
+                    cache.get_or_create_image(build, path_relative_to_catalog)
                 })
                 .collect();
 
@@ -609,23 +609,23 @@ impl Catalog {
             }
 
             let cover = match &local_overrides.as_ref().unwrap_or(parent_overrides).release_cover {
-                Some(image) => Some(image.clone()),
+                Some(described_image) => Some(described_image.clone()),
                 None => pick_best_cover_image(&images)
             };
 
             let mut extras = Vec::new();
             if local_overrides.as_ref().unwrap_or(parent_overrides).include_extras {
                 for image in images {
-                    if let Some(ref cover_unwrapped) = cover {
+                    if let Some(ref described_image) = cover {
                         // If the image we're iterating is the cover image for this release
                         // we don't include it as an extra (that would be redundant).
-                        if image.borrow().assets.borrow().source_file_signature ==
-                            cover_unwrapped.borrow().assets.borrow().source_file_signature {
+                        if image.borrow().source_file_signature ==
+                            described_image.image.borrow().source_file_signature {
                             continue
                         }
                     }
 
-                    let extra = Extra::new(image.borrow().assets.borrow().source_file_signature.clone());
+                    let extra = Extra::new(image.borrow().source_file_signature.clone());
                     extras.push(extra);
                 }
 
@@ -665,6 +665,10 @@ impl Catalog {
 
             self.releases.push(Rc::new(RefCell::new(release)));
         }
+
+        if dir == build.catalog_dir {
+            self.theme = local_overrides.as_ref().unwrap_or(parent_overrides).theme.clone();
+        }
         
         for dir_path in &dir_paths {
             self.read_dir(dir_path, build, cache, local_overrides.as_ref().unwrap_or(parent_overrides)).unwrap();
@@ -683,8 +687,10 @@ impl Catalog {
         } else {
             assets.borrow().source_meta.artists.to_vec()
         };
+
+        let theme = overrides.theme.clone();
         
-        Track::new(artists_to_map, assets)
+        Track::new(artists_to_map, assets, theme)
     }
 
     // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?
@@ -839,27 +845,25 @@ impl Catalog {
     }
     
     pub fn write_assets(&mut self, build: &mut Build) {
-        if let Some(background_image) = &self.theme.background_image {
-            let background_image_mut = background_image.borrow_mut();
-            let mut background_image_assets_mut = background_image_mut.assets.borrow_mut();
-            let image_asset = background_image_assets_mut.background_asset(build, AssetIntent::Deliverable);
+        if let Some(image) = &self.theme.background_image {
+            let mut image_mut = image.borrow_mut();
+            let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable);
             
             util::hard_link_or_copy(
-                build.cache_dir.join(&image_asset.filename),
+                build.cache_dir.join(&background_asset.filename),
                 build.build_dir.join("background.jpg")
             );
             
-            build.stats.add_image(image_asset.filesize_bytes);
+            build.stats.add_image(background_asset.filesize_bytes);
             
-            background_image_assets_mut.persist_to_cache(&build.cache_dir);
+            image_mut.persist_to_cache(&build.cache_dir);
         }
 
-        if let Some(home_image) = &self.home_image {
-            let home_image_mut = home_image.borrow_mut();
-            let mut home_image_assets_mut = home_image_mut.assets.borrow_mut();
+        if let Some(described_image) = &self.home_image {
+            let mut image_mut = described_image.image.borrow_mut();
 
             // Write home image as poster image for homepage
-            let poster_assets = home_image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
+            let poster_assets = image_mut.artist_asset(build, AssetIntent::Deliverable);
 
             for asset in &poster_assets.all() {
                 util::hard_link_or_copy(
@@ -873,7 +877,7 @@ impl Catalog {
 
             // Write home image as feed image
             if build.base_url.is_some() {
-                let feed_image_asset = home_image_assets_mut.feed_asset(build, AssetIntent::Deliverable);
+                let feed_image_asset = image_mut.feed_asset(build, AssetIntent::Deliverable);
 
                 util::hard_link_or_copy(
                     build.cache_dir.join(&feed_image_asset.filename),
@@ -883,17 +887,16 @@ impl Catalog {
                 build.stats.add_image(feed_image_asset.filesize_bytes);
             }
 
-            home_image_assets_mut.persist_to_cache(&build.cache_dir);
+            image_mut.persist_to_cache(&build.cache_dir);
         }
 
         for artist in self.featured_artists.iter_mut() {
-            let mut artist_mut = artist.borrow_mut();
+            let artist_ref = artist.borrow();
 
-            let permalink = artist_mut.permalink.slug.to_string();
-            if let Some(image) = &mut artist_mut.image {
-                let image_mut = image.borrow_mut();
-                let mut image_assets_mut = image_mut.assets.borrow_mut();
-                let poster_assets = image_assets_mut.artist_asset(build, AssetIntent::Deliverable);
+            let permalink = artist_ref.permalink.slug.to_string();
+            if let Some(described_image) = &artist_ref.image {
+                let mut image_mut = described_image.image.borrow_mut();
+                let poster_assets = image_mut.artist_asset(build, AssetIntent::Deliverable);
 
                 for asset in &poster_assets.all() {
                     util::hard_link_or_copy(
@@ -904,7 +907,7 @@ impl Catalog {
                     build.stats.add_image(asset.filesize_bytes);
                 }
 
-                image_assets_mut.persist_to_cache(&build.cache_dir);
+                image_mut.persist_to_cache(&build.cache_dir);
             }
         }
 
@@ -921,10 +924,32 @@ impl Catalog {
 
             util::ensure_dir(&release_dir);
 
-            if let Some(image) = &mut release_mut.cover {
-                let image_mut = image.borrow_mut();
-                let mut image_assets_mut = image_mut.assets.borrow_mut();
-                let cover_assets = image_assets_mut.cover_asset(build, AssetIntent::Deliverable);
+            // TODO: Optimize this (and also the related mechanism in styles.rs).
+            //       Right now we see if we already generated the file (in build) to decide
+            //       whether to go forward, but it would be more elegant/efficient another
+            //       way, because like this we do more processing than is necessary.
+            if let Some(image) = &release_mut.theme.background_image {
+                let mut image_mut = image.borrow_mut();
+                let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable);
+
+                let hashed_filename = format!("background-{}.jpg", url_safe_hash(&background_asset.filename));
+                let hashed_path = build.build_dir.join(hashed_filename);
+
+                if !hashed_path.exists() {
+                    util::hard_link_or_copy(
+                        build.cache_dir.join(&background_asset.filename),
+                        hashed_path
+                    );
+
+                    build.stats.add_image(background_asset.filesize_bytes);
+
+                    image_mut.persist_to_cache(&build.cache_dir);
+                }
+            }
+
+            if let Some(described_image) = &release_mut.cover {
+                let mut image_mut = described_image.image.borrow_mut();
+                let cover_assets = image_mut.cover_asset(build, AssetIntent::Deliverable);
 
                 for asset in &cover_assets.all() {
                     util::hard_link_or_copy(
@@ -935,7 +960,7 @@ impl Catalog {
                     build.stats.add_image(asset.filesize_bytes);
                 }
 
-                image_assets_mut.persist_to_cache(&build.cache_dir);
+                image_mut.persist_to_cache(&build.cache_dir);
             } else {
                 let svg = match self.theme.cover_generator {
                     CoverGenerator::BestRillen => {

@@ -39,7 +39,7 @@ pub struct Track {
     pub asset_basename: Option<String>,
     pub assets: Rc<RefCell<TrackAssets>>,
     pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
-    pub theme: Option<Theme>
+    pub theme: Theme
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -92,7 +92,8 @@ impl Track {
     
     pub fn new(
         artists_to_map: Vec<String>,
-        assets: Rc<RefCell<TrackAssets>>
+        assets: Rc<RefCell<TrackAssets>>,
+        theme: Theme
     ) -> Track {
         Track {
             artists: Vec::new(),
@@ -100,7 +101,7 @@ impl Track {
             asset_basename: None,
             assets,
             heuristic_audio_meta: None,
-            theme: None
+            theme
         }
     }
 

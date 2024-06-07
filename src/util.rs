@@ -1,8 +1,14 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::fs;
+use std::io;
+use std::hash::{DefaultHasher, Hash, Hasher};
+use std::path::Path;
+
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use nanoid::nanoid;
-use std::{fs, io, path::Path};
 
 const BYTES_KB: u64 = 1024; 
 const BYTES_MB: u64 = 1024 * BYTES_KB; 
@@ -67,6 +73,15 @@ pub fn hard_link_or_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) {
             fs::copy(&from, &to).unwrap();
         });
 }
+
+pub fn url_safe_hash(hashable: impl Hash) -> String {
+    let mut hasher = DefaultHasher::new();
+
+    hashable.hash(&mut hasher);
+
+    URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
+}
+
 
 /// Given e.g. "\"foo\"", it will first turn the input into "&quot;foo&quot;", 
 /// then into "&amp;quot;foo&amp;quot;". When this is rendered in the browser,

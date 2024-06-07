@@ -1,19 +1,15 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use base64::{
-    engine::general_purpose::{GeneralPurpose, URL_SAFE_NO_PAD},
-    Engine
-};
-use chrono::{DateTime, Utc};
-use std::{
-    collections::hash_map::DefaultHasher,
-    env,
-    hash::{Hash, Hasher},
-    path::PathBuf
-};
-use url::Url;
+use std::collections::hash_map::DefaultHasher;
+use std::env;
+use std::hash::{Hash, Hasher};
+use std::path::PathBuf;
 
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use chrono::{DateTime, Utc};
+use url::Url;
 
 use crate::{
     Args,
@@ -24,7 +20,6 @@ use crate::{
 };
 
 pub struct Build {
-    base64_engine: GeneralPurpose,
     pub base_url: Option<Url>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
@@ -75,6 +70,7 @@ pub struct Stats {
 }
 
 impl Build {
+    // TODO: Name more appropriately - hash_with_salt or such
     pub fn hash(
         &self,
         release_slug: &str,
@@ -88,9 +84,10 @@ impl Build {
         filename.hash(&mut hasher);
         self.url_salt.hash(&mut hasher);
 
-        self.base64_engine.encode(hasher.finish().to_le_bytes())
+        URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
     }
 
+    // TODO: Name more appropriately - hash_generic_with_salt or such
     pub fn hash_generic(
         &self,
         inputs: &[&str]
@@ -103,7 +100,7 @@ impl Build {
 
         self.url_salt.hash(&mut hasher);
 
-        self.base64_engine.encode(hasher.finish().to_le_bytes())
+        URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
     }
 
     /// When we construct site-internal linking urls, we always
@@ -150,7 +147,6 @@ impl Build {
 
         Build {
             base_url: None,
-            base64_engine: URL_SAFE_NO_PAD,
             build_begin: Utc::now(),
             build_dir,
             cache_dir,

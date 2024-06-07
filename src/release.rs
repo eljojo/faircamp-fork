@@ -23,10 +23,10 @@ use crate::{
     Build,
     Cache,
     Catalog,
+    DescribedImage,
     DownloadFormat,
     DownloadOption,
     HtmlAndStripped,
-    Image,
     PaymentOption,
     Permalink,
     render,
@@ -77,7 +77,7 @@ pub struct Release {
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download asset filenames.
     pub asset_basename: Option<String>,
-    pub cover: Option<Rc<RefCell<Image>>>,
+    pub cover: Option<DescribedImage>,
     pub date: Option<NaiveDate>,
     pub download_formats: Vec<DownloadFormat>,
     pub download_granularity: DownloadGranularity,
@@ -111,7 +111,7 @@ pub struct Release {
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
     pub text: Option<HtmlAndStripped>,
-    pub theme: Option<Theme>,
+    pub theme: Theme,
     pub title: String,
     pub track_numbering: TrackNumbering,
     /// The order of tracks (and derived from this the track numbers) are
@@ -522,7 +522,7 @@ impl Release {
 
     pub fn new(
         archive_assets: Rc<RefCell<ArchiveAssets>>,
-        cover: Option<Rc<RefCell<Image>>>,
+        cover: Option<DescribedImage>,
         extras: Vec<Extra>,
         local_options: LocalOptions,
         main_artists_to_map: Vec<String>,
@@ -563,7 +563,7 @@ impl Release {
             support_artists: Vec::new(),
             support_artists_to_map,
             text: manifest_overrides.release_text.clone(),
-            theme: None,
+            theme: manifest_overrides.theme.clone(),
             title,
             track_numbering: manifest_overrides.release_track_numbering.clone(),
             tracks,
@@ -761,10 +761,9 @@ impl Release {
                         track.assets.borrow().persist_to_cache(&build.cache_dir);
                     }
 
-                    if let Some(cover) = &mut self.cover {
-                        let cover_mut = cover.borrow_mut();
-                        let mut assets_mut = cover_mut.assets.borrow_mut();
-                        let cover_assets = assets_mut.cover_asset(build, AssetIntent::Intermediate);
+                    if let Some(described_image) = &mut self.cover {
+                        let mut image_mut = described_image.image.borrow_mut();
+                        let cover_assets = image_mut.cover_asset(build, AssetIntent::Intermediate);
 
                         zip_writer.start_file("cover.jpg", options).unwrap();
 
@@ -776,7 +775,7 @@ impl Release {
                         zip_writer.write_all(&buffer).unwrap();
                         buffer.clear();
 
-                        assets_mut.persist_to_cache(&build.cache_dir);
+                        image_mut.persist_to_cache(&build.cache_dir);
                     }
 
                     for extra in &self.extras {
@@ -934,11 +933,9 @@ impl Release {
             }
         }
         
-        if let Some(cover) = &self.cover {
-            if cover.borrow().description.is_none() {
-                warn_discouraged!("The cover image for release '{}' is missing an image description.", self.title);
-                build.missing_image_descriptions = true;
-            }
+        if self.cover.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
+            warn_discouraged!("The cover image for release '{}' is missing an image description.", self.title);
+            build.missing_image_descriptions = true;
         }
 
         let release_dir = build.build_dir.join(&self.permalink.slug);

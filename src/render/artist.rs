@@ -118,6 +118,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         &body,
         build,
         catalog,
+        &catalog.theme, // TODO: Should be artist.theme but we don't have that yet!
         &artist.name,
         breadcrumbs,
         crawler_meta

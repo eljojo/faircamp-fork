@@ -1,16 +1,15 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+use std::time::SystemTime;
+
 use chrono::{DateTime, Utc};
-use serde_derive::{Serialize, Deserialize};
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    fs,
-    path::{Path, PathBuf},
-    rc::Rc,
-    time::SystemTime
-};
+use serde_derive::{Deserialize, Serialize};
 
 use crate::{
     ArchiveAssets,
@@ -19,10 +18,11 @@ use crate::{
     AudioMeta,
     Build,
     Catalog,
+    DescribedImage,
     DownloadFormat,
     Extra,
     Image,
-    ImageAssets,
+    ImageInterior,
     Track,
     TrackAssets,
     util
@@ -56,7 +56,7 @@ pub struct Cache {
     /// process we know that all files in the registry with a usage count of 0
     /// are orphaned and can therefore be removed.
     artifact_registry: HashMap<String, usize>,
-    pub images: Vec<Rc<RefCell<ImageAssets>>>,
+    pub images: Vec<Image>,
     pub tracks: Vec<Rc<RefCell<TrackAssets>>>
 }
 
@@ -69,17 +69,16 @@ pub enum CacheOptimization {
     Wipe
 }
 
+// TODO: At some point consider implementing a hash property which hashes the
+//       file content. With this we can even reidentify files that have changed
+//       path within the catalog directory. (Con: Some overhead from computing
+//       the hash for the entire file (?))
 // TODO: PartialEq should be extended to a custom logic probably (first check
-//       path + size + modified, alternatively hash, etc.)
+//       path + size + modified, etc.)
 /// This stores relevant metadata for checking whether files we are processing
 /// in the current build match files we were processing in a previous build.
-/// The hash part is not yet implemented at all, so far we only use relative
-/// path in catalog directory, size and modification date to determine equality.
-/// Eventually if the path does not match we will be able to use hash instead,
-/// to detect a file that has just moved.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
 pub struct SourceFileSignature {
-    pub hash: String,
     pub modified: SystemTime,
     /// The path is relative to the catalog_dir root. This ensures
     /// that we can correctly re-associate files on each build, even
@@ -98,8 +97,8 @@ pub fn optimize_cache(
         optimize_archive_assets(archive_assets, build);
     }
 
-    for image_assets in cache.images.iter_mut() {
-        optimize_image_assets(image_assets, build);
+    for image in cache.images.iter_mut() {
+        optimize_image_assets(image, build);
     }
     
     for track_assets in cache.tracks.iter_mut() {
@@ -111,8 +110,8 @@ pub fn optimize_cache(
 
         optimize_archive_assets(&mut release_mut.archive_assets, build);
 
-        if let Some(image) = &mut release_mut.cover {
-            optimize_image_assets(&mut image.borrow_mut().assets, build);
+        if let Some(described_image) = &mut release_mut.cover {
+            optimize_image_assets(&described_image.image, build);
         }
         
         for track in release_mut.tracks.iter_mut() {
@@ -152,11 +151,11 @@ pub fn optimize_archive_assets(archive_assets: &mut Rc<RefCell<ArchiveAssets>>, 
     }
 }
 
-pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Build) {
-    let mut assets_mut = assets.borrow_mut();
+pub fn optimize_image_assets(image: &Image, build: &Build) {
+    let mut image_mut = image.borrow_mut();
     let mut keep_container = false;
 
-    let path = assets_mut.source_file_signature.path.display().to_string();
+    let path = image_mut.source_file_signature.path.display().to_string();
 
     {
         let mut optimize = |asset_option: &mut Option<Asset>, format: &str, path: &str| {
@@ -174,14 +173,14 @@ pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Buil
             }
         };
 
-        optimize(&mut assets_mut.background, "background", &path);
-        optimize(&mut assets_mut.feed, "feed", &path);
+        optimize(&mut image_mut.background_asset, "background", &path);
+        optimize(&mut image_mut.feed_asset, "feed", &path);
     }
 
     {
-        match assets_mut.artist.as_ref().map(|assets| assets.obsolete(build)) {
+        match image_mut.artist_assets.as_ref().map(|assets| assets.obsolete(build)) {
             Some(true) => {
-                for asset in assets_mut.artist.take().unwrap().all() {
+                for asset in image_mut.artist_assets.take().unwrap().all() {
                     util::remove_file(&build.cache_dir.join(&asset.filename));
                     info_cache!(
                         "Removed cached image asset ({}) for {} {}x{}.",
@@ -198,9 +197,9 @@ pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Buil
     }
 
     {
-        match assets_mut.cover.as_ref().map(|assets| assets.obsolete(build)) {
+        match image_mut.cover_assets.as_ref().map(|assets| assets.obsolete(build)) {
             Some(true) => {
-                for asset in assets_mut.cover.take().unwrap().all() {
+                for asset in image_mut.cover_assets.take().unwrap().all() {
                     util::remove_file(&build.cache_dir.join(&asset.filename));
                     info_cache!(
                         "Removed cached image asset ({}) for {} {}x{}.",
@@ -217,9 +216,9 @@ pub fn optimize_image_assets(assets: &mut Rc<RefCell<ImageAssets>>, build: &Buil
     }
 
     if keep_container {
-        assets_mut.persist_to_cache(&build.cache_dir);
+        image_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&assets_mut.manifest_path(&build.cache_dir));
+        util::remove_file(&image_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -259,8 +258,8 @@ pub fn report_stale(cache: &Cache, catalog: &Catalog) {
         report_stale_archive_assets(assets, &mut num_unused, &mut unused_bytesize);
     }
 
-    for assets in &cache.images {
-        report_stale_image_assets(assets, &mut num_unused, &mut unused_bytesize);
+    for image in &cache.images {
+        report_stale_image_assets(image, &mut num_unused, &mut unused_bytesize);
     }
     
     for assets in &cache.tracks {
@@ -272,8 +271,8 @@ pub fn report_stale(cache: &Cache, catalog: &Catalog) {
 
         report_stale_archive_assets(&release_ref.archive_assets, &mut num_unused, &mut unused_bytesize);
 
-        if let Some(image) = &release_ref.cover {
-            report_stale_image_assets(&image.borrow().assets, &mut num_unused, &mut unused_bytesize);
+        if let Some(described_image) = &release_ref.cover {
+            report_stale_image_assets(&described_image.image, &mut num_unused, &mut unused_bytesize);
         }
         
         for track in &release_ref.tracks {
@@ -311,11 +310,11 @@ pub fn report_stale_archive_assets(
 }
 
 pub fn report_stale_image_assets(
-    assets: &Rc<RefCell<ImageAssets>>,
+    image: &Image,
     num_unused: &mut u32,
     unused_bytesize: &mut u64
 ) {
-    let assets_ref = assets.borrow();
+    let image_ref = image.borrow();
 
     let mut report = |asset_option: &Option<Asset>| {
         if let Some(filesize_bytes) = asset_option
@@ -327,10 +326,10 @@ pub fn report_stale_image_assets(
         }
     };
 
-    report(&assets_ref.background);
-    report(&assets_ref.feed);
+    report(&image_ref.background_asset);
+    report(&image_ref.feed_asset);
 
-    if let Some(assets) = assets_ref.artist
+    if let Some(assets) = image_ref.artist_assets
         .as_ref()
         .filter(|assets| assets.marked_stale.is_some()) {
         for asset in &assets.all() {
@@ -339,7 +338,7 @@ pub fn report_stale_image_assets(
         }
     }
 
-    if let Some(assets) = assets_ref.cover
+    if let Some(assets) = image_ref.cover_assets
         .as_ref()
         .filter(|assets| assets.marked_stale.is_some()) {
         for asset in &assets.all() {
@@ -405,8 +404,8 @@ impl Cache {
             assets.borrow_mut().mark_all_stale(timestamp);
         }
 
-        for assets in self.images.iter_mut() {
-            assets.borrow_mut().mark_all_stale(timestamp);
+        for image in self.images.iter_mut() {
+            image.borrow_mut().mark_all_stale(timestamp);
         }
         
         for assets in self.tracks.iter_mut() {
@@ -505,8 +504,8 @@ impl Cache {
         if let Ok(dir_entries) = cache_dir.join(Cache::IMAGE_MANIFESTS_DIR).read_dir() {
             for dir_entry_result in dir_entries {
                 if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(mut assets) = ImageAssets::deserialize_cached(&dir_entry.path()) {
-                        if let Some(artist_assets) = assets.artist.as_mut() {
+                    if let Some(mut image_mut) = ImageInterior::deserialize_cached(&dir_entry.path()) {
+                        if let Some(artist_assets) = image_mut.artist_assets.as_mut() {
                             let all_assets = artist_assets.all();
 
                             for asset in all_assets.iter() {
@@ -522,22 +521,22 @@ impl Cache {
                                         }
                                     }
 
-                                    assets.artist = None;
+                                    image_mut.artist_assets = None;
                                     break;
                                 }
                             }
                         }
 
 
-                        if let Some(background_image) = &assets.background {
-                            if let Some(usage_counter) = self.artifact_registry.get_mut(&background_image.filename) {
+                        if let Some(background_asset) = &image_mut.background_asset {
+                            if let Some(usage_counter) = self.artifact_registry.get_mut(&background_asset.filename) {
                                 *usage_counter += 1;
                             } else {
-                                assets.background = None;
+                                image_mut.background_asset = None;
                             }
                         }
 
-                        if let Some(cover_assets) = assets.cover.as_mut() {
+                        if let Some(cover_assets) = image_mut.cover_assets.as_mut() {
                             let all_assets = cover_assets.all();
 
                             for asset in all_assets.iter() {
@@ -553,25 +552,25 @@ impl Cache {
                                         }
                                     }
 
-                                    assets.cover = None;
+                                    image_mut.cover_assets = None;
                                     break;
                                 }
                             }
                         }
 
-                        if let Some(feed_image) = &assets.feed {
-                            if let Some(usage_counter) = self.artifact_registry.get_mut(&feed_image.filename) {
+                        if let Some(feed_asset) = &image_mut.feed_asset {
+                            if let Some(usage_counter) = self.artifact_registry.get_mut(&feed_asset.filename) {
                                 *usage_counter += 1;
                             } else {
-                                assets.feed = None;
+                                image_mut.feed_asset = None;
                             }
                         }
 
-                        if assets.artist.is_some() ||
-                            assets.background.is_some() ||
-                            assets.cover.is_some() ||
-                            assets.feed.is_some() {
-                            self.images.push(Rc::new(RefCell::new(assets)));
+                        if image_mut.artist_assets.is_some() ||
+                            image_mut.background_asset.is_some() ||
+                            image_mut.cover_assets.is_some() ||
+                            image_mut.feed_asset.is_some() {
+                            self.images.push(Image::retrieved(image_mut));
                         } else {
                             // No actual cached files present, can throw away serialized metadata too
                             util::remove_file(&dir_entry.path());
@@ -640,7 +639,7 @@ impl Cache {
     /// created (but not yet computed).
     pub fn get_or_create_archive_assets(
         &mut self,
-        cover: &Option<Rc<RefCell<Image>>>,
+        cover: &Option<DescribedImage>,
         tracks: &[Track],
         extras: &[Extra]
     ) -> Rc<RefCell<ArchiveAssets>> {
@@ -649,9 +648,9 @@ impl Cache {
             .find(|assets| {
                 let assets_ref = assets.borrow();
 
-                if let Some(cover) = cover {
+                if let Some(described_image) = cover {
                     if assets_ref.cover_source_file_signature.as_ref() !=
-                       Some(&cover.borrow().assets.borrow().source_file_signature) {
+                       Some(&described_image.image.borrow().source_file_signature) {
                         return false;
                     }
                 } else if assets_ref.cover_source_file_signature.is_some() {
@@ -683,7 +682,7 @@ impl Cache {
                     .collect();
 
                 let assets = Rc::new(RefCell::new(ArchiveAssets::new(
-                    cover.as_ref().map(|cover| cover.borrow().assets.borrow().source_file_signature.clone()),
+                    cover.as_ref().map(|described_image| described_image.image.borrow().source_file_signature.clone()),
                     track_source_file_signatures,
                     extras.iter().map(|extra| extra.source_file_signature.clone()).collect()
                 )));
@@ -693,21 +692,21 @@ impl Cache {
         }
     }
 
-    pub fn get_or_create_image_assets(
+    pub fn get_or_create_image(
         &mut self,
         build: &Build,
         source_path: &Path
-    ) -> Rc<RefCell<ImageAssets>> {
+    ) -> Image {
         let source_file_signature = SourceFileSignature::new(build, source_path);
 
-        match self.images.iter().find(|assets|
-            assets.borrow().source_file_signature == source_file_signature
+        match self.images.iter().find(|image|
+            image.borrow().source_file_signature == source_file_signature
         ) {
-            Some(assets) => assets.clone(),
+            Some(image) => image.clone(),
             None => {
-                let assets = Rc::new(RefCell::new(ImageAssets::new(source_file_signature)));
-                self.images.push(assets.clone());
-                assets
+                let image = Image::new(source_file_signature);
+                self.images.push(image.clone());
+                image
             }
         }
     }
@@ -773,7 +772,6 @@ impl SourceFileSignature {
             .expect("Could not access source file");
         
         SourceFileSignature {
-            hash: String::new(), // TODO: Implement somewhere, somehow (maybe on demand rather?)
             modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
             path: path.to_path_buf(),
             size: metadata.len()

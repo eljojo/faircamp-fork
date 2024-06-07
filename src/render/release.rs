@@ -245,6 +245,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         &body,
         build,
         catalog,
+        &release.theme,
         &release.title,
         breadcrumbs,
         crawler_meta

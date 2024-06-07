@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::cell::{Ref, RefCell, RefMut};
+use std::fs;
+use std::hash::{Hash, Hasher};
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+
 use chrono::{DateTime, Duration, Utc};
 use serde_derive::{Serialize, Deserialize};
-use std::{
-    cell::RefCell,
-    fs,
-    path::{Path, PathBuf},
-    rc::Rc
-};
 
 use crate::{
     Asset,
@@ -18,9 +18,9 @@ use crate::{
     CacheOptimization,
     ImageInMemory,
     ResizeMode,
-    SourceFileSignature,
-    util
+    SourceFileSignature
 };
+use crate::util::url_safe_hash;
 
 const BACKGROUND_MAX_EDGE_SIZE: u32 = 1280;
 const FEED_MAX_EDGE_SIZE: u32 = 920;
@@ -78,23 +78,37 @@ pub struct CoverAssets {
     pub max_1280: Option<CoverAsset>
 }
 
-/// Associates image assets with an image description
-#[derive(Debug)]
-pub struct Image {
-    pub assets: Rc<RefCell<ImageAssets>>,
-    pub description: Option<String>
+/// Associates an [Image] with an image description
+#[derive(Clone, Debug)]
+pub struct DescribedImage {
+    pub description: Option<String>,
+    pub image: Image
 }
 
-/// Represents a source image file in the catalog and all its generated
-/// (compressed/resized) derived versions.
+/// Represents a unique image in the catalog directory.
+/// Technically wraps a payload with interior mutability that
+/// holds the source file signature which is used to uniquely
+/// identify the image and all the computed production artifacts
+/// in the cache that derive from the source image.
+/// Future note: Including source file signature in the mutable
+/// payload makes sense in so far as in the future we might
+/// implement file content hashing, which is only performed on
+/// demand, and then it will make sense to be able to mutate the
+/// source file signature during runtime.
+#[derive(Clone, Debug)]
+pub struct Image {
+    pub interior: Rc<RefCell<ImageInterior>>,
+}
+
+/// Stores the interior (mutable) payload of an image, comprised
+/// of compressed/resized assets and the source file signature.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ImageAssets {
-    pub artist: Option<ArtistAssets>,
-    pub background: Option<Asset>,
-    pub cover: Option<CoverAssets>,
-    pub feed: Option<Asset>,
-    pub source_file_signature: SourceFileSignature,
-    pub uid: String
+pub struct ImageInterior {
+    pub artist_assets: Option<ArtistAssets>,
+    pub background_asset: Option<Asset>,
+    pub cover_assets: Option<CoverAssets>,
+    pub feed_asset: Option<Asset>,
+    pub source_file_signature: SourceFileSignature
 }
 
 pub struct ImgAttributes {
@@ -250,22 +264,51 @@ impl CoverAssets {
     }
 }
 
-impl Image {
-    pub fn new(assets: Rc<RefCell<ImageAssets>>, description: Option<String>) -> Image {
-        Image {
-            assets,
-            description
+impl DescribedImage {
+    pub fn new(description: Option<String>, image: Image) -> DescribedImage {
+        DescribedImage {
+            description,
+            image
         }
     }
 }
 
-impl ImageAssets {
+impl Image {
+    pub fn borrow<'a>(&'a self) -> Ref<'a, ImageInterior> {
+        self.interior.borrow()
+    }
+
+    pub fn borrow_mut<'a>(&'a self) -> RefMut<'a, ImageInterior> {
+        self.interior.borrow_mut()
+    }
+
+    pub fn new(source_file_signature: SourceFileSignature) -> Image {
+        Image {
+            interior: Rc::new(RefCell::new(ImageInterior::new(source_file_signature)))
+        }
+    }
+
+    pub fn retrieved(interior: ImageInterior) -> Image {
+        Image {
+            interior: Rc::new(RefCell::new(interior))
+        }
+    }
+}
+
+impl Hash for Image {
+    /// Needed so we can automatically derive Hash for Theme
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.interior.borrow().source_file_signature.path.hash(state);
+    }
+}
+
+impl ImageInterior {
     pub fn artist_asset(
         &mut self,
         build: &Build,
         asset_intent: AssetIntent
     ) -> &mut ArtistAssets {
-        if let Some(assets) = self.artist.as_mut() {
+        if let Some(assets) = self.artist_assets.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 assets.unmark_stale();
             }
@@ -285,7 +328,7 @@ impl ImageAssets {
                 max_width: 320,
                 min_aspect: 2.25
             };
-            let fixed_max_320 = ImageAssets::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_320);
+            let fixed_max_320 = ImageInterior::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_320);
 
             let fixed_max_480 = if source_width > 320.0 * MIN_OVERSHOOT {
                 let resize_mode_fixed_480 = ResizeMode::CoverRectangle {
@@ -293,7 +336,7 @@ impl ImageAssets {
                     max_width: 480,
                     min_aspect: 2.25
                 };
-                Some(ImageAssets::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_480))
+                Some(ImageInterior::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_480))
             } else {
                 None
             };
@@ -304,7 +347,7 @@ impl ImageAssets {
                     max_width: 640,
                     min_aspect: 2.25
                 };
-                Some(ImageAssets::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_640))
+                Some(ImageInterior::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_640))
             } else {
                 None
             };
@@ -319,7 +362,7 @@ impl ImageAssets {
                 max_width: 640,
                 min_aspect: 2.5
             };
-            let fluid_max_640 = ImageAssets::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_640);
+            let fluid_max_640 = ImageInterior::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_640);
 
             let fluid_max_960 = if source_width > 640.0 * MIN_OVERSHOOT {
                 let resize_mode_fluid_960 = ResizeMode::CoverRectangle {
@@ -327,7 +370,7 @@ impl ImageAssets {
                     max_width: 960,
                     min_aspect: 2.5
                 };
-                Some(ImageAssets::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_960))
+                Some(ImageInterior::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_960))
             } else {
                 None
             };
@@ -338,7 +381,7 @@ impl ImageAssets {
                     max_width: 1280,
                     min_aspect: 2.5
                 };
-                Some(ImageAssets::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_1280))
+                Some(ImageInterior::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_1280))
             } else {
                 None
             };
@@ -356,10 +399,10 @@ impl ImageAssets {
                 }
             };
 
-            self.artist.replace(artist_assets);
+            self.artist_assets.replace(artist_assets);
         }
 
-        self.artist.as_mut().unwrap()
+        self.artist_assets.as_mut().unwrap()
     }
 
     pub fn background_asset(
@@ -367,7 +410,7 @@ impl ImageAssets {
         build: &Build,
         asset_intent: AssetIntent
     ) -> &mut Asset {
-        if let Some(asset) = self.background.as_mut() {
+        if let Some(asset) = self.background_asset.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 asset.unmark_stale();
             }
@@ -379,10 +422,10 @@ impl ImageAssets {
             let resize_mode = ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE };
             let (filename, _dimensions) = build.image_processor.resize(build, &image_in_memory, resize_mode);
 
-            self.background.replace(Asset::new(build, filename, asset_intent));
+            self.background_asset.replace(Asset::new(build, filename, asset_intent));
         }
 
-        self.background.as_mut().unwrap()
+        self.background_asset.as_mut().unwrap()
     }
 
     fn compute_artist_asset(
@@ -433,7 +476,7 @@ impl ImageAssets {
         build: &Build,
         asset_intent: AssetIntent
     ) -> &mut CoverAssets {
-        if let Some(assets) = self.cover.as_mut() {
+        if let Some(assets) = self.cover_assets.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 assets.unmark_stale();
             }
@@ -444,32 +487,32 @@ impl ImageAssets {
             let source_width = image_in_memory.width() as f32;
 
             let resize_mode_max_160 = ResizeMode::CoverSquare { edge_size: 160 };
-            let max_160 = ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_160);
+            let max_160 = ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_160);
 
             let max_320 = if source_width > 160.0 * MIN_OVERSHOOT {
                 let resize_mode_max_320 = ResizeMode::CoverSquare { edge_size: 320 };
-                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_320))
+                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_320))
             } else {
                 None
             };
 
             let max_480 = if source_width > 320.0 * MIN_OVERSHOOT {
                 let resize_mode_max_480 = ResizeMode::CoverSquare { edge_size: 480 };
-                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_480))
+                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_480))
             } else {
                 None
             };
 
             let max_800 = if source_width > 480.0 * MIN_OVERSHOOT {
                 let resize_mode_max_800 = ResizeMode::CoverSquare { edge_size: 800 };
-                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_800))
+                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_800))
             } else {
                 None
             };
 
             let max_1280 = if source_width > 800.0 * MIN_OVERSHOOT {
                 let resize_mode_max_1280 = ResizeMode::CoverSquare { edge_size: 1280 };
-                Some(ImageAssets::compute_cover_asset(build, &image_in_memory, resize_mode_max_1280))
+                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_1280))
             } else {
                 None
             };
@@ -486,15 +529,15 @@ impl ImageAssets {
                 max_1280
             };
 
-            self.cover.replace(cover_assets);
+            self.cover_assets.replace(cover_assets);
         }
 
-        self.cover.as_mut().unwrap()
+        self.cover_assets.as_mut().unwrap()
     }
 
-    pub fn deserialize_cached(path: &Path) -> Option<ImageAssets> {
+    pub fn deserialize_cached(path: &Path) -> Option<ImageInterior> {
         match fs::read(path) {
-            Ok(bytes) => bincode::deserialize::<ImageAssets>(&bytes).ok(),
+            Ok(bytes) => bincode::deserialize::<ImageInterior>(&bytes).ok(),
             Err(_) => None
         }
     }
@@ -504,7 +547,7 @@ impl ImageAssets {
         build: &Build,
         asset_intent: AssetIntent
     ) -> &mut Asset {
-        if let Some(asset) = self.feed.as_mut() {
+        if let Some(asset) = self.feed_asset.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 asset.unmark_stale();
             }
@@ -519,38 +562,39 @@ impl ImageAssets {
                 ResizeMode::ContainInSquare { max_edge_size: FEED_MAX_EDGE_SIZE }
             );
 
-            self.feed.replace(Asset::new(build, filename, asset_intent));
+            self.feed_asset.replace(Asset::new(build, filename, asset_intent));
         }
 
-        self.feed.as_mut().unwrap()
+        self.feed_asset.as_mut().unwrap()
     }
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
-        let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(Cache::IMAGE_MANIFESTS_DIR).join(filename)
+        let source_file_signature_hash = url_safe_hash(&self.source_file_signature);
+        let manifest_filename = format!("{source_file_signature_hash}.bincode");
+        cache_dir.join(Cache::IMAGE_MANIFESTS_DIR).join(manifest_filename)
     }
     
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        if let Some(asset) = self.artist.as_mut() { asset.mark_stale(timestamp); }
-        if let Some(asset) = self.background.as_mut() { asset.mark_stale(timestamp); }
-        if let Some(asset) = self.cover.as_mut() { asset.mark_stale(timestamp); }
-        if let Some(asset) = self.feed.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.artist_assets.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.background_asset.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.cover_assets.as_mut() { asset.mark_stale(timestamp); }
+        if let Some(asset) = self.feed_asset.as_mut() { asset.mark_stale(timestamp); }
     }
     
-    pub fn new(source_file_signature: SourceFileSignature) -> ImageAssets {
-        ImageAssets {
-            artist: None,
-            background: None,
-            cover: None,
-            feed: None,
-            source_file_signature,
-            uid: util::uid()
+    pub fn new(source_file_signature: SourceFileSignature) -> ImageInterior {
+        ImageInterior {
+            artist_assets: None,
+            background_asset: None,
+            cover_assets: None,
+            feed_asset: None,
+            source_file_signature
         }
     }
-    
+
     pub fn persist_to_cache(&self, cache_dir: &Path) {
+        let manifest_path = self.manifest_path(cache_dir);
         let serialized = bincode::serialize(self).unwrap();
-        fs::write(self.manifest_path(cache_dir), serialized).unwrap();
+        fs::write(manifest_path, serialized).unwrap();
     }
 }
 

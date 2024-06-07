@@ -4,12 +4,12 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{HtmlAndStripped, Image, Permalink, Release};
+use crate::{DescribedImage, HtmlAndStripped, Permalink, Release};
 
 #[derive(Debug)]
 pub struct Artist {
     pub aliases: Vec<String>,
-    pub image: Option<Rc<RefCell<Image>>>,
+    pub image: Option<DescribedImage>,
     pub name: String,
     pub permalink: Permalink,
     pub releases: Vec<Rc<RefCell<Release>>>,

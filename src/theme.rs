@@ -1,13 +1,21 @@
 // SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::cell::RefCell;
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
-use std::rc::Rc;
 
 use crate::Image;
+use crate::util::url_safe_hash;
 
-#[derive(Debug)]
+/// We use the newtype pattern here (instead of just f32) mostly because
+/// we need all alpha fields to be automatically hashable (which f32 isn't)
+/// Valid range is 0.0-1.0
+/// TODO: We could maybe enforce this range in code (macro?)
+#[derive(Clone, Debug)]
+pub struct Alpha(f32);
+
+#[derive(Clone, Debug, Hash)]
 pub enum CoverGenerator {
     BestRillen,
     GlassSplinters,
@@ -22,14 +30,13 @@ pub enum CoverGenerator {
 /// s(aturation)        0-100 percent
 /// tint_back           0-100 percent
 /// tint_front          0-100 percent
-#[derive(Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct Theme {
     pub background_alpha: u8,
     /// Contains an absolute path to the file (validity is checked when reading manifests)
-    pub background_image: Option<Rc<RefCell<Image>>>,
+    pub background_image: Option<Image>,
     pub base: ThemeBase,
     pub cover_generator: CoverGenerator,
-    pub customized: bool,
     pub font: ThemeFont,
     pub link_h: u16,
     pub link_l: Option<u8>,
@@ -46,30 +53,42 @@ pub struct Theme {
 /// h(ue)         0-360 degrees
 /// l(ightness)   0-100 percent
 /// s(aturation)  0-100 percent
-#[derive(Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct ThemeBase {
     pub background_l: u8,
     pub faint_l: u8,
-    pub header_a: f32,
+    pub header_a: Alpha,
     pub header_l: u8,
     pub header_link_l: u8,
-    pub header_shadow_a: f32,
+    pub header_shadow_a: Alpha,
     pub header_text_l: u8,
     pub link_l: u8,
     pub link_s: u8,
     pub link_hover_l: u8,
     pub muted_l: u8,
-    pub release_additional_a: f32,
+    pub release_additional_a: Alpha,
     pub text_l: u8
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Hash)]
 pub enum ThemeFont {
     Custom { extension: String, path: PathBuf },
     Default,
     SystemMono,
     SystemSans,
     System(String)
+}
+
+impl Display for Alpha {
+    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        write!(formatter, "{}", self.0)
+    }
+}
+
+impl Hash for Alpha {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.to_string().hash(state);
+    }
 }
 
 impl CoverGenerator {
@@ -100,7 +119,6 @@ impl Theme {
             background_image: None,
             base: ThemeBase::DARK,
             cover_generator: CoverGenerator::LooneyTunes,
-            customized: false,
             font: ThemeFont::Default,
             link_h: 0,
             link_l: None,
@@ -112,6 +130,10 @@ impl Theme {
             tint_front: 0,
             waveforms: true
         }
+    }
+
+    pub fn stylesheet_filename(&self) -> String {
+        format!("theme-{}.css", url_safe_hash(self))
     }
 }
 
@@ -130,96 +152,96 @@ impl ThemeBase {
     pub const BLACK: ThemeBase = ThemeBase {
         background_l: 0,
         faint_l: 15,
-        header_a: 0.8,
+        header_a: Alpha(0.8),
         header_l: 0,
         header_link_l: 86,
-        header_shadow_a: 0.0,
+        header_shadow_a: Alpha(0.0),
         header_text_l: 68,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        release_additional_a: 0.06,
+        release_additional_a: Alpha(0.06),
         text_l: 72
     };
 
     pub const BLACK_ALTERNATE: ThemeBase = ThemeBase {
         background_l: 0,
         faint_l: 15,
-        header_a: 0.9,
+        header_a: Alpha(0.9),
         header_l: 10,
         header_link_l: 86,
-        header_shadow_a: 0.2,
+        header_shadow_a: Alpha(0.2),
         header_text_l: 72,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        release_additional_a: 0.06,
+        release_additional_a: Alpha(0.06),
         text_l: 72
     };
 
     pub const DARK: ThemeBase = ThemeBase {
         background_l: 10,
         faint_l: 15,
-        header_a: 0.8,
+        header_a: Alpha(0.8),
         header_l: 10,
         header_link_l: 86,
-        header_shadow_a: 0.0,
+        header_shadow_a: Alpha(0.0),
         header_text_l: 72,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        release_additional_a: 0.02,
+        release_additional_a: Alpha(0.02),
         text_l: 86
     };
 
     pub const LIGHT: ThemeBase = ThemeBase {
         background_l: 90,
         faint_l: 85,
-        header_a: 0.9,
+        header_a: Alpha(0.9),
         header_l: 90,
         header_link_l: 14,
-        header_shadow_a: 0.0,
+        header_shadow_a: Alpha(0.0),
         header_text_l: 14,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        release_additional_a: 0.03,
+        release_additional_a: Alpha(0.03),
         text_l: 14
     };
 
     pub const WHITE: ThemeBase = ThemeBase {
         background_l: 100,
         faint_l: 87,
-        header_a: 0.9,
+        header_a: Alpha(0.9),
         header_l: 100,
         header_link_l: 14,
-        header_shadow_a: 0.0,
+        header_shadow_a: Alpha(0.0),
         header_text_l: 14,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        release_additional_a: 0.04,
+        release_additional_a: Alpha(0.04),
         text_l: 14
     };
 
     pub const WHITE_ALTERNATE: ThemeBase = ThemeBase {
         background_l: 100,
         faint_l: 87,
-        header_a: 0.82,
+        header_a: Alpha(0.82),
         header_l: 0,
         header_link_l: 100,
-        header_shadow_a: 0.2,
+        header_shadow_a: Alpha(0.2),
         header_text_l: 85,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        release_additional_a: 0.04,
+        release_additional_a: Alpha(0.04),
         text_l: 14
     };
 

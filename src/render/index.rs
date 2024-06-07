@@ -149,6 +149,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         &body,
         build,
         catalog,
+        &catalog.theme,
         &catalog_title,
         &[],
         CrawlerMeta::None

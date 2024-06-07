@@ -5,7 +5,8 @@
 use indoc::formatdoc;
 use std::fs;
 
-use crate::{Build, Theme, ThemeFont};
+use crate::{Build, Catalog, Theme, ThemeFont};
+use crate::util::url_safe_hash;
 
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
 
@@ -13,7 +14,43 @@ const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Se
 /// button/input anymore we can drop that again.
 const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
 
-pub fn generate(build: &Build, theme: &Theme) {
+pub fn generate(build: &Build, catalog: &Catalog) {
+    generate_common(build);
+    generate_theme(build, &catalog.theme);
+
+    for release in &catalog.releases {
+        let release_ref = release.borrow();
+
+        generate_theme(build, &release_ref.theme);
+
+        for track in &release_ref.tracks {
+            generate_theme(build, &track.theme);
+        }
+    }
+}
+
+fn generate_common(build: &Build) {
+    let mut css = String::from(include_str!("assets/styles.css"));
+
+    if build.missing_image_descriptions {
+        css.push_str(include_str!("assets/missing_image_descriptions.css"));
+    }
+
+    if build.theming_widget {
+        css.push_str(include_str!("assets/theming_widget.css"));
+    }
+
+    fs::write(build.build_dir.join("styles.css"), css).unwrap();
+}
+
+pub fn generate_theme(build: &Build, theme: &Theme) {
+    let stylesheet_filename = theme.stylesheet_filename();
+    let stylesheet_path = build.build_dir.join(stylesheet_filename);
+
+    if stylesheet_path.exists() {
+        return;
+    }
+
     let font_declaration = match &theme.font {
         ThemeFont::Custom { extension, path } => {
             let filename = format!("custom.{}", extension);
@@ -89,7 +126,6 @@ pub fn generate(build: &Build, theme: &Theme) {
                 --text-s: calc({text_s}% * (var(--tint-front) / 100));
             }}
             {font_declaration}
-            {included_static_css}
         "#,
         tint_back = theme.tint_back,
         tint_front = theme.tint_front,
@@ -118,11 +154,14 @@ pub fn generate(build: &Build, theme: &Theme) {
         release_additional_a = theme.base.release_additional_a,
         text_h = theme.text_h,
         text_l = theme.base.text_l,
-        text_s = 94, // TODO: Dynamic or elsewhere defined
-        included_static_css = include_str!("assets/styles.css")
+        text_s = 94 // TODO: Dynamic or elsewhere defined
     );
 
-    if theme.background_image.is_some() {
+    if let Some(image) = &theme.background_image {
+        let image_ref = image.borrow();
+        let filename = &image_ref.background_asset.as_ref().unwrap().filename;
+        let hashed_filename = format!("background-{}.jpg", url_safe_hash(filename));
+
         // We are using a pseudo-element floating behind all other page content
         // to display the background image. A more straight-forward way would
         // be to use "fixed" background positioning on body itself, but Apple
@@ -136,7 +175,7 @@ pub fn generate(build: &Build, theme: &Theme) {
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
                         hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
                     ),
-                    url(background.jpg) center / cover;
+                    url({hashed_filename}) center / cover;
                 content: '';
                 display: block;
                 height: 100vh;
@@ -150,14 +189,6 @@ pub fn generate(build: &Build, theme: &Theme) {
 
         css.push_str(&background_override);
     }
-
-    if build.missing_image_descriptions {
-        css.push_str(include_str!("assets/missing_image_descriptions.css"));
-    }
-
-    if build.theming_widget {
-        css.push_str(include_str!("assets/theming_widget.css"));
-    }
     
-    fs::write(build.build_dir.join("styles.css"), css).unwrap();
+    fs::write(stylesheet_path, css).unwrap();
 }

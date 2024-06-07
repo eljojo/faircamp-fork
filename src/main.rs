@@ -50,8 +50,8 @@ use catalog::Catalog;
 use download_option::DownloadOption;
 use favicon::Favicon;
 use ffmpeg::TagMapping;
-use crate::image::{Image, ImageAssets};
 use heuristic_audio_meta::HeuristicAudioMeta;
+use crate::image::{DescribedImage, Image, ImageInterior};
 use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use locale::Locale;
 use markdown::HtmlAndStripped;
@@ -128,8 +128,8 @@ fn main() {
         release.borrow_mut().write_files(&mut build, &catalog);
     }
 
-    if let Some(home_image) = &catalog.home_image {
-        if home_image.borrow().description.is_none() {
+    if let Some(described_image) = &catalog.home_image {
+        if described_image.description.is_none() {
             warn_discouraged!("The catalog home image is missing an image description.");
             build.missing_image_descriptions = true;
         }
@@ -138,8 +138,8 @@ fn main() {
     // Render pages for featured artists (these are populated only in label mode)
     for artist in &catalog.featured_artists {
         let artist_ref = artist.borrow();
-        if let Some(image) = &artist_ref.image {
-            if image.borrow().description.is_none() {
+        if let Some(described_image) = &artist_ref.image {
+            if described_image.description.is_none() {
                 warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
                 build.missing_image_descriptions = true;
             }
@@ -163,8 +163,9 @@ fn main() {
 
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
-    styles::generate(&build, &catalog.theme);
+    styles::generate(&build, &catalog);
     feed::generate(&build, &catalog);
+    // TODO: Switch to inline icons (?) - coloring depends on the theme of each page and even on where the icon appears! (also inline allows us hover styles and so on)
     icons::generate(&build, &catalog.theme);
 
     catalog.favicon.write(&build);

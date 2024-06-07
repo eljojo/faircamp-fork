@@ -107,6 +107,7 @@ pub fn embed_choices_html(
     let release_link = format!("..{index_suffix}");
 
     let compact_release_identifier_rendered = compact_release_identifier(
+        build,
         catalog,
         index_suffix,
         release,
@@ -164,6 +165,7 @@ pub fn embed_choices_html(
         &body,
         build,
         catalog,
+        &release.theme,
         &release.title,
         breadcrumbs,
         CrawlerMeta::NoIndexNoFollow
