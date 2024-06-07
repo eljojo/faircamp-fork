@@ -63,7 +63,7 @@ impl HeuristicAudioMeta {
         let mut items = Vec::new();
 
         for track in &mut *release_tracks {
-            let file_stem = track.assets.borrow().source_file_signature.path
+            let file_stem = track.transcodes.borrow().source_file_signature.path
                 .file_stem()
                 .unwrap()
                 .to_string_lossy()
@@ -104,7 +104,7 @@ impl HeuristicAudioMeta {
         };
 
         for track in &mut *release_tracks {
-            let file_stem = track.assets.borrow().source_file_signature.path
+            let file_stem = track.transcodes.borrow().source_file_signature.path
                 .file_stem()
                 .unwrap()
                 .to_string_lossy()
@@ -199,15 +199,15 @@ impl SeparatorPattern {
     pub fn trim_separator_prefix(&self, remainder: &str) -> String {
         match self {
             SeparatorPattern::ColonSpace => {
-                if remainder.starts_with(':') {
-                    remainder[1..].trim_start().to_string()
+                if let Some(colon_stripped) = remainder.strip_prefix(':') {
+                    colon_stripped.trim_start().to_string()
                 } else {
                     remainder.trim_start().to_string()
                 }
             }
             SeparatorPattern::DotSpace => {
-                if remainder.starts_with('.') {
-                    remainder[1..].trim_start().to_string()
+                if let Some(dot_stripped) = remainder.strip_prefix('.') {
+                    dot_stripped.trim_start().to_string()
                 } else {
                     remainder.trim_start().to_string()
                 }
@@ -216,11 +216,10 @@ impl SeparatorPattern {
                 remainder.trim_start().to_string()
             }
             SeparatorPattern::SpaceDashSpace => {
-                let remainder = remainder.trim_start().to_string();
-                if remainder.starts_with('-') {
-                    remainder[1..].trim_start().to_string()
+                if let Some(dash_stripped) = remainder.trim_start().strip_prefix('.') {
+                    dash_stripped.trim_start().to_string()
                 } else {
-                    remainder.to_string()
+                    remainder.trim_start().to_string()
                 }
             }
             SeparatorPattern::Unseparated => {

@@ -2,14 +2,14 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell, RefMut};
 use std::f32::consts::TAU;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::prelude::*;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::rc::Rc;
 
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::NaiveDate;
 use indoc::formatdoc;
 use sanitize_filename::sanitize;
 use serde_derive::{Serialize, Deserialize};
@@ -17,11 +17,11 @@ use zip::{CompressionMethod, ZipWriter};
 use zip::write::SimpleFileOptions;
 
 use crate::{
-    Artist,
+    ArchivesRc,
+    ArtistRc,
     Asset,
     AssetIntent,
     Build,
-    Cache,
     Catalog,
     DescribedImage,
     DownloadFormat,
@@ -39,25 +39,6 @@ use crate::{
 };
 use crate::manifest::{LocalOptions, Overrides};
 
-/// Downloadable zip archives for a release, including cover and tracks
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ArchiveAssets {
-    pub aac: Option<Asset>,
-    pub aiff: Option<Asset>,
-    pub alac: Option<Asset>,
-    pub cover_source_file_signature: Option<SourceFileSignature>,
-    pub extra_source_file_signatures: Vec<SourceFileSignature>,
-    pub flac: Option<Asset>,
-    pub mp3_v0: Option<Asset>,
-    pub ogg_vorbis: Option<Asset>,
-    pub opus_48: Option<Asset>,
-    pub opus_96: Option<Asset>,
-    pub opus_128: Option<Asset>,
-    pub track_source_file_signatures: Vec<SourceFileSignature>,
-    pub uid: String,
-    pub wav: Option<Asset>
-}
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum DownloadGranularity {
     AllOptions,
@@ -73,7 +54,7 @@ pub struct Extra {
 
 #[derive(Debug)]
 pub struct Release {
-    pub archive_assets: Rc<RefCell<ArchiveAssets>>,
+    pub archives: ArchivesRc,
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download asset filenames.
     pub asset_basename: Option<String>,
@@ -87,10 +68,10 @@ pub struct Release {
     /// such as additional images, liner notes, etc.
     pub extras: Vec<Extra>,
     /// Whether additional files in the release directory (besides audio files,
-    /// cover image and manifest(s)) should be included in the downloads. 
+    /// cover image and manifest(s)) should be included in the archives. 
     pub include_extras: bool,
     /// The artists that are the principal authors of a release ("Album Artist" in tag lingo)
-    pub main_artists: Vec<Rc<RefCell<Artist>>>,
+    pub main_artists: Vec<ArtistRc>,
     /// The order in which we encounter artists and releases when reading the
     /// catalog is arbitrary, hence when we read a release, we might not yet
     /// have read metadata that tells us to which artist(s) it needs to be
@@ -107,7 +88,7 @@ pub struct Release {
     pub source_dir: PathBuf,
     pub streaming_quality: StreamingQuality,
     /// Artists that appear on the release as collaborators, features, etc.
-    pub support_artists: Vec<Rc<RefCell<Artist>>>,
+    pub support_artists: Vec<ArtistRc>,
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
     pub text: Option<HtmlAndStripped>,
@@ -124,6 +105,11 @@ pub struct Release {
     /// might happen, but this is somewhat impossible to avoid.
     pub tracks: Vec<Track>,
     pub unlisted: bool
+}
+
+#[derive(Clone, Debug)]
+pub struct ReleaseRc {
+    release: Rc<RefCell<Release>>,
 }
 
 #[derive(Clone, Debug)]
@@ -164,7 +150,7 @@ impl Release {
             .iter()
             .enumerate()
             .map(|(track_index, track)| {
-                let source_meta = &track.assets.borrow().source_meta;
+                let source_meta = &track.transcodes.borrow().source_meta;
 
                 let altitude_range = 0.75 * self.tracks.len() as f32 / max_tracks_in_release as f32;
                 let altitude_width = radius * altitude_range / self.tracks.len() as f32;
@@ -233,7 +219,7 @@ impl Release {
 
         let total_duration: f32 = self.tracks
             .iter()
-            .map(|track| track.assets.borrow().source_meta.duration_seconds)
+            .map(|track| track.transcodes.borrow().source_meta.duration_seconds)
             .sum();
 
         let shortest_track_duration = self.shortest_track_duration();
@@ -245,7 +231,7 @@ impl Release {
             .iter()
             .enumerate()
             .map(|(_track_index, track)| {
-                let source_meta = &track.assets.borrow().source_meta;
+                let source_meta = &track.transcodes.borrow().source_meta;
 
                 let altitude_factor = (source_meta.duration_seconds - shortest_track_duration) / (longest_track_duration - shortest_track_duration);
                 let track_arc_range = source_meta.duration_seconds / total_duration;
@@ -297,7 +283,7 @@ impl Release {
     pub fn longest_track_duration(&self) -> f32 {
         let mut longest_track_duration = 0.0;
         for track in &self.tracks {
-            let duration_seconds = &track.assets.borrow().source_meta.duration_seconds;
+            let duration_seconds = &track.transcodes.borrow().source_meta.duration_seconds;
             if *duration_seconds > longest_track_duration {
                 longest_track_duration = *duration_seconds;
             }
@@ -321,7 +307,7 @@ impl Release {
             .iter()
             .enumerate()
             .map(|(track_index, track)| {
-                let source_meta = &track.assets.borrow().source_meta;
+                let source_meta = &track.transcodes.borrow().source_meta;
 
                 let altitude_width = radius / self.tracks.len() as f32;
                 let track_arc_range = source_meta.duration_seconds / longest_track_duration;
@@ -393,7 +379,7 @@ impl Release {
             .iter()
             .enumerate()
             .map(|(track_index, track)| {
-                let source_meta = &track.assets.borrow().source_meta;
+                let source_meta = &track.transcodes.borrow().source_meta;
 
                 let altitude_width = radius / self.tracks.len() as f32;
                 let track_arc_range = source_meta.duration_seconds / longest_track_duration;
@@ -453,7 +439,7 @@ impl Release {
 
         let total_duration: f32 = self.tracks
             .iter()
-            .map(|track| track.assets.borrow().source_meta.duration_seconds)
+            .map(|track| track.transcodes.borrow().source_meta.duration_seconds)
             .sum();
 
         let shortest_track_duration = self.shortest_track_duration();
@@ -472,7 +458,7 @@ impl Release {
             .iter()
             .enumerate()
             .map(|(_track_index, track)| {
-                let source_meta = &track.assets.borrow().source_meta;
+                let source_meta = &track.transcodes.borrow().source_meta;
 
                 let track_arc_range = source_meta.duration_seconds / total_duration;
 
@@ -521,7 +507,7 @@ impl Release {
     }
 
     pub fn new(
-        archive_assets: Rc<RefCell<ArchiveAssets>>,
+        archives: ArchivesRc,
         cover: Option<DescribedImage>,
         extras: Vec<Extra>,
         local_options: LocalOptions,
@@ -543,7 +529,7 @@ impl Release {
         }
 
         Release {
-            archive_assets,
+            archives,
             asset_basename: None,
             cover,
             date: local_options.release_date,
@@ -574,7 +560,7 @@ impl Release {
     fn shortest_track_duration(&self) -> f32 {
         let mut shortest_track_duration = f32::INFINITY;
         for track in &self.tracks {
-            let duration_seconds = &track.assets.borrow().source_meta.duration_seconds;
+            let duration_seconds = &track.transcodes.borrow().source_meta.duration_seconds;
             if *duration_seconds < shortest_track_duration {
                 shortest_track_duration = *duration_seconds;
             }
@@ -612,17 +598,17 @@ impl Release {
 
             util::ensure_dir(&format_dir);
 
-            let mut archive_assets_mut = self.archive_assets.borrow_mut();
-            let cached_archive_asset = archive_assets_mut.get_mut(*download_format);
+            let mut archives_mut = self.archives.borrow_mut();
+            let cached_archive_asset = archives_mut.get_mut(*download_format);
 
             for (track_index, track) in self.tracks.iter_mut().enumerate() {
                 // Transcode track to required format if needed and not yet available
                 if !(self.download_granularity == DownloadGranularity::EntireRelease && cached_archive_asset.is_some()) &&
-                    track.assets.borrow().get(download_format.as_audio_format()).is_none() {
-                    if download_format.is_lossless() && !track.assets.borrow().source_meta.lossless {
+                    track.transcodes.borrow().get(download_format.as_audio_format()).is_none() {
+                    if download_format.is_lossless() && !track.transcodes.borrow().source_meta.lossless {
                         warn_discouraged!(
                             "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
-                            &track.assets.borrow().source_file_signature.path.display()
+                            &track.transcodes.borrow().source_file_signature.path.display()
                         );
                     }
 
@@ -668,18 +654,18 @@ impl Release {
                         &tag_mapping_option
                     );
 
-                    track.assets.borrow().persist_to_cache(&build.cache_dir);
+                    track.transcodes.borrow().persist_to_cache(&build.cache_dir);
                 }
 
                 // If single track downloads are enabled copy transcoded track to build
                 if self.download_granularity != DownloadGranularity::EntireRelease {
-                    let mut download_track_assets_mut = track.assets.borrow_mut();
-                    let download_track_asset = download_track_assets_mut
+                    let mut transcodes_mut = track.transcodes.borrow_mut();
+                    let transcode = transcodes_mut
                         .get_mut(download_format.as_audio_format())
                         .as_mut()
                         .unwrap();
 
-                    download_track_asset.unmark_stale();
+                    transcode.unmark_stale();
 
                     let track_filename = format!(
                         "{basename}{extension}",
@@ -707,11 +693,11 @@ impl Release {
                     // So we only copy and add it to the stats if that hasn't yet happened.
                     if !target_path.exists() {
                         util::hard_link_or_copy(
-                            build.cache_dir.join(&download_track_asset.filename),
+                            build.cache_dir.join(&transcode.filename),
                             target_path
                         );
 
-                        build.stats.add_track(download_track_asset.filesize_bytes);
+                        build.stats.add_track(transcode.filesize_bytes);
                     }
                 }
             }
@@ -739,7 +725,7 @@ impl Release {
                     let mut buffer = Vec::new();
 
                     for track in self.tracks.iter_mut() {
-                        let assets_ref = track.assets.borrow();
+                        let assets_ref = track.transcodes.borrow();
                         let download_track_asset = assets_ref.get(download_format.as_audio_format()).as_ref().unwrap();
 
                         let filename = format!(
@@ -758,7 +744,7 @@ impl Release {
                         zip_writer.write_all(&buffer).unwrap();
                         buffer.clear();
 
-                        track.assets.borrow().persist_to_cache(&build.cache_dir);
+                        track.transcodes.borrow().persist_to_cache(&build.cache_dir);
                     }
 
                     if let Some(described_image) = &mut self.cover {
@@ -823,7 +809,7 @@ impl Release {
 
                 build.stats.add_archive(download_archive_asset.filesize_bytes);
 
-                archive_assets_mut.persist_to_cache(&build.cache_dir);
+                archives_mut.persist_to_cache(&build.cache_dir);
             }
         }
 
@@ -963,83 +949,19 @@ impl Release {
     }
 }
 
-impl ArchiveAssets {
-    pub fn deserialize_cached(path: &Path) -> Option<ArchiveAssets> {
-        match fs::read(path) {
-            Ok(bytes) => bincode::deserialize::<ArchiveAssets>(&bytes).ok(),
-            Err(_) => None
+impl ReleaseRc {
+    pub fn borrow(&self) -> Ref<'_, Release> {
+        self.release.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, Release> {
+        self.release.borrow_mut()
+    }
+
+    pub fn new(release: Release) -> ReleaseRc {
+        ReleaseRc {
+            release: Rc::new(RefCell::new(release))
         }
-    }
-
-    pub fn get(&self, download_format: DownloadFormat) -> &Option<Asset> {
-        match download_format {
-            DownloadFormat::Aac => &self.aac,
-            DownloadFormat::Aiff => &self.aiff,
-            DownloadFormat::Alac => &self.alac,
-            DownloadFormat::Flac => &self.flac,
-            DownloadFormat::Mp3VbrV0 => &self.mp3_v0,
-            DownloadFormat::OggVorbis => &self.ogg_vorbis,
-            DownloadFormat::Opus48Kbps => &self.opus_48,
-            DownloadFormat::Opus96Kbps => &self.opus_96,
-            DownloadFormat::Opus128Kbps => &self.opus_128,
-            DownloadFormat::Wav => &self.wav
-        }
-    }
-
-    pub fn get_mut(&mut self, download_format: DownloadFormat) -> &mut Option<Asset> {
-        match download_format {
-            DownloadFormat::Aac => &mut self.aac,
-            DownloadFormat::Aiff => &mut self.aiff,
-            DownloadFormat::Alac => &mut self.alac,
-            DownloadFormat::Flac => &mut self.flac,
-            DownloadFormat::Mp3VbrV0 => &mut self.mp3_v0,
-            DownloadFormat::OggVorbis => &mut self.ogg_vorbis,
-            DownloadFormat::Opus48Kbps => &mut self.opus_48,
-            DownloadFormat::Opus96Kbps => &mut self.opus_96,
-            DownloadFormat::Opus128Kbps => &mut self.opus_128,
-            DownloadFormat::Wav => &mut self.wav
-        }
-    }
-
-    pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
-        let filename = format!("{}.bincode", self.uid);
-        cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR).join(filename)
-    }
-
-    pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
-            if let Some(asset) = self.get_mut(download_format) {
-                asset.mark_stale(timestamp);
-            }
-        }
-    }
-
-    pub fn new(
-        cover_source_file_signature: Option<SourceFileSignature>,
-        track_source_file_signatures: Vec<SourceFileSignature>,
-        extra_source_file_signatures: Vec<SourceFileSignature>
-    ) -> ArchiveAssets {
-        ArchiveAssets {
-            aac: None,
-            aiff: None,
-            alac: None,
-            cover_source_file_signature,
-            extra_source_file_signatures,
-            flac: None,
-            mp3_v0: None,
-            ogg_vorbis: None,
-            opus_48: None,
-            opus_96: None,
-            opus_128: None,
-            track_source_file_signatures,
-            uid: util::uid(),
-            wav: None
-        }
-    }
-
-    pub fn persist_to_cache(&self, cache_dir: &Path) {
-        let serialized = bincode::serialize(self).unwrap();
-        fs::write(self.manifest_path(cache_dir), serialized).unwrap();
     }
 }
 

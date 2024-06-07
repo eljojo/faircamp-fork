@@ -1,11 +1,9 @@
-// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use slug::slugify;
-use std::cell::RefCell;
-use std::rc::Rc;
 
-use crate::{Artist, Release};
+use crate::{ArtistRc, ReleaseRc};
 
 #[derive(Clone, Debug)]
 pub struct Permalink {
@@ -14,8 +12,8 @@ pub struct Permalink {
 }
 
 pub enum PermalinkUsage<'a> {
-    Artist(&'a Rc<RefCell<Artist>>),
-    Release(&'a Rc<RefCell<Release>>)
+    Artist(&'a ArtistRc),
+    Release(&'a ReleaseRc)
 }
 
 impl Permalink {

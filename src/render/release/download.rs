@@ -89,7 +89,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         format_dir = download_format.as_audio_format().asset_dirname()
                     ),
                     download_format.user_label(),
-                    release.archive_assets.borrow().get(*download_format).as_ref().unwrap().filesize_bytes
+                    release.archives.borrow().get(*download_format).as_ref().unwrap().filesize_bytes
                 )
             })
             .collect::<Vec<String>>()
@@ -194,7 +194,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                                 format_dir = download_format.as_audio_format().asset_dirname()
                             ),
                             download_format.user_label(),
-                            track.assets.borrow().get(download_format.as_audio_format()).as_ref().unwrap().filesize_bytes
+                            track.transcodes.borrow().get(download_format.as_audio_format()).as_ref().unwrap().filesize_bytes
                         )
                     })
                     .collect::<Vec<String>>()

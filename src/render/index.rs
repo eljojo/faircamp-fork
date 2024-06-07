@@ -1,12 +1,9 @@
 // SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta, Release};
+use crate::{Build, Catalog, CrawlerMeta, ReleaseRc};
 use crate::icons;
 use crate::render::{artist_image, layout, releases, share_link, share_overlay};
 use crate::util::html_escape_outside_attribute;
@@ -96,7 +93,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         </div>
     "##);
 
-    let listed_releases: Vec<Rc<RefCell<Release>>> = catalog.releases
+    let listed_releases: Vec<ReleaseRc> = catalog.releases
         .iter()
         .filter_map(|release| {
             match release.borrow().unlisted {

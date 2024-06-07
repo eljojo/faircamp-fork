@@ -3,14 +3,13 @@
 
 use sanitize_filename::sanitize;
 use std::fs;
-use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 
 use crate::{
     Artist,
+    ArtistRc,
     AssetIntent,
     Build,
     Cache,
@@ -20,14 +19,15 @@ use crate::{
     Favicon,
     HeuristicAudioMeta,
     HtmlAndStripped,
-    Image,
+    ImageRc,
     PermalinkUsage,
     Release,
+    ReleaseRc,
     SourceFileSignature,
     TagMapping,
     Theme,
     Track,
-    TrackAssets,
+    TranscodesRc,
     util
 };
 use crate::manifest::{self, LocalOptions, Overrides};
@@ -42,21 +42,21 @@ const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the 
 #[derive(Debug)]
 pub struct Catalog {
     /// Stores the primary artist for "single artist" catalogs
-    pub artist: Option<Rc<RefCell<Artist>>>,
+    pub artist: Option<ArtistRc>,
     /// All artists (main_artists + support_artists)
-    pub artists: Vec<Rc<RefCell<Artist>>>,
+    pub artists: Vec<ArtistRc>,
     pub favicon: Favicon,
     /// Whether support artists should get their own
     /// pages and be linked to them
     pub feature_support_artists: bool,
     /// Those artists that get their own page
-    pub featured_artists: Vec<Rc<RefCell<Artist>>>,
+    pub featured_artists: Vec<ArtistRc>,
     pub home_image: Option<DescribedImage>,
     pub label_mode: bool,
-    pub main_artists: Vec<Rc<RefCell<Artist>>>,
-    pub releases: Vec<Rc<RefCell<Release>>>,
+    pub main_artists: Vec<ArtistRc>,
+    pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
-    pub support_artists: Vec<Rc<RefCell<Artist>>>,
+    pub support_artists: Vec<ArtistRc>,
     pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     title: Option<String>
@@ -65,8 +65,8 @@ pub struct Catalog {
 /// Gets passed the images found in a release directory. Checks against a few
 /// hardcoded filenames (the usual suspects) to determine which image is most
 /// likely to be the intended release cover image.
-fn pick_best_cover_image(images: &[Image]) -> Option<DescribedImage> {
-    let mut cover_candidate_option: Option<(usize, &Image)> = None;
+fn pick_best_cover_image(images: &[ImageRc]) -> Option<DescribedImage> {
+    let mut cover_candidate_option: Option<(usize, &ImageRc)> = None;
 
     for image in images {
         let priority = match image.borrow()
@@ -138,8 +138,8 @@ impl Catalog {
         }
     }
 
-    pub fn create_artist(&mut self, name: &str) -> Rc<RefCell<Artist>> {
-        let artist = Rc::new(RefCell::new(Artist::new(name)));
+    pub fn create_artist(&mut self, name: &str) -> ArtistRc {
+        let artist = ArtistRc::new(Artist::new(name));
         self.artists.push(artist.clone());
         artist
     }
@@ -175,20 +175,20 @@ impl Catalog {
                         any_artist_found = true;
 
                         // Only assign artist to release's main artists if it hasn't already been assigned to them
-                        if !release_mut.main_artists.iter().any(|main_artist| Rc::ptr_eq(main_artist, artist)) {
+                        if !release_mut.main_artists.iter().any(|main_artist| ArtistRc::ptr_eq(main_artist, artist)) {
                             artist_mut.releases.push(release.clone());
                             release_mut.main_artists.push(artist.clone());
                         }
 
                         // Only assign artist to catalog's main artists if it hasn't already been assigned to them
-                        if !self.main_artists.iter().any(|main_artist| Rc::ptr_eq(main_artist, artist)) {
+                        if !self.main_artists.iter().any(|main_artist| ArtistRc::ptr_eq(main_artist, artist)) {
                             self.main_artists.push(artist.clone());
                         }
                     }
                 }
 
                 if !any_artist_found {
-                    let new_artist = Rc::new(RefCell::new(Artist::new(&main_artist_to_map)));
+                    let new_artist = ArtistRc::new(Artist::new(&main_artist_to_map));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.main_artists.push(new_artist.clone());
@@ -210,20 +210,20 @@ impl Catalog {
                         any_artist_found = true;
 
                         // Only assign artist to release's support artists if it hasn't already been assigned to them
-                        if !release_mut.support_artists.iter().any(|support_artist| Rc::ptr_eq(support_artist, artist)) {
+                        if !release_mut.support_artists.iter().any(|support_artist| ArtistRc::ptr_eq(support_artist, artist)) {
                             artist_mut.releases.push(release.clone());
                             release_mut.support_artists.push(artist.clone());
                         }
 
                         // Only assign artist to catalog's support artists if it hasn't already been assigned to them
-                        if !self.support_artists.iter().any(|support_artist| Rc::ptr_eq(support_artist, artist)) {
+                        if !self.support_artists.iter().any(|support_artist| ArtistRc::ptr_eq(support_artist, artist)) {
                             self.support_artists.push(artist.clone());
                         }
                     }
                 }
 
                 if !any_artist_found {
-                    let new_artist = Rc::new(RefCell::new(Artist::new(&support_artist_to_map)));
+                    let new_artist = ArtistRc::new(Artist::new(&support_artist_to_map));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.support_artists.push(new_artist.clone());
@@ -242,7 +242,7 @@ impl Catalog {
                             any_artist_found = true;
 
                             // Only assign artist to track if it hasn't already been assigned to it
-                            if !track.artists.iter().any(|track_artist| Rc::ptr_eq(track_artist, artist)) {
+                            if !track.artists.iter().any(|track_artist| ArtistRc::ptr_eq(track_artist, artist)) {
                                 track.artists.push(artist.clone());
                             }
                         }
@@ -252,7 +252,7 @@ impl Catalog {
                         // TODO: An artist created here curiously belongs neither to catalog.main_artists,
                         //       nor catalog.support_artists. This might indicate that in fact we never
                         //       enter into this branch at all?
-                        let new_artist = Rc::new(RefCell::new(Artist::new(&track_artist_to_map)));
+                        let new_artist = ArtistRc::new(Artist::new(&track_artist_to_map));
                         self.artists.push(new_artist.clone());
                         track.artists.push(new_artist);
                     }
@@ -294,7 +294,7 @@ impl Catalog {
                 for support_artist in &catalog.support_artists {
                     // Only assign support artist to catalog's featured artists if
                     // it hasn't already been assigned to them as a main artist
-                    if !catalog.featured_artists.iter().any(|featured_artist| Rc::ptr_eq(featured_artist, support_artist)) {
+                    if !catalog.featured_artists.iter().any(|featured_artist| ArtistRc::ptr_eq(featured_artist, support_artist)) {
                         catalog.featured_artists.push(support_artist.clone());
                     }
                 }
@@ -468,9 +468,9 @@ impl Catalog {
                 info!("Reading track {}", path_relative_to_catalog.display());
             }
             
-            let assets = cache.get_or_create_track_assets(build, path_relative_to_catalog, extension);
+            let transcodes = cache.get_or_create_transcodes(build, path_relative_to_catalog, extension);
             
-            if let Some(release_title) = &assets.borrow().source_meta.album {
+            if let Some(release_title) = &transcodes.borrow().source_meta.album {
                 if let Some(metric) = &mut release_title_metrics
                     .iter_mut()
                     .find(|(_count, title)| title == release_title) {
@@ -482,15 +482,15 @@ impl Catalog {
             
             let track = self.read_track(
                 local_overrides.as_ref().unwrap_or(parent_overrides),
-                assets
+                transcodes
             );
             
             release_tracks.push(track);
         }
         
         if !release_tracks.is_empty() {
-            // Process bare image paths into Image representations
-            let images: Vec<Image> = image_paths
+            // Process bare image paths into ImageRc representations
+            let images: Vec<ImageRc> = image_paths
                 .into_iter()
                 .map(|image_path| {
                     let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
@@ -509,12 +509,12 @@ impl Catalog {
             // TODO: Print warning if only some tracks have track numbers as tags
 
             release_tracks.sort_by(|track_a, track_b| {
-                let assets_ref_a = track_a.assets.borrow();
-                let assets_ref_b = track_b.assets.borrow();
+                let transcodes_ref_a = track_a.transcodes.borrow();
+                let transcodes_ref_b = track_b.transcodes.borrow();
 
                 let track_numbers = (
-                    assets_ref_a.source_meta.track_number.or(track_a.heuristic_audio_meta.as_ref().map(|meta| meta.track_number)),
-                    assets_ref_b.source_meta.track_number.or(track_b.heuristic_audio_meta.as_ref().map(|meta| meta.track_number))
+                    transcodes_ref_a.source_meta.track_number.or(track_a.heuristic_audio_meta.as_ref().map(|meta| meta.track_number)),
+                    transcodes_ref_b.source_meta.track_number.or(track_b.heuristic_audio_meta.as_ref().map(|meta| meta.track_number))
                 );
 
                 match track_numbers {
@@ -522,8 +522,8 @@ impl Catalog {
                     (Some(_), None) => Ordering::Less,
                     (None, Some(_)) => Ordering::Greater,
                     // If both tracks have no track number, sort by original source file name instead
-                    (None, None) => assets_ref_a.source_file_signature.path.cmp(
-                        &assets_ref_b.source_file_signature.path
+                    (None, None) => transcodes_ref_a.source_file_signature.path.cmp(
+                        &transcodes_ref_b.source_file_signature.path
                     )
                 }
             });
@@ -542,10 +542,10 @@ impl Catalog {
                 }
             } else if release_tracks
                 .iter()
-                .any(|track| !track.assets.borrow().source_meta.album_artists.is_empty()) {
+                .any(|track| !track.transcodes.borrow().source_meta.album_artists.is_empty()) {
                 // Here, main_artists_to_map is set through "album artist" tags found on at least one track
                 for release_track in &release_tracks {
-                    let album_artists = &release_track.assets.borrow().source_meta.album_artists;
+                    let album_artists = &release_track.transcodes.borrow().source_meta.album_artists;
 
                     for artist in album_artists {
                         if !main_artists_to_map.contains(artist) {
@@ -642,7 +642,7 @@ impl Catalog {
             //       there, and the same cover, then it's an up-to-date download archive to us.
             //       But main_artists, title, tags, etc. should probably play a role too.
             //       Investigate and implement this in-depth at some point.
-            let archive_assets = cache.get_or_create_archive_assets(
+            let archives = cache.get_or_create_archives(
                 &cover,
                 &release_tracks,
                 &extras
@@ -651,7 +651,7 @@ impl Catalog {
             let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap();
 
             let release = Release::new(
-                archive_assets,
+                archives,
                 cover,
                 extras,
                 local_options,
@@ -663,7 +663,7 @@ impl Catalog {
                 release_tracks
             );
 
-            self.releases.push(Rc::new(RefCell::new(release)));
+            self.releases.push(ReleaseRc::new(release));
         }
 
         if dir == build.catalog_dir {
@@ -680,17 +680,17 @@ impl Catalog {
     pub fn read_track(
         &mut self,
         overrides: &Overrides,
-        assets: Rc<RefCell<TrackAssets>>
+        transcodes: TranscodesRc
     ) -> Track {
         let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
             artist_names.to_vec()
         } else {
-            assets.borrow().source_meta.artists.to_vec()
+            transcodes.borrow().source_meta.artists.to_vec()
         };
 
         let theme = overrides.theme.clone();
         
-        Track::new(artists_to_map, assets, theme)
+        Track::new(artists_to_map, theme, transcodes)
     }
 
     // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?
@@ -706,20 +706,20 @@ impl Catalog {
                     let release_ref = release.borrow();
                     if release_ref.main_artists
                         .iter()
-                        .any(|release_main_artist| Rc::ptr_eq(release_main_artist, artist)) {
+                        .any(|release_main_artist| ArtistRc::ptr_eq(release_main_artist, artist)) {
                         num_releases += 1;
                     }
                     for track in &release_ref.tracks {
                         if track.artists
                             .iter()
-                            .any(|track_artist| Rc::ptr_eq(track_artist, artist)) {
+                            .any(|track_artist| ArtistRc::ptr_eq(track_artist, artist)) {
                             num_tracks += 1;
                         }
                     }
                 }
                 (artist.clone(), num_releases, num_tracks)
             })
-            .collect::<Vec<(Rc<RefCell<Artist>>, usize, usize)>>();
+            .collect::<Vec<(ArtistRc, usize, usize)>>();
 
         releases_and_tracks_per_artist.sort_by(|a, b|
             match a.1.cmp(&b.1) {
@@ -1066,8 +1066,8 @@ impl Catalog {
 
                     util::ensure_dir(&hash_dir);
 
-                    let track_assets_ref = track.assets.borrow();
-                    let streaming_asset = track_assets_ref.get(streaming_format).as_ref().unwrap();
+                    let transcodes_ref = track.transcodes.borrow();
+                    let streaming_asset = transcodes_ref.get(streaming_format).as_ref().unwrap();
 
                     util::hard_link_or_copy(
                         build.cache_dir.join(&streaming_asset.filename),
@@ -1076,7 +1076,7 @@ impl Catalog {
 
                     build.stats.add_track(streaming_asset.filesize_bytes);
 
-                    track.assets.borrow().persist_to_cache(&build.cache_dir);
+                    track.transcodes.borrow().persist_to_cache(&build.cache_dir);
                 }
             }
 

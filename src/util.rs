@@ -74,14 +74,13 @@ pub fn hard_link_or_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) {
         });
 }
 
-pub fn url_safe_hash(hashable: impl Hash) -> String {
+pub fn url_safe_hash(hashable: &impl Hash) -> String {
     let mut hasher = DefaultHasher::new();
 
     hashable.hash(&mut hasher);
 
     URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
 }
-
 
 /// Given e.g. "\"foo\"", it will first turn the input into "&quot;foo&quot;", 
 /// then into "&amp;quot;foo&amp;quot;". When this is rendered in the browser,

@@ -2,18 +2,17 @@
 // SPDX-FileCopyrightText: 2023 James Fenn
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::cell::RefCell;
 use std::cmp::Ordering;
-use std::rc::Rc;
 
 use indoc::formatdoc;
 
 use crate::{
-    Artist,
+    ArtistRc,
     Build,
     Catalog,
     DescribedImage,
     Release,
+    ReleaseRc,
     Theme
 };
 use crate::icons;
@@ -372,13 +371,13 @@ fn list_artists(
     catalog: &Catalog,
     release: &Release
 ) -> String {
-    let mut main_artists_sorted: Vec<Rc<RefCell<Artist>>> = release.main_artists.clone();
+    let mut main_artists_sorted: Vec<ArtistRc> = release.main_artists.clone();
 
     // Sort so the catalog artist comes first
     main_artists_sorted.sort_by(|a, b| {
         if let Some(catalog_artist) = &catalog.artist {
-            if Rc::ptr_eq(a, catalog_artist) { return Ordering::Less; }
-            if Rc::ptr_eq(b, catalog_artist) { return Ordering::Greater; }
+            if ArtistRc::ptr_eq(a, catalog_artist) { return Ordering::Less; }
+            if ArtistRc::ptr_eq(b, catalog_artist) { return Ordering::Greater; }
         }
         Ordering::Equal
     });
@@ -395,7 +394,7 @@ fn list_artists(
                 let permalink = &artist_ref.permalink.slug;
                 format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
             } else if let Some(catalog_artist) = &catalog.artist {
-                if Rc::ptr_eq(artist, catalog_artist) {
+                if ArtistRc::ptr_eq(artist, catalog_artist) {
                     format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#)
                 } else {
                     name_escaped
@@ -463,7 +462,7 @@ fn releases(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    releases: &[Rc<RefCell<Release>>]
+    releases: &[ReleaseRc]
 ) -> String {
     let mut releases_desc_by_date = releases.to_vec();
 

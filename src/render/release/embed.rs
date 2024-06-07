@@ -232,7 +232,7 @@ pub fn embed_release_html(
                         {waveform} <span class="track_duration">{track_duration}</span>
                     </div>
                 "#,
-                track_duration = format_time(track.assets.borrow().source_meta.duration_seconds),
+                track_duration = format_time(track.transcodes.borrow().source_meta.duration_seconds),
                 track_title = html_escape_outside_attribute(&track.title()),
                 waveform = waveform(&catalog.theme, track)
             )
@@ -298,7 +298,7 @@ pub fn embed_track_html(
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
-    let track_duration = track.assets.borrow().source_meta.duration_seconds;
+    let track_duration = track.transcodes.borrow().source_meta.duration_seconds;
 
     let audio_sources = release.streaming_quality
         .formats()

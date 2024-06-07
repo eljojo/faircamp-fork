@@ -161,7 +161,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         {waveform}
                     </div>
                 "#,
-                duration_formatted = format_time(track.assets.borrow().source_meta.duration_seconds),
+                duration_formatted = format_time(track.transcodes.borrow().source_meta.duration_seconds),
                 track_number = release.track_numbering.format(track_number),
                 track_title_escaped = html_escape_outside_attribute(&track_title),
                 track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
@@ -257,7 +257,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 }
 
 pub fn waveform(theme: &Theme, track: &Track) -> String {
-    if let Some(peaks) = &track.assets.borrow().source_meta.peaks {
+    if let Some(peaks) = &track.transcodes.borrow().source_meta.peaks {
         let peaks_base64 = peaks.iter()
             .map(|peak| {
                 // In https://codeberg.org/simonrepp/faircamp/issues/11#issuecomment-858690
@@ -299,7 +299,7 @@ pub fn waveform(theme: &Theme, track: &Track) -> String {
             .collect::<Vec<String>>()
             .join("");
 
-        let duration_seconds = track.assets.borrow().source_meta.duration_seconds;
+        let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
 
         formatdoc!(r#"
             <svg class="waveform"

@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
-use crate::Image;
+use crate::ImageRc;
 use crate::util::url_safe_hash;
 
 /// We use the newtype pattern here (instead of just f32) mostly because
@@ -34,7 +34,7 @@ pub enum CoverGenerator {
 pub struct Theme {
     pub background_alpha: u8,
     /// Contains an absolute path to the file (validity is checked when reading manifests)
-    pub background_image: Option<Image>,
+    pub background_image: Option<ImageRc>,
     pub base: ThemeBase,
     pub cover_generator: CoverGenerator,
     pub font: ThemeFont,

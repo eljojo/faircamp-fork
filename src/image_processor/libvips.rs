@@ -61,7 +61,7 @@ impl ImageProcessor {
 		    let target_filename = format!("{}.jpg", util::uid());
 
 		    match ops::jpegsave_with_opts(
-		        &vips_image,
+		        vips_image,
 		        &build.cache_dir.join(&target_filename).to_string_lossy(),
 		        &options
 		    ) {
@@ -82,7 +82,7 @@ impl ImageProcessor {
 	            let longer_edge = std::cmp::max(height, width);
 
 	            if longer_edge > max_edge_size {
-	                let resized = ops::resize(&image, max_edge_size as f64 / longer_edge as f64).unwrap();
+	                let resized = ops::resize(image, max_edge_size as f64 / longer_edge as f64).unwrap();
 	                save(&resized)
 	            } else {
 	                save(image)
@@ -95,14 +95,14 @@ impl ImageProcessor {
 		            if smaller_edge <= edge_size {
 		                save(vips_image)
 		            } else {
-		                let resized = ops::resize(&vips_image, edge_size as f64 / smaller_edge as f64).unwrap();
+		                let resized = ops::resize(vips_image, edge_size as f64 / smaller_edge as f64).unwrap();
 		                save(&resized)
 		            }
 	            };
 
 	            if height != width {
 	                let cropped = ops::smartcrop_with_opts(
-	                    &image,
+	                    image,
 	                    smaller_edge as i32,
 	                    smaller_edge as i32,
 	                    &CROP_OPTIONS
@@ -116,7 +116,7 @@ impl ImageProcessor {
 	            let resize = |vips_image: &VipsImage| -> (String, (u32, u32)) {
 		            let cropped_width = vips_image.get_width() as u32;
 		            if cropped_width > max_width {
-		                let resized = ops::resize(&vips_image, max_width as f64 / cropped_width as f64).unwrap();
+		                let resized = ops::resize(vips_image, max_width as f64 / cropped_width as f64).unwrap();
 		                save(&resized)
 		            } else {
 		                save(vips_image)
@@ -128,7 +128,7 @@ impl ImageProcessor {
 	            if found_aspect < min_aspect {
 	                // too tall, reduce height
 	                let cropped = ops::smartcrop_with_opts(
-	                    &image,
+	                    image,
 	                    width as i32,
 	                    (width as f32 / min_aspect).floor() as i32,
 	                    &CROP_OPTIONS
@@ -137,7 +137,7 @@ impl ImageProcessor {
 	            } else if found_aspect > max_aspect {
 	                // too wide, reduce width
 	                let cropped = ops::smartcrop_with_opts(
-	                    &image,
+	                    image,
 	                    (max_aspect * height as f32).floor() as i32,
 	                    height as i32,
 	                    &CROP_OPTIONS

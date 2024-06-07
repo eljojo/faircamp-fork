@@ -1,12 +1,9 @@
 // SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use indoc::formatdoc;
 
-use crate::{Artist, Build, Catalog, CrawlerMeta, Release};
+use crate::{Artist, Build, Catalog, CrawlerMeta, ReleaseRc};
 use crate::render::{
     artist_image,
     layout,
@@ -59,7 +56,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         </div>
     "##);
 
-    let visible_releases: Vec<Rc<RefCell<Release>>> = artist.releases
+    let visible_releases: Vec<ReleaseRc> = artist.releases
         .iter()
         .filter_map(|release| {
             match release.borrow().unlisted {

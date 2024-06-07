@@ -82,7 +82,18 @@ pub struct CoverAssets {
 #[derive(Clone, Debug)]
 pub struct DescribedImage {
     pub description: Option<String>,
-    pub image: Image
+    pub image: ImageRc
+}
+
+/// Stores the interior (mutable) payload of an image, comprised
+/// of compressed/resized assets and the source file signature.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Image {
+    pub artist_assets: Option<ArtistAssets>,
+    pub background_asset: Option<Asset>,
+    pub cover_assets: Option<CoverAssets>,
+    pub feed_asset: Option<Asset>,
+    pub source_file_signature: SourceFileSignature
 }
 
 /// Represents a unique image in the catalog directory.
@@ -96,19 +107,8 @@ pub struct DescribedImage {
 /// demand, and then it will make sense to be able to mutate the
 /// source file signature during runtime.
 #[derive(Clone, Debug)]
-pub struct Image {
-    pub interior: Rc<RefCell<ImageInterior>>,
-}
-
-/// Stores the interior (mutable) payload of an image, comprised
-/// of compressed/resized assets and the source file signature.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ImageInterior {
-    pub artist_assets: Option<ArtistAssets>,
-    pub background_asset: Option<Asset>,
-    pub cover_assets: Option<CoverAssets>,
-    pub feed_asset: Option<Asset>,
-    pub source_file_signature: SourceFileSignature
+pub struct ImageRc {
+    pub image: Rc<RefCell<Image>>,
 }
 
 pub struct ImgAttributes {
@@ -265,7 +265,7 @@ impl CoverAssets {
 }
 
 impl DescribedImage {
-    pub fn new(description: Option<String>, image: Image) -> DescribedImage {
+    pub fn new(description: Option<String>, image: ImageRc) -> DescribedImage {
         DescribedImage {
             description,
             image
@@ -274,35 +274,6 @@ impl DescribedImage {
 }
 
 impl Image {
-    pub fn borrow<'a>(&'a self) -> Ref<'a, ImageInterior> {
-        self.interior.borrow()
-    }
-
-    pub fn borrow_mut<'a>(&'a self) -> RefMut<'a, ImageInterior> {
-        self.interior.borrow_mut()
-    }
-
-    pub fn new(source_file_signature: SourceFileSignature) -> Image {
-        Image {
-            interior: Rc::new(RefCell::new(ImageInterior::new(source_file_signature)))
-        }
-    }
-
-    pub fn retrieved(interior: ImageInterior) -> Image {
-        Image {
-            interior: Rc::new(RefCell::new(interior))
-        }
-    }
-}
-
-impl Hash for Image {
-    /// Needed so we can automatically derive Hash for Theme
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.interior.borrow().source_file_signature.path.hash(state);
-    }
-}
-
-impl ImageInterior {
     pub fn artist_asset(
         &mut self,
         build: &Build,
@@ -328,7 +299,7 @@ impl ImageInterior {
                 max_width: 320,
                 min_aspect: 2.25
             };
-            let fixed_max_320 = ImageInterior::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_320);
+            let fixed_max_320 = Image::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_320);
 
             let fixed_max_480 = if source_width > 320.0 * MIN_OVERSHOOT {
                 let resize_mode_fixed_480 = ResizeMode::CoverRectangle {
@@ -336,7 +307,7 @@ impl ImageInterior {
                     max_width: 480,
                     min_aspect: 2.25
                 };
-                Some(ImageInterior::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_480))
+                Some(Image::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_480))
             } else {
                 None
             };
@@ -347,7 +318,7 @@ impl ImageInterior {
                     max_width: 640,
                     min_aspect: 2.25
                 };
-                Some(ImageInterior::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_640))
+                Some(Image::compute_artist_asset(build, "fixed", &image_in_memory, resize_mode_fixed_640))
             } else {
                 None
             };
@@ -362,7 +333,7 @@ impl ImageInterior {
                 max_width: 640,
                 min_aspect: 2.5
             };
-            let fluid_max_640 = ImageInterior::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_640);
+            let fluid_max_640 = Image::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_640);
 
             let fluid_max_960 = if source_width > 640.0 * MIN_OVERSHOOT {
                 let resize_mode_fluid_960 = ResizeMode::CoverRectangle {
@@ -370,7 +341,7 @@ impl ImageInterior {
                     max_width: 960,
                     min_aspect: 2.5
                 };
-                Some(ImageInterior::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_960))
+                Some(Image::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_960))
             } else {
                 None
             };
@@ -381,7 +352,7 @@ impl ImageInterior {
                     max_width: 1280,
                     min_aspect: 2.5
                 };
-                Some(ImageInterior::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_1280))
+                Some(Image::compute_artist_asset(build, "fluid", &image_in_memory, resize_mode_fluid_1280))
             } else {
                 None
             };
@@ -487,32 +458,32 @@ impl ImageInterior {
             let source_width = image_in_memory.width() as f32;
 
             let resize_mode_max_160 = ResizeMode::CoverSquare { edge_size: 160 };
-            let max_160 = ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_160);
+            let max_160 = Image::compute_cover_asset(build, &image_in_memory, resize_mode_max_160);
 
             let max_320 = if source_width > 160.0 * MIN_OVERSHOOT {
                 let resize_mode_max_320 = ResizeMode::CoverSquare { edge_size: 320 };
-                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_320))
+                Some(Image::compute_cover_asset(build, &image_in_memory, resize_mode_max_320))
             } else {
                 None
             };
 
             let max_480 = if source_width > 320.0 * MIN_OVERSHOOT {
                 let resize_mode_max_480 = ResizeMode::CoverSquare { edge_size: 480 };
-                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_480))
+                Some(Image::compute_cover_asset(build, &image_in_memory, resize_mode_max_480))
             } else {
                 None
             };
 
             let max_800 = if source_width > 480.0 * MIN_OVERSHOOT {
                 let resize_mode_max_800 = ResizeMode::CoverSquare { edge_size: 800 };
-                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_800))
+                Some(Image::compute_cover_asset(build, &image_in_memory, resize_mode_max_800))
             } else {
                 None
             };
 
             let max_1280 = if source_width > 800.0 * MIN_OVERSHOOT {
                 let resize_mode_max_1280 = ResizeMode::CoverSquare { edge_size: 1280 };
-                Some(ImageInterior::compute_cover_asset(build, &image_in_memory, resize_mode_max_1280))
+                Some(Image::compute_cover_asset(build, &image_in_memory, resize_mode_max_1280))
             } else {
                 None
             };
@@ -535,9 +506,9 @@ impl ImageInterior {
         self.cover_assets.as_mut().unwrap()
     }
 
-    pub fn deserialize_cached(path: &Path) -> Option<ImageInterior> {
+    pub fn deserialize_cached(path: &Path) -> Option<Image> {
         match fs::read(path) {
-            Ok(bytes) => bincode::deserialize::<ImageInterior>(&bytes).ok(),
+            Ok(bytes) => bincode::deserialize::<Image>(&bytes).ok(),
             Err(_) => None
         }
     }
@@ -581,8 +552,8 @@ impl ImageInterior {
         if let Some(asset) = self.feed_asset.as_mut() { asset.mark_stale(timestamp); }
     }
     
-    pub fn new(source_file_signature: SourceFileSignature) -> ImageInterior {
-        ImageInterior {
+    pub fn new(source_file_signature: SourceFileSignature) -> Image {
+        Image {
             artist_assets: None,
             background_asset: None,
             cover_assets: None,
@@ -595,6 +566,35 @@ impl ImageInterior {
         let manifest_path = self.manifest_path(cache_dir);
         let serialized = bincode::serialize(self).unwrap();
         fs::write(manifest_path, serialized).unwrap();
+    }
+}
+
+impl ImageRc {
+    pub fn borrow(&self) -> Ref<'_, Image> {
+        self.image.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, Image> {
+        self.image.borrow_mut()
+    }
+
+    pub fn new(source_file_signature: SourceFileSignature) -> ImageRc {
+        ImageRc {
+            image: Rc::new(RefCell::new(Image::new(source_file_signature)))
+        }
+    }
+
+    pub fn retrieved(image: Image) -> ImageRc {
+        ImageRc {
+            image: Rc::new(RefCell::new(image))
+        }
+    }
+}
+
+impl Hash for ImageRc {
+    /// Needed so we can automatically derive Hash for Theme
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.image.borrow().source_file_signature.path.hash(state);
     }
 }
 

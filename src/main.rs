@@ -7,6 +7,7 @@ use std::fs;
 #[macro_use]
 mod message;
 
+mod archives;
 mod args;
 mod artist;
 mod asset;
@@ -37,10 +38,12 @@ mod server;
 mod styles;
 mod theme;
 mod track;
+mod transcodes;
 mod util;
 
+use archives::{Archives, ArchivesRc};
 use args::Args;
-use artist::Artist;
+use artist::{Artist, ArtistRc};
 use asset::{Asset, AssetIntent};
 use asset_cache::{Cache, CacheOptimization, SourceFileSignature};
 use audio_format::{AudioFormat, DownloadFormat, StreamingQuality};
@@ -51,16 +54,17 @@ use download_option::DownloadOption;
 use favicon::Favicon;
 use ffmpeg::TagMapping;
 use heuristic_audio_meta::HeuristicAudioMeta;
-use crate::image::{DescribedImage, Image, ImageInterior};
+use crate::image::{DescribedImage, Image, ImageRc};
 use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use locale::Locale;
 use markdown::HtmlAndStripped;
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
-use release::{ArchiveAssets, DownloadGranularity, Extra, Release, TrackNumbering};
+use release::{DownloadGranularity, Extra, Release, ReleaseRc, TrackNumbering};
 use render::CrawlerMeta;
 use theme::{Theme, ThemeFont};
-use track::{Track, TrackAssets};
+use track::Track;
+use transcodes::{Transcodes, TranscodesRc};
 
 const MANUAL_URL: &str = "https://simonrepp.com/faircamp/manual/";
 

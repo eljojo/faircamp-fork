@@ -36,7 +36,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         result.samples.push(sample.unwrap() as f32 / std::i32::MAX as f32);
     }
 
-    result.sample_count = result.sample_count / result.channels as u32;
+    result.sample_count /= result.channels as u32;
     result.duration = result.sample_count as f32 / result.sample_rate as f32;
 
     Some(result)
