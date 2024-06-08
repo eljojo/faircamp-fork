@@ -19,6 +19,7 @@ use crate::{
     DownloadOption,
     Favicon,
     HtmlAndStripped,
+    Link,
     Locale,
     markdown,
     PaymentOption,
@@ -45,6 +46,7 @@ macro_rules! err_line {
 /// only uniquely apply to one release, thus it is a local option only.
 #[derive(Clone)]
 pub struct LocalOptions {
+    pub links: Vec<Link>,
     pub release_date: Option<NaiveDate>,
     pub release_permalink: Option<Permalink>,
     pub release_title: Option<String>,
@@ -79,6 +81,7 @@ pub struct Overrides {
 impl LocalOptions {
     pub fn new() -> LocalOptions {
         LocalOptions {
+            links: Vec::new(),
             release_date: None,
             release_permalink: None,
             release_title: None,
@@ -565,6 +568,51 @@ pub fn apply_options(
         }
         if optional_flag_present(section, "enabled") {
             overrides.embedding = true;
+        }
+    }
+
+    for element in document.elements() {
+        if element.key() == "link" {
+            if let Some(field) = element.as_field() {
+                match field.required_attribute("url") {
+                    Ok(attribute) => {
+                        match attribute.required_value::<String>() {
+                            Ok(value) => match Url::parse(&value) {
+                                Ok(url) => {
+                                    // TODO: Errors, optional_attribute does not exist in enolib?
+                                    let label = match field.required_attribute("label") {
+                                        Ok(attribute) => match attribute.required_value() {
+                                            Ok(label) => Some(label),
+                                            Err(_) => None
+                                        }
+                                        Err(_) => None
+                                    };
+
+                                    let (hidden, rel_me) = match field.required_attribute("verification") {
+                                        Ok(attribute) => match attribute.required_value::<String>() {
+                                            Ok(value) => match value.as_str() {
+                                                "rel-me" => (false, true),
+                                                "rel-me-hidden" => (true, true),
+                                                _ => (false, false)
+                                            }
+                                            Err(_) => (false, false)
+                                        }
+                                        Err(_) => (false, false)
+                                    };
+
+                                    let link = Link::new(hidden, label, rel_me, url);
+                                    local_options.links.push(link);
+                                }
+                                Err(err) => error!("Error in {}:{} ({})", path.display(), attribute.line_number(), err)
+                            }
+                            Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
+                        }
+                    }
+                    Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
+                }
+            } else {
+                error!("Error in {}:{} (Links must be provided as fields with attributes)", path.display(), element.line_number())
+            }
         }
     }
 

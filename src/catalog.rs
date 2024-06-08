@@ -5,6 +5,7 @@ use sanitize_filename::sanitize;
 use std::fs;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::mem;
 use std::path::{Path, PathBuf};
 
 use crate::{
@@ -20,6 +21,7 @@ use crate::{
     HeuristicAudioMeta,
     HtmlAndStripped,
     ImageRc,
+    Link,
     PermalinkUsage,
     Release,
     ReleaseRc,
@@ -54,6 +56,7 @@ pub struct Catalog {
     pub feed_enabled: bool,
     pub home_image: Option<DescribedImage>,
     pub label_mode: bool,
+    pub links: Vec<Link>,
     pub main_artists: Vec<ArtistRc>,
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
@@ -272,6 +275,7 @@ impl Catalog {
             feed_enabled: true,
             home_image: None,
             label_mode: false,
+            links: Vec::new(),
             main_artists: Vec::new(),
             releases: Vec::new(),
             show_support_artists: false,
@@ -655,20 +659,27 @@ impl Catalog {
             let release = Release::new(
                 archives,
                 cover,
+                local_options.release_date.take(),
                 extras,
-                local_options,
+                mem::take(&mut local_options.links),
                 main_artists_to_map,
                 local_overrides.as_ref().unwrap_or(parent_overrides),
+                local_options.release_permalink.take(),
                 release_dir_relative_to_catalog.to_path_buf(),
                 support_artists_to_map,
                 title.to_string(),
-                release_tracks
+                release_tracks,
+                local_options.unlisted_release
             );
 
             self.releases.push(ReleaseRc::new(release));
         }
 
         if dir == build.catalog_dir {
+            if !local_options.links.is_empty() {
+                self.links = local_options.links;
+            }
+
             self.theme = local_overrides.as_ref().unwrap_or(parent_overrides).theme.clone();
         }
         

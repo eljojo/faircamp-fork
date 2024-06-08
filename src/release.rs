@@ -27,6 +27,7 @@ use crate::{
     DownloadFormat,
     DownloadOption,
     HtmlAndStripped,
+    Link,
     PaymentOption,
     Permalink,
     render,
@@ -37,7 +38,7 @@ use crate::{
     Track,
     util
 };
-use crate::manifest::{LocalOptions, Overrides};
+use crate::manifest::Overrides;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum DownloadGranularity {
@@ -70,6 +71,7 @@ pub struct Release {
     /// Whether additional files in the release directory (besides audio files,
     /// cover image and manifest(s)) should be included in the archives. 
     pub include_extras: bool,
+    pub links: Vec<Link>,
     /// The artists that are the principal authors of a release ("Album Artist" in tag lingo)
     pub main_artists: Vec<ArtistRc>,
     /// The order in which we encounter artists and releases when reading the
@@ -509,16 +511,19 @@ impl Release {
     pub fn new(
         archives: ArchivesRc,
         cover: Option<DescribedImage>,
+        date: Option<NaiveDate>,
         extras: Vec<Extra>,
-        local_options: LocalOptions,
+        links: Vec<Link>,
         main_artists_to_map: Vec<String>,
         manifest_overrides: &Overrides,
+        permalink: Option<Permalink>,
         source_dir: PathBuf,
         support_artists_to_map: Vec<String>,
         title: String,
-        tracks: Vec<Track>
+        tracks: Vec<Track>,
+        unlisted: bool
     ) -> Release {
-        let permalink = local_options.release_permalink.unwrap_or_else(|| Permalink::generate(&title));
+        let permalink = permalink.unwrap_or_else(|| Permalink::generate(&title));
 
         let mut download_option = manifest_overrides.download_option.clone();
 
@@ -532,13 +537,14 @@ impl Release {
             archives,
             asset_basename: None,
             cover,
-            date: local_options.release_date,
+            date,
             download_formats: manifest_overrides.download_formats.clone(),
             download_granularity: manifest_overrides.download_granularity.clone(),
             download_option,
             embedding: manifest_overrides.embedding,
             extras,
             include_extras: manifest_overrides.include_extras,
+            links,
             main_artists: Vec::new(),
             main_artists_to_map,
             payment_options: manifest_overrides.payment_options.clone(),
@@ -553,7 +559,7 @@ impl Release {
             title,
             track_numbering: manifest_overrides.release_track_numbering.clone(),
             tracks,
-            unlisted: local_options.unlisted_release
+            unlisted
         }
     }
 

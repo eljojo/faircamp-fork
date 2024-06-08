@@ -198,6 +198,28 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     action_links.push_str(&share_link_rendered);
 
+    for link in &release.links {
+        // TODO: We're "mis-using" share as "external" here, which is not per se wrong,
+        //       but implies we should change something about this.
+        let external_icon = icons::share(&build.locale.translations.share);
+
+        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
+        let url = &link.url;
+
+        let r_link = if link.hidden {
+            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
+        } else {
+            let label = link.pretty_label();
+            let e_label = html_escape_outside_attribute(&label);
+            formatdoc!(r#"
+                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
+            "#)
+        };
+
+        action_links.push_str(" &nbsp; ");
+        action_links.push_str(&r_link);
+    }
+
     let relative_waveforms = if catalog.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
 
     let release_title_unlisted = if release.unlisted {
