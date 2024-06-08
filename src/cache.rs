@@ -42,7 +42,7 @@ use crate::{
 /// - 3->4 because we introduced writing track number metadata during
 ///   transcoding, but we do not yet have automated cache invalidation
 ///   markers for tags, so we force a rebuild for 0.9.0
-const ASSET_CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_4";
+const CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_4";
 
 #[derive(Clone, Debug)]
 pub struct Cache {
@@ -87,46 +87,14 @@ pub struct SourceFileSignature {
     /// File size in bytes
     pub size: u64
 }
-    
-pub fn optimize_cache(
-    build: &Build,
-    cache: &mut Cache,
-    catalog: &mut Catalog
-) {
-    for archives in cache.archives.iter_mut() {
-        optimize_archives(archives, build);
-    }
 
-    for image in cache.images.iter_mut() {
-        optimize_image(image, build);
-    }
-    
-    for transcodes in cache.transcodes.iter_mut() {
-        optimize_transcodes(transcodes, build);
-    }
-    
-    for release in &catalog.releases {
-        let mut release_mut = release.borrow_mut();
-
-        optimize_archives(&mut release_mut.archives, build);
-
-        if let Some(described_image) = &mut release_mut.cover {
-            optimize_image(&described_image.image, build);
-        }
-        
-        for track in release_mut.tracks.iter_mut() {
-            optimize_transcodes(&mut track.transcodes, build);
-        }
-    }
-}
-
-pub fn optimize_archives(archives: &mut ArchivesRc, build: &Build) {
+fn optimize_archives(archives: &mut ArchivesRc, build: &Build) {
     let mut archives_mut = archives.borrow_mut();
     let mut keep_container = false;
 
     for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
         let cached_format = archives_mut.get_mut(download_format);
-        
+
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
                 util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
@@ -151,7 +119,7 @@ pub fn optimize_archives(archives: &mut ArchivesRc, build: &Build) {
     }
 }
 
-pub fn optimize_image(image: &ImageRc, build: &Build) {
+fn optimize_image(image: &ImageRc, build: &Build) {
     let mut image_mut = image.borrow_mut();
     let mut keep_container = false;
 
@@ -222,13 +190,13 @@ pub fn optimize_image(image: &ImageRc, build: &Build) {
     }
 }
 
-pub fn optimize_transcodes(transcodes: &mut TranscodesRc, build: &Build) {
+fn optimize_transcodes(transcodes: &mut TranscodesRc, build: &Build) {
     let mut transcodes_mut = transcodes.borrow_mut();
     let mut keep_container = false;
-    
+
     for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
         let cached_format = transcodes_mut.get_mut(audio_format);
-        
+
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
                 util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
@@ -242,7 +210,7 @@ pub fn optimize_transcodes(transcodes: &mut TranscodesRc, build: &Build) {
             None => ()
         }
     }
-    
+
     if keep_container {
         transcodes_mut.persist_to_cache(&build.cache_dir);
     } else {
@@ -250,48 +218,7 @@ pub fn optimize_transcodes(transcodes: &mut TranscodesRc, build: &Build) {
     }
 }
 
-pub fn report_stale(cache: &Cache, catalog: &Catalog) {
-    let mut num_unused = 0;
-    let mut unused_bytesize = 0;
-    
-    for archives in &cache.archives {
-        report_stale_archives(archives, &mut num_unused, &mut unused_bytesize);
-    }
-
-    for image in &cache.images {
-        report_stale_images(image, &mut num_unused, &mut unused_bytesize);
-    }
-    
-    for transcodes in &cache.transcodes {
-        report_stale_transcodes(transcodes, &mut num_unused, &mut unused_bytesize);
-    }
-    
-    for release in &catalog.releases {
-        let release_ref = release.borrow();
-
-        report_stale_archives(&release_ref.archives, &mut num_unused, &mut unused_bytesize);
-
-        if let Some(described_image) = &release_ref.cover {
-            report_stale_images(&described_image.image, &mut num_unused, &mut unused_bytesize);
-        }
-        
-        for track in &release_ref.tracks {
-            report_stale_transcodes(&track.transcodes, &mut num_unused, &mut unused_bytesize);
-        }
-    }
-    
-    if num_unused > 0 {
-        info_cache!(
-            "{} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {} of disk space.",
-            num_unused,
-            util::format_bytes(unused_bytesize)
-        );
-    } else {
-        info_cache!("No cached assets identied as obsolete.");
-    }
-}
-
-pub fn report_stale_archives(
+fn report_stale_archives(
     archives: &ArchivesRc,
     num_unused: &mut u32,
     unused_bytesize: &mut u64
@@ -309,7 +236,7 @@ pub fn report_stale_archives(
     }
 }
 
-pub fn report_stale_images(
+fn report_stale_images(
     image: &ImageRc,
     num_unused: &mut u32,
     unused_bytesize: &mut u64
@@ -348,7 +275,7 @@ pub fn report_stale_images(
     }
 }
 
-pub fn report_stale_transcodes(
+fn report_stale_transcodes(
     transcodes: &TranscodesRc,
     num_unused: &mut u32,
     unused_bytesize: &mut u64
@@ -370,7 +297,7 @@ impl Cache {
     pub const ARCHIVE_MANIFESTS_DIR: &'static str = "archives";
     pub const IMAGE_MANIFESTS_DIR: &'static str = "images";
     pub const TRACK_MANIFESTS_DIR: &'static str = "tracks";
-    
+
     fn ensure_manifest_dirs(cache_dir: &Path) {
         util::ensure_dir(&cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR));
         util::ensure_dir(&cache_dir.join(Cache::IMAGE_MANIFESTS_DIR));
@@ -390,7 +317,7 @@ impl Cache {
                         .unwrap_or(false) {
                         let filename = dir_entry.file_name().to_str().unwrap().to_string();
 
-                        if filename != ASSET_CACHE_VERSION_MARKER {
+                        if filename != CACHE_VERSION_MARKER {
                             self.artifact_registry.insert(filename, 0);
                         }
                     }
@@ -398,7 +325,7 @@ impl Cache {
             }
         }
     }
-    
+
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
         for archives in self.archives.iter_mut() {
             archives.borrow_mut().mark_all_stale(timestamp);
@@ -407,7 +334,7 @@ impl Cache {
         for image in self.images.iter_mut() {
             image.borrow_mut().mark_all_stale(timestamp);
         }
-        
+
         for transcodes in self.transcodes.iter_mut() {
             transcodes.borrow_mut().mark_all_stale(timestamp);
         }
@@ -422,10 +349,24 @@ impl Cache {
         }
     }
 
+    pub fn optimize_cache(&mut self, build: &Build) {
+        for archives in self.archives.iter_mut() {
+            optimize_archives(archives, build);
+        }
+
+        for image in self.images.iter_mut() {
+            optimize_image(image, build);
+        }
+        
+        for transcodes in self.transcodes.iter_mut() {
+            optimize_transcodes(transcodes, build);
+        }
+    }
+
     pub fn retrieve(cache_dir: &Path) -> Cache {
         let mut cache = Cache::new();
 
-        let version_marker_file = cache_dir.join(ASSET_CACHE_VERSION_MARKER);
+        let version_marker_file = cache_dir.join(CACHE_VERSION_MARKER);
 
         if !version_marker_file.exists() {
             if cache_dir.exists() {
@@ -459,6 +400,33 @@ impl Cache {
                 );
                 util::remove_file(&cache_dir.join(filename));
             }
+        }
+    }
+
+    pub fn report_stale(&self) {
+        let mut num_unused = 0;
+        let mut unused_bytesize = 0;
+
+        for archives in &self.archives {
+            report_stale_archives(archives, &mut num_unused, &mut unused_bytesize);
+        }
+
+        for image in &self.images {
+            report_stale_images(image, &mut num_unused, &mut unused_bytesize);
+        }
+
+        for transcodes in &self.transcodes {
+            report_stale_transcodes(transcodes, &mut num_unused, &mut unused_bytesize);
+        }
+
+        if num_unused > 0 {
+            info_cache!(
+                "{} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {} of disk space.",
+                num_unused,
+                util::format_bytes(unused_bytesize)
+            );
+        } else {
+            info_cache!("No cached assets identified as obsolete.");
         }
     }
 
@@ -570,7 +538,7 @@ impl Cache {
                             image_mut.background_asset.is_some() ||
                             image_mut.cover_assets.is_some() ||
                             image_mut.feed_asset.is_some() {
-                            self.images.push(ImageRc::retrieved(image_mut));
+                            self.images.push(ImageRc::new(image_mut));
                         } else {
                             // No actual cached files present, can throw away serialized metadata too
                             util::remove_file(&dir_entry.path());
@@ -704,13 +672,14 @@ impl Cache {
         ) {
             Some(image) => image.clone(),
             None => {
-                let image = ImageRc::new(source_file_signature);
-                self.images.push(image.clone());
-                image
+                let image = Image::new(source_file_signature);
+                let image_rc = ImageRc::new(image);
+                self.images.push(image_rc.clone());
+                image_rc
             }
         }
     }
-    
+
     pub fn get_or_create_transcodes(
         &mut self,
         build: &Build,
@@ -718,7 +687,7 @@ impl Cache {
         extension: &str
     ) -> TranscodesRc {
         let source_file_signature = SourceFileSignature::new(build, source_path);
-        
+
         match self.transcodes.iter().find(|transcodes|
             transcodes.borrow().source_file_signature == source_file_signature
         ) {
@@ -741,7 +710,7 @@ impl Cache {
 }
 
 impl CacheOptimization {
-    pub fn from_manifest_key(key: &str) -> Option<CacheOptimization> {        
+    pub fn from_manifest_key(key: &str) -> Option<CacheOptimization> {
         match key {
             "delayed" => Some(CacheOptimization::Delayed),
             "immediate" => Some(CacheOptimization::Immediate),
@@ -761,7 +730,7 @@ impl std::fmt::Display for CacheOptimization {
             CacheOptimization::Manual => "Manual",
             CacheOptimization::Wipe => "Wipe"
         };
-        
+
         write!(f, "{}", text)
     }
 }
@@ -770,7 +739,7 @@ impl SourceFileSignature {
     pub fn new(build: &Build, path: &Path) -> SourceFileSignature {
         let metadata = fs::metadata(build.catalog_dir.join(path))
             .expect("Could not access source file");
-        
+
         SourceFileSignature {
             modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
             path: path.to_path_buf(),

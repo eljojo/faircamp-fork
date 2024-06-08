@@ -11,10 +11,10 @@ mod archives;
 mod args;
 mod artist;
 mod asset;
-mod asset_cache;
 mod audio_format;
 mod audio_meta;
 mod build;
+mod cache;
 mod catalog;
 mod decode;
 mod deploy;
@@ -45,10 +45,10 @@ use archives::{Archives, ArchivesRc};
 use args::Args;
 use artist::{Artist, ArtistRc};
 use asset::{Asset, AssetIntent};
-use asset_cache::{Cache, CacheOptimization, SourceFileSignature};
 use audio_format::{AudioFormat, DownloadFormat, StreamingQuality};
 use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
+use cache::{Cache, CacheOptimization, SourceFileSignature};
 use catalog::Catalog;
 use download_option::DownloadOption;
 use favicon::Favicon;
@@ -88,14 +88,13 @@ fn main() {
     let mut cache = Cache::retrieve(&build.cache_dir);
     
     if args.analyze_cache {
-        build.cache_optimization = CacheOptimization::Immediate;
-        asset_cache::report_stale(&cache, &Catalog::new());
+        cache.report_stale();
         return;
     }
     
     if args.optimize_cache {
         build.cache_optimization = CacheOptimization::Immediate;
-        asset_cache::optimize_cache(&build, &mut cache, &mut Catalog::new());
+        cache.optimize_cache(&build);
         return;
     }
     
@@ -183,18 +182,16 @@ fn main() {
     match build.cache_optimization {
         CacheOptimization::Default |
         CacheOptimization::Delayed |
-        CacheOptimization::Immediate =>
-            asset_cache::optimize_cache(&build, &mut cache, &mut catalog),
-        CacheOptimization::Manual =>
-            asset_cache::report_stale(&cache, &catalog),
+        CacheOptimization::Immediate => cache.optimize_cache(&build),
+        CacheOptimization::Manual => cache.report_stale(),
         CacheOptimization::Wipe => {
             util::remove_dir(&build.cache_dir);
             info_cache!("Wiped cache");
         }
     }
-    
+
     build.print_stats();
-    
+
     match build.post_build_action {
         PostBuildAction::None => (),
         PostBuildAction::Deploy => {

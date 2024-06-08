@@ -578,13 +578,7 @@ impl ImageRc {
         self.image.borrow_mut()
     }
 
-    pub fn new(source_file_signature: SourceFileSignature) -> ImageRc {
-        ImageRc {
-            image: Rc::new(RefCell::new(Image::new(source_file_signature)))
-        }
-    }
-
-    pub fn retrieved(image: Image) -> ImageRc {
+    pub fn new(image: Image) -> ImageRc {
         ImageRc {
             image: Rc::new(RefCell::new(image))
         }
