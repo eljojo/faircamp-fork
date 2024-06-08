@@ -16,7 +16,6 @@ use crate::{
     AudioFormat,
     AudioMeta,
     Build,
-    Catalog,
     DescribedImage,
     DownloadFormat,
     Extra,

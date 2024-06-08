@@ -299,7 +299,7 @@ fn layout(
     breadcrumbs: &[String],
     crawler_meta: CrawlerMeta
 ) -> String {
-    let feed_meta_link = match &build.base_url.is_some() {
+    let feed_meta_link = match build.base_url.is_some() && catalog.feed_enabled {
         true => {
             let t_rss_feed = &build.locale.translations.rss_feed;
             format!(r#"<link rel="alternate" type="application/rss+xml" title="{t_rss_feed}" href="{root_prefix}feed.rss">"#)

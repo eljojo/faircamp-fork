@@ -70,6 +70,12 @@ Lorem ipsum dolor sit amet ...
 -- text
 ```
 
+To disable RSS feed generation you can use the `disable_feed` option:
+
+```eno
+disable_feed
+```
+
 ## Main & Support artists
 
 A release can have one or more *main artists*, i.e. principal authors. Artists

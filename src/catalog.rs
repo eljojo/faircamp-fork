@@ -51,6 +51,7 @@ pub struct Catalog {
     pub feature_support_artists: bool,
     /// Those artists that get their own page
     pub featured_artists: Vec<ArtistRc>,
+    pub feed_enabled: bool,
     pub home_image: Option<DescribedImage>,
     pub label_mode: bool,
     pub main_artists: Vec<ArtistRc>,
@@ -268,6 +269,7 @@ impl Catalog {
             favicon: Favicon::Default,
             feature_support_artists: false,
             featured_artists: Vec::new(),
+            feed_enabled: true,
             home_image: None,
             label_mode: false,
             main_artists: Vec::new(),
@@ -876,7 +878,7 @@ impl Catalog {
             }
 
             // Write home image as feed image
-            if build.base_url.is_some() {
+            if build.base_url.is_some() && self.feed_enabled {
                 let feed_image_asset = image_mut.feed_asset(build, AssetIntent::Deliverable);
 
                 util::hard_link_or_copy(

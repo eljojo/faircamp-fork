@@ -167,7 +167,10 @@ fn main() {
     fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
     styles::generate(&build, &catalog);
-    feed::generate(&build, &catalog);
+
+    if catalog.feed_enabled {
+        feed::generate(&build, &catalog);
+    }
 
     catalog.favicon.write(&build);
 

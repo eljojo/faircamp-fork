@@ -14,7 +14,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     
     let catalog_title = catalog.title();
 
-    let feed_link = match &build.base_url.is_some() {
+    let feed_link = match build.base_url.is_some() && catalog.feed_enabled {
         true => {
             let t_feed = &build.locale.translations.feed;
             let feed_icon = icons::feed(&build.locale.translations.rss_feed);

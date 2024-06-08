@@ -359,6 +359,10 @@ pub fn apply_options(
             }
         }
 
+        if optional_flag_present(section, "disable_feed") {
+            catalog.feed_enabled = false;
+        }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "favicon"){
             if let Favicon::Custom { absolute_path, .. } = &catalog.favicon {
                 warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), value);
@@ -389,7 +393,7 @@ pub fn apply_options(
             build.url_salt = value;
         }
 
-        // TODO: Remove this deprecation notice around may 2024 (introduced feb 2024)
+        // TODO: Remove this deprecation notice with/around the 1.0 release (introduced feb 2024)
         if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image") {
             info!("From faircamp 0.13.0 onwards, feed images are auto-generated - catalog.feed_image '{}' specified in {}:{} can be removed, it won't be used anymore.", path_relative_to_manifest, path.display(), line);
         }
