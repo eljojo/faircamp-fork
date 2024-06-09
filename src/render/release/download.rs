@@ -3,8 +3,14 @@
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta, DownloadGranularity, Release};
-use crate::audio_format::prioritized_for_download;
+use crate::{
+    Build,
+    Catalog,
+    CrawlerMeta,
+    DownloadFormat,
+    DownloadGranularity,
+    Release
+};
 use crate::icons;
 use crate::render::{compact_release_identifier, layout};
 use crate::util::{format_bytes, html_escape_outside_attribute};
@@ -32,7 +38,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let t_recommended_format =  &build.locale.translations.recommended_format;
 
-    let sorted_formats = prioritized_for_download(&release.download_formats);
+    let sorted_formats = DownloadFormat::prioritized_for_download(&release.download_formats);
 
     let download_hints = sorted_formats
         .iter()
