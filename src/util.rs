@@ -25,8 +25,8 @@ pub fn ensure_dir_and_write_index(dir: &Path, html: &str) {
 }
 
 pub fn ensure_empty_dir(dir: &Path) {
-    remove_dir(dir);
-    fs::create_dir_all(dir).unwrap();
+    let _ = fs::remove_dir_all(dir);
+    let _ = fs::create_dir_all(dir);
 }
 
 /// Takes a number of bytes and adaptively formats them as [n]B, [n]KB, [n]MB or [n]GB
@@ -107,22 +107,6 @@ pub fn html_escape_outside_attribute(string: &str) -> String {
     string.replace('&', "&amp;")
           .replace('<', "&lt;")
           .replace('>', "&gt;")
-}
-
-pub fn remove_dir(dir: &Path) {
-    match fs::remove_dir_all(dir) {
-        Ok(()) => (),
-        Err(ref err) if err.kind() == io::ErrorKind::NotFound => (), // just what we want anyway \o/
-        Err(err) => panic!("{}", err)
-    };
-}
-
-pub fn remove_file(path: &Path) {
-    match fs::remove_file(path) {
-        Ok(()) => (),
-        Err(ref err) if err.kind() == io::ErrorKind::NotFound => (), // just what we want anyway \o/
-        Err(err) => panic!("{}", err)
-    }
 }
 
 pub fn uid() -> String {

@@ -92,7 +92,7 @@ fn main() {
         error!("Configured catalog directory does not exist - aborting build");
         return;
     }
-    
+
     let mut cache = Cache::retrieve(&build.cache_dir);
     
     if args.analyze_cache {
@@ -109,11 +109,11 @@ fn main() {
     if args.wipe_all || args.wipe_build || args.wipe_cache {
         if args.wipe_build || args.wipe_all {
             info!("The build directory was wiped, as requested");
-            util::remove_dir(&build.build_dir);
+            let _ = fs::remove_dir_all(&build.build_dir);
         }
         if args.wipe_cache || args.wipe_all {
             info_cache!("The cache directory was wiped, as requested");
-            util::remove_dir(&build.cache_dir);
+            let _ = fs::remove_dir_all(&build.cache_dir);
         }
         info!("No further actions are performed due to requested wipe operation(s)");
         return;
@@ -196,7 +196,7 @@ fn main() {
         CacheOptimization::Immediate => cache.optimize_cache(&build),
         CacheOptimization::Manual => cache.report_stale(),
         CacheOptimization::Wipe => {
-            util::remove_dir(&build.cache_dir);
+            let _ = fs::remove_dir_all(&build.cache_dir);
             info_cache!("Wiped cache");
         }
     }

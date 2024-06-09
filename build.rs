@@ -75,7 +75,7 @@ pub fn main() {
     let manual_out_dir = Path::new(&out_dir).join("manual");
 
     if manual_out_dir.exists() {
-        fs::remove_dir_all(&manual_out_dir).unwrap();
+        let _ = fs::remove_dir_all(&manual_out_dir);
     }
 
     fs::create_dir(&manual_out_dir).unwrap();

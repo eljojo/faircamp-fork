@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 use std::fs;
+use std::mem;
 use std::path::Path;
 
 use chrono::{DateTime, Utc};
@@ -26,34 +27,35 @@ use crate::{
     util
 };
 
-/// This is the name of an empty file created by faircamp in the root
-/// of the cache directory. When the cache layout (or critical implementation
-/// details) change, this name can be updated, prompting cache purge and rebuild
-/// for site operators picking up the new version of faircamp.
-///
-/// History:
-/// - 1->2 because AudioMeta.duration_seconds changed from u32 to f32,
-///   but bincode would not pick this up and cached former u32 values
-///   would just be interpreted as f32 after the change.
-/// - 2->3 because we renamed "releases" to "archives" (the directory,
-///   but also everywhere in code)
-/// - 3->4 because we introduced writing track number metadata during
-///   transcoding, but we do not yet have automated cache invalidation
-///   markers for tags, so we force a rebuild for 0.9.0
-const CACHE_VERSION_MARKER: &str = "CACHE_VERSION_MARKER_4";
+/// This is the name of an empty file created by faircamp in the root of the
+/// cache directory. When the entire cache layout (or critical implementation
+/// details) change, the cache version can be updated, prompting a complete cache
+/// purge and rebuild for site operators picking up the new version of
+/// faircamp. More granular cache data invalidation can also be performed at the
+/// manifest level, by updating the version included in the `CACHE_SERIALIZATION_KEY`
+/// constant of either of [Archives], [Image] and [Transcodes]. This latter
+/// mechanism should always be preferred, as cache rebuilds are expensive for users!
+const CACHE_VERSION_MARKER: &str = "cache1.marker";
 
 #[derive(Clone, Debug)]
 pub struct Cache {
     pub archives: Vec<ArchivesRc>,
-    /// We register all files found in the cache root (= actual archive, image
-    /// and track files) here before we read the cache manifests. Files
-    /// referenced in the manifests that do not appear in the registry mean
-    /// that the cache entry is corrupt (we then remove it). The other way
-    /// around, every time we find a file in the registry we increase its
-    /// usage count (the value in the HashMap). At the end of the cache retrieval
-    /// process we know that all files in the registry with a usage count of 0
-    /// are orphaned and can therefore be removed.
-    artifact_registry: HashMap<String, usize>,
+    /// We register all assets found in the cache here. During cache retrieval
+    /// those assets that are used are tagged as such. After cache retrieval
+    /// all assets not tagged as used are considered orphaned and removed.
+    assets: HashMap<String, bool>,
+    /// We register all manifests found in the cache here. Afterwards we iterate
+    /// through all of them, using those with a known manifest extension
+    /// (e.g. ".image1.bincode") as entry points for retrieving metadata for
+    /// archives, images and transcodes.
+    /// Assets referenced in the manifests that do not appear in
+    /// `assets` mean that the asset reference is corrupt (we then remove
+    /// the reference). The other way around, every time we find an asset
+    /// we set its `used` flag (the value in the HashMap) to `true`.
+    /// At the end of the cache retrieval process we know that all
+    /// files in the registry that haven't been tagged as used are orphaned
+    /// and can therefore be removed.
+    manifests: Vec<String>,
     pub images: Vec<ImageRc>,
     pub transcodes: Vec<TranscodesRc>
 }
@@ -76,7 +78,7 @@ fn optimize_archives(archives: &mut ArchivesRc, build: &Build) {
 
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
-                util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
+                let _ = fs::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
                 info_cache!(
                     "Removed cached archives ({}) for archive with {} tracks and {}.",
                     download_format.as_audio_format(),
@@ -94,7 +96,7 @@ fn optimize_archives(archives: &mut ArchivesRc, build: &Build) {
     if keep_container {
         archives_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&archives_mut.manifest_path(&build.cache_dir));
+        let _ = fs::remove_file(&archives_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -108,7 +110,7 @@ fn optimize_image(image: &ImageRc, build: &Build) {
         let mut optimize = |asset_option: &mut Option<Asset>, format: &str, path: &str| {
             match asset_option.as_ref().map(|asset| asset.obsolete(build)) {
                 Some(true) => {
-                    util::remove_file(&build.cache_dir.join(asset_option.take().unwrap().filename));
+                    let _ = fs::remove_file(&build.cache_dir.join(asset_option.take().unwrap().filename));
                     info_cache!(
                         "Removed cached image asset ({}) for {}.",
                         format,
@@ -128,7 +130,7 @@ fn optimize_image(image: &ImageRc, build: &Build) {
         match image_mut.artist_assets.as_ref().map(|assets| assets.obsolete(build)) {
             Some(true) => {
                 for asset in image_mut.artist_assets.take().unwrap().all() {
-                    util::remove_file(&build.cache_dir.join(&asset.filename));
+                    let _ = fs::remove_file(&build.cache_dir.join(&asset.filename));
                     info_cache!(
                         "Removed cached image asset ({}) for {} {}x{}.",
                         "artist",
@@ -147,7 +149,7 @@ fn optimize_image(image: &ImageRc, build: &Build) {
         match image_mut.cover_assets.as_ref().map(|assets| assets.obsolete(build)) {
             Some(true) => {
                 for asset in image_mut.cover_assets.take().unwrap().all() {
-                    util::remove_file(&build.cache_dir.join(&asset.filename));
+                    let _ = fs::remove_file(&build.cache_dir.join(&asset.filename));
                     info_cache!(
                         "Removed cached image asset ({}) for {} {}x{}.",
                         "cover",
@@ -165,7 +167,7 @@ fn optimize_image(image: &ImageRc, build: &Build) {
     if keep_container {
         image_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&image_mut.manifest_path(&build.cache_dir));
+        let _ = fs::remove_file(&image_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -178,7 +180,7 @@ fn optimize_transcodes(transcodes: &mut TranscodesRc, build: &Build) {
 
         match cached_format.as_ref().map(|asset| asset.obsolete(build)) {
             Some(true) => {
-                util::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
+                let _ = fs::remove_file(&build.cache_dir.join(cached_format.take().unwrap().filename));
                 info_cache!(
                     "Removed cached transcode ({}) for {}.",
                     audio_format,
@@ -193,7 +195,7 @@ fn optimize_transcodes(transcodes: &mut TranscodesRc, build: &Build) {
     if keep_container {
         transcodes_mut.persist_to_cache(&build.cache_dir);
     } else {
-        util::remove_file(&transcodes_mut.manifest_path(&build.cache_dir));
+        let _ = fs::remove_file(&transcodes_mut.manifest_path(&build.cache_dir));
     }
 }
 
@@ -273,38 +275,6 @@ fn report_stale_transcodes(
 }
 
 impl Cache {
-    pub const ARCHIVE_MANIFESTS_DIR: &'static str = "archives";
-    pub const IMAGE_MANIFESTS_DIR: &'static str = "images";
-    pub const TRACK_MANIFESTS_DIR: &'static str = "tracks";
-
-    fn ensure_manifest_dirs(cache_dir: &Path) {
-        util::ensure_dir(&cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR));
-        util::ensure_dir(&cache_dir.join(Cache::IMAGE_MANIFESTS_DIR));
-        util::ensure_dir(&cache_dir.join(Cache::TRACK_MANIFESTS_DIR));
-    }
-
-    /// Scans the cache root dir and initializes a HashMap that tracks
-    /// all filenames, mapping them to a usage count (initialized to 0).
-    /// The asset cache version marker is explicitly excluded from this.
-    fn fill_registry(&mut self, cache_dir: &Path) {
-        if let Ok(dir_entries) = cache_dir.read_dir() {
-            for dir_entry_result in dir_entries {
-                if let Ok(dir_entry) = dir_entry_result {
-                    if dir_entry
-                        .file_type()
-                        .map(|file_type| file_type.is_file())
-                        .unwrap_or(false) {
-                        let filename = dir_entry.file_name().to_str().unwrap().to_string();
-
-                        if filename != CACHE_VERSION_MARKER {
-                            self.artifact_registry.insert(filename, 0);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
         for archives in self.archives.iter_mut() {
             archives.borrow_mut().mark_all_stale(timestamp);
@@ -322,8 +292,9 @@ impl Cache {
     fn new() -> Cache {
         Cache {
             archives: Vec::new(),
-            artifact_registry: HashMap::new(),
+            assets: HashMap::new(),
             images: Vec::new(),
+            manifests: Vec::new(),
             transcodes: Vec::new()
         }
     }
@@ -342,42 +313,64 @@ impl Cache {
         }
     }
 
-    pub fn retrieve(cache_dir: &Path) -> Cache {
-        let mut cache = Cache::new();
-
-        let version_marker_file = cache_dir.join(CACHE_VERSION_MARKER);
-
-        if !version_marker_file.exists() {
-            if cache_dir.exists() {
-                warn!("Existing cache data is in an incompatible format (= from an older faircamp version), the cache will be purged and regenerated.");
-                util::ensure_empty_dir(cache_dir);
+    fn process_manifests(&mut self, cache_dir: &Path) {
+        for file_name in mem::take(&mut self.manifests) {
+            if file_name.ends_with(&format!(".{}.bincode", Archives::CACHE_SERIALIZATION_KEY)) {
+                self.retrieve_archives(cache_dir, &file_name);
+            } else if file_name.ends_with(&format!(".{}.bincode", Image::CACHE_SERIALIZATION_KEY)) {
+                self.retrieve_image(cache_dir, &file_name);
+            } else if file_name.ends_with(&format!(".{}.bincode", Transcodes::CACHE_SERIALIZATION_KEY)) {
+                self.retrieve_transcodes(cache_dir, &file_name);
             } else {
-                util::ensure_dir(cache_dir);
+                info!(
+                    "Removing incompatible cache manifest {} - it was probably created with a different version of faircamp.",
+                    file_name
+                );
+                let _ = fs::remove_file(cache_dir.join(&file_name));
             }
-            fs::write(version_marker_file, "").unwrap();
         }
-
-        Cache::ensure_manifest_dirs(cache_dir);
-
-        cache.fill_registry(cache_dir);
-
-        cache.retrieve_archives(cache_dir);
-        cache.retrieve_images(cache_dir);
-        cache.retrieve_transcodes(cache_dir);
-
-        cache.remove_orphaned(cache_dir);
-
-        cache
     }
 
-    fn remove_orphaned(&mut self, cache_dir: &Path) {
-        for (filename, usage_counter) in self.artifact_registry.drain() {
-            if usage_counter == 0 {
-                warn!(
-                    "Removing orphaned cache artifact ({}) - it was probably created with a different version of faircamp.",
-                    filename
+    fn register_files(&mut self, cache_dir: &Path) {
+        let dir_entries = match cache_dir.read_dir() {
+            Ok(dir_entries) => dir_entries,
+            Err(err) => panic!("Could not read cache_dir ({err})")
+        };
+
+        for dir_entry_result in dir_entries {
+            if let Ok(dir_entry) = dir_entry_result {
+                if let Ok(file_type) = dir_entry.file_type() {
+                    let file_name = dir_entry.file_name().to_str().unwrap().to_string();
+
+                    if file_type.is_dir() {
+                        info!(
+                            "Removing incompatible cache directory {} - it was probably created with a different version of faircamp.",
+                            file_name
+                        );
+                        let _ = fs::remove_dir_all(dir_entry.path());
+                    } else if file_type.is_file() {
+
+                        if file_name.ends_with(".bincode") {
+                            self.manifests.push(file_name);
+                        } else if file_name != CACHE_VERSION_MARKER {
+                            self.assets.insert(file_name, false);
+                        }
+                    } else {
+                        info!("Ignoring unsupported cache file {} of type {:?}", file_name, file_type);
+                    }
+                }
+            }
+        }
+    }
+
+    fn remove_orphaned_assets(&mut self, cache_dir: &Path) {
+        for (file_name, used) in self.assets.drain() {
+            if !used {
+                info!(
+                    "Removing orphaned cache asset ({}) - it was probably created with a different version of faircamp.",
+                    file_name
                 );
-                util::remove_file(&cache_dir.join(filename));
+                let _ = fs::remove_file(&cache_dir.join(file_name));
             }
         }
     }
@@ -409,173 +402,186 @@ impl Cache {
         }
     }
 
-    fn retrieve_archives(&mut self, cache_dir: &Path) {
-        if let Ok(dir_entries) = cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR).read_dir() {
-            for dir_entry_result in dir_entries {
-                if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(mut archives) = Archives::deserialize_cached(&dir_entry.path()) {
-                        let mut assets_present = false;
+    pub fn retrieve(cache_dir: &Path) -> Cache {
+        let mut cache = Cache::new();
 
-                        for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
-                            let asset_option = archives.get_mut(download_format);
-                            if let Some(asset) = &asset_option {
-                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
-                                    assets_present = true;
-                                    *usage_counter += 1;
-                                } else {
-                                    asset_option.take();
-                                }
-                            }
-                        }
+        let version_marker_file = cache_dir.join(CACHE_VERSION_MARKER);
 
-                        if assets_present {
-                            self.archives.push(ArchivesRc::new(archives));
-                        } else {
-                            // No actual cached files present, can throw away serialized metadata too
-                            util::remove_file(&dir_entry.path());
-                        }
+        if !version_marker_file.exists() {
+            if cache_dir.exists() {
+                info!("Existing cache data is in an incompatible format (from a different faircamp version), the cache will be purged and regenerated.");
+                util::ensure_empty_dir(cache_dir);
+            } else {
+                util::ensure_dir(cache_dir);
+            }
+            fs::write(version_marker_file, "").unwrap();
+        }
+
+        cache.register_files(cache_dir);
+        cache.process_manifests(cache_dir);
+        cache.remove_orphaned_assets(cache_dir);
+
+        cache
+    }
+
+    fn retrieve_archives(&mut self, cache_dir: &Path, file_name: &str) {
+        let manifest_path = cache_dir.join(file_name);
+
+        if let Some(mut archives) = Archives::deserialize_cached(&manifest_path) {
+            let mut assets_present = false;
+            let mut dead_references_removed = false;
+
+            for download_format in DownloadFormat::ALL_DOWNLOAD_FORMATS {
+                let asset_option = archives.get_mut(download_format);
+                if let Some(asset) = &asset_option {
+                    if let Some(used) = self.assets.get_mut(&asset.filename) {
+                        assets_present = true;
+                        *used = true;
                     } else {
-                        warn!(
-                            "Removing unsupported archive asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
-                            &dir_entry.path().display()
-                        );
-                        util::remove_file(&dir_entry.path());
+                        asset_option.take();
+                        dead_references_removed = true;
                     }
                 }
             }
+
+            if assets_present {
+                if dead_references_removed {
+                    // Persist corrections so we don't have to re-apply them next time around
+                    archives.persist_to_cache(cache_dir);
+                }
+
+                self.archives.push(ArchivesRc::new(archives));
+            } else {
+                // No single cached asset present, we throw away the manifest
+                let _ = fs::remove_file(&manifest_path);
+            }
+        } else {
+            info!(
+                "Removing incompatible archives cache manifest ({}) - it was probably created with a different version of faircamp.",
+                &manifest_path.display()
+            );
+            let _ = fs::remove_file(&manifest_path);
         }
     }
 
-    // TODO: Should probably not quietly ignore everything that can go wrong here (here and elsewhere)
-    fn retrieve_images(&mut self, cache_dir: &Path) {
-        if let Ok(dir_entries) = cache_dir.join(Cache::IMAGE_MANIFESTS_DIR).read_dir() {
-            for dir_entry_result in dir_entries {
-                if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(mut image_mut) = Image::deserialize_cached(&dir_entry.path()) {
-                        if let Some(artist_assets) = image_mut.artist_assets.as_mut() {
-                            let all_assets = artist_assets.all();
+    fn retrieve_image(&mut self, cache_dir: &Path, file_name: &str) {
+        let manifest_path = cache_dir.join(file_name);
 
-                            for asset in all_assets.iter() {
-                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
-                                    *usage_counter += 1;
-                                } else {
-                                    // If a single asset is in a corrupt state (cached file missing)
-                                    // we delete all other assets and remove the cache entry altogether.
+        if let Some(mut image_mut) = Image::deserialize_cached(&manifest_path) {
+            let mut dead_references_removed = false;
 
-                                    for asset_to_delete in all_assets.iter() {
-                                        if cache_dir.join(&asset_to_delete.filename).exists() {
-                                            util::remove_file(&cache_dir.join(&asset_to_delete.filename));
-                                        }
-                                    }
+            if let Some(artist_assets) = image_mut.artist_assets.as_mut() {
+                let all_assets = artist_assets.all();
 
-                                    image_mut.artist_assets = None;
-                                    break;
-                                }
-                            }
-                        }
-
-
-                        if let Some(background_asset) = &image_mut.background_asset {
-                            if let Some(usage_counter) = self.artifact_registry.get_mut(&background_asset.filename) {
-                                *usage_counter += 1;
-                            } else {
-                                image_mut.background_asset = None;
-                            }
-                        }
-
-                        if let Some(cover_assets) = image_mut.cover_assets.as_mut() {
-                            let all_assets = cover_assets.all();
-
-                            for asset in all_assets.iter() {
-                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
-                                    *usage_counter += 1;
-                                } else {
-                                    // If a single asset is in a corrupt state (cached file missing)
-                                    // we delete all other assets and remove the cache entry altogether.
-
-                                    for asset_to_delete in all_assets.iter() {
-                                        if cache_dir.join(&asset_to_delete.filename).exists() {
-                                            util::remove_file(&cache_dir.join(&asset_to_delete.filename));
-                                        }
-                                    }
-
-                                    image_mut.cover_assets = None;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if let Some(feed_asset) = &image_mut.feed_asset {
-                            if let Some(usage_counter) = self.artifact_registry.get_mut(&feed_asset.filename) {
-                                *usage_counter += 1;
-                            } else {
-                                image_mut.feed_asset = None;
-                            }
-                        }
-
-                        if image_mut.artist_assets.is_some() ||
-                            image_mut.background_asset.is_some() ||
-                            image_mut.cover_assets.is_some() ||
-                            image_mut.feed_asset.is_some() {
-                            self.images.push(ImageRc::new(image_mut));
-                        } else {
-                            // No actual cached files present, can throw away serialized metadata too
-                            util::remove_file(&dir_entry.path());
-                        }
-                    } else {
-                        warn!(
-                            "Removing unsupported image asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
-                            &dir_entry.path().display()
-                        );
-                        util::remove_file(&dir_entry.path());
+                if all_assets.iter().all(|asset| self.assets.contains_key(&asset.filename)) {
+                    // All asset references have been verified, mark all as used
+                    for asset in all_assets.iter() {
+                        *self.assets.get_mut(&asset.filename).unwrap() = true;
                     }
+                } else {
+                    // If a single artist asset is in a corrupt state (cached file missing)
+                    // we drop all artist assets, letting them become orphaned so the cache
+                    // removes them afterwards.
+                    image_mut.artist_assets = None;
+                    dead_references_removed = true;
                 }
             }
+
+            if let Some(background_asset) = &image_mut.background_asset {
+                if let Some(used) = self.assets.get_mut(&background_asset.filename) {
+                    *used = true;
+                } else {
+                    image_mut.background_asset = None;
+                    dead_references_removed = true;
+                }
+            }
+
+            if let Some(cover_assets) = image_mut.cover_assets.as_mut() {
+                let all_assets = cover_assets.all();
+
+                if all_assets.iter().all(|asset| self.assets.contains_key(&asset.filename)) {
+                    // All asset references have been verified, mark all as used
+                    for asset in all_assets.iter() {
+                        *self.assets.get_mut(&asset.filename).unwrap() = true;
+                    }
+                } else {
+                    // If a single cover asset is in a corrupt state (cached file missing)
+                    // we drop all cover assets, letting them become orphaned so the cache
+                    // removes them afterwards.
+                    image_mut.artist_assets = None;
+                    dead_references_removed = true;
+                }
+            }
+
+            if let Some(feed_asset) = &image_mut.feed_asset {
+                if let Some(used) = self.assets.get_mut(&feed_asset.filename) {
+                    *used = true;
+                } else {
+                    image_mut.feed_asset = None;
+                    dead_references_removed = true;
+                }
+            }
+
+            if image_mut.artist_assets.is_some() ||
+                image_mut.background_asset.is_some() ||
+                image_mut.cover_assets.is_some() ||
+                image_mut.feed_asset.is_some() {
+                if dead_references_removed {
+                    // Persist corrections so we don't have to re-apply them next time around
+                    image_mut.persist_to_cache(cache_dir);
+                }
+
+                self.images.push(ImageRc::new(image_mut));
+            } else {
+                // No single cached asset present, we throw away the manifest
+                let _ = fs::remove_file(&manifest_path);
+            }
+        } else {
+            info!(
+                "Removing incompatible image cache manifest ({}) - it was probably created with a different version of faircamp.",
+                &manifest_path.display()
+            );
+            let _ = fs::remove_file(&manifest_path);
         }
     }
     
-    fn retrieve_transcodes(&mut self, cache_dir: &Path) {  
-        if let Ok(dir_entries) = cache_dir.join(Cache::TRACK_MANIFESTS_DIR).read_dir() {
-            for dir_entry_result in dir_entries {
-                if let Ok(dir_entry) = dir_entry_result {
-                    if let Some(mut transcodes) = Transcodes::deserialize_cached(&dir_entry.path()) {
-                        let mut dead_references_removed = false;
+    fn retrieve_transcodes(&mut self, cache_dir: &Path, file_name: &str) {
+        let manifest_path = cache_dir.join(file_name);
 
-                        for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
-                            let asset_option = transcodes.get_mut(audio_format);
-                            if let Some(asset) = &asset_option {
-                                if let Some(usage_counter) = self.artifact_registry.get_mut(&asset.filename) {
-                                    *usage_counter += 1;
-                                } else {
-                                    dead_references_removed = true;
-                                    asset_option.take();
-                                }
-                            }
-                        }
+        if let Some(mut transcodes) = Transcodes::deserialize_cached(&manifest_path) {
+            let mut dead_references_removed = false;
 
-                        if dead_references_removed {
-                            // Persist corrections so we don't have to re-apply them next time around
-                            transcodes.persist_to_cache(cache_dir);
-                        }
-
-                        // With archives and images we would throw away
-                        // serialized metadata here if no actual cached files are
-                        // present. However for a track the cached metadata
-                        // contains AudioMeta, which is expensively computed,
-                        // therefore we always retain the serialized metadata
-                        // and only remove it if cache optimization calls for
-                        // it.
-
-                        self.transcodes.push(TranscodesRc::new(transcodes));
+            for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
+                let asset_option = transcodes.get_mut(audio_format);
+                if let Some(asset) = &asset_option {
+                    if let Some(used) = self.assets.get_mut(&asset.filename) {
+                        *used = true;
                     } else {
-                        warn!(
-                            "Removing unsupported track asset manifest in cache ({}) - it was probably created with a different version of faircamp.",
-                            &dir_entry.path().display()
-                        );
-                        util::remove_file(&dir_entry.path());
+                        asset_option.take();
+                        dead_references_removed = true;
                     }
                 }
             }
+
+            if dead_references_removed {
+                // Persist corrections so we don't have to re-apply them next time around
+                transcodes.persist_to_cache(cache_dir);
+            }
+
+            // With archives and images we would throw away
+            // the manifest here if no actual cached assets are
+            // present. However for a track the cached metadata
+            // contains AudioMeta, which is expensively computed,
+            // therefore we always retain the manifest and only
+            // remove it if cache optimization calls for it.
+
+            self.transcodes.push(TranscodesRc::new(transcodes));
+        } else {
+            info!(
+                "Removing incompatible transcodes cache manifest ({}) - it was probably created with a different version of faircamp.",
+                &manifest_path.display()
+            );
+            let _ = fs::remove_file(&manifest_path);
         }
     }
 

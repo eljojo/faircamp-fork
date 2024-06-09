@@ -12,12 +12,7 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
 
-use crate::{
-    Asset,
-    Cache,
-    DownloadFormat,
-    SourceFileSignature
-};
+use crate::{Asset, DownloadFormat, SourceFileSignature};
 
 // TODO: Here we need to insert more factors of the dependency graph,
 //       in addition to cover/extra/track_source_file_signature(s).
@@ -47,6 +42,11 @@ pub struct ArchivesRc {
 }
 
 impl Archives {
+    /// Increase version on each change to the data layout of [Archives].
+    /// This automatically informs the cache not to try to deserialize
+    /// manifests that hold old, incompatible data.
+    pub const CACHE_SERIALIZATION_KEY: &'static str = "archives1";
+
     pub fn deserialize_cached(path: &Path) -> Option<Archives> {
         match fs::read(path) {
             Ok(bytes) => bincode::deserialize::<Archives>(&bytes).ok(),
@@ -92,8 +92,8 @@ impl Archives {
         self.track_source_file_signatures.hash(&mut hasher);
 
         let source_file_signatures_hash = URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes());
-        let manifest_filename = format!("{source_file_signatures_hash}.bincode");
-        cache_dir.join(Cache::ARCHIVE_MANIFESTS_DIR).join(manifest_filename)
+        let manifest_filename = format!("{source_file_signatures_hash}.{}.bincode", Archives::CACHE_SERIALIZATION_KEY);
+        cache_dir.join(manifest_filename)
     }
 
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
