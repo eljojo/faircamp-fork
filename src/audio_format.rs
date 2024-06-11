@@ -1,11 +1,15 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
+use std::fmt::{Display, Formatter};
+
+use serde_derive::{Serialize, Deserialize};
 
 /// Most generic/low-level audio format representation we use,
 /// representing both download and streaming formats at a more
 /// technical level.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum AudioFormat {
     Aac,
     Aiff,
@@ -25,21 +29,6 @@ pub enum AudioFormat {
 }
 
 impl AudioFormat {
-    pub const ALL_AUDIO_FORMATS: [AudioFormat; 12] = [
-        AudioFormat::Aac,
-        AudioFormat::Aiff,
-        AudioFormat::Alac,
-        AudioFormat::Flac,
-        AudioFormat::Mp3VbrV0,
-        AudioFormat::Mp3VbrV5,
-        AudioFormat::Mp3VbrV7,
-        AudioFormat::OggVorbis,
-        AudioFormat::Opus48Kbps,
-        AudioFormat::Opus96Kbps,
-        AudioFormat::Opus128Kbps,
-        AudioFormat::Wav
-    ];
-
     /// Assets for each format are rendered into their own directory in order
     /// to avoid filename collisions and this returns the dirname for a format.
     pub fn asset_dirname(&self) -> &str {
@@ -103,8 +92,8 @@ impl AudioFormat {
     }
 }
 
-impl std::fmt::Display for AudioFormat {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Display for AudioFormat {
+    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
         let text = match self {
             AudioFormat::Aac => "AAC",
             AudioFormat::Aiff => "AIFF",
@@ -120,6 +109,6 @@ impl std::fmt::Display for AudioFormat {
             AudioFormat::Wav => "WAV"
         };
         
-        write!(f, "{}", text)
+        write!(formatter, "{}", text)
     }
 }

@@ -40,26 +40,26 @@ mod server;
 mod source_file_signature;
 mod streaming_quality;
 mod styles;
+mod tag_mapping;
 mod theme;
 mod track;
 mod transcodes;
 mod util;
 
-use archives::{Archives, ArchivesRc};
+use archives::{Archive, Archives, ArchivesRc};
 use args::Args;
 use artist::{Artist, ArtistRc};
 use asset::{Asset, AssetIntent};
 use audio_format::AudioFormat;
 use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
-use cache::{Cache, CacheOptimization};
+use cache::{Cache, CacheOptimization, View};
 use catalog::Catalog;
 use download_format::DownloadFormat;
 use download_option::DownloadOption;
 use favicon::Favicon;
-use ffmpeg::TagMapping;
 use heuristic_audio_meta::HeuristicAudioMeta;
-use crate::image::{DescribedImage, Image, ImageRc};
+use crate::image::{DescribedImage, Image, ImageRc, ImageRcView};
 use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use link::Link;
 use locale::Locale;
@@ -68,11 +68,12 @@ use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
 use release::{DownloadGranularity, Extra, Release, ReleaseRc, TrackNumbering};
 use render::CrawlerMeta;
-use source_file_signature::SourceFileSignature;
+use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
+use tag_mapping::{TagMapping};
 use theme::{Theme, ThemeFont};
 use track::Track;
-use transcodes::{Transcodes, TranscodesRc};
+use transcodes::{Transcode, Transcodes, TranscodesRc, TranscodesRcView};
 
 const MANUAL_URL: &str = "https://simonrepp.com/faircamp/manual/";
 
@@ -93,7 +94,7 @@ fn main() {
         return;
     }
 
-    let mut cache = Cache::retrieve(&build.cache_dir);
+    let mut cache = Cache::retrieve(&build);
     
     if args.analyze_cache {
         cache.report_stale();
@@ -101,8 +102,8 @@ fn main() {
     }
     
     if args.optimize_cache {
-        build.cache_optimization = CacheOptimization::Immediate;
-        cache.optimize_cache(&build);
+        cache.optimization = CacheOptimization::Immediate;
+        cache.maintain(&build);
         return;
     }
     
@@ -190,16 +191,7 @@ fn main() {
         }
     }
     
-    match build.cache_optimization {
-        CacheOptimization::Default |
-        CacheOptimization::Delayed |
-        CacheOptimization::Immediate => cache.optimize_cache(&build),
-        CacheOptimization::Manual => cache.report_stale(),
-        CacheOptimization::Wipe => {
-            let _ = fs::remove_dir_all(&build.cache_dir);
-            info_cache!("Wiped cache");
-        }
-    }
+    cache.maintain(&build);
 
     build.print_stats();
 

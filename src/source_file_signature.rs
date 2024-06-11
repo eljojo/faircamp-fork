@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::fs;
+use std::fs::{self, File};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
@@ -9,16 +10,10 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::Build;
 
-// TODO: At some point consider implementing a hash property which hashes the
-//       file content. With this we can even reidentify files that have changed
-//       path within the catalog directory. (Con: Some overhead from computing
-//       the hash for the entire file (?))
-// TODO: PartialEq should be extended to a custom logic probably (first check
-//       path + size + modified, (then hash if we have implemented it))
 /// This stores relevant metadata for checking whether files we are processing
 /// in the current build match files we were processing in a previous build.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
-pub struct SourceFileSignature {
+pub struct FileMeta {
     pub modified: SystemTime,
     /// The path is relative to the catalog_dir root. This ensures
     /// that we can correctly re-associate files on each build, even
@@ -28,15 +23,48 @@ pub struct SourceFileSignature {
     pub size: u64
 }
 
-impl SourceFileSignature {
-    pub fn new(build: &Build, path: &Path) -> SourceFileSignature {
+/// The hash of the file content to be able to look up files
+/// that have moved location.
+#[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
+pub struct SourceHash {
+    pub value: u64,
+    version: usize
+}
+
+impl FileMeta {
+    pub fn new(build: &Build, path: &Path) -> FileMeta {
         let metadata = fs::metadata(build.catalog_dir.join(path))
             .expect("Could not access source file");
 
-        SourceFileSignature {
+        FileMeta {
+            // Fallback to UNIX_EPOCH happens on platforms that don't support this field.
             modified: metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH),
             path: path.to_path_buf(),
             size: metadata.len()
+        }
+    }
+}
+
+impl SourceHash {
+    /// Increment when our hashing algorithm changes, that way the hashes
+    /// can be invalidated and recomputed for the cache.
+    const HASHING_ALGORITHM_VERSION: usize = 1;
+
+    pub fn incompatible_version(&self) -> bool {
+        self.version != SourceHash::HASHING_ALGORITHM_VERSION
+    }
+
+    pub fn new(path: &Path) -> SourceHash {
+        let mut file = File::open(path).unwrap();
+        let mut buffer = Vec::new();
+
+        let _ = file.read_to_end(&mut buffer);
+
+        let value = seahash::hash(&buffer);
+
+        SourceHash {
+            value,
+            version: SourceHash::HASHING_ALGORITHM_VERSION
         }
     }
 }

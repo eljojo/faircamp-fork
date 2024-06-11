@@ -332,11 +332,11 @@ pub fn apply_options(
         if let Some((value, line)) = optional_field_value_with_line(section, "optimization") {
             match CacheOptimization::from_manifest_key(value.as_str()) {
                 Some(strategy) => {
-                    if build.cache_optimization != CacheOptimization::Default {
-                        warn_global_set_repeatedly!("cache.optimization", build.cache_optimization, strategy);
+                    if cache.optimization != CacheOptimization::Default {
+                        warn_global_set_repeatedly!("cache.optimization", cache.optimization, strategy);
                     }
 
-                    build.cache_optimization = strategy;
+                    cache.optimization = strategy;
                 }
                 None => error!("Ignoring invalid cache.optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}:{}", value, path.display(), line)
             }

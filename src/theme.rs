@@ -5,8 +5,8 @@ use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
-use crate::ImageRc;
-use crate::util::url_safe_hash;
+use crate::ImageRcView;
+use crate::util::url_safe_hash_base64;
 
 /// We use the newtype pattern here (instead of just f32) mostly because
 /// we need all alpha fields to be automatically hashable (which f32 isn't)
@@ -33,8 +33,7 @@ pub enum CoverGenerator {
 #[derive(Clone, Debug, Hash)]
 pub struct Theme {
     pub background_alpha: u8,
-    /// Contains an absolute path to the file (validity is checked when reading manifests)
-    pub background_image: Option<ImageRc>,
+    pub background_image: Option<ImageRcView>,
     pub base: ThemeBase,
     pub cover_generator: CoverGenerator,
     pub font: ThemeFont,
@@ -133,7 +132,7 @@ impl Theme {
     }
 
     pub fn stylesheet_filename(&self) -> String {
-        format!("theme-{}.css", url_safe_hash(self))
+        format!("theme-{}.css", url_safe_hash_base64(self))
     }
 }
 

@@ -7,19 +7,20 @@ use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
 
 use crate::{
     Asset,
     AssetIntent,
     Build,
-    CacheOptimization,
+    FileMeta,
     ImageInMemory,
     ResizeMode,
-    SourceFileSignature
+    SourceHash,
+    View
 };
-use crate::util::url_safe_hash;
+use crate::util::url_safe_base64;
 
 const BACKGROUND_MAX_EDGE_SIZE: u32 = 1280;
 const FEED_MAX_EDGE_SIZE: u32 = 920;
@@ -77,37 +78,40 @@ pub struct CoverAssets {
     pub max_1280: Option<CoverAsset>
 }
 
-/// Associates an [Image] with an image description
+/// Associates an [ImageRcView] with an image description
 #[derive(Clone, Debug)]
 pub struct DescribedImage {
     pub description: Option<String>,
-    pub image: ImageRc
+    pub image: ImageRcView
 }
 
 /// Stores the interior (mutable) payload of an image, comprised
-/// of compressed/resized assets and the source file signature.
+/// of compressed/resized assets, the file-content based hash, and
+/// views, that is, concrete locations on disk (path) and "in time"
+/// (modified time, size) through which the somewhat virtual cache
+/// data is concretely requested.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Image {
     pub artist_assets: Option<ArtistAssets>,
     pub background_asset: Option<Asset>,
     pub cover_assets: Option<CoverAssets>,
     pub feed_asset: Option<Asset>,
-    pub source_file_signature: SourceFileSignature
+    /// Hash of the file content of the source image, with this we
+    /// can uniquely identify and re-associate the computed cache
+    /// data, no matter where the source file moves.
+    pub hash: SourceHash,
+    pub views: Vec<View>
 }
 
-/// Represents a unique image in the catalog directory.
-/// Technically wraps a payload with interior mutability that
-/// holds the source file signature which is used to uniquely
-/// identify the image and all the computed production artifacts
-/// in the cache that derive from the source image.
-/// Future note: Including source file signature in the mutable
-/// payload makes sense in so far as in the future we might
-/// implement file content hashing, which is only performed on
-/// demand, and then it will make sense to be able to mutate the
-/// source file signature during runtime.
 #[derive(Clone, Debug)]
 pub struct ImageRc {
     pub image: Rc<RefCell<Image>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ImageRcView {
+    pub file_meta: FileMeta,
+    image: ImageRc
 }
 
 pub struct ImgAttributes {
@@ -155,20 +159,8 @@ impl ArtistAssets {
         }
     }
 
-    pub fn obsolete(&self, build: &Build) -> bool {
-        match &self.marked_stale {
-            Some(marked_stale) => {
-                match &build.cache_optimization {
-                    CacheOptimization::Default | 
-                    CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(*marked_stale) > Duration::hours(24),
-                    CacheOptimization::Immediate |
-                    CacheOptimization::Manual |
-                    CacheOptimization::Wipe => true
-                }
-            },
-            None => false
-        }
+    pub fn is_stale(&self) -> bool {
+        self.marked_stale.is_some()
     }
 
     pub fn unmark_stale(&mut self) {
@@ -242,20 +234,8 @@ impl CoverAssets {
         }
     }
 
-    pub fn obsolete(&self, build: &Build) -> bool {
-        match &self.marked_stale {
-            Some(marked_stale) => {
-                match &build.cache_optimization {
-                    CacheOptimization::Default | 
-                    CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(*marked_stale) > Duration::hours(24),
-                    CacheOptimization::Immediate |
-                    CacheOptimization::Manual |
-                    CacheOptimization::Wipe => true
-                }
-            },
-            None => false
-        }
+    pub fn is_stale(&self) -> bool {
+        self.marked_stale.is_some()
     }
 
     pub fn unmark_stale(&mut self) {
@@ -264,7 +244,7 @@ impl CoverAssets {
 }
 
 impl DescribedImage {
-    pub fn new(description: Option<String>, image: ImageRc) -> DescribedImage {
+    pub fn new(description: Option<String>, image: ImageRcView) -> DescribedImage {
         DescribedImage {
             description,
             image
@@ -278,19 +258,20 @@ impl Image {
     /// manifests that hold old, incompatible data.
     pub const CACHE_SERIALIZATION_KEY: &'static str = "image1";
 
-    pub fn artist_asset(
+    pub fn artist_assets(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent
+        asset_intent: AssetIntent,
+        source_path: &Path
     ) -> &mut ArtistAssets {
         if let Some(assets) = self.artist_assets.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 assets.unmark_stale();
             }
         } else {
-            info_resizing!("{:?} for usage as an artist image", &self.source_file_signature.path);
+            info_resizing!("{:?} for usage as an artist image", &source_path);
 
-            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+            let image_in_memory = build.image_processor.open(build, source_path);
             let source_width = image_in_memory.width() as f32;
 
             // Compute fixed sizes.
@@ -383,16 +364,17 @@ impl Image {
     pub fn background_asset(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent
+        asset_intent: AssetIntent,
+        source_path: &Path
     ) -> &mut Asset {
         if let Some(asset) = self.background_asset.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 asset.unmark_stale();
             }
         } else {
-            info_resizing!("{:?} for usage as a background image", &self.source_file_signature.path);
+            info_resizing!("{:?} for usage as a background image", &source_path);
 
-            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+            let image_in_memory = build.image_processor.open(build, source_path);
 
             let resize_mode = ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE };
             let (filename, _dimensions) = build.image_processor.resize(build, &image_in_memory, resize_mode);
@@ -446,19 +428,20 @@ impl Image {
         }
     }
 
-    pub fn cover_asset(
+    pub fn cover_assets(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent
+        asset_intent: AssetIntent,
+        source_path: &Path
     ) -> &mut CoverAssets {
         if let Some(assets) = self.cover_assets.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 assets.unmark_stale();
             }
         } else {
-            info_resizing!("{:?} for usage as a cover image", &self.source_file_signature.path);
+            info_resizing!("{:?} for usage as a cover image", source_path);
 
-            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+            let image_in_memory = build.image_processor.open(build, source_path);
             let source_width = image_in_memory.width() as f32;
 
             let resize_mode_max_160 = ResizeMode::CoverSquare { edge_size: 160 };
@@ -520,16 +503,17 @@ impl Image {
     pub fn feed_asset(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent
+        asset_intent: AssetIntent,
+        source_path: &Path
     ) -> &mut Asset {
         if let Some(asset) = self.feed_asset.as_mut() {
             if asset_intent == AssetIntent::Deliverable {
                 asset.unmark_stale();
             }
         } else {
-            info_resizing!("{:?} for usage as a feed image", &self.source_file_signature.path);
+            info_resizing!("{:?} for usage as a feed image", &source_path);
 
-            let image_in_memory = build.image_processor.open(build, &self.source_file_signature.path);
+            let image_in_memory = build.image_processor.open(build, source_path);
 
             let (filename, _dimensions) = build.image_processor.resize(
                 build,
@@ -544,8 +528,7 @@ impl Image {
     }
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
-        let source_file_signature_hash = url_safe_hash(&self.source_file_signature);
-        let manifest_filename = format!("{source_file_signature_hash}.{}.bincode", Image::CACHE_SERIALIZATION_KEY);
+        let manifest_filename = format!("{}.{}.bincode", url_safe_base64(self.hash.value), Image::CACHE_SERIALIZATION_KEY);
         cache_dir.join(manifest_filename)
     }
     
@@ -554,15 +537,20 @@ impl Image {
         if let Some(asset) = self.background_asset.as_mut() { asset.mark_stale(timestamp); }
         if let Some(asset) = self.cover_assets.as_mut() { asset.mark_stale(timestamp); }
         if let Some(asset) = self.feed_asset.as_mut() { asset.mark_stale(timestamp); }
+
+        for view in self.views.iter_mut() {
+            view.mark_stale(timestamp);
+        }
     }
-    
-    pub fn new(source_file_signature: SourceFileSignature) -> Image {
+
+    pub fn new(file_meta: FileMeta, hash: SourceHash) -> Image {
         Image {
             artist_assets: None,
             background_asset: None,
             cover_assets: None,
             feed_asset: None,
-            source_file_signature
+            hash,
+            views: vec![View::new(file_meta)]
         }
     }
 
@@ -574,6 +562,10 @@ impl Image {
 }
 
 impl ImageRc {
+    pub fn add_view(&self, file_meta: &FileMeta) {
+        self.image.borrow_mut().views.push(View::new(file_meta.clone()));
+    }
+
     pub fn borrow(&self) -> Ref<'_, Image> {
         self.image.borrow()
     }
@@ -582,17 +574,56 @@ impl ImageRc {
         self.image.borrow_mut()
     }
 
-    pub fn new(image: Image) -> ImageRc {
+    pub fn matches_hash(&self, hash: &SourceHash) -> bool {
+        self.image.borrow().hash == *hash
+    }
+
+    pub fn new(file_meta: FileMeta, hash: SourceHash) -> ImageRc {
+        let image = Image::new(file_meta, hash);
+
         ImageRc {
             image: Rc::new(RefCell::new(image))
         }
     }
+
+    pub fn retrieved(image: Image) -> ImageRc {
+        ImageRc {
+            image: Rc::new(RefCell::new(image))
+        }
+    }
+
+    pub fn revive_view(&self, file_meta: &FileMeta) -> bool {
+        for view_mut in self.image.borrow_mut().views.iter_mut() {
+            if view_mut.file_meta == *file_meta {
+                view_mut.unmark_stale();
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
-impl Hash for ImageRc {
-    /// Needed so we can automatically derive Hash for Theme
+impl ImageRcView {
+    pub fn borrow(&self) -> Ref<'_, Image> {
+        self.image.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, Image> {
+        self.image.borrow_mut()
+    }
+
+    pub fn new(file_meta: FileMeta, image: ImageRc) -> ImageRcView {
+        ImageRcView {
+            file_meta,
+            image
+        }
+    }
+}
+
+impl Hash for ImageRcView {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.image.borrow().source_file_signature.path.hash(state);
+        self.image.borrow().hash.hash(state);
     }
 }
 

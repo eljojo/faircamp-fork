@@ -1,26 +1,17 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::path::Path;
 use std::process::{Command, Output};
 
-use crate::AudioFormat;
+use crate::{AudioFormat, TagMapping};
 
 #[cfg(not(target_os = "windows"))]
 pub const FFMPEG_BINARY: &str = "ffmpeg";
 
 #[cfg(target_os = "windows")]
 pub const FFMPEG_BINARY: &str = "ffmpeg.exe";
-
-pub struct TagMapping {
-    pub album: Option<String>,
-    pub album_artist: Option<String>,
-    pub artist: Option<String>,
-    pub title: Option<String>,
-    /// Track number
-    pub track: Option<usize>
-}
 
 pub fn transcode(
     input_file: &Path,

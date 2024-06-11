@@ -40,6 +40,7 @@ pacmog = "0.4.1"
 pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.11.0" }
 rmp3 = { features = ["float", "simd"], version = "0.3.1" }
 sanitize-filename = "0.5.0"
+seahash = "4.1.0"
 serde = "1.0.203"
 serde_derive = "1.0.203"
 slug = "0.1.5"

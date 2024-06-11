@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: 2022-2023 Simon Repp
+// SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
 use std::fs;
 
-use crate::{Build, CacheOptimization};
+use crate::Build;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Asset {
@@ -20,6 +20,8 @@ pub enum AssetIntent {
     Intermediate
 }
 
+// TODO: This underlying pattern (marked_stale field and mark_stale/is_stale/obsolete/etc. methods)
+//       repeats a few times, at some point consider some reusable code solution for it.
 impl Asset {
     pub fn new(build: &Build, filename: String, intent: AssetIntent) -> Asset {
         let metadata = fs::metadata(build.cache_dir.join(&filename)).unwrap();
@@ -40,22 +42,10 @@ impl Asset {
         }
     }
     
-    pub fn obsolete(&self, build: &Build) -> bool {
-        match &self.marked_stale {
-            Some(marked_stale) => {
-                match &build.cache_optimization {
-                    CacheOptimization::Default | 
-                    CacheOptimization::Delayed => 
-                        build.build_begin.signed_duration_since(*marked_stale) > Duration::hours(24),
-                    CacheOptimization::Immediate |
-                    CacheOptimization::Manual |
-                    CacheOptimization::Wipe => true
-                }
-            },
-            None => false
-        }
+    pub fn is_stale(&self) -> bool {
+        self.marked_stale.is_some()
     }
-    
+
     pub fn unmark_stale(&mut self) {
         self.marked_stale = None;
     }

@@ -63,7 +63,7 @@ impl HeuristicAudioMeta {
         let mut items = Vec::new();
 
         for track in &mut *release_tracks {
-            let file_stem = track.transcodes.borrow().source_file_signature.path
+            let file_stem = track.transcodes.file_meta.path
                 .file_stem()
                 .unwrap()
                 .to_string_lossy()
@@ -104,7 +104,7 @@ impl HeuristicAudioMeta {
         };
 
         for track in &mut *release_tracks {
-            let file_stem = track.transcodes.borrow().source_file_signature.path
+            let file_stem = track.transcodes.file_meta.path
                 .file_stem()
                 .unwrap()
                 .to_string_lossy()

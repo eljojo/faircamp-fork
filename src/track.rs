@@ -12,9 +12,11 @@ use crate::{
     HeuristicAudioMeta,
     TagMapping,
     Theme,
-    TranscodesRc,
+    Transcode,
+    TranscodesRcView,
     util
 };
+use crate::util::generic_hash;
 
 #[derive(Debug)]
 pub struct Track {
@@ -29,7 +31,7 @@ pub struct Track {
     pub asset_basename: Option<String>,
     pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
     pub theme: Theme,
-    pub transcodes: TranscodesRc
+    pub transcodes: TranscodesRcView
 }
 
 impl Track {
@@ -38,33 +40,34 @@ impl Track {
         format: AudioFormat,
         build: &Build,
         asset_intent: AssetIntent,
-        tag_mapping_option: &Option<TagMapping>
+        tag_mapping: &Option<TagMapping>
     ) {
         let mut transcodes_mut = self.transcodes.borrow_mut();
 
-        if let Some(asset) = transcodes_mut.get_mut(format) {
+        if let Some(transcode) = transcodes_mut.get_mut(format, generic_hash(tag_mapping)) {
             if asset_intent == AssetIntent::Deliverable {
-                asset.unmark_stale();
+                transcode.asset.unmark_stale();
             }
         } else {
             let target_filename = format!("{}{}", util::uid(), format.extension());
 
-            info_transcoding!("{:?} to {}", transcodes_mut.source_file_signature.path, format);
+            info_transcoding!("{:?} to {}", self.transcodes.file_meta.path, format);
             ffmpeg::transcode(
-                &build.catalog_dir.join(&transcodes_mut.source_file_signature.path),
+                &build.catalog_dir.join(&self.transcodes.file_meta.path),
                 &build.cache_dir.join(&target_filename),
                 format,
-                tag_mapping_option
+                tag_mapping
             ).unwrap();
 
-            transcodes_mut.get_mut(format).replace(Asset::new(build, target_filename, asset_intent));
+            let asset = Asset::new(build, target_filename, asset_intent);
+            transcodes_mut.formats.push(Transcode::new(asset, format, generic_hash(tag_mapping)));
         }
     }
     
     pub fn new(
         artists_to_map: Vec<String>,
         theme: Theme,
-        transcodes: TranscodesRc
+        transcodes: TranscodesRcView
     ) -> Track {
         Track {
             artists: Vec::new(),
@@ -77,13 +80,12 @@ impl Track {
     }
 
     pub fn title(&self) -> String {
-        let transcodes_ref = self.transcodes.borrow();
-        if let Some(title) = &transcodes_ref.source_meta.title {
+        if let Some(title) = &self.transcodes.borrow().source_meta.title {
             title.clone()
         } else if let Some(heuristic_audio_meta) = &self.heuristic_audio_meta {
             heuristic_audio_meta.title.clone()
         } else {
-            transcodes_ref.source_file_signature.path
+            self.transcodes.file_meta.path
                 .file_stem()
                 .unwrap()
                 .to_str()

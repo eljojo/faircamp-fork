@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs;
-use std::io;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
 
@@ -61,6 +60,12 @@ pub fn format_time(seconds: f32) -> String {
     }
 }
 
+pub fn generic_hash(hashable: &impl Hash) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    hashable.hash(&mut hasher);
+    hasher.finish()
+}
+
 /// Media that require heavy precomputation (image, audio) are stored in the
 /// cache directory, and then copied to the build directory during
 /// generation. In order to prevent double space usage, inside the build
@@ -72,14 +77,6 @@ pub fn hard_link_or_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) {
         .unwrap_or_else(|_| {
             fs::copy(&from, &to).unwrap();
         });
-}
-
-pub fn url_safe_hash(hashable: &impl Hash) -> String {
-    let mut hasher = DefaultHasher::new();
-
-    hashable.hash(&mut hasher);
-
-    URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
 }
 
 /// Given e.g. "\"foo\"", it will first turn the input into "&quot;foo&quot;", 
@@ -111,4 +108,18 @@ pub fn html_escape_outside_attribute(string: &str) -> String {
 
 pub fn uid() -> String {
     nanoid!(8)
+}
+
+/// Convert a numerical hash to a more compact base64 string representation
+/// that is safe to use in file names and urls.
+pub fn url_safe_base64(hash: u64) -> String {
+    URL_SAFE_NO_PAD.encode(hash.to_le_bytes())
+}
+
+pub fn url_safe_hash_base64(hashable: &impl Hash) -> String {
+    let mut hasher = DefaultHasher::new();
+
+    hashable.hash(&mut hasher);
+
+   url_safe_base64(hasher.finish())
 }

@@ -5,6 +5,7 @@
 use std::cell::{Ref, RefCell, RefMut};
 use std::f32::consts::TAU;
 use std::fs::File;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -17,28 +18,30 @@ use zip::{CompressionMethod, ZipWriter};
 use zip::write::SimpleFileOptions;
 
 use crate::{
+    Archive,
     ArchivesRc,
     ArtistRc,
     Asset,
     AssetIntent,
     Build,
+    Cache,
     Catalog,
     DescribedImage,
     DownloadFormat,
     DownloadOption,
+    FileMeta,
     HtmlAndStripped,
     Link,
     PaymentOption,
     Permalink,
     render,
-    SourceFileSignature,
     StreamingQuality,
     TagMapping,
     Theme,
     Track,
     util
 };
-use crate::manifest::Overrides;
+use crate::util::generic_hash;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum DownloadGranularity {
@@ -47,15 +50,20 @@ pub enum DownloadGranularity {
     SingleFiles
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
 pub struct Extra {
-    pub sanitized_filename: String,
-    pub source_file_signature: SourceFileSignature
+    pub file_meta: FileMeta,
+    pub sanitized_filename: String
 }
 
 #[derive(Debug)]
 pub struct Release {
-    pub archives: ArchivesRc,
+    /// This is an option because of delayed initialization - at the point where
+    /// we create the [Release] we cannot obtain this yet (we still need to map
+    /// the artists and the signature that we need to compute to obtain the right
+    /// archives depends on [Release] itself). Eventually this is guaranteed to
+    /// exist though, in the later phases of the build process.
+    pub archives: Option<ArchivesRc>,
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download asset filenames.
     pub asset_basename: Option<String>,
@@ -123,14 +131,13 @@ pub enum TrackNumbering {
 }
 
 impl Extra {
-    pub fn new(source_file_signature: SourceFileSignature) -> Extra {
-        let sanitized_filename = sanitize(
-            source_file_signature.path.file_name().unwrap().to_string_lossy()
-        );
+    pub fn new(file_meta: FileMeta) -> Extra {
+        // TODO: Write a helper for going from OsString to String in the most elegant/non-allocating way
+        let sanitized_filename = sanitize(file_meta.path.file_name().unwrap().to_string_lossy());
 
         Extra {
-            sanitized_filename,
-            source_file_signature
+            file_meta,
+            sanitized_filename
         }
     }
 }
@@ -280,6 +287,47 @@ impl Release {
                 {points}
             </svg>
         "#)
+    }
+
+    /// It is critical that every last detail of this hashing implementation
+    /// stays the same - unless explicitly needed of course - because this signature
+    /// makes or breaks finding cached archives.
+    pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
+        let mut hasher = DefaultHasher::new();
+
+        // TODO: Consider further if there are aspects of the dependency graph missing
+        //       that need to be included in the hash signature.
+        // TODO: Are the filenames represented at all? Should they? (With which filename
+        //       the tracks and extras and cover are written into the zip)
+
+        if let Some(described_image) = &self.cover {
+            // The image description is not used for building release archives,
+            // so we only hash the image itself
+            described_image.image.hash(&mut hasher);
+        }
+
+        if self.include_extras {
+            // There is no relevant order for extras, they are just included in the zip as
+            // files, but for hashing we need to ensure a stable order, as there is no such
+            // guarantee coming from where they are initialized - so we sort them here.
+            let mut extras_sorted = self.extras.clone();
+            extras_sorted.sort_by(|a, b| a.sanitized_filename.cmp(&b.sanitized_filename));
+            extras_sorted.hash(&mut hasher);
+        }
+
+        self.title.hash(&mut hasher);
+
+        // TODO: TrackNumbering could also be part of signature (how the files are numbered in the filename!)
+        for (track_index, track) in self.tracks.iter().enumerate() {
+            let tag_mapping = TagMapping::new(self, track, track_index + 1);
+
+            tag_mapping.hash(&mut hasher);
+            track.transcodes.borrow().hash.hash(&mut hasher);
+        }
+
+        let signature = hasher.finish();
+
+        self.archives = Some(cache.get_or_create_archives(signature));
     }
 
     pub fn longest_track_duration(&self) -> f32 {
@@ -509,55 +557,56 @@ impl Release {
     }
 
     pub fn new(
-        archives: ArchivesRc,
         cover: Option<DescribedImage>,
         date: Option<NaiveDate>,
+        download_formats: Vec<DownloadFormat>,
+        download_granularity: DownloadGranularity,
+        download_option: DownloadOption,
+        embedding: bool,
         extras: Vec<Extra>,
+        include_extras: bool,
         links: Vec<Link>,
         main_artists_to_map: Vec<String>,
-        manifest_overrides: &Overrides,
+        payment_options: Vec<PaymentOption>,
         permalink: Option<Permalink>,
+        rewrite_tags: bool,
         source_dir: PathBuf,
+        streaming_quality: StreamingQuality,
         support_artists_to_map: Vec<String>,
+        text: Option<HtmlAndStripped>,
+        theme: Theme,
         title: String,
+        track_numbering: TrackNumbering,
         tracks: Vec<Track>,
         unlisted: bool
     ) -> Release {
         let permalink = permalink.unwrap_or_else(|| Permalink::generate(&title));
 
-        let mut download_option = manifest_overrides.download_option.clone();
-
-        if let DownloadOption::Codes { unlock_text, .. } = &mut download_option {
-            if let Some(custom_unlock_text) = &manifest_overrides.unlock_text {
-                unlock_text.replace(custom_unlock_text.clone());
-            }
-        }
-
         Release {
-            archives,
+            archives: None,
             asset_basename: None,
             cover,
             date,
-            download_formats: manifest_overrides.download_formats.clone(),
-            download_granularity: manifest_overrides.download_granularity.clone(),
+            download_formats,
+            download_granularity,
             download_option,
-            embedding: manifest_overrides.embedding,
+            embedding,
             extras,
-            include_extras: manifest_overrides.include_extras,
+            include_extras,
             links,
             main_artists: Vec::new(),
             main_artists_to_map,
-            payment_options: manifest_overrides.payment_options.clone(),
+            payment_options,
             permalink,
-            rewrite_tags: manifest_overrides.rewrite_tags,
+            rewrite_tags,
             source_dir,
-            streaming_quality: manifest_overrides.streaming_quality,
+            streaming_quality,
             support_artists: Vec::new(),
             support_artists_to_map,
-            text: manifest_overrides.release_text.clone(),
-            theme: manifest_overrides.theme.clone(),
+            text,
+            theme,
             title,
-            track_numbering: manifest_overrides.release_track_numbering.clone(),
+            track_numbering,
             tracks,
             unlisted
         }
@@ -575,28 +624,6 @@ impl Release {
     }
 
     pub fn write_downloadable_files(&mut self, build: &mut Build) {
-        let mut tag_mapping_option = if self.rewrite_tags {
-            Some(TagMapping {
-                album: Some(self.title.clone()),
-                album_artist: if self.main_artists.is_empty() {
-                    None
-                } else {
-                    Some(
-                        self.main_artists
-                            .iter()
-                            .map(|artist| artist.borrow().name.clone())
-                            .collect::<Vec<String>>()
-                            .join(", ")
-                    )
-                },
-                artist: None,
-                title: None,
-                track: None
-            })
-        } else {
-            None
-        };
-
         let release_dir = build.build_dir.join(&self.permalink.slug);
 
         for download_format in &self.download_formats {
@@ -604,47 +631,25 @@ impl Release {
 
             util::ensure_dir(&format_dir);
 
-            let mut archives_mut = self.archives.borrow_mut();
-            let cached_archive_asset = archives_mut.get_mut(*download_format);
+            let archives_unwrapped = self.archives.as_ref().unwrap(); // at this point guaranteed to be available (delayed initialization)
+            let mut archives_mut = archives_unwrapped.borrow_mut();
+            let has_cached_archive_asset = archives_mut.has(*download_format);
 
-            for (track_index, track) in self.tracks.iter_mut().enumerate() {
+            let tag_mappings: Vec<Option<TagMapping>> = self.tracks
+                .iter()
+                .enumerate()
+                .map(|(track_index, track)| TagMapping::new(self, track, track_index + 1))
+                .collect();
+
+            for (track, tag_mapping) in self.tracks.iter_mut().zip(tag_mappings.iter()) {
                 // Transcode track to required format if needed and not yet available
-                if !(self.download_granularity == DownloadGranularity::EntireRelease && cached_archive_asset.is_some()) &&
-                    track.transcodes.borrow().get(download_format.as_audio_format()).is_none() {
+                if !(self.download_granularity == DownloadGranularity::EntireRelease && has_cached_archive_asset) &&
+                    !track.transcodes.borrow().has(download_format.as_audio_format(), generic_hash(&tag_mapping)) {
                     if download_format.is_lossless() && !track.transcodes.borrow().source_meta.lossless {
                         warn_discouraged!(
                             "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
-                            &track.transcodes.borrow().source_file_signature.path.display()
+                            &track.transcodes.file_meta.path.display()
                         );
-                    }
-
-                    if let Some(tag_mapping) = &mut tag_mapping_option {
-                        tag_mapping.artist = if track.artists.is_empty() {
-                            None
-                        } else {
-                             Some(
-                                track.artists
-                                .iter()
-                                .map(|artist| artist.borrow().name.clone())
-                                .collect::<Vec<String>>()
-                                .join(", ")
-                            )
-                        };
-                        tag_mapping.title = Some(track.title());
-
-                        // This does intentionally not (directly) utilize track number metadata
-                        // gathered from the original audio files, here's why:
-                        // - If all tracks came with track number metadata, the tracks will have
-                        //   been sorted by it, and hence we arrive at the same result anyway (except
-                        //   if someone supplied track number metadata that didn't regularly go from
-                        //   1 to [n] in steps of 1, which is however quite an edge case and raises
-                        //   questions also regarding presentation on the release page itself.)
-                        // - If no track metadata was supplied, we here use the same order as has
-                        //   been determined when the Release is built (alphabetical)
-                        // - If there was a mix of tracks with track numbers and tracks without, it's
-                        //   going to be a bit of a mess (hard to do anything about it), but this will
-                        //   also show on the release page itself already
-                        tag_mapping.track = Some(track_index + 1);
                     }
 
                     let asset_intent = if self.download_granularity == DownloadGranularity::EntireRelease {
@@ -657,7 +662,7 @@ impl Release {
                         download_format.as_audio_format(),
                         build,
                         asset_intent,
-                        &tag_mapping_option
+                        tag_mapping
                     );
 
                     track.transcodes.borrow().persist_to_cache(&build.cache_dir);
@@ -666,12 +671,10 @@ impl Release {
                 // If single track downloads are enabled copy transcoded track to build
                 if self.download_granularity != DownloadGranularity::EntireRelease {
                     let mut transcodes_mut = track.transcodes.borrow_mut();
-                    let transcode = transcodes_mut
-                        .get_mut(download_format.as_audio_format())
-                        .as_mut()
-                        .unwrap();
+                    let mut transcode_option = transcodes_mut.get_mut(download_format.as_audio_format(), generic_hash(&tag_mapping));
+                    let transcode = transcode_option.as_mut().unwrap();
 
-                    transcode.unmark_stale();
+                    transcode.asset.unmark_stale();
 
                     let track_filename = format!(
                         "{basename}{extension}",
@@ -699,11 +702,11 @@ impl Release {
                     // So we only copy and add it to the stats if that hasn't yet happened.
                     if !target_path.exists() {
                         util::hard_link_or_copy(
-                            build.cache_dir.join(&transcode.filename),
+                            build.cache_dir.join(&transcode.asset.filename),
                             target_path
                         );
 
-                        build.stats.add_track(transcode.filesize_bytes);
+                        build.stats.add_track(transcode.asset.filesize_bytes);
                     }
                 }
             }
@@ -711,7 +714,7 @@ impl Release {
             // If entire release downloads are enabled create the zip (if not available yet) and copy it to build
             if self.download_granularity != DownloadGranularity::SingleFiles {
                 // Create zip for required format if not yet available
-                if cached_archive_asset.is_none() {
+                if !has_cached_archive_asset {
                     let cached_archive_filename = format!("{}.zip", util::uid());
 
                     info_zipping!(
@@ -730,9 +733,9 @@ impl Release {
 
                     let mut buffer = Vec::new();
 
-                    for track in self.tracks.iter_mut() {
-                        let assets_ref = track.transcodes.borrow();
-                        let download_track_asset = assets_ref.get(download_format.as_audio_format()).as_ref().unwrap();
+                    for (track, tag_mapping) in self.tracks.iter_mut().zip(tag_mappings.iter()) {
+                        let transcodes_ref = track.transcodes.borrow();
+                        let transcode = transcodes_ref.get_unchecked(download_format.as_audio_format(), generic_hash(&tag_mapping));
 
                         let filename = format!(
                             "{basename}{extension}",
@@ -743,7 +746,7 @@ impl Release {
                         zip_writer.start_file(&*filename, options).unwrap();
 
                         let mut zip_inner_file = File::open(
-                            &build.cache_dir.join(&download_track_asset.filename)
+                            &build.cache_dir.join(&transcode.asset.filename)
                         ).unwrap();
 
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
@@ -755,7 +758,8 @@ impl Release {
 
                     if let Some(described_image) = &mut self.cover {
                         let mut image_mut = described_image.image.borrow_mut();
-                        let cover_assets = image_mut.cover_asset(build, AssetIntent::Intermediate);
+                        let source_path = &described_image.image.file_meta.path;
+                        let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
 
                         zip_writer.start_file("cover.jpg", options).unwrap();
 
@@ -774,7 +778,7 @@ impl Release {
                         zip_writer.start_file(&*extra.sanitized_filename, options).unwrap();
 
                         let mut zip_inner_file = File::open(
-                            &build.catalog_dir.join(&extra.source_file_signature.path)
+                            &build.catalog_dir.join(&extra.file_meta.path)
                         ).unwrap();
 
                         zip_inner_file.read_to_end(&mut buffer).unwrap();
@@ -783,15 +787,19 @@ impl Release {
                     }
 
                     match zip_writer.finish() {
-                        Ok(_) => cached_archive_asset.replace(Asset::new(build, cached_archive_filename, AssetIntent::Deliverable)),
+                        Ok(_) => {
+                            let asset = Asset::new(build, cached_archive_filename, AssetIntent::Deliverable);
+                            archives_mut.formats.push(Archive::new(asset, *download_format));
+                        }
                         Err(err) => panic!("{}", err)
                     };
                 }
 
                 // Now we copy the zip to the build
-                let download_archive_asset = cached_archive_asset.as_mut().unwrap();
+                let archive_option = archives_mut.get_mut(*download_format);
+                let archive_mut = archive_option.unwrap();
 
-                download_archive_asset.unmark_stale();
+                archive_mut.asset.unmark_stale();
 
                 let archive_filename = format!(
                     "{basename}.zip",
@@ -809,11 +817,11 @@ impl Release {
                 util::ensure_dir(&hash_dir);
 
                 util::hard_link_or_copy(
-                    build.cache_dir.join(&download_archive_asset.filename),
+                    build.cache_dir.join(&archive_mut.asset.filename),
                     hash_dir.join(&archive_filename)
                 );
 
-                build.stats.add_archive(download_archive_asset.filesize_bytes);
+                build.stats.add_archive(archive_mut.asset.filesize_bytes);
 
                 archives_mut.persist_to_cache(&build.cache_dir);
             }
@@ -842,11 +850,11 @@ impl Release {
                 let target_path = hash_dir.join(&extra.sanitized_filename);
 
                 util::hard_link_or_copy(
-                    build.catalog_dir.join(&extra.source_file_signature.path),
+                    build.catalog_dir.join(&extra.file_meta.path),
                     target_path
                 );
 
-                build.stats.add_extra(extra.source_file_signature.size);
+                build.stats.add_extra(extra.file_meta.size);
             }
         }
     }
@@ -971,6 +979,7 @@ impl ReleaseRc {
     }
 }
 
+// Put into own module
 impl TrackNumbering {
     pub fn format(&self, number: usize) -> String {
         match self {

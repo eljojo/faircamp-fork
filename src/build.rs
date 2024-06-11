@@ -11,20 +11,14 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use chrono::{DateTime, Utc};
 use url::Url;
 
-use crate::{
-    Args,
-    CacheOptimization,
-    ImageProcessor,
-    Locale,
-    util
-};
+use crate::{Args, ImageProcessor, Locale};
+use crate::util::format_bytes;
 
 pub struct Build {
     pub base_url: Option<Url>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
     pub cache_dir: PathBuf,
-    pub cache_optimization: CacheOptimization,
     pub catalog_dir: PathBuf,
     pub clean_urls: bool,
     pub deploy_destination: Option<String>,
@@ -150,7 +144,6 @@ impl Build {
             build_begin: Utc::now(),
             build_dir,
             cache_dir,
-            cache_optimization: CacheOptimization::Default,
             catalog_dir,
             clean_urls: !args.no_clean_urls,
             deploy_destination: args.deploy_destination.clone(),
@@ -231,14 +224,14 @@ impl Stats {
     pub fn to_string(&self) -> String {
         format!(
             "{num_archives} archives ({bytes_used_archives}), {num_tracks} tracks ({bytes_used_tracks}), {num_images} images ({bytes_used_images}) and {num_extras} extras ({bytes_used_extras}) written",
-            num_archives=self.num_archives,
-            num_extras=self.num_extras,
-            num_images=self.num_images,
-            num_tracks=self.num_tracks,
-            bytes_used_archives=util::format_bytes(self.bytes_used_archives),
-            bytes_used_extras=util::format_bytes(self.bytes_used_extras),
-            bytes_used_images=util::format_bytes(self.bytes_used_images),
-            bytes_used_tracks=util::format_bytes(self.bytes_used_tracks)
+            num_archives = self.num_archives,
+            num_extras = self.num_extras,
+            num_images = self.num_images,
+            num_tracks = self.num_tracks,
+            bytes_used_archives = format_bytes(self.bytes_used_archives),
+            bytes_used_extras = format_bytes(self.bytes_used_extras),
+            bytes_used_images = format_bytes(self.bytes_used_images),
+            bytes_used_tracks = format_bytes(self.bytes_used_tracks)
         )
     }
 }

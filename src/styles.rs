@@ -6,7 +6,7 @@ use indoc::formatdoc;
 use std::fs;
 
 use crate::{Build, Catalog, Theme, ThemeFont};
-use crate::util::url_safe_hash;
+use crate::util::url_safe_hash_base64;
 
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
 
@@ -160,7 +160,7 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
     if let Some(image) = &theme.background_image {
         let image_ref = image.borrow();
         let filename = &image_ref.background_asset.as_ref().unwrap().filename;
-        let hashed_filename = format!("background-{}.jpg", url_safe_hash(filename));
+        let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(filename));
 
         // We are using a pseudo-element floating behind all other page content
         // to display the background image. A more straight-forward way would

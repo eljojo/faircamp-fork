@@ -1,12 +1,16 @@
 // SPDX-FileCopyrightText: 2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::fmt::{Display, Formatter};
+
+use serde_derive::{Serialize, Deserialize};
+
 use crate::{AudioFormat, Build};
 
 /// A higher-level audio format representation that only covers
 /// all audio formats that can be enabled for download. Routinely
 /// "casted" to the more generic AudioFormat where needed.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum DownloadFormat {
     Aac,
     Aiff,
@@ -21,19 +25,6 @@ pub enum DownloadFormat {
 }
 
 impl DownloadFormat {
-    pub const ALL_DOWNLOAD_FORMATS: [DownloadFormat; 10] = [
-        DownloadFormat::Aac,
-        DownloadFormat::Aiff,
-        DownloadFormat::Alac,
-        DownloadFormat::Flac,
-        DownloadFormat::Mp3VbrV0,
-        DownloadFormat::OggVorbis,
-        DownloadFormat::Opus48Kbps,
-        DownloadFormat::Opus96Kbps,
-        DownloadFormat::Opus128Kbps,
-        DownloadFormat::Wav
-    ];
-
     pub const DEFAULT: DownloadFormat = DownloadFormat::Opus128Kbps;
 
     /// DownloadFormat is a more user-facing abstraction over AudioFormat,
@@ -173,5 +164,24 @@ impl DownloadFormat {
             DownloadFormat::Opus128Kbps => "Opus 128Kbps",
             DownloadFormat::Wav => "WAV"
         }
+    }
+}
+
+impl Display for DownloadFormat {
+    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        let text = match self {
+            DownloadFormat::Aac => "AAC",
+            DownloadFormat::Aiff => "AIFF",
+            DownloadFormat::Alac => "ALAC",
+            DownloadFormat::Flac => "FLAC",
+            DownloadFormat::Mp3VbrV0 => "MP3",
+            DownloadFormat::OggVorbis => "Ogg Vorbis",
+            DownloadFormat::Opus48Kbps => "Opus 48Kbps",
+            DownloadFormat::Opus96Kbps => "Opus 96Kbps",
+            DownloadFormat::Opus128Kbps => "Opus 128Kbps",
+            DownloadFormat::Wav => "WAV"
+        };
+
+        write!(formatter, "{}", text)
     }
 }

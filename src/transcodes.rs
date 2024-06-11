@@ -13,32 +13,56 @@ use crate::{
     Asset,
     AudioFormat,
     AudioMeta,
-    SourceFileSignature
+    FileMeta,
+    SourceHash,
+    View
 };
-use crate::util::url_safe_hash;
+use crate::util::url_safe_base64;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Transcode {
+    pub asset: Asset,
+    pub format: AudioFormat,
+    /// This is a hash computed from TagMapping, allowing us to retrieve
+    /// the right transcode without cloning an entire tag mapping struct
+    /// to each transcode in the cache.
+    pub tag_signature: u64
+}
+
+/// Holds the retrieved audio metadata (source_meta) of a uniquely
+/// identified (hash) audio source file and all its available
+/// transcoded versions (formats).
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transcodes {
-    pub aac: Option<Asset>,
-    pub aiff: Option<Asset>,
-    pub alac: Option<Asset>,
-    pub flac: Option<Asset>,
-    pub mp3_v0: Option<Asset>,
-    pub mp3_v5: Option<Asset>,
-    pub mp3_v7: Option<Asset>,
-    pub ogg_vorbis: Option<Asset>,
-    pub opus_48: Option<Asset>,
-    pub opus_96: Option<Asset>,
-    pub opus_128: Option<Asset>,
-    pub source_file_signature: SourceFileSignature,
-    // TODO: Revisit why source_meta is on Transcodes (rather than ... Track maybe?)
+    pub formats: Vec<Transcode>,
+    pub hash: SourceHash,
     pub source_meta: AudioMeta,
-    pub wav: Option<Asset>
+    pub views: Vec<View>
 }
 
 #[derive(Clone, Debug)]
 pub struct TranscodesRc {
     transcodes: Rc<RefCell<Transcodes>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TranscodesRcView {
+    pub file_meta: FileMeta,
+    transcodes: TranscodesRc
+}
+
+impl Transcode {
+    pub fn new(
+        asset: Asset,
+        format: AudioFormat,
+        tag_signature: u64
+    ) -> Transcode {
+        Transcode {
+            asset,
+            format,
+            tag_signature
+        }
+    }
 }
 
 impl Transcodes {
@@ -54,73 +78,54 @@ impl Transcodes {
         }
     }
 
-    pub fn get(&self, format: AudioFormat) -> &Option<Asset> {
-        match format {
-            AudioFormat::Aac => &self.aac,
-            AudioFormat::Aiff => &self.aiff,
-            AudioFormat::Alac => &self.alac,
-            AudioFormat::Flac => &self.flac,
-            AudioFormat::Mp3VbrV0 => &self.mp3_v0,
-            AudioFormat::Mp3VbrV5 => &self.mp3_v5,
-            AudioFormat::Mp3VbrV7 => &self.mp3_v7,
-            AudioFormat::OggVorbis => &self.ogg_vorbis,
-            AudioFormat::Opus48Kbps => &self.opus_48,
-            AudioFormat::Opus96Kbps => &self.opus_96,
-            AudioFormat::Opus128Kbps => &self.opus_128,
-            AudioFormat::Wav => &self.wav
-        }
+    /// Only call this if you know the format must exist (e.g. right after requesting
+    /// it through [transcode_as]), because it will panic if it doesn't.
+    pub fn get_unchecked(&self, format: AudioFormat, tag_signature: u64) -> &Transcode {
+        self.formats
+            .iter()
+            .find(|transcode| transcode.format == format && transcode.tag_signature == tag_signature)
+            .unwrap()
     }
 
-    pub fn get_mut(&mut self, format: AudioFormat) -> &mut Option<Asset> {
-        match format {
-            AudioFormat::Aac => &mut self.aac,
-            AudioFormat::Aiff => &mut self.aiff,
-            AudioFormat::Alac => &mut self.alac,
-            AudioFormat::Flac => &mut self.flac,
-            AudioFormat::Mp3VbrV0 => &mut self.mp3_v0,
-            AudioFormat::Mp3VbrV5 => &mut self.mp3_v5,
-            AudioFormat::Mp3VbrV7 => &mut self.mp3_v7,
-            AudioFormat::OggVorbis => &mut self.ogg_vorbis,
-            AudioFormat::Opus48Kbps => &mut self.opus_48,
-            AudioFormat::Opus96Kbps => &mut self.opus_96,
-            AudioFormat::Opus128Kbps => &mut self.opus_128,
-            AudioFormat::Wav => &mut self.wav
-        }
+    // TODO: Introduce a SomethingHash struct that holds an additional version identifer
+    //       just like we do with SourceHash? (needs to happen all over the place)
+    pub fn get_mut(&mut self, format: AudioFormat, tag_signature: u64) -> Option<&mut Transcode> {
+        self.formats
+            .iter_mut()
+            .find(|transcode| transcode.format == format && transcode.tag_signature == tag_signature)
+    }
+
+    pub fn has(&self, format: AudioFormat, tag_signature: u64) -> bool {
+        self.formats
+            .iter()
+            .any(|transcode| transcode.format == format && transcode.tag_signature == tag_signature)
     }
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
-        let source_file_signature_hash = url_safe_hash(&self.source_file_signature);
-        let manifest_filename = format!("{source_file_signature_hash}.{}.bincode", Transcodes::CACHE_SERIALIZATION_KEY);
+        let manifest_filename = format!("{}.{}.bincode", url_safe_base64(self.hash.value), Transcodes::CACHE_SERIALIZATION_KEY);
         cache_dir.join(manifest_filename)
     }
 
     pub fn mark_all_stale(&mut self, timestamp: &DateTime<Utc>) {
-        for audio_format in AudioFormat::ALL_AUDIO_FORMATS {
-            if let Some(track_asset) = self.get_mut(audio_format) {
-                track_asset.mark_stale(timestamp);
-            }
+        for transcode in self.formats.iter_mut() {
+            transcode.asset.mark_stale(timestamp);
+        }
+
+        for view in self.views.iter_mut() {
+            view.mark_stale(timestamp);
         }
     }
 
     pub fn new(
-        source_file_signature: SourceFileSignature,
+        file_meta: FileMeta,
+        hash: SourceHash,
         source_meta: AudioMeta
     ) -> Transcodes {
         Transcodes {
-            aac: None,
-            aiff: None,
-            alac: None,
-            flac: None,
-            mp3_v0: None,
-            mp3_v5: None,
-            mp3_v7: None,
-            ogg_vorbis: None,
-            opus_48: None,
-            opus_96: None,
-            opus_128: None,
-            source_file_signature,
+            formats: Vec::new(),
+            hash,
             source_meta,
-            wav: None
+            views: vec![View::new(file_meta)]
         }
     }
 
@@ -131,6 +136,10 @@ impl Transcodes {
 }
 
 impl TranscodesRc {
+    pub fn add_view(&self, file_meta: &FileMeta) {
+        self.transcodes.borrow_mut().views.push(View::new(file_meta.clone()));
+    }
+
     pub fn borrow(&self) -> Ref<'_, Transcodes> {
         self.transcodes.borrow()
     }
@@ -139,9 +148,49 @@ impl TranscodesRc {
         self.transcodes.borrow_mut()
     }
 
-    pub fn new(transcodes: Transcodes) -> TranscodesRc {
+    pub fn matches_hash(&self, hash: &SourceHash) -> bool {
+        self.transcodes.borrow().hash == *hash
+    }
+
+    pub fn new(file_meta: FileMeta, hash: SourceHash, source_meta: AudioMeta) -> TranscodesRc {
+        let transcodes = Transcodes::new(file_meta, hash, source_meta);
+
         TranscodesRc {
             transcodes: Rc::new(RefCell::new(transcodes))
+        }
+    }
+
+    pub fn retrieved(transcodes: Transcodes) -> TranscodesRc {
+        TranscodesRc {
+            transcodes: Rc::new(RefCell::new(transcodes))
+        }
+    }
+
+    pub fn revive_view(&self, file_meta: &FileMeta) -> bool {
+        for view_mut in self.transcodes.borrow_mut().views.iter_mut() {
+            if view_mut.file_meta == *file_meta {
+                view_mut.unmark_stale();
+                return true;
+            }
+        }
+
+        false
+    }
+}
+
+impl TranscodesRcView {
+    pub fn borrow(&self) -> Ref<'_, Transcodes> {
+        self.transcodes.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<'_, Transcodes> {
+        self.transcodes.borrow_mut()
+    }
+
+    pub fn new(file_meta: FileMeta, transcodes: TranscodesRc) -> TranscodesRcView {
+        TranscodesRcView {
+            file_meta,
+            transcodes
         }
     }
 }

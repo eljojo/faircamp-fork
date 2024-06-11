@@ -9,11 +9,12 @@ use crate::{
     CrawlerMeta,
     DownloadFormat,
     DownloadGranularity,
-    Release
+    Release,
+    TagMapping
 };
 use crate::icons;
 use crate::render::{compact_release_identifier, layout};
-use crate::util::{format_bytes, html_escape_outside_attribute};
+use crate::util::{format_bytes, generic_hash, html_escape_outside_attribute};
 
 fn download_entry(href: String, label: &str, size: u64) -> String {
     formatdoc!(
@@ -89,13 +90,15 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 let archive_filename_urlencoded = urlencoding::encode(&archive_filename);
 
+                let archives = release.archives.as_ref().unwrap();
+
                 download_entry(
                     format!(
                         "{root_prefix}{release_slug}/{format_dir}/{archive_hash}/{archive_filename_urlencoded}",
                         format_dir = download_format.as_audio_format().asset_dirname()
                     ),
                     download_format.user_label(),
-                    release.archives.borrow().get(*download_format).as_ref().unwrap().filesize_bytes
+                    archives.borrow().get_unchecked(*download_format).asset.filesize_bytes
                 )
             })
             .collect::<Vec<String>>()
@@ -147,7 +150,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         download_entry(
                             format!("{root_prefix}{release_slug}/extras/{extra_hash}/{extra_filename_urlencoded}"),
                             &extra.sanitized_filename,
-                            extra.source_file_signature.size
+                            extra.file_meta.size
                         )
                     })
                     .collect::<Vec<String>>()
@@ -170,11 +173,13 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         } else {
             String::new()
         };
- 
+
         let track_downloads = release.tracks
             .iter()
             .enumerate()
             .map(|(track_index, track)| {
+                let tag_mapping = TagMapping::new(release, track, track_index + 1);
+
                 let track_download_columns = sorted_formats
                     .iter()
                     .map(|(download_format, _annotation)| {
@@ -200,7 +205,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                                 format_dir = download_format.as_audio_format().asset_dirname()
                             ),
                             download_format.user_label(),
-                            track.transcodes.borrow().get(download_format.as_audio_format()).as_ref().unwrap().filesize_bytes
+                            track.transcodes.borrow().get_unchecked(download_format.as_audio_format(), generic_hash(&tag_mapping)).asset.filesize_bytes
                         )
                     })
                     .collect::<Vec<String>>()

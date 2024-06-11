@@ -18,23 +18,23 @@ use crate::{
     DownloadOption,
     Extra,
     Favicon,
+    FileMeta,
     HeuristicAudioMeta,
     HtmlAndStripped,
-    ImageRc,
+    ImageRcView,
     Link,
     PermalinkUsage,
     Release,
     ReleaseRc,
-    SourceFileSignature,
     TagMapping,
     Theme,
     Track,
-    TranscodesRc,
+    TranscodesRcView,
     util
 };
 use crate::manifest::{self, LocalOptions, Overrides};
 use crate::theme::CoverGenerator;
-use crate::util::url_safe_hash;
+use crate::util::{generic_hash, url_safe_hash_base64};
 
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aif", "aifc", "aiff", "alac", "flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png", "webp"];
@@ -69,12 +69,12 @@ pub struct Catalog {
 /// Gets passed the images found in a release directory. Checks against a few
 /// hardcoded filenames (the usual suspects) to determine which image is most
 /// likely to be the intended release cover image.
-fn pick_best_cover_image(images: &[ImageRc]) -> Option<DescribedImage> {
-    let mut cover_candidate_option: Option<(usize, &ImageRc)> = None;
+fn pick_best_cover_image(images: &[ImageRcView]) -> Option<DescribedImage> {
+    let mut cover_candidate_option: Option<(usize, &ImageRcView)> = None;
 
     for image in images {
-        let priority = match image.borrow()
-            .source_file_signature
+        let priority = match image
+            .file_meta
             .path.file_stem().unwrap().to_str().unwrap().to_lowercase().as_str() {
             "cover" => 1,
             "front" => 2,
@@ -146,6 +146,12 @@ impl Catalog {
         let artist = ArtistRc::new(Artist::new(name));
         self.artists.push(artist.clone());
         artist
+    }
+
+    pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
+        for release in self.releases.iter_mut() {
+            release.borrow_mut().get_or_create_release_archives(cache);
+        }
     }
 
     /// For each release goes through the following mappings:
@@ -310,7 +316,9 @@ impl Catalog {
         } else {
             catalog.set_artist();
         }
-        
+
+        catalog.get_or_create_release_archives(cache);
+
         if !catalog.validate_permalinks() { return Err(()); }
 
         catalog.compute_asset_basenames();
@@ -466,6 +474,9 @@ impl Catalog {
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
             );
         }
+
+        // At this point all overrides have been read and we can consolidate things
+        let merged_overrides = local_overrides.as_ref().unwrap_or(parent_overrides);
         
         for (track_path, extension) in &track_paths {
             let path_relative_to_catalog = track_path.strip_prefix(&build.catalog_dir).unwrap();
@@ -486,17 +497,14 @@ impl Catalog {
                 }
             }
             
-            let track = self.read_track(
-                local_overrides.as_ref().unwrap_or(parent_overrides),
-                transcodes
-            );
+            let track = self.read_track(merged_overrides, transcodes);
             
             release_tracks.push(track);
         }
         
         if !release_tracks.is_empty() {
             // Process bare image paths into ImageRc representations
-            let images: Vec<ImageRc> = image_paths
+            let images: Vec<ImageRcView> = image_paths
                 .into_iter()
                 .map(|image_path| {
                     let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
@@ -528,8 +536,8 @@ impl Catalog {
                     (Some(_), None) => Ordering::Less,
                     (None, Some(_)) => Ordering::Greater,
                     // If both tracks have no track number, sort by original source file name instead
-                    (None, None) => transcodes_ref_a.source_file_signature.path.cmp(
-                        &transcodes_ref_b.source_file_signature.path
+                    (None, None) => track_a.transcodes.file_meta.path.cmp(
+                        &track_b.transcodes.file_meta.path
                     )
                 }
             });
@@ -541,7 +549,7 @@ impl Catalog {
             let mut support_artists_to_map: Vec<String> = Vec::new();
 
             // This sets main_artists_to_map in one of three ways, see comments in branches
-            if let Some(artist_names) = &local_overrides.as_ref().unwrap_or(parent_overrides).release_artists {
+            if let Some(artist_names) = &merged_overrides.release_artists {
                 // Here, main_artists_to_map is set manually through manifest metadata
                 for artist_name in artist_names {
                     main_artists_to_map.push(artist_name.to_string());
@@ -610,64 +618,68 @@ impl Catalog {
                         )
                 );
 
-            if local_overrides.as_ref().unwrap_or(parent_overrides).embedding {
+            if merged_overrides.embedding {
                 build.embeds_requested = true;
             }
 
-            let cover = match &local_overrides.as_ref().unwrap_or(parent_overrides).release_cover {
+            let cover = match &merged_overrides.release_cover {
                 Some(described_image) => Some(described_image.clone()),
                 None => pick_best_cover_image(&images)
             };
 
             let mut extras = Vec::new();
-            if local_overrides.as_ref().unwrap_or(parent_overrides).include_extras {
+            if merged_overrides.include_extras {
                 for image in images {
                     if let Some(ref described_image) = cover {
                         // If the image we're iterating is the cover image for this release
                         // we don't include it as an extra (that would be redundant).
-                        if image.borrow().source_file_signature ==
-                            described_image.image.borrow().source_file_signature {
+                        if image.file_meta.path ==
+                            described_image.image.file_meta.path {
                             continue
                         }
                     }
 
-                    let extra = Extra::new(image.borrow().source_file_signature.clone());
+                    let extra = Extra::new(image.file_meta.clone());
                     extras.push(extra);
                 }
 
                 for extra_path in extra_paths {
                     let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
-                    let source_file_signature = SourceFileSignature::new(build, path_relative_to_catalog);
-                    extras.push(Extra::new(source_file_signature));
+                    let file_meta = FileMeta::new(build, path_relative_to_catalog);
+                    extras.push(Extra::new(file_meta));
                 }
             }
 
-            // TODO: The archive assets need to be invalidated
-            //       and recomputed based on a number of factors actually. So far we're
-            //       considering (only) the most important: If the same tracks are in
-            //       there, and the same cover, then it's an up-to-date download archive to us.
-            //       But main_artists, title, tags, etc. should probably play a role too.
-            //       Investigate and implement this in-depth at some point.
-            let archives = cache.get_or_create_archives(
-                &cover,
-                &release_tracks,
-                &extras
-            );
+            let mut download_option = merged_overrides.download_option.clone();
+            if let DownloadOption::Codes { unlock_text, .. } = &mut download_option {
+                if let Some(custom_unlock_text) = &merged_overrides.unlock_text {
+                    unlock_text.replace(custom_unlock_text.clone());
+                }
+            }
             
-            let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap();
+            let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
 
             let release = Release::new(
-                archives,
                 cover,
                 local_options.release_date.take(),
+                merged_overrides.download_formats.clone(),
+                merged_overrides.download_granularity.clone(),
+                download_option,
+                merged_overrides.embedding,
                 extras,
+                merged_overrides.include_extras,
                 mem::take(&mut local_options.links),
                 main_artists_to_map,
-                local_overrides.as_ref().unwrap_or(parent_overrides),
+                merged_overrides.payment_options.clone(),
                 local_options.release_permalink.take(),
-                release_dir_relative_to_catalog.to_path_buf(),
+                merged_overrides.rewrite_tags,
+                release_dir_relative_to_catalog,
+                merged_overrides.streaming_quality,
                 support_artists_to_map,
+                merged_overrides.release_text.clone(),
+                merged_overrides.theme.clone(),
                 title.to_string(),
+                merged_overrides.release_track_numbering.clone(),
                 release_tracks,
                 local_options.unlisted_release
             );
@@ -680,11 +692,11 @@ impl Catalog {
                 self.links = local_options.links;
             }
 
-            self.theme = local_overrides.as_ref().unwrap_or(parent_overrides).theme.clone();
+            self.theme = merged_overrides.theme.clone();
         }
         
         for dir_path in &dir_paths {
-            self.read_dir(dir_path, build, cache, local_overrides.as_ref().unwrap_or(parent_overrides)).unwrap();
+            self.read_dir(dir_path, build, cache, merged_overrides).unwrap();
         }
 
         Ok(())
@@ -693,7 +705,7 @@ impl Catalog {
     pub fn read_track(
         &mut self,
         overrides: &Overrides,
-        transcodes: TranscodesRc
+        transcodes: TranscodesRcView
     ) -> Track {
         let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
             artist_names.to_vec()
@@ -860,7 +872,8 @@ impl Catalog {
     pub fn write_assets(&mut self, build: &mut Build) {
         if let Some(image) = &self.theme.background_image {
             let mut image_mut = image.borrow_mut();
-            let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable);
+            let source_path = &image.file_meta.path;
+            let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
             
             util::hard_link_or_copy(
                 build.cache_dir.join(&background_asset.filename),
@@ -874,9 +887,9 @@ impl Catalog {
 
         if let Some(described_image) = &self.home_image {
             let mut image_mut = described_image.image.borrow_mut();
-
+            let source_path = &described_image.image.file_meta.path;
             // Write home image as poster image for homepage
-            let poster_assets = image_mut.artist_asset(build, AssetIntent::Deliverable);
+            let poster_assets = image_mut.artist_assets(build, AssetIntent::Deliverable, source_path);
 
             for asset in &poster_assets.all() {
                 util::hard_link_or_copy(
@@ -890,7 +903,8 @@ impl Catalog {
 
             // Write home image as feed image
             if build.base_url.is_some() && self.feed_enabled {
-                let feed_image_asset = image_mut.feed_asset(build, AssetIntent::Deliverable);
+                let source_path = &described_image.image.file_meta.path;
+                let feed_image_asset = image_mut.feed_asset(build, AssetIntent::Deliverable, source_path);
 
                 util::hard_link_or_copy(
                     build.cache_dir.join(&feed_image_asset.filename),
@@ -909,7 +923,8 @@ impl Catalog {
             let permalink = artist_ref.permalink.slug.to_string();
             if let Some(described_image) = &artist_ref.image {
                 let mut image_mut = described_image.image.borrow_mut();
-                let poster_assets = image_mut.artist_asset(build, AssetIntent::Deliverable);
+                let source_path = &described_image.image.file_meta.path;
+                let poster_assets = image_mut.artist_assets(build, AssetIntent::Deliverable, source_path);
 
                 for asset in &poster_assets.all() {
                     util::hard_link_or_copy(
@@ -943,9 +958,10 @@ impl Catalog {
             //       way, because like this we do more processing than is necessary.
             if let Some(image) = &release_mut.theme.background_image {
                 let mut image_mut = image.borrow_mut();
-                let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable);
+                let source_path = &image.file_meta.path;
+                let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
 
-                let hashed_filename = format!("background-{}.jpg", url_safe_hash(&background_asset.filename));
+                let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(&background_asset.filename));
                 let hashed_path = build.build_dir.join(hashed_filename);
 
                 if !hashed_path.exists() {
@@ -962,7 +978,8 @@ impl Catalog {
 
             if let Some(described_image) = &release_mut.cover {
                 let mut image_mut = described_image.image.borrow_mut();
-                let cover_assets = image_mut.cover_asset(build, AssetIntent::Deliverable);
+                let source_path = &described_image.image.file_meta.path;
+                let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
 
                 for asset in &cover_assets.all() {
                     util::hard_link_or_copy(
@@ -975,6 +992,7 @@ impl Catalog {
 
                 image_mut.persist_to_cache(&build.cache_dir);
             } else {
+                // TODO: Would make sense to create a cover_generator.rs module and put the release_mut.generate_xxx functions in there (instead of release.rs which is super long anyway)
                 let svg = match self.theme.cover_generator {
                     CoverGenerator::BestRillen => {
                         release_mut.generate_cover_best_rillen(&self.theme)
@@ -994,28 +1012,6 @@ impl Catalog {
                 };
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();
             }
-            
-            let mut tag_mapping_option = if release_mut.rewrite_tags {
-                Some(TagMapping {
-                    album: Some(release_mut.title.clone()),
-                    album_artist: if release_mut.main_artists.is_empty() {
-                        None
-                    } else {
-                        Some(
-                            release_mut.main_artists
-                            .iter()
-                            .map(|artist| artist.borrow().name.clone())
-                            .collect::<Vec<String>>()
-                            .join(", ")
-                        )
-                    },
-                    artist: None,
-                    title: None,
-                    track: None
-                })
-            } else {
-                None
-            };
 
             for streaming_format in release_mut.streaming_quality.formats() {
                 let streaming_format_dir = build.build_dir
@@ -1026,41 +1022,18 @@ impl Catalog {
 
                 let release_slug = release_mut.permalink.slug.clone();
 
-                for (track_index, track) in release_mut.tracks.iter_mut().enumerate() {
-                    if let Some(tag_mapping) = &mut tag_mapping_option {
-                        tag_mapping.artist = if track.artists.is_empty() {
-                            None
-                        } else {
-                            Some(
-                                track.artists
-                                .iter()
-                                .map(|artist| artist.borrow().name.clone())
-                                .collect::<Vec<String>>()
-                                .join(", ")
-                            )
-                        };
-                        tag_mapping.title = Some(track.title());
+                let tag_mappings: Vec<Option<TagMapping>> = release_mut.tracks
+                    .iter()
+                    .enumerate()
+                    .map(|(track_index, track)| TagMapping::new(&release_mut, track, track_index + 1))
+                    .collect();
 
-                        // This does intentionally not (directly) utilize track number metadata
-                        // gathered from the original audio files, here's why:
-                        // - If all tracks came with track number metadata, the tracks will have
-                        //   been sorted by it, and hence we arrive at the same result anyway (except
-                        //   if someone supplied track number metadata that didn't regularly go from
-                        //   1 to [n] in steps of 1, which is however quite an edge case and raises
-                        //   questions also regarding presentation on the release page itself.)
-                        // - If no track metadata was supplied, we here use the same order as has
-                        //   been determined when the Release is built (alphabetical)
-                        // - If there was a mix of tracks with track numbers and tracks without, it's
-                        //   going to be a bit of a mess (hard to do anything about it), but this will
-                        //   also show on the release page itself already
-                        tag_mapping.track = Some(track_index + 1);
-                    }
-
+                for (track, tag_mapping) in release_mut.tracks.iter_mut().zip(tag_mappings.iter()) {
                     track.transcode_as(
                         streaming_format,
                         build,
                         AssetIntent::Deliverable,
-                        &tag_mapping_option
+                        tag_mapping
                     );
 
                     let track_filename = format!(
@@ -1080,14 +1053,14 @@ impl Catalog {
                     util::ensure_dir(&hash_dir);
 
                     let transcodes_ref = track.transcodes.borrow();
-                    let streaming_asset = transcodes_ref.get(streaming_format).as_ref().unwrap();
+                    let streaming_transcode = transcodes_ref.get_unchecked(streaming_format, generic_hash(&tag_mapping));
 
                     util::hard_link_or_copy(
-                        build.cache_dir.join(&streaming_asset.filename),
+                        build.cache_dir.join(&streaming_transcode.asset.filename),
                         hash_dir.join(track_filename)
                     );
 
-                    build.stats.add_track(streaming_asset.filesize_bytes);
+                    build.stats.add_track(streaming_transcode.asset.filesize_bytes);
 
                     track.transcodes.borrow().persist_to_cache(&build.cache_dir);
                 }
