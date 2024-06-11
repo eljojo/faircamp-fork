@@ -266,10 +266,11 @@ circle.loading {
 }
 a.logo,
 .path a { color: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
-.path a svg { fill: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
 .path span { padding: 0 .2rem; }
 .path svg {
+    display: inline-block;
     height: var(--boldly-larger);
+    margin-top: -.1rem;
     position: relative;
     top: .2rem;
     width: var(--boldly-larger);
