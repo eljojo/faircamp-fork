@@ -13,6 +13,7 @@ use crate::{
     Cache,
     CacheOptimization,
     Catalog,
+    CoverGenerator,
     DescribedImage,
     DownloadFormat,
     DownloadGranularity,
@@ -26,10 +27,11 @@ use crate::{
     Permalink,
     StreamingQuality,
     Theme,
+    ThemeBase,
+    ThemeFont,
     TrackNumbering,
     util
 };
-use crate::theme::{CoverGenerator, ThemeBase, ThemeFont};
 
 macro_rules! err_line {
     ($path:expr, $error:expr) => {

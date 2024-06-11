@@ -14,6 +14,7 @@ use crate::{
     AssetIntent,
     Build,
     Cache,
+    CoverGenerator,
     DescribedImage,
     DownloadOption,
     Extra,
@@ -33,7 +34,6 @@ use crate::{
     util
 };
 use crate::manifest::{self, LocalOptions, Overrides};
-use crate::theme::CoverGenerator;
 use crate::util::{generic_hash, url_safe_hash_base64};
 
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aif", "aifc", "aiff", "alac", "flac", "mp3", "ogg", "opus", "wav"];
@@ -991,19 +991,19 @@ impl Catalog {
                 // TODO: Would make sense to create a cover_generator.rs module and put the release_mut.generate_xxx functions in there (instead of release.rs which is super long anyway)
                 let svg = match self.theme.cover_generator {
                     CoverGenerator::BestRillen => {
-                        release_mut.generate_cover_best_rillen(&self.theme)
+                        CoverGenerator::generate_best_rillen(&release_mut, &self.theme)
                     }
                     CoverGenerator::GlassSplinters => {
-                        release_mut.generate_cover_glass_splinters(&self.theme)
+                        CoverGenerator::generate_glass_splinters(&release_mut, &self.theme)
                     }
                     CoverGenerator::LooneyTunes => {
-                        release_mut.generate_cover_looney_tunes(&self.theme, max_tracks_in_release)
+                        CoverGenerator::generate_looney_tunes(&release_mut, &self.theme, max_tracks_in_release)
                     }
                     CoverGenerator::ScratchyFaintRillen => {
-                        release_mut.generate_cover_scratchy_faint_rillen(&self.theme)
+                        CoverGenerator::generate_scratchy_faint_rillen(&release_mut, &self.theme)
                     }
                     CoverGenerator::SpaceTimeRupture => {
-                        release_mut.generate_cover_space_time_rupture(&self.theme)
+                        CoverGenerator::generate_space_time_rupture(&release_mut, &self.theme)
                     }
                 };
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();

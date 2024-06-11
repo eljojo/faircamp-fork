@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
-use crate::ImageRcView;
+use crate::{CoverGenerator, ImageRcView};
 use crate::util::url_safe_hash_base64;
 
 /// We use the newtype pattern here (instead of just f32) mostly because
@@ -14,15 +14,6 @@ use crate::util::url_safe_hash_base64;
 /// TODO: We could maybe enforce this range in code (macro?)
 #[derive(Clone, Debug)]
 pub struct Alpha(f32);
-
-#[derive(Clone, Debug, Hash)]
-pub enum CoverGenerator {
-    BestRillen,
-    GlassSplinters,
-    LooneyTunes,
-    ScratchyFaintRillen,
-    SpaceTimeRupture
-}
 
 /// background_alpha    0-100 percent
 /// h(ue)               0-360 degrees
