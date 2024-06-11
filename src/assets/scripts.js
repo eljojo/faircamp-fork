@@ -1,6 +1,3 @@
-// TODO: alt/text and markup for the play/pause icon could drift away
-// from how we write/implement it in our statically generated code.
-const rootPrefix = document.querySelector('script[data-root-prefix').dataset.rootPrefix;
 const loadingIcon = document.querySelector('#loading_icon');
 const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
