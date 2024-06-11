@@ -95,6 +95,30 @@ fn pick_best_cover_image(images: &[ImageRcView]) -> Option<DescribedImage> {
         .map(|cover_candidate| DescribedImage::new(None, cover_candidate.1.clone()))
 }
 
+// TODO: Optimize this (and also the related mechanism in styles.rs).
+//       Right now we see if we already generated the file (in build) to decide
+//       whether to go forward, but it would be more elegant/efficient another
+//       way, because like this we do more processing than is necessary.
+pub fn write_background_image(build: &mut Build, image: &ImageRcView) {
+    let mut image_mut = image.borrow_mut();
+    let source_path = &image.file_meta.path;
+    let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
+
+    let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(&background_asset.filename));
+    let hashed_path = build.build_dir.join(hashed_filename);
+
+    if !hashed_path.exists() {
+        util::hard_link_or_copy(
+            build.cache_dir.join(&background_asset.filename),
+            hashed_path
+        );
+
+        build.stats.add_image(background_asset.filesize_bytes);
+
+        image_mut.persist_to_cache(&build.cache_dir);
+    }
+}
+
 impl Catalog {
     /// Use the metadata we gathered for tracks and releases to compute
     /// the folder and file names we are going to create in our build
@@ -871,18 +895,7 @@ impl Catalog {
     
     pub fn write_assets(&mut self, build: &mut Build) {
         if let Some(image) = &self.theme.background_image {
-            let mut image_mut = image.borrow_mut();
-            let source_path = &image.file_meta.path;
-            let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
-            
-            util::hard_link_or_copy(
-                build.cache_dir.join(&background_asset.filename),
-                build.build_dir.join("background.jpg")
-            );
-            
-            build.stats.add_image(background_asset.filesize_bytes);
-            
-            image_mut.persist_to_cache(&build.cache_dir);
+            write_background_image(build, image);
         }
 
         if let Some(described_image) = &self.home_image {
@@ -952,28 +965,8 @@ impl Catalog {
 
             util::ensure_dir(&release_dir);
 
-            // TODO: Optimize this (and also the related mechanism in styles.rs).
-            //       Right now we see if we already generated the file (in build) to decide
-            //       whether to go forward, but it would be more elegant/efficient another
-            //       way, because like this we do more processing than is necessary.
             if let Some(image) = &release_mut.theme.background_image {
-                let mut image_mut = image.borrow_mut();
-                let source_path = &image.file_meta.path;
-                let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
-
-                let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(&background_asset.filename));
-                let hashed_path = build.build_dir.join(hashed_filename);
-
-                if !hashed_path.exists() {
-                    util::hard_link_or_copy(
-                        build.cache_dir.join(&background_asset.filename),
-                        hashed_path
-                    );
-
-                    build.stats.add_image(background_asset.filesize_bytes);
-
-                    image_mut.persist_to_cache(&build.cache_dir);
-                }
+                write_background_image(build, image);
             }
 
             if let Some(described_image) = &release_mut.cover {
