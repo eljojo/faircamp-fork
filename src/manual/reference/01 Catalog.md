@@ -76,6 +76,14 @@ To disable RSS feed generation you can use the `disable_feed` option:
 disable_feed
 ```
 
+To disable the share button (by default it's enabled) you can use the `share_button` option,
+with either `enabled` or `disabled` as value. This is also inherited by all releases, but can
+be changed on a granular basis for single releases or groups of releases in their manifests.
+
+```eno
+share_button: disabled
+```
+
 ## Main & Support artists
 
 A release can have one or more *main artists*, i.e. principal authors. Artists

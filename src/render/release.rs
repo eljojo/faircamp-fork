@@ -85,19 +85,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
     };
 
-    let embed_link = if release.embedding && build.base_url.is_some() {
-        let t_embed = &build.locale.translations.embed;
-        let embed_icon = icons::embed(t_embed);
-        formatdoc!(r#"
-            <a href="embed{index_suffix}">
-                {embed_icon}
-                <span>{t_embed}</span>
-            </a>
-        "#)
-    } else {
-        String::new()
-    };
-
     let release_text = match &release.text {
         Some(html_and_stripped) => format!(
             r#"<div class="vpad" style="margin-top: 1.5rem;">{}</div>"#,
@@ -173,30 +160,30 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
-    let share_url = match &build.base_url {
-        Some(base_url) => base_url
-            .join(&format!("{}{index_suffix}", &release.permalink.slug))
-            .unwrap()
-            .to_string(),
-        None => String::new()
-    };
-
-    let share_link_rendered = share_link(build);
-    let share_overlay_rendered = share_overlay(build, &share_url);
-
-    let mut action_links = String::new();
+    let mut action_links = Vec::new();
 
     if !download_link.is_empty() {
-        action_links.push_str(&download_link);
-        action_links.push_str(" &nbsp; ");
+        action_links.push(download_link);
     }
 
-    if !embed_link.is_empty() {
-        action_links.push_str(&embed_link);
-        action_links.push_str(" &nbsp; ");
-    }
+    if release.embedding && build.base_url.is_some() {
+        let t_embed = &build.locale.translations.embed;
+        let embed_icon = icons::embed(t_embed);
 
-    action_links.push_str(&share_link_rendered);
+        let embed_link = formatdoc!(r#"
+            <a href="embed{index_suffix}">
+                {embed_icon}
+                <span>{t_embed}</span>
+            </a>
+        "#);
+
+        action_links.push(embed_link);
+    };
+
+    if release.share_button {
+        let r_share_link = share_link(build);
+        action_links.push(r_share_link);
+    }
 
     for link in &release.links {
         // TODO: We're "mis-using" share as "external" here, which is not per se wrong,
@@ -216,9 +203,20 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             "#)
         };
 
-        action_links.push_str(" &nbsp; ");
-        action_links.push_str(&r_link);
+        action_links.push(r_link);
     }
+
+    let r_action_links = if action_links.is_empty() {
+        String::new()
+    } else {
+        let joined = action_links.join(" &nbsp; ");
+
+        formatdoc!(r#"
+            <div class="action_links">
+                {joined}
+            </div>
+        "#)
+    };
 
     let relative_waveforms = if catalog.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
 
@@ -229,6 +227,21 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let r_player_icon_templates = player_icon_templates(build);
+
+    let share_overlay_rendered = match release.share_button {
+        true => {
+            let share_url = match &build.base_url {
+                Some(base_url) => base_url
+                    .join(&format!("{}{index_suffix}", &release.permalink.slug))
+                    .unwrap()
+                    .to_string(),
+                None => String::new()
+            };
+
+            share_overlay(build, &share_url)
+        }
+        false => String::new()
+    };
 
     let body = formatdoc!(
         r##"
@@ -247,9 +260,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
                 <div class="additional">
                     <div class="mobile_hpadding">
-                        <div class="action_links">
-                            {action_links}
-                        </div>
+                        {r_action_links}
                         {release_text}
                     </div>
                 </div>

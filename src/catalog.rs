@@ -59,6 +59,7 @@ pub struct Catalog {
     pub links: Vec<Link>,
     pub main_artists: Vec<ArtistRc>,
     pub releases: Vec<ReleaseRc>,
+    pub share_button: bool,
     pub show_support_artists: bool,
     pub support_artists: Vec<ArtistRc>,
     pub text: Option<HtmlAndStripped>,
@@ -308,6 +309,7 @@ impl Catalog {
             links: Vec::new(),
             main_artists: Vec::new(),
             releases: Vec::new(),
+            share_button: true,
             show_support_artists: false,
             support_artists: Vec::new(),
             text: None,
@@ -499,7 +501,7 @@ impl Catalog {
             );
         }
 
-        // At this point all overrides have been read and we can consolidate things
+        // At this point all overrides have been read and we can consolidate things.
         let merged_overrides = local_overrides.as_ref().unwrap_or(parent_overrides);
         
         for (track_path, extension) in &track_paths {
@@ -697,6 +699,7 @@ impl Catalog {
                 merged_overrides.payment_options.clone(),
                 local_options.release_permalink.take(),
                 merged_overrides.rewrite_tags,
+                merged_overrides.share_button,
                 release_dir_relative_to_catalog,
                 merged_overrides.streaming_quality,
                 support_artists_to_map,
@@ -907,7 +910,7 @@ impl Catalog {
             for asset in &poster_assets.all() {
                 util::hard_link_or_copy(
                     build.cache_dir.join(&asset.filename),
-                    // TODO: Address the ugly __home__ hack soon
+                    // TODO: Address the ugly __home__ hack soon (maybe hashes are again a solution for these naming questions?)
                     build.build_dir.join(format!("{}_{}_{}x{}.jpg", "__home__", asset.format, asset.width, asset.height))
                 );
 

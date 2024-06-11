@@ -72,6 +72,7 @@ pub struct Overrides {
     pub release_text: Option<HtmlAndStripped>,
     pub release_track_numbering: TrackNumbering,
     pub rewrite_tags: bool,
+    pub share_button: bool,
     pub streaming_quality: StreamingQuality,
     pub theme: Theme,
     pub track_artists: Option<Vec<String>>,
@@ -104,6 +105,7 @@ impl Overrides {
             release_text: None,
             release_track_numbering: TrackNumbering::Arabic,
             rewrite_tags: true,
+            share_button: true,
             streaming_quality: StreamingQuality::Standard,
             theme: Theme::new(),
             track_artists: None,
@@ -439,6 +441,27 @@ pub fn apply_options(
             build.url_salt = util::uid();
         }
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "share_button") {
+            match value.as_str() {
+                "enabled" => {
+                    // TODO: Right now we're handling this in a slightly quirky way, because in # catalog
+                    //       this really affects everthing below catalog, but at the same time, # catalog
+                    //       could be declared in a manifest that is not in the catalog root, so this creates
+                    //       confusing circumstances of what is inherited how. Eventually this become
+                    //       irrelevant if we move these options off their # catalog and # release scope and
+                    //       just make them scope-less properties that exist in the hierarchy and are applied
+                    //       to everything for which they are relevant.
+                    catalog.share_button = true;
+                    overrides.share_button = true;
+                }
+                "disabled" => {
+                    catalog.share_button = false;
+                    overrides.share_button = false;
+                }
+                value => error!("Ignoring unsupported catalog.share_button setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+            }
+        }
+
         if optional_flag_present(section, "show_support_artists") {
             catalog.show_support_artists = true;
         }
@@ -738,6 +761,14 @@ pub fn apply_options(
                 "yes" => overrides.rewrite_tags = true,
                 "no" => overrides.rewrite_tags = false,
                 other => error!("Ignoring invalid release.rewrite_tags value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "share_button") {
+            match value.as_str() {
+                "enabled" => overrides.share_button = true,
+                "disabled" => overrides.share_button = false,
+                value => error!("Ignoring unsupported release.share_button setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
             }
         }
 

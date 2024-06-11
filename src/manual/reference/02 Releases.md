@@ -86,6 +86,13 @@ displayed on top, followed by older ones and lastly followed by those that
 have no date specified at all (those will follow no intentional order).
 Dates must be supplied strictly in the format `YYYY-MM-DD`.
 
+To disable the share button (by default it's enabled) you can use the `share_button` option,
+with either `enabled` or `disabled` as value.
+
+```eno
+share_button: disabled
+```
+
 ## Unlisted releases
 
 By including an `unlisted` flag in the release manifest/section you can

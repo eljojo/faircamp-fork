@@ -92,6 +92,7 @@ pub struct Release {
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     pub rewrite_tags: bool,
+    pub share_button: bool,
     /// Relative path of the release directory in the catalog directory.
     /// This is used to augment permalink conflict errors with additional
     /// info for resolving the conflict.
@@ -570,6 +571,7 @@ impl Release {
         payment_options: Vec<PaymentOption>,
         permalink: Option<Permalink>,
         rewrite_tags: bool,
+        share_button: bool,
         source_dir: PathBuf,
         streaming_quality: StreamingQuality,
         support_artists_to_map: Vec<String>,
@@ -599,6 +601,7 @@ impl Release {
             payment_options,
             permalink,
             rewrite_tags,
+            share_button,
             source_dir,
             streaming_quality,
             support_artists: Vec::new(),

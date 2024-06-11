@@ -14,22 +14,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     
     let catalog_title = catalog.title();
 
-    let feed_link = match build.base_url.is_some() && catalog.feed_enabled {
-        true => {
-            let t_feed = &build.locale.translations.feed;
-            let feed_icon = icons::feed(&build.locale.translations.rss_feed);
-            format!(r#"
-                <a href="{root_prefix}feed.rss">
-                    {feed_icon}
-                    <span>{t_feed}</span>
-                </a>
-            "#)
-        }
-        false => String::new()
-    };
-
-    let share_link_rendered = share_link(build);
-
     let catalog_text = match &catalog.text {
         Some(html_and_stripped) => html_and_stripped.html.as_str(),
         None => ""
@@ -68,14 +52,26 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
-    let mut action_links = String::new();
+    let mut action_links = Vec::new();
 
-    if !feed_link.is_empty() {
-        action_links.push_str(&feed_link);
-        action_links.push_str(" &nbsp; ");
+    if build.base_url.is_some() && catalog.feed_enabled {
+        let t_feed = &build.locale.translations.feed;
+        let feed_icon = icons::feed(&build.locale.translations.rss_feed);
+
+        let feed_link = format!(r#"
+            <a href="{root_prefix}feed.rss">
+                {feed_icon}
+                <span>{t_feed}</span>
+            </a>
+        "#);
+
+        action_links.push(feed_link);
+    };
+
+    if catalog.share_button {
+        let r_share_link = share_link(build);
+        action_links.push(r_share_link);
     }
-
-    action_links.push_str(&share_link_rendered);
 
     for link in &catalog.links {
         // TODO: We're "mis-using" share as "external" here, which is not per se wrong,
@@ -95,9 +91,20 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             "#)
         };
 
-        action_links.push_str(" &nbsp; ");
-        action_links.push_str(&r_link);
+        action_links.push(r_link);
     }
+
+    let r_action_links = if action_links.is_empty() {
+        String::new()
+    } else {
+        let joined = action_links.join(" &nbsp; ");
+
+        formatdoc!(r#"
+            <div class="action_links">
+                {joined}
+            </div>
+        "#)
+    };
 
     let catalog_info = formatdoc!(r##"
         <div class="catalog">
@@ -107,9 +114,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                     {title_escaped}
                 </h1>
                 {catalog_text}
-                <div class="action_links">
-                    {action_links}
-                </div>
+                {r_action_links}
                 {featured_artists}
             </div>
         </div>
@@ -145,12 +150,17 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         ""
     };
 
-    let share_url = match &build.base_url {
-        Some(base_url) => base_url.join(build.index_suffix_file_only()).unwrap().to_string(),
-        None => String::new()
-    };
+    let share_overlay_rendered = match catalog.share_button {
+        true => {
+            let share_url = match &build.base_url {
+                Some(base_url) => base_url.join(build.index_suffix_file_only()).unwrap().to_string(),
+                None => String::new()
+            };
 
-    let share_overlay_rendered = share_overlay(build, &share_url);
+            share_overlay(build, &share_url)
+        }
+        false => String::new()
+    };
 
     let body = formatdoc!(r##"
         <div class="index_split {index_vcentered}">
