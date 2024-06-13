@@ -14,7 +14,6 @@ use crate::{
     AssetIntent,
     Build,
     Cache,
-    CoverGenerator,
     DescribedImage,
     DownloadOption,
     Extra,
@@ -988,24 +987,8 @@ impl Catalog {
 
                 image_mut.persist_to_cache(&build.cache_dir);
             } else {
-                // TODO: Would make sense to create a cover_generator.rs module and put the release_mut.generate_xxx functions in there (instead of release.rs which is super long anyway)
-                let svg = match self.theme.cover_generator {
-                    CoverGenerator::BestRillen => {
-                        CoverGenerator::generate_best_rillen(&release_mut, &self.theme)
-                    }
-                    CoverGenerator::GlassSplinters => {
-                        CoverGenerator::generate_glass_splinters(&release_mut, &self.theme)
-                    }
-                    CoverGenerator::LooneyTunes => {
-                        CoverGenerator::generate_looney_tunes(&release_mut, &self.theme, max_tracks_in_release)
-                    }
-                    CoverGenerator::ScratchyFaintRillen => {
-                        CoverGenerator::generate_scratchy_faint_rillen(&release_mut, &self.theme)
-                    }
-                    CoverGenerator::SpaceTimeRupture => {
-                        CoverGenerator::generate_space_time_rupture(&release_mut, &self.theme)
-                    }
-                };
+                // TODO: Consider generating inline svg, so this can interact with theme variables (instead of needing to hard-code into file)
+                let svg = self.theme.cover_generator.generate(&release_mut, &self.theme, max_tracks_in_release);
                 fs::write(release_dir.join("cover.svg"), svg).unwrap();
             }
 

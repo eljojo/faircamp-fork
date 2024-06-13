@@ -63,11 +63,7 @@ impl HeuristicAudioMeta {
         let mut items = Vec::new();
 
         for track in &mut *release_tracks {
-            let file_stem = track.transcodes.file_meta.path
-                .file_stem()
-                .unwrap()
-                .to_string_lossy()
-                .to_string();
+            let file_stem = track.transcodes.file_meta.path.file_stem().unwrap().to_string_lossy();
 
             match file_stem.find(|c: char| !c.is_ascii_digit()) {
                 Some(split_index) => {
@@ -104,11 +100,7 @@ impl HeuristicAudioMeta {
         };
 
         for track in &mut *release_tracks {
-            let file_stem = track.transcodes.file_meta.path
-                .file_stem()
-                .unwrap()
-                .to_string_lossy()
-                .to_string();
+            let file_stem = track.transcodes.file_meta.path.file_stem().unwrap().to_string_lossy();
 
             let split_index = file_stem.find(|c: char| !c.is_ascii_digit()).unwrap();
             let track_number = file_stem[..split_index].parse::<u32>().unwrap();

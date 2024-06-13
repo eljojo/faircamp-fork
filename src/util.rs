@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::ffi::OsString;
 use std::fs;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
@@ -104,6 +105,14 @@ pub fn html_escape_outside_attribute(string: &str) -> String {
     string.replace('&', "&amp;")
           .replace('<', "&lt;")
           .replace('>', "&gt;")
+}
+
+/// Efficient, reusable implementation of the annoying OsString to String conversion
+pub fn string_from_os(os_string: OsString) -> String {
+    match os_string.into_string() {
+        Ok(string) => string,
+        Err(os_string) => os_string.to_string_lossy().to_string()
+    }
 }
 
 pub fn uid() -> String {

@@ -125,7 +125,6 @@ pub struct ReleaseRc {
 
 impl Extra {
     pub fn new(file_meta: FileMeta) -> Extra {
-        // TODO: Write a helper for going from OsString to String in the most elegant/non-allocating way
         let sanitized_filename = sanitize(file_meta.path.file_name().unwrap().to_string_lossy());
 
         Extra {

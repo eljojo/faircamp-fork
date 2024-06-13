@@ -17,7 +17,17 @@ pub enum CoverGenerator {
 }
 
 impl CoverGenerator {
-    pub fn generate_best_rillen(release: &Release, theme: &Theme) -> String {
+    pub fn generate(&self, release: &Release, theme: &Theme, max_tracks_in_release: usize) -> String {
+       match self {
+            CoverGenerator::BestRillen => CoverGenerator::generate_best_rillen(release, theme),
+            CoverGenerator::GlassSplinters => CoverGenerator::generate_glass_splinters(release, theme),
+            CoverGenerator::LooneyTunes => CoverGenerator::generate_looney_tunes(release, theme, max_tracks_in_release),
+            CoverGenerator::ScratchyFaintRillen => CoverGenerator::generate_scratchy_faint_rillen(release, theme),
+            CoverGenerator::SpaceTimeRupture => CoverGenerator::generate_space_time_rupture(release, theme)
+        }
+    }
+
+    fn generate_best_rillen(release: &Release, theme: &Theme) -> String {
         // TODO: This is too simplistic, text also has text_h and text_s
         // currently (but theming may change quite a bit so no rush). Also
         // unfortunately generated covers don't interactively repaint when
@@ -88,7 +98,7 @@ impl CoverGenerator {
         "##)
     }
 
-    pub fn generate_glass_splinters(release: &Release, theme: &Theme) -> String {
+    fn generate_glass_splinters(release: &Release, theme: &Theme) -> String {
         // TODO: This is too simplistic, text also has text_h and text_s
         // currently (but theming may change quite a bit so no rush). Also
         // unfortunately generated covers don't interactively repaint when
@@ -164,7 +174,7 @@ impl CoverGenerator {
         "#)
     }
 
-	pub fn generate_looney_tunes(release: &Release, theme: &Theme, max_tracks_in_release: usize) -> String {
+	fn generate_looney_tunes(release: &Release, theme: &Theme, max_tracks_in_release: usize) -> String {
         // TODO: This is too simplistic, text also has text_h and text_s
         // currently (but theming may change quite a bit so no rush). Also
         // unfortunately generated covers don't interactively repaint when
@@ -239,7 +249,7 @@ impl CoverGenerator {
         "##)
     }
 
-    pub fn generate_scratchy_faint_rillen(release: &Release, theme: &Theme) -> String {
+    fn generate_scratchy_faint_rillen(release: &Release, theme: &Theme) -> String {
         // TODO: This is too simplistic, text also has text_h and text_s
         // currently (but theming may change quite a bit so no rush). Also
         // unfortunately generated covers don't interactively repaint when
@@ -305,7 +315,7 @@ impl CoverGenerator {
         "#)
     }
 
-    pub fn generate_space_time_rupture(release: &Release, theme: &Theme) -> String {
+    fn generate_space_time_rupture(release: &Release, theme: &Theme) -> String {
         // TODO: This is too simplistic, text also has text_h and text_s
         // currently (but theming may change quite a bit so no rush). Also
         // unfortunately generated covers don't interactively repaint when

@@ -25,6 +25,7 @@ use crate::{
     TranscodesRcView,
     util
 };
+use crate::util::string_from_os;
 
 /// This is the name of an empty file created by faircamp in the root of the
 /// cache directory. When the entire cache layout (or critical implementation
@@ -424,8 +425,7 @@ impl Cache {
         for dir_entry_result in dir_entries {
             if let Ok(dir_entry) = dir_entry_result {
                 if let Ok(file_type) = dir_entry.file_type() {
-                    // TODO: Can we store only the OsString? Also use into_string to avoid additional allocation
-                    let file_name = dir_entry.file_name().to_str().unwrap().to_string();
+                    let file_name = string_from_os(dir_entry.file_name());
 
                     if file_type.is_dir() {
                         info!(
