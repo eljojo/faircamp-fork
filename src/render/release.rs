@@ -41,7 +41,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let download_link = match &release.download_option {
         DownloadOption::Codes { .. } => {
             let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-            let page_hash = build.hash_generic(&[&release.permalink.slug, t_unlock_permalink]);
+            let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
 
             let unlock_icon = icons::unlock(&build.locale.translations.unlock);
             let t_downloads = &build.locale.translations.downloads;
@@ -55,7 +55,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         DownloadOption::Disabled => String::new(),
         DownloadOption::Free => {
             let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-            let page_hash = build.hash_generic(&[&release.permalink.slug, t_downloads_permalink]);
+            let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
 
             let download_icon = icons::download(&build.locale.translations.download);
             let t_downloads = &build.locale.translations.downloads;
@@ -71,7 +71,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 String::new()
             } else {
                 let t_purchase_permalink = &build.locale.translations.purchase_permalink;
-                let page_hash = build.hash_generic(&[&release.permalink.slug, t_purchase_permalink]);
+                let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_purchase_permalink]);
 
                 let buy_icon = icons::buy(&build.locale.translations.buy);
                 let t_downloads = &build.locale.translations.downloads;
@@ -113,7 +113,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         basename = track.asset_basename.as_ref().unwrap()
                     );
 
-                    let track_hash = build.hash(
+                    let track_hash = build.hash_path_with_salt(
                         &release.permalink.slug,
                         format_dir,
                         &track_filename

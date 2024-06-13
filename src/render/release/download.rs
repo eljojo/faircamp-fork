@@ -82,7 +82,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 let archive_filename = format!("{}.zip", release.asset_basename.as_ref().unwrap());
 
-                let archive_hash = build.hash(
+                let archive_hash = build.hash_path_with_salt(
                     release_slug,
                     download_format.as_audio_format().asset_dirname(),
                     &archive_filename
@@ -139,7 +139,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 release.extras
                     .iter()
                     .map(|extra| {
-                        let extra_hash = build.hash(
+                        let extra_hash = build.hash_path_with_salt(
                             release_slug,
                             "extras",
                             &extra.sanitized_filename
@@ -191,7 +191,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                             extension = download_format.as_audio_format().extension()
                         ); 
 
-                        let track_hash = build.hash(
+                        let track_hash = build.hash_path_with_salt(
                             release_slug,
                             download_format.as_audio_format().asset_dirname(),
                             &track_filename

@@ -64,8 +64,7 @@ pub struct Stats {
 }
 
 impl Build {
-    // TODO: Name more appropriately - hash_with_salt or such
-    pub fn hash(
+    pub fn hash_path_with_salt(
         &self,
         release_slug: &str,
         format_dir: &str,
@@ -81,8 +80,7 @@ impl Build {
         URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
     }
 
-    // TODO: Name more appropriately - hash_generic_with_salt or such
-    pub fn hash_generic(
+    pub fn hash_with_salt(
         &self,
         inputs: &[&str]
     ) -> String {

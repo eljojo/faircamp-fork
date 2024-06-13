@@ -316,7 +316,7 @@ impl Release {
                         extension = download_format.as_audio_format().extension()
                     );
 
-                    let hash = build.hash(
+                    let hash = build.hash_path_with_salt(
                         &self.permalink.slug,
                         download_format.as_audio_format().asset_dirname(),
                         &track_filename
@@ -440,7 +440,7 @@ impl Release {
                     basename = self.asset_basename.as_ref().unwrap()
                 );
 
-                let hash = build.hash(
+                let hash = build.hash_path_with_salt(
                     &self.permalink.slug,
                     download_format.as_audio_format().asset_dirname(),
                     &archive_filename
@@ -468,7 +468,7 @@ impl Release {
 
                 util::ensure_dir(&extras_dir);
 
-                let hash = build.hash(
+                let hash = build.hash_path_with_salt(
                     &self.permalink.slug,
                     "extras",
                     &extra.sanitized_filename
@@ -497,7 +497,7 @@ impl Release {
         match &self.download_option {
             DownloadOption::Codes { codes, .. } => {
                 let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-                let page_hash = build.hash_generic(&[&self.permalink.slug, t_unlock_permalink]);
+                let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_unlock_permalink]);
 
                 let unlock_page_dir = build.build_dir
                     .join(&self.permalink.slug)
@@ -525,7 +525,7 @@ impl Release {
             DownloadOption::Disabled => (),
             DownloadOption::Free  => {
                 let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-                let page_hash = build.hash_generic(&[&self.permalink.slug, t_downloads_permalink]);
+                let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
 
                 let download_page_dir = build.build_dir
                     .join(&self.permalink.slug)
@@ -543,7 +543,7 @@ impl Release {
                     );
                 } else {
                     let t_purchase_permalink = &build.locale.translations.purchase_permalink;
-                    let purchase_page_hash = build.hash_generic(&[&self.permalink.slug, t_purchase_permalink]);
+                    let purchase_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_purchase_permalink]);
 
                     let purchase_page_dir = build.build_dir
                         .join(&self.permalink.slug)
@@ -554,7 +554,7 @@ impl Release {
                     util::ensure_dir_and_write_index(&purchase_page_dir, &purchase_html);
 
                     let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-                    let download_page_hash = build.hash_generic(&[&self.permalink.slug, t_downloads_permalink]);
+                    let download_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
 
                     let download_page_dir = build.build_dir
                         .join(&self.permalink.slug)

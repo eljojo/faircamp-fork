@@ -118,7 +118,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .join("\n");
 
         let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-        let download_page_hash = build.hash_generic(&[&release.permalink.slug, t_downloads_permalink]);
+        let download_page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
 
         let formats = release.download_formats
             .iter()
@@ -211,7 +211,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             .unwrap_or(build.locale.translations.default_unlock_text.clone());
 
         let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-        let page_hash = build.hash_generic(&[&release.permalink.slug, t_unlock_permalink]);
+        let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
 
         let t_downloads_permalink = &build.locale.translations.downloads_permalink;
         let t_enter_code_here = &build.locale.translations.enter_code_here;

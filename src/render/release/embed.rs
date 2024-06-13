@@ -202,7 +202,7 @@ pub fn embed_release_html(
                         basename = track.asset_basename.as_ref().unwrap()
                     ); 
 
-                    let track_hash = build.hash(
+                    let track_hash = build.hash_path_with_salt(
                         &release.permalink.slug,
                         format_dir,
                         &track_filename
@@ -312,7 +312,7 @@ pub fn embed_track_html(
                 basename = track.asset_basename.as_ref().unwrap()
             ); 
 
-            let track_hash = build.hash(
+            let track_hash = build.hash_path_with_salt(
                 &release.permalink.slug,
                 format_dir,
                 &track_filename

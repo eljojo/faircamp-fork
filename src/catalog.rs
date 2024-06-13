@@ -1038,7 +1038,7 @@ impl Catalog {
                         extension = streaming_format.extension()
                     );
 
-                    let hash = build.hash(
+                    let hash = build.hash_path_with_salt(
                         &release_slug,
                         streaming_format.asset_dirname(),
                         &track_filename
