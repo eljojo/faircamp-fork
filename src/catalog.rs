@@ -698,11 +698,11 @@ impl Catalog {
                 main_artists_to_map,
                 merged_overrides.payment_options.clone(),
                 local_options.release_permalink.take(),
-                merged_overrides.rewrite_tags,
                 merged_overrides.share_button,
                 release_dir_relative_to_catalog,
                 merged_overrides.streaming_quality,
                 support_artists_to_map,
+                merged_overrides.tag_agenda.clone(),
                 merged_overrides.release_text.clone(),
                 merged_overrides.theme.clone(),
                 title.to_string(),
@@ -1018,7 +1018,7 @@ impl Catalog {
 
                 let release_slug = release_mut.permalink.slug.clone();
 
-                let tag_mappings: Vec<Option<TagMapping>> = release_mut.tracks
+                let tag_mappings: Vec<TagMapping> = release_mut.tracks
                     .iter()
                     .enumerate()
                     .map(|(track_index, track)| TagMapping::new(&release_mut, track, track_index + 1))

@@ -40,7 +40,7 @@ impl Track {
         format: AudioFormat,
         build: &Build,
         asset_intent: AssetIntent,
-        tag_mapping: &Option<TagMapping>
+        tag_mapping: &TagMapping
     ) {
         let mut transcodes_mut = self.transcodes.borrow_mut();
 

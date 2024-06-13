@@ -10,13 +10,6 @@ however as you will possibly want to provide a textual description or tweak
 the displayed title and artists for display in the browser, such data can
 be provided through the manifests.
 
-By default faircamp strips all metadata off the audio files that you supply
-when it transcodes them for streaming and downloading, only adding back those
-tags that it needs and manages itself, i.e. the title, track number, artist
-(s), release artist(s) and release title. The `rewrite_tags` option lets you
-control this: Set it to 'no' and faircamp will transfer all tags 1:1 from the
-source files onto the transcoded files, as you provided them.
-
 ```eno
 # release
 
@@ -24,7 +17,6 @@ artist: Heston Exchange
 date: 2019-11-03
 include_extras: no
 permalink: ape-affairs-bonus-track-edition
-rewrite_tags: no
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
 
@@ -91,6 +83,64 @@ with either `enabled` or `disabled` as value.
 
 ```eno
 share_button: disabled
+```
+
+## Tag/Metadata settings
+
+By default faircamp strips all metadata off the audio files that you supply
+when it transcodes them for streaming and downloading, only adding back those
+tags that it needs and manages itself, i.e. the title, track number, artist
+(s), release artist(s) and release title. The `tags` option lets you control
+this behavior:
+
+Set it to `copy` and faircamp will transfer all tags 1:1 from the
+source files onto the transcoded files, as you provided them.
+
+```eno
+# release
+
+tags: copy
+```
+
+Set it to `remove` and faircamp will produce entirely untagged files for
+streaming and download.
+
+```eno
+# release
+
+tags: remove
+```
+
+In order to assert fine-grained control over tags, you can also specify
+precise behavior per tag. The available tags at this point are `album`,
+`album_artist`, `artist`, `image`, `title` and `track` (= track number). The
+available actions for each tag are `copy` (copy 1:1 from the source audio
+files) and `rewrite` (set it from whichever information you implicitly or
+explicitly gave faircamp that would override the original tag, or fall back
+to the original tag value if there is no override). There is also `remove`,
+but as any tag you don't explicitly provide in this form is implicitly set
+to be removed, this is redundant. Note that for `image`, presently only
+copying and removing is implemented, faircamp can not yet write a cover
+image that did not come embedded with the source audio file to any of the
+audio files it produces (although it might, soon).
+
+```eno
+# release
+
+tags:
+album = rewrite
+album_artist = remove
+artist = copy
+title = rewrite
+track = rewrite
+```
+
+Lastly, the default behavior can be (re-)set with the `normalize` option.
+
+```eno
+# release
+
+tags: normalize
 ```
 
 ## Unlisted releases

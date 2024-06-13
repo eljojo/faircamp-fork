@@ -34,6 +34,7 @@ use crate::{
     Permalink,
     render,
     StreamingQuality,
+    TagAgenda,
     TagMapping,
     Theme,
     Track,
@@ -90,7 +91,6 @@ pub struct Release {
     pub main_artists_to_map: Vec<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
-    pub rewrite_tags: bool,
     pub share_button: bool,
     /// Relative path of the release directory in the catalog directory.
     /// This is used to augment permalink conflict errors with additional
@@ -101,6 +101,7 @@ pub struct Release {
     pub support_artists: Vec<ArtistRc>,
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
+    pub tag_agenda: TagAgenda,
     pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     pub title: String,
@@ -200,11 +201,11 @@ impl Release {
         main_artists_to_map: Vec<String>,
         payment_options: Vec<PaymentOption>,
         permalink: Option<Permalink>,
-        rewrite_tags: bool,
         share_button: bool,
         source_dir: PathBuf,
         streaming_quality: StreamingQuality,
         support_artists_to_map: Vec<String>,
+        tag_agenda: TagAgenda,
         text: Option<HtmlAndStripped>,
         theme: Theme,
         title: String,
@@ -230,12 +231,12 @@ impl Release {
             main_artists_to_map,
             payment_options,
             permalink,
-            rewrite_tags,
             share_button,
             source_dir,
             streaming_quality,
             support_artists: Vec::new(),
             support_artists_to_map,
+            tag_agenda,
             text,
             theme,
             title,
@@ -268,7 +269,7 @@ impl Release {
             let mut archives_mut = archives_unwrapped.borrow_mut();
             let has_cached_archive_asset = archives_mut.has(*download_format);
 
-            let tag_mappings: Vec<Option<TagMapping>> = self.tracks
+            let tag_mappings: Vec<TagMapping> = self.tracks
                 .iter()
                 .enumerate()
                 .map(|(track_index, track)| TagMapping::new(self, track, track_index + 1))

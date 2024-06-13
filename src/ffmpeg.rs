@@ -17,34 +17,53 @@ pub fn transcode(
     input_file: &Path,
     output_file: &Path,
     target_format: AudioFormat,
-    tag_mapping_option: &Option<TagMapping>
+    tag_mapping: &TagMapping
 ) -> Result<(), String> {
     let mut command = Command::new(FFMPEG_BINARY);
     
     command.arg("-y");
     command.arg("-i").arg(input_file);
 
-    if let Some(tag_mapping) = tag_mapping_option {
-        command.arg("-map_metadata").arg("-1");
-
-        if let Some(album) = &tag_mapping.album {
-            command.arg("-metadata").arg(format!("album={}", album));
+    match tag_mapping {
+        TagMapping::Copy => {
+            // Copy metadata from first audio stream to output.
+            // Necessary because some conversions do not automatically carry
+            // over the metadata (e.g. observed for opus to mp3).
+            command.arg("-map_metadata").arg("0:s:a:0");
         }
+        TagMapping::Custom { album, album_artist, artist, image, title, track } => {
+            command.arg("-map_metadata").arg("-1");
 
-        if let Some(album_artist) = &tag_mapping.album_artist {
-            command.arg("-metadata").arg(format!("album_artist={}", album_artist));
+            if let Some(album) = album {
+                command.arg("-metadata").arg(format!("album={}", album));
+            }
+
+            if let Some(album_artist) = album_artist {
+                command.arg("-metadata").arg(format!("album_artist={}", album_artist));
+            }
+
+            if let Some(artist) = artist {
+                command.arg("-metadata").arg(format!("artist={}", artist));
+            }
+
+            if *image {
+                // TODO: If we have a cover image (from folder) map it here with -i xxx and -map xxx
+                // TODO: For this one we might need to differentiate between copy and rewrite up until here
+            } else {
+                command.arg("-vn");
+            }
+
+            if let Some(title) = title {
+                command.arg("-metadata").arg(format!("title={}", title));
+            }
+
+            if let Some(track) = track {
+                command.arg("-metadata").arg(format!("track={}", track));
+            }
         }
-
-        if let Some(artist) = &tag_mapping.artist {
-            command.arg("-metadata").arg(format!("artist={}", artist));
-        }
-
-        if let Some(title) = &tag_mapping.title {
-            command.arg("-metadata").arg(format!("title={}", title));
-        }
-
-        if let Some(track) = &tag_mapping.track {
-            command.arg("-metadata").arg(format!("track={}", track));
+        TagMapping::Remove => {
+            command.arg("-map_metadata").arg("-1");
+            command.arg("-vn");
         }
     }
 

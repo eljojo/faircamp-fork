@@ -26,6 +26,7 @@ use crate::{
     PaymentOption,
     Permalink,
     StreamingQuality,
+    TagAgenda,
     Theme,
     ThemeBase,
     ThemeFont,
@@ -73,9 +74,9 @@ pub struct Overrides {
     pub release_cover: Option<DescribedImage>,
     pub release_text: Option<HtmlAndStripped>,
     pub release_track_numbering: TrackNumbering,
-    pub rewrite_tags: bool,
     pub share_button: bool,
     pub streaming_quality: StreamingQuality,
+    pub tag_agenda: TagAgenda,
     pub theme: Theme,
     pub track_artists: Option<Vec<String>>,
     pub unlock_text: Option<String>
@@ -106,9 +107,9 @@ impl Overrides {
             release_cover: None,
             release_text: None,
             release_track_numbering: TrackNumbering::Arabic,
-            rewrite_tags: true,
             share_button: true,
             streaming_quality: StreamingQuality::Standard,
+            tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
             track_artists: None,
             unlock_text: None
@@ -760,8 +761,14 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "rewrite_tags") {
             match value.as_str() {
-                "yes" => overrides.rewrite_tags = true,
-                "no" => overrides.rewrite_tags = false,
+                "no" => {
+                    info!("From faircamp 0.15.0 onwards, 'rewrite_tags: no' should be specified as 'tags: copy' - this will eventually become mandatory (seen) in {}:{}).", path.display(), line);
+                    overrides.tag_agenda = TagAgenda::Copy;
+                }
+                "yes" => {
+                    info!("From faircamp 0.15.0 onwards, 'rewrite_tags: yes' should be specified as 'tags: normalize' - this will eventually become mandatory (seen) in {}:{}).", path.display(), line);
+                    overrides.tag_agenda = TagAgenda::normalize();
+                }
                 other => error!("Ignoring invalid release.rewrite_tags value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
             }
         }
@@ -772,6 +779,36 @@ pub fn apply_options(
                 "disabled" => overrides.share_button = false,
                 value => error!("Ignoring unsupported release.share_button setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
             }
+        }
+
+        match section.optional_field("tags") {
+            Ok(Some(field)) => {
+                if let Ok(attributes) = field.attributes() {
+                    overrides.tag_agenda = TagAgenda::Remove;
+
+                    for attribute in attributes {
+                        match attribute.required_value::<String>() {
+                            Ok(value) => {
+                                if let Err(err) = overrides.tag_agenda.set(attribute.key(), &value) {
+                                    error!("Error in {}:{} ({})", path.display(), attribute.line_number(), err)
+                                }
+                            }
+                            Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
+                        }
+                    }
+                } else if let Ok(value) = field.required_value::<String>() {
+                    match value.as_str() {
+                        "copy" => overrides.tag_agenda = TagAgenda::Copy,
+                        "normalize" => overrides.tag_agenda = TagAgenda::normalize(),
+                        "remove" => overrides.tag_agenda = TagAgenda::Remove,
+                        other => error!("Ignoring invalid release.tags value '{}' (allowed are either 'copy', 'remove' or 'rewrite') in {}:{}", other, path.display(), field.line_number)
+                    }
+                } else {
+                    error!("Ignoring invalid release.tags setting (allowed are either 'copy', 'remove', 'rewrite' as value, or a customization with attributes such as 'title = copy', 'artist = rewrite', 'album_artist = remove' etc.) in {}:{}", path.display(), field.line_number)
+                }
+            }
+            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+            _ => ()
         }
 
         if let Some(text_markdown) = optional_embed_value(section, "text") {
