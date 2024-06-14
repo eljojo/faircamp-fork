@@ -13,7 +13,8 @@ use crate::{
     DescribedImage,
     Release,
     ReleaseRc,
-    Theme
+    Theme,
+    Track
 };
 use crate::icons;
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
@@ -22,6 +23,7 @@ pub mod artist;
 pub mod image_descriptions;
 pub mod index;
 pub mod release;
+pub mod track;
 
 pub enum CrawlerMeta {
     None,
@@ -92,7 +94,7 @@ fn compact_release_identifier(
     release_prefix: &str,
     root_prefix: &str
 ) -> String {
-    let artists = list_artists(index_suffix, root_prefix, catalog, release);
+    let artists = list_release_artists(index_suffix, root_prefix, catalog, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let cover = cover_image_tiny(build, release_prefix, &release.cover, release_link);
 
@@ -137,6 +139,7 @@ pub fn copy_button(build: &Build, content: Option<&str>, label: &str) -> String 
     "##)
 }
 
+/// Used on release/tracks pages to display a large-size cover
 fn cover_image(
     build: &Build,
     index_suffix: &str,
@@ -372,7 +375,7 @@ fn layout(
 /// linked (to the site's homepage in this case). Whether support artists are
 /// listed depends on the catalog settings, by default they are not. The
 /// catalog artist and main artists are always sorted first, in that order.
-fn list_artists(
+fn list_release_artists(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
@@ -444,6 +447,54 @@ fn list_artists(
     }
 }
 
+/// Render the artists of a track in the style of "Alice, Bob", where each
+/// (Alice, Bob) can be a link too, depending on the track and catalog.
+/// In *label mode*, all artists of a track are shown and linked to
+/// their artist page. In *artist mode*, only the catalog artist is ever
+/// linked (to the site's homepage in this case). The catalog artist is
+/// always sorted first.
+fn list_track_artists(
+    index_suffix: &str,
+    root_prefix: &str,
+    catalog: &Catalog,
+    track: &Track
+) -> String {
+    let mut track_artists_sorted: Vec<ArtistRc> = track.artists.clone();
+
+    // Sort so the catalog artist comes first
+    track_artists_sorted.sort_by(|a, b| {
+        if let Some(catalog_artist) = &catalog.artist {
+            if ArtistRc::ptr_eq(a, catalog_artist) { return Ordering::Less; }
+            if ArtistRc::ptr_eq(b, catalog_artist) { return Ordering::Greater; }
+        }
+        Ordering::Equal
+    });
+
+    track_artists_sorted
+        .iter()
+        .map(|artist| {
+            let artist_ref = artist.borrow();
+            let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+
+            if artist_ref.unlisted {
+                name_escaped
+            } else if catalog.label_mode {
+                let permalink = &artist_ref.permalink.slug;
+                format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
+            } else if let Some(catalog_artist) = &catalog.artist {
+                if ArtistRc::ptr_eq(artist, catalog_artist) {
+                    format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#)
+                } else {
+                    name_escaped
+                }
+            } else {
+                name_escaped
+            }
+        })
+        .collect::<Vec<String>>()
+        .join(", ")
+}
+
 /// These are rendered alongside the release player and provide prepared and translated
 /// icons for the client side script to use.
 pub fn player_icon_templates(build: &Build) -> String {
@@ -485,7 +536,7 @@ fn releases(
             let href = format!("{root_prefix}{permalink}{index_suffix}");
 
             let artists = if catalog.label_mode {
-                let list = list_artists(index_suffix, root_prefix, catalog, &release_ref);
+                let list = list_release_artists(index_suffix, root_prefix, catalog, &release_ref);
                 format!("<div>{list}</div>")
             } else {
                 String::new()

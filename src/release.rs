@@ -593,6 +593,14 @@ impl Release {
                 }
             }
         }
+
+        // Render page for each track
+        for (index, track) in self.tracks.iter().enumerate() {
+            let track_number = index + 1;
+            let track_dir = release_dir.join(track_number.to_string());
+            let track_html = render::track::track_html(build, catalog, self, track, track_number);
+            util::ensure_dir_and_write_index(&track_dir, &track_html);
+        }
     }
 }
 

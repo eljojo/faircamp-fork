@@ -11,7 +11,7 @@ use crate::render::{
     copy_button,
     cover_image,
     layout,
-    list_artists,
+    list_release_artists,
     release::waveform
 };
 use crate::util::{
@@ -266,7 +266,7 @@ pub fn embed_release_html(
                 </div>
             </div>
         "##,
-        artists = list_artists(index_suffix, root_prefix, catalog, release),
+        artists = list_release_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
         release_title = html_escape_outside_attribute(&release.title)
     );
@@ -375,7 +375,7 @@ pub fn embed_track_html(
                 </div>
             </div>
         "##,
-        artists = list_artists(index_suffix, root_prefix, catalog, release),
+        artists = list_release_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
         release_title_escaped = html_escape_outside_attribute(&release.title)
     );

@@ -16,7 +16,7 @@ use crate::render::{
     copy_button,
     cover_image,
     layout,
-    list_artists,
+    list_release_artists,
     player_icon_templates,
     unlisted_badge
 };
@@ -259,7 +259,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
             </div>
         "##,
-        artists = list_artists(index_suffix, root_prefix, catalog, release),
+        artists = list_release_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, "", root_prefix, release)
     );
 

@@ -10,6 +10,7 @@ use crate::{
     Build,
     ffmpeg,
     HeuristicAudioMeta,
+    HtmlAndStripped,
     TagMapping,
     Theme,
     Transcode,
@@ -31,6 +32,7 @@ pub struct Track {
     pub asset_basename: Option<String>,
     pub copy_link: bool,
     pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
+    pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     pub transcodes: TranscodesRcView
 }
@@ -77,6 +79,8 @@ impl Track {
             asset_basename: None,
             copy_link,
             heuristic_audio_meta: None,
+            // TODO: Wire up with manifests so it can be set
+            text: None,
             transcodes,
             theme
         }
