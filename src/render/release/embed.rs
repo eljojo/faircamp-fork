@@ -87,7 +87,8 @@ pub fn embed_choices_html(
                 &t_audio_player_widget_for_track
             );
 
-            let r_copy_button = copy_button(build, Some(&embed_copy_code));
+            let t_copy = &build.locale.translations.copy;
+            let r_copy_button = copy_button(build, Some(&embed_copy_code), t_copy);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
 
             formatdoc!(r#"
@@ -127,7 +128,8 @@ pub fn embed_choices_html(
         &t_audio_player_widget_for_release
     );
 
-    let r_copy_button = copy_button(build, Some(&embed_copy_code));
+    let t_copy = &build.locale.translations.copy;
+    let r_copy_button = copy_button(build, Some(&embed_copy_code), t_copy);
 
     let t_embed = &build.locale.translations.embed;
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;

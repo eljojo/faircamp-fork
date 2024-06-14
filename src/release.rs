@@ -67,6 +67,7 @@ pub struct Release {
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download asset filenames.
     pub asset_basename: Option<String>,
+    pub copy_link: bool,
     pub cover: Option<DescribedImage>,
     pub date: Option<NaiveDate>,
     pub download_formats: Vec<DownloadFormat>,
@@ -91,7 +92,6 @@ pub struct Release {
     pub main_artists_to_map: Vec<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
-    pub share_button: bool,
     /// Relative path of the release directory in the catalog directory.
     /// This is used to augment permalink conflict errors with additional
     /// info for resolving the conflict.
@@ -188,6 +188,7 @@ impl Release {
     }
 
     pub fn new(
+        copy_link: bool,
         cover: Option<DescribedImage>,
         date: Option<NaiveDate>,
         download_formats: Vec<DownloadFormat>,
@@ -200,7 +201,6 @@ impl Release {
         main_artists_to_map: Vec<String>,
         payment_options: Vec<PaymentOption>,
         permalink: Option<Permalink>,
-        share_button: bool,
         source_dir: PathBuf,
         streaming_quality: StreamingQuality,
         support_artists_to_map: Vec<String>,
@@ -217,6 +217,7 @@ impl Release {
         Release {
             archives: None,
             asset_basename: None,
+            copy_link,
             cover,
             date,
             download_formats,
@@ -230,7 +231,6 @@ impl Release {
             main_artists_to_map,
             payment_options,
             permalink,
-            share_button,
             source_dir,
             streaming_quality,
             support_artists: Vec::new(),

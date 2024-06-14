@@ -109,25 +109,32 @@ fn compact_release_identifier(
     "#)
 }
 
-
-pub fn copy_button(build: &Build, content: Option<&str>) -> String {
+/// A button enriched with data attributes and templates that client scripting can use
+/// to copy the content (embed code or link) to clipboard and display success/failure state.
+pub fn copy_button(build: &Build, content: Option<&str>, label: &str) -> String {
     let data_content = match content {
         Some(content) => format!(r#"data-content="{content}""#),
         None => String::new()
     };
 
-    let t_copied = &build.locale.translations.copied;
-    let t_copy = &build.locale.translations.copy;
-    let t_failed = &build.locale.translations.failed;
-    let t_share_not_available_navigator_clipboard = &build.locale.translations.share_not_available_navigator_clipboard;
-
-    formatdoc!(r#"
-        <a class="button disabled" {data_content}data-copy title="{t_share_not_available_navigator_clipboard}">
-            <span class="action">{t_copy}</span>
-            <span class="success">{t_copied}</span>
-            <span class="error">{t_failed}</span>
-        </a>
-    "#)
+    let copy_icon = icons::copy(label);
+    let failed_icon = icons::failure(&build.locale.translations.failed);
+    let success_icon = icons::success(&build.locale.translations.copied);
+    formatdoc!(r##"
+        <button class="link" {data_content} data-copy>
+            <span class="icon">{copy_icon}</span>
+            <span>{label}</span>
+            <template data-icon="copy">
+                {copy_icon}
+            </template>
+            <template data-icon="failed">
+                {failed_icon}
+            </template>
+            <template data-icon="success">
+                {success_icon}
+            </template>
+        </button>
+    "##)
 }
 
 fn cover_image(
@@ -512,43 +519,6 @@ fn releases(
         })
         .collect::<Vec<String>>()
         .join("\n")
-}
-
-pub fn share_link(build: &Build) -> String {
-    let attributes = if build.base_url.is_some() {
-        String::from(r##"href="#share""##)
-    } else {
-        let t_share_not_available_requires_javascript = &build.locale.translations.share_not_available_requires_javascript;
-        // In a javascript-enabled browser, some bootstrapping happens on DOM load:
-        // - class="disabled" is removed
-        // - title="..."  is removed
-        // - href="#share" is added
-        format!(r#"class="disabled" data-disabled-share title="{t_share_not_available_requires_javascript}""#)
-    };
-
-    let t_share = &build.locale.translations.share;
-    let share_icon = icons::share(t_share);
-    formatdoc!(r##"
-        <a {attributes}>
-            {share_icon}
-            <span>{t_share}</span>
-        </a>
-    "##)
-}
-
-pub fn share_overlay(build: &Build, url: &str) -> String {
-    let r_copy_button = copy_button(build, None);
-    let t_close = &build.locale.translations.close;
-
-    formatdoc!(r##"
-        <div id="share">
-            <div class="inner">
-                <a data-url href="{url}">{url}</a>
-                {r_copy_button}
-                <a class="button" href="#!">{t_close}</a>
-            </div>
-        </div>
-    "##)
 }
 
 pub fn unlisted_badge(build: &Build) -> String {

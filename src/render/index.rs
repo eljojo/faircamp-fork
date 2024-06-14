@@ -5,7 +5,12 @@ use indoc::formatdoc;
 
 use crate::{Build, Catalog, CrawlerMeta, ReleaseRc};
 use crate::icons;
-use crate::render::{artist_image, layout, releases, share_link, share_overlay};
+use crate::render::{
+    artist_image,
+    copy_button,
+    layout,
+    releases
+};
 use crate::util::html_escape_outside_attribute;
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
@@ -68,15 +73,19 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         action_links.push(feed_link);
     };
 
-    if catalog.share_button {
-        let r_share_link = share_link(build);
-        action_links.push(r_share_link);
+    if catalog.copy_link {
+        let content = match &build.base_url {
+            Some(base_url) => Some(base_url.join(build.index_suffix_file_only()).unwrap().to_string()),
+            None => None
+        };
+
+        let t_copy_link = &build.locale.translations.copy_link;
+        let r_copy_link = copy_button(build, content.as_deref(), t_copy_link);
+        action_links.push(r_copy_link);
     }
 
     for link in &catalog.links {
-        // TODO: We're "mis-using" share as "external" here, which is not per se wrong,
-        //       but implies we should change something about this.
-        let external_icon = icons::share(&build.locale.translations.share);
+        let external_icon = icons::external(&build.locale.translations.share);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;
@@ -150,18 +159,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         ""
     };
 
-    let share_overlay_rendered = match catalog.share_button {
-        true => {
-            let share_url = match &build.base_url {
-                Some(base_url) => base_url.join(build.index_suffix_file_only()).unwrap().to_string(),
-                None => String::new()
-            };
-
-            share_overlay(build, &share_url)
-        }
-        false => String::new()
-    };
-
     let body = formatdoc!(r##"
         <div class="index_split {index_vcentered}">
             {catalog_info}
@@ -169,7 +166,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 {releases_rendered}
             </div>
         </div>
-        {share_overlay_rendered}
     "##);
 
     layout(

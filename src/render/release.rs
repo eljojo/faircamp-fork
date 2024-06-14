@@ -13,12 +13,11 @@ use crate::{
     Track
 };
 use crate::render::{
+    copy_button,
     cover_image,
     layout,
     list_artists,
     player_icon_templates,
-    share_link,
-    share_overlay,
     unlisted_badge
 };
 use crate::icons;
@@ -180,15 +179,24 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         action_links.push(embed_link);
     };
 
-    if release.share_button {
-        let r_share_link = share_link(build);
-        action_links.push(r_share_link);
+    if release.copy_link {
+        let content = match &build.base_url {
+            Some(base_url) => Some(
+                base_url
+                    .join(&format!("{}{index_suffix}", &release.permalink.slug))
+                    .unwrap()
+                    .to_string()
+            ),
+            None => None
+        };
+
+        let t_copy_link = &build.locale.translations.copy_link;
+        let r_copy_link = copy_button(build, content.as_deref(), t_copy_link);
+        action_links.push(r_copy_link);
     }
 
     for link in &release.links {
-        // TODO: We're "mis-using" share as "external" here, which is not per se wrong,
-        //       but implies we should change something about this.
-        let external_icon = icons::share(&build.locale.translations.share);
+        let external_icon = icons::external(&build.locale.translations.share);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;
@@ -228,21 +236,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let r_player_icon_templates = player_icon_templates(build);
 
-    let share_overlay_rendered = match release.share_button {
-        true => {
-            let share_url = match &build.base_url {
-                Some(base_url) => base_url
-                    .join(&format!("{}{index_suffix}", &release.permalink.slug))
-                    .unwrap()
-                    .to_string(),
-                None => String::new()
-            };
-
-            share_overlay(build, &share_url)
-        }
-        false => String::new()
-    };
-
     let body = formatdoc!(
         r##"
             <div class="vcenter_page_outer">
@@ -259,13 +252,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     {r_player_icon_templates}
                 </div>
                 <div class="additional">
+                    {r_action_links}
                     <div class="mobile_hpadding">
-                        {r_action_links}
                         {release_text}
                     </div>
                 </div>
             </div>
-            {share_overlay_rendered}
         "##,
         artists = list_artists(index_suffix, root_prefix, catalog, release),
         cover = cover_image(build, index_suffix, "", root_prefix, release)

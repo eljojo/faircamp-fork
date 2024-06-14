@@ -6,24 +6,28 @@ const copyNotificationTimeouts = {};
 
 window.activeTrack = null;
 
-function copyToClipboard(copyLink) {
+function copyToClipboard(button) {
     const notify = (success, content) => {
         if (content in copyNotificationTimeouts) {
             clearTimeout(copyNotificationTimeouts[content]);
             delete copyNotificationTimeouts[content];
         }
 
-        copyLink.classList.toggle('confirmed', success);
-        copyLink.classList.toggle('failed', !success);
+        if (success) {
+            const successIcon = button.querySelector('[data-icon="success"]');
+            button.querySelector('.icon').replaceChildren(successIcon.content.cloneNode(true));
+        } else {
+            const failedIcon = button.querySelector('[data-icon="failed"]');
+            button.querySelector('.icon').replaceChildren(failedIcon.content.cloneNode(true));
+        }
 
         copyNotificationTimeouts[content] = setTimeout(() => {
-            copyLink.classList.remove(success ? 'confirmed' : 'failed');
+            const copyIcon = button.querySelector('[data-icon="copy"]');
+            button.querySelector('.icon').replaceChildren(copyIcon.content.cloneNode(true));
         }, 3000);
     };
 
-    const content = copyLink.dataset.content ||
-        document.querySelector('[data-url]').getAttribute('href');
-
+    const content = button.dataset.content;
     navigator.clipboard
         .writeText(content)
         .then(() => notify(true, content))
@@ -412,29 +416,16 @@ window.addEventListener('DOMContentLoaded', event => {
         window.addEventListener('resize', waveforms);
     }
 
-    const shareOverlay = document.querySelector('#share');
-
     if (navigator.clipboard) {
-        for (const copyLink of document.querySelectorAll('[data-copy]')) {
-            copyLink.classList.remove('disabled');
-            copyLink.removeAttribute('title');
+        for (button of document.querySelectorAll('[data-copy]')) {
+            if (!button.dataset.content) {
+                const thisPageUrl = window.location.href.split('#')[0]; // discard hash if present
+                button.dataset.content = thisPageUrl;
+            }
         }
-    }
-
-    if (shareOverlay) {
-        const disabledShareLink = document.querySelector('[data-disabled-share]');
-        if (disabledShareLink) {
-            disabledShareLink.classList.remove('disabled');
-            disabledShareLink.removeAttribute('data-disabled-share');
-            disabledShareLink.removeAttribute('title');
-            disabledShareLink.setAttribute('href', '#share');
-        }
-
-        const shareUrl = shareOverlay.querySelector('[data-url]');
-        if (!shareUrl.getAttribute('href').length) {
-            const url = window.location.href.split('#')[0]; // discard hash if present
-            shareUrl.setAttribute('href', url);
-            shareUrl.innerHTML = url;
+    } else {
+        for (button of document.querySelectorAll('[data-copy]')) {
+            button.remove();
         }
     }
 });

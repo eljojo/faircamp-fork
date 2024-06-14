@@ -29,6 +29,7 @@ pub struct Track {
     /// Generated when we gathered all artist and title metadata.
     /// Used to compute the download/stream asset filenames.
     pub asset_basename: Option<String>,
+    pub copy_link: bool,
     pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
     pub theme: Theme,
     pub transcodes: TranscodesRcView
@@ -66,6 +67,7 @@ impl Track {
     
     pub fn new(
         artists_to_map: Vec<String>,
+        copy_link: bool,
         theme: Theme,
         transcodes: TranscodesRcView
     ) -> Track {
@@ -73,6 +75,7 @@ impl Track {
             artists: Vec::new(),
             artists_to_map,
             asset_basename: None,
+            copy_link,
             heuristic_audio_meta: None,
             transcodes,
             theme

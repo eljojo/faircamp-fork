@@ -9,6 +9,7 @@ use crate::{DescribedImage, HtmlAndStripped, Permalink, ReleaseRc};
 #[derive(Debug)]
 pub struct Artist {
     pub aliases: Vec<String>,
+    pub copy_link: bool,
     pub image: Option<DescribedImage>,
     pub name: String,
     pub permalink: Permalink,
@@ -23,11 +24,12 @@ pub struct ArtistRc {
 }
 
 impl Artist {
-    pub fn new(name: &str) -> Artist {
+    pub fn new(copy_link: bool, name: &str) -> Artist {
         let permalink = Permalink::generate(name);
         
         Artist {
             aliases: Vec::new(),
+            copy_link,
             image: None,
             name: name.to_string(),
             permalink,

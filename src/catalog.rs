@@ -46,6 +46,7 @@ pub struct Catalog {
     pub artist: Option<ArtistRc>,
     /// All artists (main_artists + support_artists)
     pub artists: Vec<ArtistRc>,
+    pub copy_link: bool,
     pub favicon: Favicon,
     /// Whether support artists should get their own
     /// pages and be linked to them
@@ -58,7 +59,6 @@ pub struct Catalog {
     pub links: Vec<Link>,
     pub main_artists: Vec<ArtistRc>,
     pub releases: Vec<ReleaseRc>,
-    pub share_button: bool,
     pub show_support_artists: bool,
     pub support_artists: Vec<ArtistRc>,
     pub text: Option<HtmlAndStripped>,
@@ -166,8 +166,8 @@ impl Catalog {
         }
     }
 
-    pub fn create_artist(&mut self, name: &str) -> ArtistRc {
-        let artist = ArtistRc::new(Artist::new(name));
+    pub fn create_artist(&mut self, copy_link: bool, name: &str) -> ArtistRc {
+        let artist = ArtistRc::new(Artist::new(copy_link, name));
         self.artists.push(artist.clone());
         artist
     }
@@ -222,7 +222,7 @@ impl Catalog {
                 }
 
                 if !any_artist_found {
-                    let new_artist = ArtistRc::new(Artist::new(&main_artist_to_map));
+                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &main_artist_to_map));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.main_artists.push(new_artist.clone());
@@ -257,7 +257,7 @@ impl Catalog {
                 }
 
                 if !any_artist_found {
-                    let new_artist = ArtistRc::new(Artist::new(&support_artist_to_map));
+                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &support_artist_to_map));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.support_artists.push(new_artist.clone());
@@ -286,7 +286,7 @@ impl Catalog {
                         // TODO: An artist created here curiously belongs neither to catalog.main_artists,
                         //       nor catalog.support_artists. This might indicate that in fact we never
                         //       enter into this branch at all?
-                        let new_artist = ArtistRc::new(Artist::new(&track_artist_to_map));
+                        let new_artist = ArtistRc::new(Artist::new(self.copy_link, &track_artist_to_map));
                         self.artists.push(new_artist.clone());
                         track.artists.push(new_artist);
                     }
@@ -299,6 +299,7 @@ impl Catalog {
         Catalog {
             artist: None,
             artists: Vec::new(),
+            copy_link: true,
             favicon: Favicon::Default,
             feature_support_artists: false,
             featured_artists: Vec::new(),
@@ -308,7 +309,6 @@ impl Catalog {
             links: Vec::new(),
             main_artists: Vec::new(),
             releases: Vec::new(),
-            share_button: true,
             show_support_artists: false,
             support_artists: Vec::new(),
             text: None,
@@ -685,6 +685,7 @@ impl Catalog {
             let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
 
             let release = Release::new(
+                merged_overrides.copy_link,
                 cover,
                 local_options.release_date.take(),
                 merged_overrides.download_formats.clone(),
@@ -697,7 +698,6 @@ impl Catalog {
                 main_artists_to_map,
                 merged_overrides.payment_options.clone(),
                 local_options.release_permalink.take(),
-                merged_overrides.share_button,
                 release_dir_relative_to_catalog,
                 merged_overrides.streaming_quality,
                 support_artists_to_map,
@@ -741,7 +741,12 @@ impl Catalog {
 
         let theme = overrides.theme.clone();
         
-        Track::new(artists_to_map, theme, transcodes)
+        Track::new(
+            artists_to_map,
+            overrides.copy_link,
+            theme,
+            transcodes
+        )
     }
 
     // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?

@@ -64,6 +64,7 @@ pub struct LocalOptions {
 /// in a manifest further down the hierarchy, hence it is an override.
 #[derive(Clone)]
 pub struct Overrides {
+    pub copy_link: bool,
     pub download_formats: Vec<DownloadFormat>,
     pub download_granularity: DownloadGranularity,
     pub download_option: DownloadOption,
@@ -74,7 +75,6 @@ pub struct Overrides {
     pub release_cover: Option<DescribedImage>,
     pub release_text: Option<HtmlAndStripped>,
     pub release_track_numbering: TrackNumbering,
-    pub share_button: bool,
     pub streaming_quality: StreamingQuality,
     pub tag_agenda: TagAgenda,
     pub theme: Theme,
@@ -97,6 +97,7 @@ impl LocalOptions {
 impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
+            copy_link: true,
             download_formats: vec![DownloadFormat::DEFAULT],
             download_granularity: DownloadGranularity::EntireRelease,
             download_option: DownloadOption::Disabled,
@@ -107,7 +108,6 @@ impl Overrides {
             release_cover: None,
             release_text: None,
             release_track_numbering: TrackNumbering::Arabic,
-            share_button: true,
             streaming_quality: StreamingQuality::Standard,
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
@@ -273,7 +273,7 @@ pub fn apply_options(
     if let Some(section) = optional_section(&document, "artist", path) {
         match section.field("name").and_then(|field| field.required_value::<String>()) {
             Ok(name) => {
-                let artist = catalog.create_artist(&name);
+                let artist = catalog.create_artist(overrides.copy_link, &name);
                 let mut artist_mut = artist.borrow_mut();
 
                 optional_field_with_items(section, "aliases", &mut |items: &[Item]| { 
@@ -444,7 +444,7 @@ pub fn apply_options(
             build.url_salt = util::uid();
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "share_button") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
             match value.as_str() {
                 "enabled" => {
                     // TODO: Right now we're handling this in a slightly quirky way, because in # catalog
@@ -454,14 +454,14 @@ pub fn apply_options(
                     //       irrelevant if we move these options off their # catalog and # release scope and
                     //       just make them scope-less properties that exist in the hierarchy and are applied
                     //       to everything for which they are relevant.
-                    catalog.share_button = true;
-                    overrides.share_button = true;
+                    catalog.copy_link = true;
+                    overrides.copy_link = true;
                 }
                 "disabled" => {
-                    catalog.share_button = false;
-                    overrides.share_button = false;
+                    catalog.copy_link = false;
+                    overrides.copy_link = false;
                 }
-                value => error!("Ignoring unsupported catalog.share_button setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+                value => error!("Ignoring unsupported catalog.copy_link setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
             }
         }
 
@@ -773,11 +773,11 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "share_button") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
             match value.as_str() {
-                "enabled" => overrides.share_button = true,
-                "disabled" => overrides.share_button = false,
-                value => error!("Ignoring unsupported release.share_button setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+                "enabled" => overrides.copy_link = true,
+                "disabled" => overrides.copy_link = false,
+                value => error!("Ignoring unsupported release.copy_link setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
             }
         }
 

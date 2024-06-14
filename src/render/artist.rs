@@ -6,10 +6,9 @@ use indoc::formatdoc;
 use crate::{Artist, Build, Catalog, CrawlerMeta, ReleaseRc};
 use crate::render::{
     artist_image,
+    copy_button,
     layout,
     releases,
-    share_link,
-    share_overlay,
     unlisted_badge
 };
 use crate::util::html_escape_outside_attribute;
@@ -24,7 +23,36 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     };
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
-    let share_link_rendered = share_link(build);
+
+    let mut action_links = Vec::new();
+
+    if artist.copy_link {
+        let content = match &build.base_url {
+            Some(base_url) => Some(
+                base_url
+                    .join(&format!("{}{index_suffix}", &artist.permalink.slug))
+                    .unwrap()
+                    .to_string()
+            ),
+            None => None
+        };
+
+        let t_copy_link = &build.locale.translations.copy_link;
+        let r_copy_link = copy_button(build, content.as_deref(), t_copy_link);
+        action_links.push(r_copy_link);
+    }
+
+    let r_action_links = if action_links.is_empty() {
+        String::new()
+    } else {
+        let joined = action_links.join(" &nbsp; ");
+
+        formatdoc!(r#"
+            <div class="action_links">
+                {joined}
+            </div>
+        "#)
+    };
 
     let artist_image_rendered = match &artist.image {
         Some(artist_image_unpacked) => artist_image(
@@ -49,9 +77,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             <div class="catalog_info_padded">
                 <h1>{name_unlisted}</h1>
                 {artist_text}
-                <div class="action_links">
-                    {share_link_rendered}
-                </div>
+                {r_action_links}
             </div>
         </div>
     "##);
@@ -84,16 +110,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         ""
     };
 
-    let share_url = match &build.base_url {
-        Some(base_url) => base_url
-            .join(&format!("{}{index_suffix}", &artist.permalink.slug))
-            .unwrap()
-            .to_string(),
-        None => String::new()
-    };
-
-    let share_overlay_rendered = share_overlay(build, &share_url);
-
     let body = formatdoc!(r##"
         <div class="index_split {index_vcentered}">
             {artist_info}
@@ -101,7 +117,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                 {releases_rendered}
             </div>
         </div>
-        {share_overlay_rendered}
     "##);
 
     let breadcrumbs = &[

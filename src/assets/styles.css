@@ -13,30 +13,41 @@
     --largest: 1.8rem;
 }
 a, button { cursor: pointer; }
-a {
+a,
+button.link {
     color: var(--color-link);
     text-decoration: none;
 }
-a:hover { color: var(--color-link-hover); }
+a:hover,
+button.link:hover {
+    color: var(--color-link-hover);
+}
 a * { pointer-events: none; }
 .action_links {
-    column-gap: .3rem;
-    display: flex;
-    font-size: var(--boldly-larger);
+    display:flex;
+    justify-content: center;
 }
-.action_links a {
-    align-items: center;
-    column-gap: .2rem;
-    display: flex;
+.action_links > *:not(:first-child) { margin-left: .8rem; }
+.action_links a,
+.action_links button {
+    font-size: var(--boldly-larger);
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .action_links svg {
+    display: inline-block;
     height: var(--boldly-larger);
+    margin-right: .1rem;
+    position: relative;
+    top: .2rem;
     width: var(--boldly-larger);
 }
 .additional { background-color: hsla(0, 0%, var(--text-l), var(--release-additional-a)); }
+.additional > .action_links { max-width: 32rem; }
+.additional > *:not(.action_links) { max-width: 20rem; }
 .additional > div {
     margin: 0 auto;
-    max-width: 20rem;
     padding: 1.5rem;
 }
 .artists {
@@ -53,12 +64,17 @@ a * { pointer-events: none; }
     color: var(--color-background);
     padding: .1rem .2rem .2rem .2rem;
 }
-input, button { font-size: 1rem; }
 body {
     background-color: var(--color-background);
     color: var(--color-text);
     margin: 0;
     min-height: 100vh;
+}
+button[data-copy] * { pointer-events: none; }
+button, input { font-size: 1rem; }
+button.link {
+    background: none;
+    border: none;
 }
 .catalog {
     align-items: center;
@@ -130,6 +146,13 @@ body {
     column-gap: .3rem;
     display: flex;
     justify-content: space-between;
+}
+.embed_split svg {
+    display: inline-block;
+    height: 1rem;
+    position: relative;
+    top: .2rem;
+    width: 1rem;
 }
 .embed_syntax_special { opacity: .6; /* TODO: Solve differently */ }
 .embed_syntax_value { opacity: .8; /* TODO: Solve differently */ }
@@ -247,8 +270,6 @@ circle.loading {
     top: 0;
     z-index: 999;
 }
-[data-disabled-share],
-.disabled[data-copy] { color: var(--color-muted); }
 #overlay:target { display: flex; }
 #overlay img {
     max-height: calc(100vh - 4rem);
@@ -320,12 +341,6 @@ pre { margin: 0; }
     padding: 1rem;
     pointer-events: all;
 }
-@keyframes dim {
-  0% { opacity: 1; }
-  5% { opacity: .5; }
-  95% { opacity: .5; }
-  100% { opacity: 0; }
-}
 #share:target { display: flex; }
 small { font-size: var(--clearly-smaller); }
 svg {
@@ -333,17 +348,6 @@ svg {
     fill: currentColor;
 }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
-[data-copy] .success,
-[data-copy] .error { display: none; }
-.confirmed[data-copy] .action,
-.failed[data-copy] .action { display: none; }
-.confirmed[data-copy] .success { display: inline; }
-.failed[data-copy] .error { display: inline; }
-.confirmed[data-copy],
-.failed[data-copy] {
-    animation: dim 3s linear;
-    opacity: 1;
-}
 .track {
     height: 3rem;
     margin-bottom: .2rem;
@@ -390,13 +394,13 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     white-space: nowrap;
 }
 .track.playing .track_title { color: var(--color-link); }
-button,
+button:not(.link),
 .button {
     background: none;
     border: 1px solid var(--color-link);
     color: var(--color-link);
 }
-button,
+button:not(.link),
 input[type="number"],
 input[type="text"],
 .button {
@@ -409,7 +413,7 @@ input[type="text"] {
     border: 1px solid var(--color-link);
     color: var(--color-text);
 }
-button.disabled,
+button:not(.link).disabled,
 input[type="number"].disabled,
 input[type="text"].disabled,
 .button.disabled {
