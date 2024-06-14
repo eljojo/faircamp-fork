@@ -528,8 +528,10 @@ input[type="text"].disabled,
     .catalog_info_padded {
         padding: 0;
         max-width: 27rem;
+    .home_image {
+        border-radius: var(--cover-border-radius);
+        width: 28rem;
     }
-    .home_image { width: 27rem; }
     .index_split {
         grid-template-columns: auto auto;
         grid-template-rows: 1fr;
