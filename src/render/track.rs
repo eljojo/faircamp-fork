@@ -196,7 +196,7 @@ pub fn track_html(
         "#)
     };
 
-    let relative_waveforms = if catalog.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
+    let relative_waveforms = if track.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
     let track_duration = track.transcodes.borrow().source_meta.duration_seconds;
 
     let r_player_icon_templates = player_icon_templates(build);

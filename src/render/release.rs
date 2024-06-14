@@ -226,7 +226,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         "#)
     };
 
-    let relative_waveforms = if catalog.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
+    let relative_waveforms = if release.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
 
     let release_title_unlisted = if release.unlisted {
         format!("{release_title_escaped} {}", unlisted_badge(build))
