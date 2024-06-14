@@ -4,7 +4,13 @@
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
-use crate::{DescribedImage, HtmlAndStripped, Permalink, ReleaseRc};
+use crate::{
+    DescribedImage,
+    HtmlAndStripped,
+    Permalink,
+    ReleaseRc,
+    Theme
+};
 
 #[derive(Debug)]
 pub struct Artist {
@@ -15,6 +21,7 @@ pub struct Artist {
     pub permalink: Permalink,
     pub releases: Vec<ReleaseRc>,
     pub text: Option<HtmlAndStripped>,
+    pub theme: Theme,
     pub unlisted: bool
 }
 
@@ -24,7 +31,7 @@ pub struct ArtistRc {
 }
 
 impl Artist {
-    pub fn new(copy_link: bool, name: &str) -> Artist {
+    pub fn new(copy_link: bool, name: &str, theme: Theme) -> Artist {
         let permalink = Permalink::generate(name);
         
         Artist {
@@ -35,6 +42,7 @@ impl Artist {
             permalink,
             releases: Vec::new(),
             text: None,
+            theme,
             unlisted: false
         }
     }

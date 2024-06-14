@@ -273,7 +273,7 @@ pub fn apply_options(
     if let Some(section) = optional_section(&document, "artist", path) {
         match section.field("name").and_then(|field| field.required_value::<String>()) {
             Ok(name) => {
-                let artist = catalog.create_artist(overrides.copy_link, &name);
+                let artist = catalog.create_artist(overrides.copy_link, &name, overrides.theme.clone());
                 let mut artist_mut = artist.borrow_mut();
 
                 optional_field_with_items(section, "aliases", &mut |items: &[Item]| { 
@@ -289,7 +289,6 @@ pub fn apply_options(
                                 }
                             })
                             .collect();
-
                 });
 
                 if let Some(field) = optional_field(section, "image", path) {
@@ -842,7 +841,6 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
-
         if let Some((value, line)) = optional_field_value_with_line(section, "background_alpha") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
                 Some(percentage) => overrides.theme.background_alpha = percentage,
@@ -855,7 +853,6 @@ pub fn apply_options(
             if absolute_path.exists() {
                 let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
                 let image = cache.get_or_create_image(build, path_relative_to_catalog);
-
                 overrides.theme.background_image = Some(image);
             } else {
                 error!("Ignoring invalid theme.background_image setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)

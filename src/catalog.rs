@@ -166,8 +166,8 @@ impl Catalog {
         }
     }
 
-    pub fn create_artist(&mut self, copy_link: bool, name: &str) -> ArtistRc {
-        let artist = ArtistRc::new(Artist::new(copy_link, name));
+    pub fn create_artist(&mut self, copy_link: bool, name: &str, theme: Theme) -> ArtistRc {
+        let artist = ArtistRc::new(Artist::new(copy_link, name, theme));
         self.artists.push(artist.clone());
         artist
     }
@@ -222,7 +222,7 @@ impl Catalog {
                 }
 
                 if !any_artist_found {
-                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &main_artist_to_map));
+                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &main_artist_to_map, self.theme.clone()));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.main_artists.push(new_artist.clone());
@@ -257,7 +257,7 @@ impl Catalog {
                 }
 
                 if !any_artist_found {
-                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &support_artist_to_map));
+                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &support_artist_to_map, self.theme.clone()));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.support_artists.push(new_artist.clone());
@@ -286,7 +286,7 @@ impl Catalog {
                         // TODO: An artist created here curiously belongs neither to catalog.main_artists,
                         //       nor catalog.support_artists. This might indicate that in fact we never
                         //       enter into this branch at all?
-                        let new_artist = ArtistRc::new(Artist::new(self.copy_link, &track_artist_to_map));
+                        let new_artist = ArtistRc::new(Artist::new(self.copy_link, &track_artist_to_map, self.theme.clone()));
                         self.artists.push(new_artist.clone());
                         track.artists.push(new_artist);
                     }
@@ -956,6 +956,10 @@ impl Catalog {
                 }
 
                 image_mut.persist_to_cache(&build.cache_dir);
+            }
+
+            if let Some(image) = &artist_ref.theme.background_image {
+                write_background_image(build, image);
             }
         }
 
