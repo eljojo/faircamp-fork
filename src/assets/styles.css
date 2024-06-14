@@ -84,6 +84,7 @@ button.link {
     grid-row-gap: .5rem;
     justify-items: center;
 }
+.catalog .action_links { justify-content: flex-start; }
 .catalog_info_padded {
     max-width: 33rem;
     padding: 1rem;
@@ -528,9 +529,10 @@ input[type="text"].disabled,
     .catalog_info_padded {
         padding: 0;
         max-width: 27rem;
+    }
     .home_image {
         border-radius: var(--cover-border-radius);
-        width: 28rem;
+        width: 27rem;
     }
     .index_split {
         grid-template-columns: auto auto;

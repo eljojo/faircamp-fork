@@ -85,10 +85,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let release_text = match &release.text {
-        Some(html_and_stripped) => format!(
-            r#"<div class="text vpad" style="margin-top: 1.5rem;">{}</div>"#,
-            &html_and_stripped.html
-        ),
+        Some(html_and_stripped) => {
+            let html = &html_and_stripped.html;
+            formatdoc!(r#"
+                <div class="mobile_hpadding">
+                    <div class="text vpad" style="margin-top: 1.5rem;">
+                        {html}
+                    </div>
+                </div>
+            "#)
+        }
         None => String::new()
     };
 
@@ -253,9 +259,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
                 <div class="additional">
                     {r_action_links}
-                    <div class="mobile_hpadding">
-                        {release_text}
-                    </div>
+                    {release_text}
                 </div>
             </div>
         "##,
