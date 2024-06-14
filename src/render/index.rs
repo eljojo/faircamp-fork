@@ -20,8 +20,11 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let catalog_title = catalog.title();
 
     let catalog_text = match &catalog.text {
-        Some(html_and_stripped) => html_and_stripped.html.as_str(),
-        None => ""
+        Some(html_and_stripped) => format!(
+            r#"<div class="text">{}</div>"#,
+            &html_and_stripped.html
+        ),
+        None => String::new()
     };
 
     // catalog.featured_artists is only populated in label mode, otherwise empty
@@ -147,13 +150,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         &listed_releases
     );
 
-    // TODO: catalog_text criterium is a bit random because the character
-    //       count includes markup, we should improve this. In the end this
-    //       criterium will always be a bit arbitrary though probably.
     let index_vcentered = if
         catalog.home_image.is_none() &&
         listed_releases.len() <= 2 &&
-        catalog_text.len() <= 1024 {
+        catalog.text.as_ref().is_some_and(|html_and_stripped| html_and_stripped.stripped.len() <= 1024) {
         "index_vcentered"
     } else {
         ""

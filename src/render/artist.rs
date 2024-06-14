@@ -18,8 +18,11 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let root_prefix = "../";
 
     let artist_text = match &artist.text {
-        Some(html_and_stripped) => html_and_stripped.html.as_str(),
-        None => ""
+        Some(html_and_stripped) => format!(
+            r#"<div class="text">{}</div>"#,
+            &html_and_stripped.html
+        ),
+        None => String::new()
     };
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
@@ -100,11 +103,10 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         &visible_releases
     );
 
-    // TODO: See note in index.rs and sync the solution between there and here
     let index_vcentered = if
         artist.image.is_none() &&
         artist.releases.len() <= 2 &&
-        artist_text.len() <= 1024 {
+        artist.text.as_ref().is_some_and(|html_and_stripped| html_and_stripped.stripped.len() <= 1024) {
         "index_vcentered"
     } else {
         ""

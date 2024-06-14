@@ -348,6 +348,15 @@ svg {
     fill: currentColor;
 }
 svg * { pointer-events: none; /* prevent click events on sub elements of an svg */ }
+.text { line-height: 1.4; }
+.text a {
+    text-decoration: underline;
+    text-underline-offset: .3rem;
+}
+.text a:focus-visible,
+.text a:hover {
+    text-decoration: none;
+}
 .track {
     height: 3rem;
     margin-bottom: .2rem;

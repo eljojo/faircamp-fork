@@ -86,7 +86,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let release_text = match &release.text {
         Some(html_and_stripped) => format!(
-            r#"<div class="vpad" style="margin-top: 1.5rem;">{}</div>"#,
+            r#"<div class="text vpad" style="margin-top: 1.5rem;">{}</div>"#,
             &html_and_stripped.html
         ),
         None => String::new()
