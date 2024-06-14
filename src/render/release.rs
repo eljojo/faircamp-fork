@@ -88,8 +88,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         Some(html_and_stripped) => {
             let html = &html_and_stripped.html;
             formatdoc!(r#"
-                <div class="mobile_hpadding">
-                    <div class="text vpad" style="margin-top: 1.5rem;">
+                <div class="hcenter_narrow mobile_hpadding">
+                    <div class="text vpad" style="margin-top: 1.5rem;>
                         {html}
                     </div>
                 </div>
@@ -226,7 +226,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         let joined = action_links.join(" &nbsp; ");
 
         formatdoc!(r#"
-            <div class="action_links">
+            <div class="action_links hcenter_narrow mobile_hpadding">
                 {joined}
             </div>
         "#)

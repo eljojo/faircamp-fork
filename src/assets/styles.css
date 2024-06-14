@@ -25,30 +25,27 @@ button.link:hover {
 a * { pointer-events: none; }
 .action_links {
     display:flex;
-    justify-content: center;
+    justify-content: flex-start;
 }
 .action_links > *:not(:first-child) { margin-left: .8rem; }
 .action_links a,
 .action_links button {
-    font-size: var(--boldly-larger);
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .action_links svg {
     display: inline-block;
-    height: var(--boldly-larger);
+    height: 1rem;
     margin-right: .1rem;
     position: relative;
     top: .2rem;
-    width: var(--boldly-larger);
+    width: 1rem;
 }
 .additional { background-color: hsla(0, 0%, var(--text-l), var(--release-additional-a)); }
-.additional > .action_links { max-width: 32rem; }
-.additional > *:not(.action_links) { max-width: 20rem; }
-.additional > div {
-    margin: 0 auto;
-    padding: 1.5rem;
+.additional > .action_links {
+    margin-bottom: 1rem;
+    margin-top: 1rem;
 }
 .artists {
     align-items: center;
@@ -84,7 +81,6 @@ button.link {
     grid-row-gap: .5rem;
     justify-items: center;
 }
-.catalog .action_links { justify-content: flex-start; }
 .catalog_info_padded {
     max-width: 33rem;
     padding: 1rem;
@@ -494,6 +490,15 @@ input[type="text"].disabled,
     .vpad_adaptive { padding-top: 2rem; }
 }
 @media (min-width: 30rem) {
+    .action_links a,
+    .action_links button {
+        font-size: var(--boldly-larger);
+    }
+    .action_links svg {
+        height: var(--boldly-larger);
+        top: .2rem;
+        width: var(--boldly-larger);
+    }
     .home_image { height: 12rem; }
     .index_split { min-height: calc(100vh - 3.2rem); }
     .logo { margin-left: .3rem; }
