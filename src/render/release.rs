@@ -89,7 +89,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let html = &html_and_stripped.html;
             formatdoc!(r#"
                 <div class="hcenter_narrow mobile_hpadding">
-                    <div class="text vpad" style="margin-top: 1.5rem;>
+                    <div class="text vpad" style="margin-top: 1.5rem;">
                         {html}
                     </div>
                 </div>
