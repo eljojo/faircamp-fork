@@ -14,6 +14,7 @@ Thanks everyone for your support.
 
 [ailepet](https://codeberg.org/ailepet)<br>
 [Alexander Cobleigh](https://cblgh.org)<br>
+[Andy Berdan](https://codeberg.org/berdandy)<br>
 [AxWax](https://axwax.eu/)<br>
 [controlfreak](https://control.org/)<br>
 [DaforLynx](https://dafor.link/)<br>
@@ -21,9 +22,11 @@ Damian Szetela<br>
 [Dave Lane](https://davelane.nz)<br>
 [Dave Riedstra](https://daveriedstra.com/)<br>
 [Deborah Pickett](https://icemoonprison.com)<br>
+[Dec](https://spacehey.com/dec23k/)<br>
 [Default Media Transmitter](https://defaultmediatransmitter.com/)<br>
 [Devin Canterberry](https://canterberry.cc/)<br>
 [DURAD](https://durad.xyz)<br>
+[Emanuel Pesendorfer](https://emanuel-pesendorfer.at/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
 [Florian Antoine](http://oooooooooo.net/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
