@@ -5,6 +5,26 @@
 
 # Changelog
 
+## 0.15.0
+
+- Apply round corners to home/artist images when shown detached (b87802d)
+- Underline links in catalog and release texts (f4b542f)
+- Switch from two-click "Share" button and overlay to direct "Copy link" button (7e9277f, c44a8ed)
+- Introduce granular tag rewriting control (per tag), support explicit copy/remove for embedded images (90ca77a)
+- Support disabling the share button at the catalog and release level (3e3aaab)
+- Introduce new cache architecture (01c9ad8)
+- Introduce type-based cache data versioning, improve cache corruption handling (383e203)
+- Support disabling the RSS feed (10c1ebb)
+- Fix redundant optimization/reporting of cached assets (71b670a)
+- Derive cache manifest filenames by hashing (97c2d08)
+- Switch to inline svg icons with translated descriptions (0c84d7f, f4e4fb8)
+- Introduce theme customizations at release level (64d9f39, 16461b0, d2e09ee, 88478a8, fc13569)
+- Automatically derive track number and title from filename, based on heuristics (9ca7604)
+- Visually indicate unlisted release pages, do not display unlisted releases on unlisted artist pages (94d1c68)
+- Ensure trailing slashes in urls when serving directories in preview (04bf953)
+- Introduce compliance with REUSE (832d26a)
+- Fix client-side time formatting for tracks longer than an hour (0e0dc9e)
+
 ## 0.14.0
 
 - Disallow crawling/indexing on unlisted and auxiliary pages (91a64e6)
