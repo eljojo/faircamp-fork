@@ -14,17 +14,17 @@ pulldown-cmark = { default-features = false, features = ["html", "simd"], versio
 slug = "0.1.5"
 
 [dependencies]
-actix-files = "0.6.5"
-actix-web = "4.6.0"
+actix-files = "0.6.6"
+actix-web = "4.8.0"
 alac = "0.5.0"
 base64 = "0.22.1"
 bincode = "1.3.3"
 chrono = { features = ["serde"], version = "0.4.38" }
-clap = { features = ["derive"], version = "4.5.6" }
+clap = { features = ["derive"], version = "4.5.8" }
 claxon = "0.4.3"
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs", tag = "0.4.2" }
 hound = "3.5.1"
-id3 = "1.13.1"
+id3 = "1.14.0"
 image = { optional = true, version = "0.25.1" }
 indoc = "2.0.5"
 iso_currency = "0.4.4"
@@ -45,7 +45,7 @@ serde = "1.0.203"
 serde_derive = "1.0.203"
 slug = "0.1.5"
 tokio = { features = ["macros", "rt-multi-thread"], version = "1.38.0" }
-url = "2.5.0"
+url = "2.5.2"
 urlencoding = "2.1.3"
 webbrowser = "1.0.1"
 zip = { features = ["deflate"], version = "2.1.3" }
