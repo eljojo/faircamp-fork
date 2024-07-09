@@ -66,6 +66,7 @@ use crate::image::{DescribedImage, Image, ImageRc, ImageRcView};
 use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use link::Link;
 use locale::Locale;
+use manifest::Overrides;
 use markdown::HtmlAndStripped;
 use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
