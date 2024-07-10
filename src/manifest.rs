@@ -348,140 +348,145 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "catalog", path) {
-        if let Some((mut value, line)) = optional_field_value_with_line(section, "base_url") {
-            // Ensure the value has a trailing slash. Without one, Url::parse below
-            // would interpret the final path segment as a file, which would lead to
-            // incorrect url construction at a later point.
-            if !value.ends_with('/') { value.push('/'); }
+        if path.parent().unwrap() != build.catalog_dir {
+            error!("From faircamp 0.16.0 onwards, \"# catalog ...\" may only be specified from a manifest placed in the catalog root directory, please move the catalog section specified in {}:{} to a manifest in the catalog root directory.", path.display(), section.line_number);
+        } else {
+            if let Some((mut value, line)) = optional_field_value_with_line(section, "base_url") {
+                // Ensure the value has a trailing slash. Without one, Url::parse below
+                // would interpret the final path segment as a file, which would lead to
+                // incorrect url construction at a later point.
+                if !value.ends_with('/') { value.push('/'); }
 
-            match Url::parse(&value) {
-                Ok(url) => {
-                    if let Some(previous_url) = &build.base_url {
-                        warn_global_set_repeatedly!("catalog.base_url", previous_url, url);
+                match Url::parse(&value) {
+                    Ok(url) => {
+                        if let Some(previous_url) = &build.base_url {
+                            warn_global_set_repeatedly!("catalog.base_url", previous_url, url);
+                        }
+
+                        build.base_url = Some(url);
                     }
-
-                    build.base_url = Some(url);
+                    Err(err) => error!("Ignoring invalid catalog.base_url setting value '{}' in {}:{} ({})", value, path.display(), line, err)
                 }
-                Err(err) => error!("Ignoring invalid catalog.base_url setting value '{}' in {}:{} ({})", value, path.display(), line, err)
-            }
-        }
-
-        if optional_flag_present(section, "disable_feed") {
-            catalog.feed_enabled = false;
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "favicon"){
-            if let Favicon::Custom { absolute_path, .. } = &catalog.favicon {
-                warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), value);
-            } else if let Favicon::None = &catalog.favicon {
-                warn_global_set_repeatedly!("catalog.favicon", "none", value);
             }
 
-            if value == "none" {
-                catalog.favicon = Favicon::None;
-            } else {
-                let absolute_path = path.parent().unwrap().join(&value);
-                if absolute_path.exists() {
-                    match Favicon::custom(absolute_path) {
-                        Ok(favicon) => catalog.favicon = favicon,
-                        Err(message) => error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} ({})", value, path.display(), line, message) 
-                    }
+            if optional_flag_present(section, "disable_feed") {
+                catalog.feed_enabled = false;
+            }
+
+            if let Some((value, line)) = optional_field_value_with_line(section, "embedding") {
+                match value.as_str() {
+                    "disabled" => overrides.embedding = false,
+                    "enabled" => overrides.embedding = true,
+                    value => error!("Ignoring unsupported catalog.embedding setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+                }
+            }
+
+            if let Some((value, line)) = optional_field_value_with_line(section, "favicon"){
+                if let Favicon::Custom { absolute_path, .. } = &catalog.favicon {
+                    warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), value);
+                } else if let Favicon::None = &catalog.favicon {
+                    warn_global_set_repeatedly!("catalog.favicon", "none", value);
+                }
+
+                if value == "none" {
+                    catalog.favicon = Favicon::None;
                 } else {
-                    error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} (The referenced file was not found)", value, path.display(), line)
-                }
-            }
-        }
-
-        if optional_flag_present(section, "feature_support_artists") {
-            catalog.feature_support_artists = true;
-        }
-
-        if let Some(value) = optional_field_value(section, "freeze_download_urls") {
-            build.url_salt = value;
-        }
-
-        // TODO: Remove this deprecation notice with/around the 1.0 release (introduced feb 2024)
-        if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image") {
-            info!("From faircamp 0.13.0 onwards, feed images are auto-generated - catalog.feed_image '{}' specified in {}:{} can be removed, it won't be used anymore.", path_relative_to_manifest, path.display(), line);
-        }
-
-        if let Some(field) = optional_field(section, "home_image", path) {
-            match required_attribute_value_with_line(field, "file") {
-                Some((path_relative_to_manifest, line)) => {
-                    let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
+                    let absolute_path = path.parent().unwrap().join(&value);
                     if absolute_path.exists() {
-                        // TODO: Print errors, refactor
-                        let description = match field.required_attribute("description") {
-                            Ok(attribute) => match attribute.required_value() {
-                                Ok(description) => Some(description),
-                                _ => None
-                            }
-                            _ => None
-                        };
-
-                        let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
-                        let image = cache.get_or_create_image(build, path_relative_to_catalog);
-
-                        catalog.home_image = Some(DescribedImage::new(description, image));
+                        match Favicon::custom(absolute_path) {
+                            Ok(favicon) => catalog.favicon = favicon,
+                            Err(message) => error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} ({})", value, path.display(), line, message) 
+                        }
                     } else {
-                        error!("Ignoring invalid catalog.home_image.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
+                        error!("Ignoring invalid catalog.favicon setting value '{}' in {}:{} (The referenced file was not found)", value, path.display(), line)
                     }
                 }
-                None => ()
             }
-        }
 
-        if optional_flag_present(section, "label_mode") {
-            catalog.label_mode = true;
-        }
+            if optional_flag_present(section, "feature_support_artists") {
+                catalog.feature_support_artists = true;
+            }
 
-        // TODO: Would make sense to report if both rotate_download_urls and
-        // freeze_download_urls are set (or the latter twice e.g.), as this
-        // could lead to unexpected, frustrating behavior for users (and it
-        // can happen by accident).
-        if optional_flag_present(section, "rotate_download_urls") {
-            build.url_salt = util::uid();
-        }
+            if let Some(value) = optional_field_value(section, "freeze_download_urls") {
+                build.url_salt = value;
+            }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
-            match value.as_str() {
-                "enabled" => {
-                    // TODO: Right now we're handling this in a slightly quirky way, because in # catalog
-                    //       this really affects everthing below catalog, but at the same time, # catalog
-                    //       could be declared in a manifest that is not in the catalog root, so this creates
-                    //       confusing circumstances of what is inherited how. Eventually this become
-                    //       irrelevant if we move these options off their # catalog and # release scope and
-                    //       just make them scope-less properties that exist in the hierarchy and are applied
-                    //       to everything for which they are relevant.
-                    catalog.copy_link = true;
-                    overrides.copy_link = true;
+            // TODO: Remove this deprecation notice with/around the 1.0 release (introduced feb 2024)
+            if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image") {
+                info!("From faircamp 0.13.0 onwards, feed images are auto-generated - catalog.feed_image '{}' specified in {}:{} can be removed, it won't be used anymore.", path_relative_to_manifest, path.display(), line);
+            }
+
+            if let Some(field) = optional_field(section, "home_image", path) {
+                match required_attribute_value_with_line(field, "file") {
+                    Some((path_relative_to_manifest, line)) => {
+                        let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
+                        if absolute_path.exists() {
+                            // TODO: Print errors, refactor
+                            let description = match field.required_attribute("description") {
+                                Ok(attribute) => match attribute.required_value() {
+                                    Ok(description) => Some(description),
+                                    _ => None
+                                }
+                                _ => None
+                            };
+
+                            let path_relative_to_catalog = absolute_path.strip_prefix(&build.catalog_dir).unwrap();
+                            let image = cache.get_or_create_image(build, path_relative_to_catalog);
+
+                            catalog.home_image = Some(DescribedImage::new(description, image));
+                        } else {
+                            error!("Ignoring invalid catalog.home_image.file setting value '{}' in {}:{} (The referenced file was not found)", path_relative_to_manifest, path.display(), line)
+                        }
+                    }
+                    None => ()
                 }
-                "disabled" => {
-                    catalog.copy_link = false;
-                    overrides.copy_link = false;
+            }
+
+            if optional_flag_present(section, "label_mode") {
+                catalog.label_mode = true;
+            }
+
+            // TODO: Would make sense to report if both rotate_download_urls and
+            // freeze_download_urls are set (or the latter twice e.g.), as this
+            // could lead to unexpected, frustrating behavior for users (and it
+            // can happen by accident).
+            if optional_flag_present(section, "rotate_download_urls") {
+                build.url_salt = util::uid();
+            }
+
+            if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
+                match value.as_str() {
+                    "enabled" => {
+                        catalog.copy_link = true;
+                        overrides.copy_link = true;
+                    }
+                    "disabled" => {
+                        catalog.copy_link = false;
+                        overrides.copy_link = false;
+                    }
+                    value => error!("Ignoring unsupported catalog.copy_link setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
                 }
-                value => error!("Ignoring unsupported catalog.copy_link setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
-            }
-        }
-
-        if optional_flag_present(section, "show_support_artists") {
-            catalog.show_support_artists = true;
-        }
-
-        if let Some(value) = optional_field_value(section, "title") {
-            if let Some(previous) = catalog.set_title(value.clone()) {
-                warn_global_set_repeatedly!("catalog.title", previous, value);
-            }
-        }
-
-        if let Some(text_markdown) = optional_embed_value(section, "text") {
-            let new_text = markdown::to_html_and_stripped(&text_markdown);
-
-            if let Some(previous_text) = &catalog.text {
-                warn_global_set_repeatedly!("catalog.text", previous_text.stripped, new_text.stripped);
             }
 
-            catalog.text = Some(new_text);
+            if optional_flag_present(section, "show_support_artists") {
+                catalog.show_support_artists = true;
+            }
+
+            if let Some(value) = optional_field_value(section, "title") {
+                if let Some(previous) = catalog.set_title(value.clone()) {
+                    warn_global_set_repeatedly!("catalog.title", previous, value);
+                }
+            }
+
+            if let Some(text_markdown) = optional_embed_value(section, "text") {
+                let new_text = markdown::to_html_and_stripped(&text_markdown);
+
+                if let Some(previous_text) = &catalog.text {
+                    warn_global_set_repeatedly!("catalog.text", previous_text.stripped, new_text.stripped);
+                }
+
+                catalog.text = Some(new_text);
+            }
         }
     }
 
@@ -586,14 +591,9 @@ pub fn apply_options(
             overrides.unlock_text = Some(markdown::to_html(&text_markdown));
         }
     }
-    
+
     if let Some(section) = optional_section(&document, "embedding", path) {
-        if optional_flag_present(section, "disabled") {
-            overrides.embedding = false;
-        }
-        if optional_flag_present(section, "enabled") {
-            overrides.embedding = true;
-        }
+        error!(r##"From faircamp 0.16.0 onwards, the embedding option must be specified as "embedding: enabled|disabled" either in a "# catalog ..." or "# release ..." section, please move and adapt the current definiton in {}:{} accordingly."##, path.display(), section.line_number);
     }
 
     for element in document.elements() {
@@ -735,6 +735,14 @@ pub fn apply_options(
                     local_options.release_date = Some(date);
                 },
                 Err(err) => error!("Ignoring invalid release.date value '{}' in {}:{} ({})", date_str, path.display(), line, err)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "embedding") {
+            match value.as_str() {
+                "disabled" => overrides.embedding = false,
+                "enabled" => overrides.embedding = true,
+                value => error!("Ignoring unsupported release.embedding setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
             }
         }
 

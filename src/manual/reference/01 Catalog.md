@@ -12,6 +12,7 @@ Site-wide metadata and settings, such as the title and site URL.
 
 base_url: https://myawesomemusic.site/
 favicon: my_favicon.png
+embedding: enabled
 
 home_image:
 description = Me in my studio
@@ -29,7 +30,29 @@ Nice of you to stop by!
 -- text
 ```
 
-## Label vs. Artist mode
+## `embedding`
+
+> Heads up: Embeds are still work in progress - for the moment they will look weird or not work at all.
+
+This allows external sites to embed a widget that presents music from your site.
+The embed code can be copied from each release page where embedding is enabled.
+
+Embedding is currently disabled by default, given it's not a finished feature.
+If you want to enable it for testing purposes you first need to set the
+catalog's `base_url` (this is a technical precondition for generating the
+embeds at all), and then set `enabled`, for the catalog, or for
+specific releases. If you set it `enabled` at the catalog level, you can also
+use `disabled` at release level to re-disable it for specific releases.
+
+```eno
+embedding: enabled
+```
+
+## `label_mode`
+
+```eno
+label_mode
+```
 
 By default faircamp operates in *artist mode* - it will lay out the site
 in a way that best fits a single artist or band presenting
@@ -40,10 +63,6 @@ make the catalog description the description of that artist, etc..
 The `label_mode` flag can be used if one wants to present multiple artists
 on a single faircamp site. This adds an additional layer of information to the
 page that differentiates the artists, gives them each their own page, etc.
-
-```eno
-label_mode
-```
 
 ## General settings
 
