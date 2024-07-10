@@ -162,13 +162,13 @@ impl Translations {
 #[test]
 fn check_translations() {
     let locales = [
-        de::translations(),
-        en::translations(),
-        es::translations(),
-        fr::translations(),
-        nb::translations(),
-        nl::translations(),
-        pl::translations()
+        super::de::translations(),
+        super::en::translations(),
+        super::es::translations(),
+        super::fr::translations(),
+        super::nb::translations(),
+        super::nl::translations(),
+        super::pl::translations()
     ];
 
     for translations in &locales {
