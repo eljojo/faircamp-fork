@@ -95,8 +95,39 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         }
     };
     
-    let mut css = formatdoc!(
-        r#"
+    let mut css = {
+        let tint_back = theme.tint_back;
+        let tint_front = theme.tint_front;
+        let bg_1_hsl_l = &theme.base.bg_1.hsl_l;
+        let bg_1_oklch_l = &theme.base.bg_1.oklch_l;
+        let background_l = theme.base.background_l;
+        let background_s = 41;
+        let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
+        let faint_l = theme.base.faint_l;
+        let header_a = &theme.base.header_a;
+        let header_l = theme.base.header_l;
+        let header_link_l = theme.base.header_link_l;
+        let header_shadow_a = &theme.base.header_shadow_a;
+        let header_text_l = theme.base.header_text_l;
+        let link_h = theme.link_h;
+        let link_l = theme.link_l.unwrap_or(theme.base.link_l);
+        let link_s = theme.link_s.unwrap_or(theme.base.link_s);
+        let link_hover_l = theme.base.link_hover_l;
+        let muted_l = theme.base.muted_l;
+        let muted_s = 35;
+        let nav_s = 17;
+        // To the user it's exposed as background alpha, technically it's solved
+        // the other way round though. Not the image is overlayed transparently
+        // over the background, but a solid color layer with the background color is
+        // transparently overlayed over the background image. Here we convert from
+        // background alpha to overlay alpha (simply the inverse).
+        let overlay_a = 100 - theme.background_alpha;
+        let release_additional_a = &theme.base.release_additional_a;
+        let text_h = theme.text_h;
+        let text_l = theme.base.text_l;
+        let text_s = 94; // TODO: Dynamic or elsewhere defined
+
+        formatdoc!(r#"
             :root {{
                 --link-h: {link_h}deg;
                 --tint-back: {tint_back};
@@ -105,6 +136,8 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --background-h: var(--link-h);
                 --background-l: {background_l}%;
                 --background-s: calc({background_s}% * (var(--tint-back) / 100));
+                --bg-1: hsl(0 0% {bg_1_hsl_l}%);
+                --bg-1-overlay: hsl(0 0% {bg_1_hsl_l}% / 80%);
                 --cover-border-radius: {cover_border_radius};
                 --faint-l: {faint_l}%;
                 --header-a: {header_a};
@@ -125,37 +158,15 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --text-l: {text_l}%;
                 --text-s: calc({text_s}% * (var(--tint-front) / 100));
             }}
+            @supports (color: oklch(0% 0 0)) {{
+                :root {{
+                    --bg-1: oklch({bg_1_oklch_l}% 0 0);
+                    --bg-1-overlay: oklch({bg_1_oklch_l}% 0 0 / 80%);
+                }}
+            }}
             {font_declaration}
-        "#,
-        tint_back = theme.tint_back,
-        tint_front = theme.tint_front,
-        background_l = theme.base.background_l,
-        background_s = 41,
-        cover_border_radius = if theme.round_corners { ".8rem" } else { "0" },
-        faint_l = theme.base.faint_l,
-        header_a = theme.base.header_a,
-        header_l = theme.base.header_l,
-        header_link_l = theme.base.header_link_l,
-        header_shadow_a = theme.base.header_shadow_a,
-        header_text_l = theme.base.header_text_l,
-        link_h = theme.link_h,
-        link_l = theme.link_l.unwrap_or(theme.base.link_l),
-        link_s = theme.link_s.unwrap_or(theme.base.link_s),
-        link_hover_l = theme.base.link_hover_l,
-        muted_l = theme.base.muted_l,
-        muted_s = 35,
-        nav_s = 17,
-        // To the user it's exposed as background alpha, technically it's solved
-        // the other way round though. Not the image is overlayed transparently
-        // over the background, but a solid color layer with the background color is
-        // transparently overlayed over the background image. Here we convert from
-        // background alpha to overlay alpha (simply the inverse).
-        overlay_a = 100 - theme.background_alpha,
-        release_additional_a = theme.base.release_additional_a,
-        text_h = theme.text_h,
-        text_l = theme.base.text_l,
-        text_s = 94 // TODO: Dynamic or elsewhere defined
-    );
+        "#)
+    };
 
     if let Some(image) = &theme.background_image {
         let image_ref = image.borrow();

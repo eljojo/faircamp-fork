@@ -8,12 +8,17 @@ use std::path::PathBuf;
 use crate::{CoverGenerator, ImageRcView};
 use crate::util::url_safe_hash_base64;
 
-/// We use the newtype pattern here (instead of just f32) mostly because
-/// we need all alpha fields to be automatically hashable (which f32 isn't)
-/// Valid range is 0.0-1.0
-/// TODO: We could maybe enforce this range in code (macro?)
+/// We need float values in our themes to be automatically hashable (which f32
+/// isn't), so we use the newtype pattern to ensure this property.
 #[derive(Clone, Debug)]
-pub struct Alpha(f32);
+pub struct HashableF32(f32);
+
+/// Lightness for both hsl and oklch given in 0-100%
+#[derive(Clone, Debug, Hash)]
+pub struct Lightness {
+    pub hsl_l: HashableF32,
+    pub oklch_l: HashableF32
+}
 
 /// background_alpha    0-100 percent
 /// h(ue)               0-360 degrees
@@ -45,18 +50,19 @@ pub struct Theme {
 /// s(aturation)  0-100 percent
 #[derive(Clone, Debug, Hash)]
 pub struct ThemeBase {
+    pub bg_1: Lightness,
     pub background_l: u8,
     pub faint_l: u8,
-    pub header_a: Alpha,
+    pub header_a: HashableF32,
     pub header_l: u8,
     pub header_link_l: u8,
-    pub header_shadow_a: Alpha,
+    pub header_shadow_a: HashableF32,
     pub header_text_l: u8,
     pub link_l: u8,
     pub link_s: u8,
     pub link_hover_l: u8,
     pub muted_l: u8,
-    pub release_additional_a: Alpha,
+    pub release_additional_a: HashableF32,
     pub text_l: u8
 }
 
@@ -67,18 +73,6 @@ pub enum ThemeFont {
     SystemMono,
     SystemSans,
     System(String)
-}
-
-impl Display for Alpha {
-    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
-        write!(formatter, "{}", self.0)
-    }
-}
-
-impl Hash for Alpha {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.to_string().hash(state);
-    }
 }
 
 impl CoverGenerator {
@@ -99,6 +93,18 @@ impl CoverGenerator {
             "space_time_rupture" => Some(CoverGenerator::SpaceTimeRupture),
             _ => None
         }
+    }
+}
+
+impl Display for HashableF32 {
+    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        write!(formatter, "{}", self.0)
+    }
+}
+
+impl Hash for HashableF32 {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.to_string().hash(state);
     }
 }
 
@@ -140,98 +146,122 @@ impl ThemeBase {
     ];
 
     pub const BLACK: ThemeBase = ThemeBase {
+        bg_1: Lightness {
+            hsl_l: HashableF32(0.0),
+            oklch_l: HashableF32(0.0)
+        },
         background_l: 0,
         faint_l: 15,
-        header_a: Alpha(0.8),
+        header_a: HashableF32(0.8),
         header_l: 0,
         header_link_l: 86,
-        header_shadow_a: Alpha(0.0),
+        header_shadow_a: HashableF32(0.0),
         header_text_l: 68,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        release_additional_a: Alpha(0.06),
+        release_additional_a: HashableF32(0.06),
         text_l: 72
     };
 
     pub const BLACK_ALTERNATE: ThemeBase = ThemeBase {
+        bg_1: Lightness {
+            hsl_l: HashableF32(0.0),
+            oklch_l: HashableF32(0.0)
+        },
         background_l: 0,
         faint_l: 15,
-        header_a: Alpha(0.9),
+        header_a: HashableF32(0.9),
         header_l: 10,
         header_link_l: 86,
-        header_shadow_a: Alpha(0.2),
+        header_shadow_a: HashableF32(0.2),
         header_text_l: 72,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        release_additional_a: Alpha(0.06),
+        release_additional_a: HashableF32(0.06),
         text_l: 72
     };
 
     pub const DARK: ThemeBase = ThemeBase {
+        bg_1: Lightness {
+            hsl_l: HashableF32(10.0),
+            oklch_l: HashableF32(21.56)
+        },
         background_l: 10,
         faint_l: 15,
-        header_a: Alpha(0.8),
+        header_a: HashableF32(0.8),
         header_l: 10,
         header_link_l: 86,
-        header_shadow_a: Alpha(0.0),
+        header_shadow_a: HashableF32(0.0),
         header_text_l: 72,
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
         muted_l: 23,
-        release_additional_a: Alpha(0.02),
+        release_additional_a: HashableF32(0.02),
         text_l: 86
     };
 
     pub const LIGHT: ThemeBase = ThemeBase {
+        bg_1: Lightness {
+            hsl_l: HashableF32(90.0),
+            oklch_l: HashableF32(92.34)
+        },
         background_l: 90,
         faint_l: 85,
-        header_a: Alpha(0.9),
+        header_a: HashableF32(0.9),
         header_l: 90,
         header_link_l: 14,
-        header_shadow_a: Alpha(0.0),
+        header_shadow_a: HashableF32(0.0),
         header_text_l: 14,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        release_additional_a: Alpha(0.03),
+        release_additional_a: HashableF32(0.03),
         text_l: 14
     };
 
     pub const WHITE: ThemeBase = ThemeBase {
+        bg_1: Lightness {
+            hsl_l: HashableF32(100.0),
+            oklch_l: HashableF32(100.0)
+        },
         background_l: 100,
         faint_l: 87,
-        header_a: Alpha(0.9),
+        header_a: HashableF32(0.9),
         header_l: 100,
         header_link_l: 14,
-        header_shadow_a: Alpha(0.0),
+        header_shadow_a: HashableF32(0.0),
         header_text_l: 14,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        release_additional_a: Alpha(0.04),
+        release_additional_a: HashableF32(0.04),
         text_l: 14
     };
 
     pub const WHITE_ALTERNATE: ThemeBase = ThemeBase {
+        bg_1: Lightness {
+            hsl_l: HashableF32(100.0),
+            oklch_l: HashableF32(100.0)
+        },
         background_l: 100,
         faint_l: 87,
-        header_a: Alpha(0.82),
+        header_a: HashableF32(0.82),
         header_l: 0,
         header_link_l: 100,
-        header_shadow_a: Alpha(0.2),
+        header_shadow_a: HashableF32(0.2),
         header_text_l: 85,
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
         muted_l: 68,
-        release_additional_a: Alpha(0.04),
+        release_additional_a: HashableF32(0.04),
         text_l: 14
     };
 

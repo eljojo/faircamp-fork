@@ -133,32 +133,36 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 .collect::<Vec<String>>()
                 .join("\n");
 
+            let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
             let track_title = track.title();
 
+            let duration_formatted = format_time(duration_seconds);
+            let track_number = release.track_numbering.format(track_number);
+            let track_title_escaped = html_escape_outside_attribute(&track_title);
+            let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
+            let waveform_svg = waveform(&catalog.theme, track);
+
             let play_icon = icons::play(&build.locale.translations.play);
-            formatdoc!(
-                r#"
-                    <div class="track">
-                        <a class="track_controls outer">{play_icon}</a>
-                        <span class="track_number outer">{track_number}</span>
-                        <span class="track_header">
-                            <a class="track_controls inner">{play_icon}</a>
-                            <span class="track_number inner">{track_number}</span>
-                            <a class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
-                            <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
-                        </span>
-                        <audio controls preload="none">
-                            {audio_sources}
-                        </audio>
-                        {waveform}
+            formatdoc!(r#"
+                <div class="track">
+                    <a class="track_controls outer">{play_icon}</a>
+                    <span class="track_number outer">{track_number}</span>
+                    <span class="track_header">
+                        <a class="track_controls inner">{play_icon}</a>
+                        <span class="track_number inner">{track_number}</span>
+                        <a class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                        <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
+                    </span>
+                    <audio controls preload="none">
+                        {audio_sources}
+                    </audio>
+                    <div class="waveform">
+                        {waveform_svg}
+                        <input aria-valuetext="0" max="{duration_seconds}" min="0" type="range" value="0">
+                        <div class="decoration"></div>
                     </div>
-                "#,
-                duration_formatted = format_time(track.transcodes.borrow().source_meta.duration_seconds),
-                track_number = release.track_numbering.format(track_number),
-                track_title_escaped = html_escape_outside_attribute(&track_title),
-                track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
-                waveform = waveform(&catalog.theme, track)
-            )
+                </div>
+            "#)
         })
         .collect::<Vec<String>>()
         .join("\n");
@@ -331,8 +335,7 @@ pub fn waveform(theme: &Theme, track: &Track) -> String {
         let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
 
         formatdoc!(r#"
-            <svg class="waveform"
-                 data-duration="{duration_seconds}"
+            <svg data-duration="{duration_seconds}"
                  data-peaks="{peaks_base64}">
                 <path class="progress"/>
                 <path class="base"/>

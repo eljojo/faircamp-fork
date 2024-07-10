@@ -52,8 +52,9 @@ async function mountAndPlay(container, seek) {
     const audio = container.querySelector('audio');
     const controlsInner = container.querySelector('.track_controls.inner');
     const controlsOuter = container.querySelector('.track_controls.outer');
-    const svg = container.querySelector('.waveform');
     const time = container.querySelector('.track_time');
+    const waveformInput = container.querySelector('.waveform input');
+    const waveformSvg = container.querySelector('.waveform svg');
 
     // The .duration property on the audio element is unreliable because during
     // loading it might be Infinity, or NaN, or only reflect the duration of
@@ -64,7 +65,7 @@ async function mountAndPlay(container, seek) {
     //       guarantee that we *always* know the duration. Not being able to
     //       parse it should really be a hard error, this would make a lot of
     //       things easier to reason about and implement.
-    const precalculatedDuration = parseFloat(svg.dataset.duration);
+    const precalculatedDuration = parseFloat(waveformSvg.dataset.duration);
     const duration = () => {
         if (audio.duration === Infinity || audio.duration === NaN) {
             return precalculatedDuration;
@@ -85,8 +86,9 @@ async function mountAndPlay(container, seek) {
             controlsInner,
             controlsOuter,
             duration,
-            svg,
-            time
+            time,
+            waveformInput,
+            waveformSvg
         };
 
         audio.load();
@@ -148,8 +150,9 @@ async function mountAndPlay(container, seek) {
         controlsInner,
         controlsOuter,
         duration,
-        svg,
-        time
+        time,
+        waveformInput,
+        waveformSvg
     };
     window.activeTrack.updatePlayHeadInterval = setInterval(
         () => updatePlayhead(window.activeTrack),
@@ -223,11 +226,20 @@ function togglePlayback(container = null, seek = null) {
 }
 
 function updatePlayhead(activeTrack, reset = false) {
-    const { audio, duration, svg, time } = activeTrack;
+    const { audio, duration, time, waveformInput, waveformSvg } = activeTrack;
     const factor = reset ? 0 : audio.currentTime / duration();
-    svg.querySelector('stop:nth-child(1)').setAttribute('offset', factor);
-    svg.querySelector('stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
-    time.innerHTML = reset ? '' : `${formatTime(audio.currentTime)} / `;
+    const formattedTime = formatTime(audio.currentTime);
+
+    waveformSvg.querySelector('stop:nth-child(1)').setAttribute('offset', factor);
+    waveformSvg.querySelector('stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+    time.innerHTML = reset ? '' : `${formattedTime} / `;
+
+    // Perform updates to the input state to only about every second,
+    // some screen readers would otherwise constantly announce every update.
+    if (Math.abs(audio.currentTime - parseFloat(waveformInput.value)) >= 1.0) {
+        waveformInput.value = audio.currentTime;
+        waveformInput.setAttribute('aria-valuetext', formattedTime);
+    }
 }
 
 document.body.addEventListener('click', event => {
@@ -243,16 +255,19 @@ document.body.addEventListener('click', event => {
         event.preventDefault();
         const container = target.closest('.track')
         togglePlayback(container, 0);
-    } else if (target.classList.contains('waveform')) {
-        const container = target.closest('.track');
-        const svg = target;
-        const seek = (event.clientX - svg.getBoundingClientRect().x) / svg.getBoundingClientRect().width;
-        togglePlayback(container, seek);
     } else if ('copy' in target.dataset) {
         event.preventDefault();
         copyToClipboard(target);
     }
 });
+
+for (const waveformInput of document.querySelectorAll('.waveform input')) {
+    waveformInput.addEventListener('change', () => {
+        const container = waveformInput.closest('.track');
+        const seek = waveformInput.value / waveformInput.max;
+        togglePlayback(container, seek);
+    });
+}
 
 function decode(string) {
     const peaks = [];
