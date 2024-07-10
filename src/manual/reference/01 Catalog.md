@@ -13,14 +13,14 @@ Site-wide metadata and settings, such as the title and site URL.
 base_url: https://myawesomemusic.site/
 favicon: my_favicon.png
 embedding: enabled
+label_mode
+language: en
+show_support_artists
+title: My awesome music
 
 home_image:
 description = Me in my studio
 file = studio_3.png
-
-label_mode
-show_support_artists
-title: My awesome music
 
 -- text
 My self hosted faircamp site,
@@ -128,6 +128,47 @@ artist page (the catalog artist's page).
 ```eno
 feature_support_artists
 ```
+
+## `language`
+
+```eno
+language: fr
+```
+
+### Available languages
+
+Faircamp currently ships with these languages:
+
+- Dutch `nl`
+- English `en` (default)
+- French `fr`
+- German `de`
+- Norwegian Bokmål `nb`
+- Polish `pl`
+- Spanish `es`
+
+Translation corrections or improvements are very welcome, just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
+
+### Not yet available languages
+
+Note that even if there are no translations for your language yet, you can still set the
+language code, which is then used to auto-determine the text direction (LTR/RTL),
+and declare the language for your content on the site and in RSS feed metadata -
+only the interface texts will still be in english.
+
+```eno
+language: ar
+```
+
+### Contributing translations
+
+If you are eager to use faircamp with a not yet supported language, you can
+easily help to make it happen: Open the [english locale](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/locale/en.rs),
+copy its content and just replace the english translations with the ones in
+your language. Post the results in an [issue](https://codeberg.org/simonrepp/faircamp/issues)
+or send them to simon@fdpl.io, then we'll wrap up the rest together. If you're
+code/git savvy you can also directly submit a PR. Either way, don't worry about
+making mistakes, I'll help you with the technical details, it's much appreciated.
 
 ## Dealing with malicious behavior
 

@@ -446,6 +446,10 @@ pub fn apply_options(
                 catalog.label_mode = true;
             }
 
+            if let Some(value) = optional_field_value(section, "language") {
+                build.locale = Locale::from_code(&value);
+            }
+
             // TODO: Would make sense to report if both rotate_download_urls and
             // freeze_download_urls are set (or the latter twice e.g.), as this
             // could lead to unexpected, frustrating behavior for users (and it
@@ -642,12 +646,7 @@ pub fn apply_options(
     }
 
     if let Some(section) = optional_section(&document, "localization", path) {
-        if let Some(value) = optional_field_value(section, "language") {
-            build.locale = Locale::from_code(&value);
-        }
-        if let Some((value, line)) = optional_field_value_with_line(section, "writing_direction") {
-            info!("From faircamp 0.14.0 onwards, writing direction is determined from the language automatically - localization.writing_direction '{}' specified in {}:{} can be removed, it won't be used anymore.", value, path.display(), line);
-        }
+        error!(r##"From faircamp 0.16.0 onwards, specify the language directly in "# catalog ..." using e.g. "language: fr" (the writing direction is determined from language automatically now). The localization section specified in {}:{} should be removed, it's not supported anymore."##, path.display(), section.line_number);
     }
     
     if let Some(section) = optional_section(&document, "payment", path) {
