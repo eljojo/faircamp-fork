@@ -201,6 +201,17 @@ that your current download urls have been valid since that day. You could
 also use "2022-04", "Spring 2022" or such, given that one usually will not
 manually invalidate the urls on a daily basis.
 
+## `streaming_quality`
+
+```eno
+streaming_quality: frugal
+```
+
+You can set the encoding quality for streaming from `standard` (the
+default) to `frugal`. This uses considerably less bandwidth, reduces
+emissions and improves load times for listeners, especially on slow
+connections.
+
 ## Verifying yourself as the owner (e.g. Mastodon)
 
 Some social media platforms - Mastodon, in particular - support website

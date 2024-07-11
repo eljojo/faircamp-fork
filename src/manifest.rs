@@ -476,6 +476,24 @@ pub fn apply_options(
                 catalog.show_support_artists = true;
             }
 
+            match section.optional_field("streaming_quality") {
+                Ok(Some(field)) => match field.optional_value() {
+                    Ok(Some(key)) => {
+                        match StreamingQuality::from_key(&key) {
+                            Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
+                            Err(err) => {
+                                error!("Ignoring invalid catalog.streaming_quality value '{}' in {}:{} ({})", key, path.display(), field.line_number, err);
+                                println!("{}", field.snippet());
+                            }
+                        }
+                    }
+                    Ok(None) => (),
+                    Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
+                }
+                Ok(None) => (),
+                Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
+            }
+
             if let Some(value) = optional_field_value(section, "title") {
                 if let Some(previous) = catalog.set_title(value.clone()) {
                     warn_global_set_repeatedly!("catalog.title", previous, value);
@@ -699,6 +717,14 @@ pub fn apply_options(
             );
         });
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
+            match value.as_str() {
+                "enabled" => overrides.copy_link = true,
+                "disabled" => overrides.copy_link = false,
+                value => error!("Ignoring unsupported release.copy_link setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Some(field) = optional_field(section, "cover", path) {
             match required_attribute_value_with_line(field, "file") {
                 Some((path_relative_to_manifest, line)) => {
@@ -779,12 +805,22 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
-            match value.as_str() {
-                "enabled" => overrides.copy_link = true,
-                "disabled" => overrides.copy_link = false,
-                value => error!("Ignoring unsupported release.copy_link setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+        match section.optional_field("streaming_quality") {
+            Ok(Some(field)) => match field.optional_value() {
+                Ok(Some(key)) => {
+                    match StreamingQuality::from_key(&key) {
+                        Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
+                        Err(err) => {
+                            error!("Ignoring invalid release.streaming_quality value '{}' in {}:{} ({})", key, path.display(), field.line_number, err);
+                            println!("{}", field.snippet());
+                        }
+                    }
+                }
+                Ok(None) => (),
+                Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
             }
+            Ok(None) => (),
+            Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
         }
 
         match section.optional_field("tags") {
@@ -838,13 +874,7 @@ pub fn apply_options(
     }
 
     if let Some(section) = optional_section(&document, "streaming", path) {
-        if let Some((value, line)) = optional_field_value_with_line(section, "quality") {
-            match value.as_str() {
-                "standard" => overrides.streaming_quality = StreamingQuality::Standard,
-                "frugal" => overrides.streaming_quality = StreamingQuality::Frugal,
-                value => error!("Ignoring invalid streaming.quality setting value '{}' (available: standard, frugal) in {}:{}", value, path.display(), line)
-            }
-        }
+        error!(r##"From faircamp 0.16.0 onwards, "# streaming ..." has been merged into "# catalog ..." and "# release ..." as the 'streaming_quality: frugal|standard' option, please adapt and move the setting currently located in {}:{} accordingly."##, path.display(), section.line_number);
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
@@ -981,6 +1011,12 @@ pub fn apply_options(
 
     for element in &untouched_elements {
         if let Some(attribute) = element.as_attribute() {
+            // TODO: If we e.g. load a release cover ...
+            //       cover:
+            //       file = foo.jpg
+            //       description = The description
+            //       ... but the 'file' attribute triggers an error already, the 'description' attribute will be reported
+            //       as unsupported because we never process it afterwards! (might apply in other places similarly)
             error!("Ignoring unsupported attribute '{}' in {}:{}", attribute.key(), path.display(), element.line_number())
         } else if let Some(embed) = element.as_embed() {
             error!("Ignoring unsupported embed '{}' in {}:{}", embed.key(), path.display(), element.line_number())

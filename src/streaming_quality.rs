@@ -26,4 +26,15 @@ impl StreamingQuality {
             ]
         }
     }
+
+    pub fn from_key(key: &str) -> Result<StreamingQuality, String> {
+        match key {
+            "frugal" => Ok(StreamingQuality::Frugal),
+            "standard" => Ok(StreamingQuality::Standard),
+            _ => {
+                let message = format!("Unknown key '{key}' (available keys: standard, frugal)");
+                Err(message)
+            }
+        }
+    }
 }

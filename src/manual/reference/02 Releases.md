@@ -179,3 +179,14 @@ use `disabled` at release level to re-disable it for specific releases.
 ```eno
 embedding: enabled
 ```
+
+## `streaming_quality`
+
+```eno
+streaming_quality: frugal
+```
+
+You can set the encoding quality for streaming from `standard` (the
+default) to `frugal`. This uses considerably less bandwidth, reduces
+emissions and improves load times for listeners, especially on slow
+connections.
