@@ -58,6 +58,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
         loading: String::from("Lädt"),
         made_or_arranged_payment: String::from("Ich habe die Bezahlung durchgeführt oder arrangiert"),
         missing_image_description_note: String::from("Fehlende Bildbeschreibung<br>Klick für mehr Info"),
+        more: String::from("Mehr"),
         name_your_price: String::from("Nenne einen Preis"),
         option: String::from("Option"),
         pause: String::from("Pausieren"),

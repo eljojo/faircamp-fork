@@ -59,6 +59,7 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
         loading: untranslated!(loading),
         made_or_arranged_payment: String::from("J'ai effectué ou organisé le paiement"),
         missing_image_description_note: String::from("Description de l'image manquante<br>Cliquez pour en savoir plus"),
+        more: String::from("Plus"),
         name_your_price: String::from("Choisis ton prix"),
         option: String::from("Option"),
         pause: untranslated!(pause),

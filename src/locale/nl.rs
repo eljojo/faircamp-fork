@@ -58,6 +58,7 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
         loading: untranslated!(loading),
         made_or_arranged_payment: String::from("Ik heb de betaling gedaan of geregeld"),
         missing_image_description_note: String::from("Ontbrekende afbeeldingsomschrijving<br>Klik om meer te leren"),
+        more: String::from("Meer"),
         name_your_price: String::from("Noem je prijs"),
         option: String::from("Optie"),
         pause: untranslated!(pause),

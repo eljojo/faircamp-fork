@@ -51,8 +51,12 @@ pub struct Theme {
 #[derive(Clone, Debug, Hash)]
 pub struct ThemeBase {
     pub bg_1: Lightness,
+    pub bg_2: Lightness,
     pub background_l: u8,
     pub faint_l: u8,
+    pub fg_1: Lightness,
+    pub fg_2: Lightness,
+    pub fg_3: Lightness,
     pub header_a: HashableF32,
     pub header_l: u8,
     pub header_link_l: u8,
@@ -61,6 +65,7 @@ pub struct ThemeBase {
     pub link_l: u8,
     pub link_s: u8,
     pub link_hover_l: u8,
+    pub mg: Lightness,
     pub muted_l: u8,
     pub release_additional_a: HashableF32,
     pub text_l: u8
@@ -108,6 +113,24 @@ impl Hash for HashableF32 {
     }
 }
 
+impl Lightness {
+    pub fn to_gray_hsl(&self) -> String {
+        format!("hsl(0 0% {}%)", self.hsl_l)
+    }
+
+    pub fn to_gray_oklch(&self) -> String {
+        format!("oklch({}% 0 0)", self.oklch_l)
+    }
+
+    pub fn to_transparent_gray_hsl(&self, a: f32) -> String {
+        format!("hsl(0 0% {}% / {a}%)", self.hsl_l)
+    }
+
+    pub fn to_transparent_gray_oklch(&self, a: f32) -> String {
+        format!("oklch({}% 0 0 / {a}%)", self.oklch_l)
+    }
+}
+
 impl Theme {
     pub fn new() -> Theme {
         Theme {
@@ -150,8 +173,24 @@ impl ThemeBase {
             hsl_l: HashableF32(0.0),
             oklch_l: HashableF32(0.0)
         },
+        bg_2: Lightness {
+            hsl_l: HashableF32(10.0),
+            oklch_l: HashableF32(21.56)
+        },
         background_l: 0,
         faint_l: 15,
+        fg_1: Lightness {
+            hsl_l: HashableF32(100.0),
+            oklch_l: HashableF32(100.0)
+        },
+        fg_2: Lightness {
+            hsl_l: HashableF32(81.88),
+            oklch_l: HashableF32(86.0)
+        },
+        fg_3: Lightness {
+            hsl_l: HashableF32(64.48),
+            oklch_l: HashableF32(72.0)
+        },
         header_a: HashableF32(0.8),
         header_l: 0,
         header_link_l: 86,
@@ -160,6 +199,10 @@ impl ThemeBase {
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
+        mg: Lightness {
+            hsl_l: HashableF32(38.86),
+            oklch_l: HashableF32(50.0)
+        },
         muted_l: 23,
         release_additional_a: HashableF32(0.06),
         text_l: 72
@@ -170,8 +213,24 @@ impl ThemeBase {
             hsl_l: HashableF32(0.0),
             oklch_l: HashableF32(0.0)
         },
+        bg_2: Lightness {
+            hsl_l: HashableF32(10.0),
+            oklch_l: HashableF32(21.56)
+        },
         background_l: 0,
         faint_l: 15,
+        fg_1: Lightness {
+            hsl_l: HashableF32(100.0),
+            oklch_l: HashableF32(100.0)
+        },
+        fg_2: Lightness {
+            hsl_l: HashableF32(81.88),
+            oklch_l: HashableF32(86.0)
+        },
+        fg_3: Lightness {
+            hsl_l: HashableF32(64.48),
+            oklch_l: HashableF32(72.0)
+        },
         header_a: HashableF32(0.9),
         header_l: 10,
         header_link_l: 86,
@@ -180,6 +239,10 @@ impl ThemeBase {
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
+        mg: Lightness {
+            hsl_l: HashableF32(38.86),
+            oklch_l: HashableF32(50.0)
+        },
         muted_l: 23,
         release_additional_a: HashableF32(0.06),
         text_l: 72
@@ -190,8 +253,24 @@ impl ThemeBase {
             hsl_l: HashableF32(10.0),
             oklch_l: HashableF32(21.56)
         },
+        bg_2: Lightness {
+            hsl_l: HashableF32(12.23),
+            oklch_l: HashableF32(24.0)
+        },
         background_l: 10,
         faint_l: 15,
+        fg_1: Lightness {
+            hsl_l: HashableF32(100.0),
+            oklch_l: HashableF32(100.0)
+        },
+        fg_2: Lightness {
+            hsl_l: HashableF32(81.88),
+            oklch_l: HashableF32(86.0)
+        },
+        fg_3: Lightness {
+            hsl_l: HashableF32(64.48),
+            oklch_l: HashableF32(72.0)
+        },
         header_a: HashableF32(0.8),
         header_l: 10,
         header_link_l: 86,
@@ -200,6 +279,10 @@ impl ThemeBase {
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
+        mg: Lightness {
+            hsl_l: HashableF32(38.86),
+            oklch_l: HashableF32(50.0)
+        },
         muted_l: 23,
         release_additional_a: HashableF32(0.02),
         text_l: 86
@@ -210,8 +293,24 @@ impl ThemeBase {
             hsl_l: HashableF32(90.0),
             oklch_l: HashableF32(92.34)
         },
+        bg_2: Lightness {
+            hsl_l: HashableF32(76.83),
+            oklch_l: HashableF32(82.0)
+        },
         background_l: 90,
         faint_l: 85,
+        fg_1: Lightness {
+            hsl_l: HashableF32(0.0),
+            oklch_l: HashableF32(0.0)
+        },
+        fg_2: Lightness {
+            hsl_l: HashableF32(8.6),
+            oklch_l: HashableF32(20.0)
+        },
+        fg_3: Lightness {
+            hsl_l: HashableF32(28.06),
+            oklch_l: HashableF32(40.0)
+        },
         header_a: HashableF32(0.9),
         header_l: 90,
         header_link_l: 14,
@@ -220,6 +319,10 @@ impl ThemeBase {
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
+        mg: Lightness {
+            hsl_l: HashableF32(38.86),
+            oklch_l: HashableF32(50.0)
+        },
         muted_l: 68,
         release_additional_a: HashableF32(0.03),
         text_l: 14
@@ -230,8 +333,24 @@ impl ThemeBase {
             hsl_l: HashableF32(100.0),
             oklch_l: HashableF32(100.0)
         },
+        bg_2: Lightness {
+            hsl_l: HashableF32(90.0),
+            oklch_l: HashableF32(92.34)
+        },
         background_l: 100,
         faint_l: 87,
+        fg_1: Lightness {
+            hsl_l: HashableF32(0.0),
+            oklch_l: HashableF32(0.0)
+        },
+        fg_2: Lightness {
+            hsl_l: HashableF32(8.6),
+            oklch_l: HashableF32(20.0)
+        },
+        fg_3: Lightness {
+            hsl_l: HashableF32(28.06),
+            oklch_l: HashableF32(40.0)
+        },
         header_a: HashableF32(0.9),
         header_l: 100,
         header_link_l: 14,
@@ -240,6 +359,10 @@ impl ThemeBase {
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
+        mg: Lightness {
+            hsl_l: HashableF32(38.86),
+            oklch_l: HashableF32(50.0)
+        },
         muted_l: 68,
         release_additional_a: HashableF32(0.04),
         text_l: 14
@@ -250,8 +373,24 @@ impl ThemeBase {
             hsl_l: HashableF32(100.0),
             oklch_l: HashableF32(100.0)
         },
+        bg_2: Lightness {
+            hsl_l: HashableF32(90.0),
+            oklch_l: HashableF32(92.34)
+        },
         background_l: 100,
         faint_l: 87,
+        fg_1: Lightness {
+            hsl_l: HashableF32(0.0),
+            oklch_l: HashableF32(0.0)
+        },
+        fg_2: Lightness {
+            hsl_l: HashableF32(8.6),
+            oklch_l: HashableF32(20.0)
+        },
+        fg_3: Lightness {
+            hsl_l: HashableF32(28.06),
+            oklch_l: HashableF32(40.0)
+        },
         header_a: HashableF32(0.82),
         header_l: 0,
         header_link_l: 100,
@@ -260,6 +399,10 @@ impl ThemeBase {
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
+        mg: Lightness {
+            hsl_l: HashableF32(38.86),
+            oklch_l: HashableF32(50.0)
+        },
         muted_l: 68,
         release_additional_a: HashableF32(0.04),
         text_l: 14

@@ -120,35 +120,47 @@ pub fn track_html(
         .collect::<Vec<String>>()
         .join("\n");
 
+    let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
     let track_title = track.title();
 
-    let play_icon = icons::play(&build.locale.translations.play);
-    let track_rendered = formatdoc!(
-        r#"
-            <div class="track">
-                <a class="track_controls outer">{play_icon}</a>
-                <span class="track_number outer">{track_number}</span>
-                <span class="track_header">
-                    <a class="track_controls inner">{play_icon}</a>
-                    <span class="track_number inner">{track_number}</span>
-                    <a class="track_title" title="{track_title_attribute}">{track_title_escaped}</a>
-                    <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
-                </span>
-                <audio controls preload="none">
-                    {audio_sources}
-                </audio>
-                {waveform}
-            </div>
-        "#,
-        duration_formatted = format_time(track.transcodes.borrow().source_meta.duration_seconds),
-        track_number = release.track_numbering.format(track_number),
-        track_title_escaped = html_escape_outside_attribute(&track_title),
-        track_title_attribute = html_escape_inside_attribute(&track_title),
-        waveform = waveform(&catalog.theme, track)
-    );
-
-    let track_title = track.title();
+    let duration_formatted = format_time(duration_seconds);
+    let track_number_formatted = release.track_numbering.format(track_number);
     let track_title_escaped = html_escape_outside_attribute(&track_title);
+    let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
+    let waveform_svg = waveform(&catalog.theme, track);
+
+    let copy_icon = icons::copy(&build.locale.translations.copy_link);
+    let more_icon = icons::more(&build.locale.translations.more);
+    let play_icon = icons::play(&build.locale.translations.play);
+    let track_rendered = formatdoc!(r#"
+        <div class="track">
+            <span class="track_number outer">{track_number_formatted}</span>
+            <span class="track_header">
+                <span class="track_number inner">{track_number_formatted}</span>
+                <span class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
+                <span class="duration">{duration_formatted}</span>
+                <div class="more">
+                    <button class="track_playback">
+                        {play_icon}
+                    </button>
+                    <button>
+                        {copy_icon}
+                    </button>
+                </div>
+                <button class="more_button">
+                    {more_icon}
+                </button>
+            </span>
+            <audio controls preload="none">
+                {audio_sources}
+            </audio>
+            <div class="waveform">
+                {waveform_svg}
+                <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" type="range" value="0">
+                <div class="decoration"></div>
+            </div>
+        </div>
+    "#);
 
     let mut action_links = Vec::new();
 
@@ -190,7 +202,7 @@ pub fn track_html(
         let joined = action_links.join(" &nbsp; ");
 
         formatdoc!(r#"
-            <div class="action_links">
+            <div class="action_links hcenter_narrow mobile_hpadding">
                 {joined}
             </div>
         "#)
@@ -201,6 +213,7 @@ pub fn track_html(
 
     let r_player_icon_templates = player_icon_templates(build);
 
+    let play_icon = icons::play(&build.locale.translations.play);
     let body = formatdoc!(
         r##"
             <div class="vcenter_page_outer">
@@ -208,6 +221,9 @@ pub fn track_html(
                     <div class="cover">{cover}</div>
 
                     <div class="release_label">
+                        <button class="big_play_button">
+                            {play_icon}
+                        </button>
                         <h1>{track_title_escaped}</h1>
                         <div class="release_artists">{artists}</div>
                     </div>
@@ -217,10 +233,8 @@ pub fn track_html(
                     {r_player_icon_templates}
                 </div>
                 <div class="additional">
-                    <div class="mobile_hpadding">
-                        {r_action_links}
-                        {track_text}
-                    </div>
+                    {r_action_links}
+                    {track_text}
                 </div>
             </div>
         "##,

@@ -2,6 +2,8 @@ const loadingIcon = document.querySelector('#loading_icon');
 const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
 
+const bigPlaybackButton = document.querySelector('.big_play_button');
+
 const copyNotificationTimeouts = {};
 
 window.activeTrack = null;
@@ -50,9 +52,8 @@ function formatTime(seconds) {
 async function mountAndPlay(container, seek) {
     const a = container.querySelector('a');
     const audio = container.querySelector('audio');
-    const controlsInner = container.querySelector('.track_controls.inner');
-    const controlsOuter = container.querySelector('.track_controls.outer');
-    const time = container.querySelector('.track_time');
+    const playbackButton = container.querySelector('.track_playback');
+    const time = container.querySelector('.duration');
     const waveformInput = container.querySelector('.waveform input');
     const waveformSvg = container.querySelector('.waveform svg');
 
@@ -65,6 +66,9 @@ async function mountAndPlay(container, seek) {
     //       guarantee that we *always* know the duration. Not being able to
     //       parse it should really be a hard error, this would make a lot of
     //       things easier to reason about and implement.
+    // TODO: duration could/should probably come from the input range max,
+    //       as a single source of truth, and to simplify data passing and
+    //       calculations everywhere.
     const precalculatedDuration = parseFloat(waveformSvg.dataset.duration);
     const duration = () => {
         if (audio.duration === Infinity || audio.duration === NaN) {
@@ -76,16 +80,15 @@ async function mountAndPlay(container, seek) {
 
     if (audio.readyState === audio.HAVE_NOTHING) {
         container.classList.add('active');
-        controlsInner.replaceChildren(loadingIcon.content.cloneNode(true));
-        controlsOuter.replaceChildren(loadingIcon.content.cloneNode(true));
+        playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+        bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
 
         window.activeTrack = {
             a,
             audio,
             container,
-            controlsInner,
-            controlsOuter,
             duration,
+            playbackButton,
             time,
             waveformInput,
             waveformSvg
@@ -120,8 +123,8 @@ async function mountAndPlay(container, seek) {
                 clearInterval(window.activeTrack.updatePlayHeadInterval);
                 updatePlayhead(window.activeTrack, true);
                 container.classList.remove('active', 'playing');
-                controlsInner.replaceChildren(playIcon.content.cloneNode(true));
-                controlsOuter.replaceChildren(playIcon.content.cloneNode(true));
+                bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
+                playbackButton.replaceChildren(playIcon.content.cloneNode(true));
                 
                 const nextContainer = container.nextElementSibling;
                 if (nextContainer && nextContainer.classList.contains('track')) {
@@ -134,11 +137,11 @@ async function mountAndPlay(container, seek) {
     }
 
     container.classList.add('active', 'playing');
-    controlsInner.replaceChildren(pauseIcon.content.cloneNode(true));
-    controlsOuter.replaceChildren(pauseIcon.content.cloneNode(true));
+    bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+    playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
 
     if (seek) {
-        audio.currentTime = seek * duration();
+        audio.currentTime = seek;
     }
 
     audio.play();
@@ -147,17 +150,18 @@ async function mountAndPlay(container, seek) {
         a,
         audio,
         container,
-        controlsInner,
-        controlsOuter,
         duration,
+        playbackButton,
         time,
         waveformInput,
         waveformSvg
     };
+    updatePlayhead(window.activeTrack);
     window.activeTrack.updatePlayHeadInterval = setInterval(
         () => updatePlayhead(window.activeTrack),
         200
     );
+    announcePlayhead(waveformInput);
 }
 
 function togglePlayback(container = null, seek = null) {
@@ -180,27 +184,31 @@ function togglePlayback(container = null, seek = null) {
 
             if (activeTrack.audio.paused) {
                 if (seek !== null) {
-                    activeTrack.audio.currentTime = seek * activeTrack.duration();
+                    activeTrack.audio.currentTime = seek;
                 }
                 activeTrack.container.classList.add('playing');
-                activeTrack.controlsInner.replaceChildren(pauseIcon.content.cloneNode(true));
-                activeTrack.controlsOuter.replaceChildren(pauseIcon.content.cloneNode(true));
+                bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+                activeTrack.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
                 activeTrack.audio.play();
                 activeTrack.updatePlayHeadInterval = setInterval(
                     () => updatePlayhead(activeTrack),
                     200
                 );
+                updatePlayhead(activeTrack);
+                announcePlayhead(activeTrack.waveformInput);
             } else {
                 if (seek !== null) {
-                    activeTrack.audio.currentTime = seek * activeTrack.duration();
+                    activeTrack.audio.currentTime = seek;
                     updatePlayhead(activeTrack);
+                    announcePlayhead(activeTrack.waveformInput);
                 } else {
                     activeTrack.audio.pause();
                     clearInterval(activeTrack.updatePlayHeadInterval);
                     updatePlayhead(activeTrack);
+                    announcePlayhead(activeTrack.waveformInput);
                     activeTrack.container.classList.remove('playing');
-                    activeTrack.controlsInner.replaceChildren(playIcon.content.cloneNode(true));
-                    activeTrack.controlsOuter.replaceChildren(playIcon.content.cloneNode(true));
+                    bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
+                    activeTrack.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
                 }
             }
         } else {
@@ -210,9 +218,10 @@ function togglePlayback(container = null, seek = null) {
             clearInterval(activeTrack.updatePlayHeadInterval);
             activeTrack.audio.currentTime = 0;
             updatePlayhead(activeTrack, true);
+            announcePlayhead(activeTrack.waveformInput);
             activeTrack.container.classList.remove('active', 'playing');
-            activeTrack.controlsInner.replaceChildren(playIcon.content.cloneNode(true));
-            activeTrack.controlsOuter.replaceChildren(playIcon.content.cloneNode(true));
+            bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
+            activeTrack.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
 
             mountAndPlay(container, seek);
         }
@@ -225,47 +234,99 @@ function togglePlayback(container = null, seek = null) {
     }
 }
 
+// While the underlying data model of the playhead (technically the invisible
+// range input and visible svg representation) change granularly, we only
+// trigger screenreader announcements when it makes sense - e.g. when
+// focusing the range input, when seeking, when playback ends etc.
+function announcePlayhead(waveformInput) {
+    // TODO: Announce "current: xxxx, remaining: xxxxx"?
+    waveformInput.setAttribute('aria-valuetext', formatTime(waveformInput.value));
+}
+
 function updatePlayhead(activeTrack, reset = false) {
     const { audio, duration, time, waveformInput, waveformSvg } = activeTrack;
     const factor = reset ? 0 : audio.currentTime / duration();
-    const formattedTime = formatTime(audio.currentTime);
 
-    waveformSvg.querySelector('stop:nth-child(1)').setAttribute('offset', factor);
-    waveformSvg.querySelector('stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
-    time.innerHTML = reset ? '' : `${formattedTime} / `;
+    waveformSvg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
+    waveformSvg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+    time.innerHTML = reset ? formatTime(duration()) : `- ${formatTime(duration() - audio.currentTime)}`;
 
-    // Perform updates to the input state to only about every second,
-    // some screen readers would otherwise constantly announce every update.
-    if (Math.abs(audio.currentTime - parseFloat(waveformInput.value)) >= 1.0) {
-        waveformInput.value = audio.currentTime;
-        waveformInput.setAttribute('aria-valuetext', formattedTime);
-    }
+    waveformInput.value = audio.currentTime;
 }
 
 document.body.addEventListener('click', event => {
     const { target } = event;
 
-    if (target.classList.contains('big_play_button')) {
-        togglePlayback();
-    } else if (target.classList.contains('track_controls')) {
-        event.preventDefault();
+    // TODO: Change to directing bindings, remove pointer-events: none on
+    // buttons (respectively whereever else it would be prudent)
+    if (target.classList.contains('track_playback')) {
         const container = target.closest('.track')
         togglePlayback(container);
-    } else if (target.classList.contains('track_title')) {
-        event.preventDefault();
-        const container = target.closest('.track')
-        togglePlayback(container, 0);
     } else if ('copy' in target.dataset) {
         event.preventDefault();
         copyToClipboard(target);
     }
 });
 
-for (const waveformInput of document.querySelectorAll('.waveform input')) {
+bigPlaybackButton.addEventListener('click', () => {
+    togglePlayback();
+});
+
+for (const track of document.querySelectorAll('.track')) {
+    const more = track.querySelector('.more');
+    const moreButton = track.querySelector('.more_button');
+    const waveformInput = track.querySelector('.waveform input');
+
+    moreButton.addEventListener('focus', event => {
+        // When this focus event occurs, the buttons in .more
+        // just became visible and focusable, then we immediately
+        // move focus to one of them, after which the .more_button
+        // becomes invisible and unfocusable.
+        more.querySelector(':first-child').focus();
+        event.preventDefault();
+    });
+
     waveformInput.addEventListener('change', () => {
         const container = waveformInput.closest('.track');
-        const seek = waveformInput.value / waveformInput.max;
+        const seek = waveformInput.value;
         togglePlayback(container, seek);
+    });
+
+    waveformInput.addEventListener('focus', () => {
+        announcePlayhead(waveformInput);
+    });
+
+    waveformInput.addEventListener('keydown', event => {
+        if (event.key == ' ' || event.key == 'Enter') {
+            event.preventDefault();
+            const container = waveformInput.closest('.track');
+            togglePlayback(container);
+        } else if (event.key == 'ArrowLeft') {
+            const container = waveformInput.closest('.track');
+            event.preventDefault();
+            const seek = Math.max(0, parseFloat(waveformInput.value) - 5);
+            togglePlayback(container, seek);
+        } else if (event.key == 'ArrowRight') {
+            const container = waveformInput.closest('.track');
+            event.preventDefault();
+            const seek = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
+            togglePlayback(container, seek);
+        }
+    });
+
+    waveformInput.addEventListener('mouseenter', event => {
+        track.classList.add('seek');
+    });
+
+    waveformInput.addEventListener('mousemove', event => {
+        const factor = (event.clientX - waveformInput.getBoundingClientRect().x) / waveformInput.getBoundingClientRect().width;
+        const waveformSvg = track.querySelector('.waveform svg');
+        waveformSvg.querySelector('linearGradient.seek stop:nth-child(1)').setAttribute('offset', factor);
+        waveformSvg.querySelector('linearGradient.seek stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+    });
+
+    waveformInput.addEventListener('mouseout', event => {
+        track.classList.remove('seek');
     });
 }
 
@@ -378,7 +439,7 @@ function waveforms() {
             const y = WAVEFORM_PADDING_EM + (1 - peak) * WAVEFORM_HEIGHT;
 
             // If the y coordinate is always exactly the same on all points, the linear
-            // gradient applied to the .progress path does not show up at all (firefox).
+            // gradient applied to the .playback path does not show up at all (firefox).
             // This only happens when the track is perfectly silent/same level all the
             // way through, which currently is the case when with the disable_waveforms option.
             // We counter this here by introducing minimal jitter on the y dimension.
@@ -394,26 +455,42 @@ function waveforms() {
             svg.setAttribute('height', `${TRACK_HEIGHT_EM}em`);
 
             const defs = document.createElementNS(SVG_XMLNS, 'defs');
-            const linearGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
-            linearGradient.id = `gradient_${trackNumber}`;
-            const stop1 = document.createElementNS(SVG_XMLNS, 'stop');
-            stop1.setAttribute('offset', '0');
-            stop1.setAttribute('stop-color', 'hsl(0, 0%, var(--text-l))');
-            const stop2 = document.createElementNS(SVG_XMLNS, 'stop');
-            stop2.setAttribute('offset', '0.000001');
-            stop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
 
-            linearGradient.append(stop1, stop2);
-            defs.append(linearGradient);
+            const playbackGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
+            playbackGradient.classList.add('playback');
+            playbackGradient.id = `gradient_playback_${trackNumber}`;
+            const playbackGradientStop1 = document.createElementNS(SVG_XMLNS, 'stop');
+            playbackGradientStop1.setAttribute('offset', '0');
+            playbackGradientStop1.setAttribute('stop-color', 'var(--fg-1)');
+            const playbackGradientStop2 = document.createElementNS(SVG_XMLNS, 'stop');
+            playbackGradientStop2.setAttribute('offset', '0.000001');
+            playbackGradientStop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
+            playbackGradient.append(playbackGradientStop1, playbackGradientStop2);
+
+            const seekGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
+            seekGradient.classList.add('seek');
+            seekGradient.id = `gradient_seek_${trackNumber}`;
+            const seekGradientStop1 = document.createElementNS(SVG_XMLNS, 'stop');
+            seekGradientStop1.setAttribute('offset', '0');
+            seekGradientStop1.setAttribute('stop-color', 'var(--fg-3)');
+            const seekGradientStop2 = document.createElementNS(SVG_XMLNS, 'stop');
+            seekGradientStop2.setAttribute('offset', '0.000001');
+            seekGradientStop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
+            seekGradient.append(seekGradientStop1, seekGradientStop2);
+
+            defs.append(playbackGradient);
+            defs.append(seekGradient);
             svg.prepend(defs);
 
-            svg.querySelector('.progress').setAttribute('stroke', `url(#gradient_${trackNumber})`);
+            svg.querySelector('path.playback').setAttribute('stroke', `url(#gradient_playback_${trackNumber})`);
+            svg.querySelector('path.seek').setAttribute('stroke', `url(#gradient_seek_${trackNumber})`);
         }
 
         svg.setAttribute('viewBox', `0 0 ${waveformWidthRem} 1.5`);
         svg.setAttribute('width', `${waveformWidthRem}em`);
-        svg.querySelector('.base').setAttribute('d', d);
-        svg.querySelector('.progress').setAttribute('d', d);
+        svg.querySelector('path.base').setAttribute('d', d);
+        svg.querySelector('path.playback').setAttribute('d', d);
+        svg.querySelector('path.seek').setAttribute('d', d);
 
         trackNumber++;
     }

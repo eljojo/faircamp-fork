@@ -58,6 +58,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         loading: untranslated!(loading),
         made_or_arranged_payment: String::from("Jeg har utført eller ordnet med betaling"),
         missing_image_description_note: String::from("Manglende bildebeskrivelse<br>Klikk for å lære mer"),
+        more: String::from("Mer"),
         name_your_price: String::from("Velg din egen pris"),
         option: String::from("Valg"),
         pause: untranslated!(pause),

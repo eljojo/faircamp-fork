@@ -98,12 +98,22 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
     let mut css = {
         let tint_back = theme.tint_back;
         let tint_front = theme.tint_front;
-        let bg_1_hsl_l = &theme.base.bg_1.hsl_l;
-        let bg_1_oklch_l = &theme.base.bg_1.oklch_l;
+        let bg_1_hsl = theme.base.bg_1.to_gray_hsl();
+        let bg_1_oklch = theme.base.bg_1.to_gray_oklch();
+        let bg_1_overlay_hsl = theme.base.bg_1.to_transparent_gray_hsl(80.0);
+        let bg_1_overlay_oklch = theme.base.bg_1.to_transparent_gray_oklch(80.0);
+        let bg_2_overlay_hsl = theme.base.bg_2.to_transparent_gray_hsl(80.0);
+        let bg_2_overlay_oklch = theme.base.bg_2.to_transparent_gray_oklch(80.0);
         let background_l = theme.base.background_l;
         let background_s = 41;
         let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
         let faint_l = theme.base.faint_l;
+        let fg_1_hsl = theme.base.fg_1.to_gray_hsl();
+        let fg_1_oklch = theme.base.fg_1.to_gray_oklch();
+        let fg_2_hsl = theme.base.fg_2.to_gray_hsl();
+        let fg_2_oklch = theme.base.fg_2.to_gray_oklch();
+        let fg_3_hsl = theme.base.fg_3.to_gray_hsl();
+        let fg_3_oklch = theme.base.fg_3.to_gray_oklch();
         let header_a = &theme.base.header_a;
         let header_l = theme.base.header_l;
         let header_link_l = theme.base.header_link_l;
@@ -113,6 +123,8 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         let link_l = theme.link_l.unwrap_or(theme.base.link_l);
         let link_s = theme.link_s.unwrap_or(theme.base.link_s);
         let link_hover_l = theme.base.link_hover_l;
+        let mg_hsl = theme.base.mg.to_gray_hsl();
+        let mg_oklch = theme.base.mg.to_gray_oklch();
         let muted_l = theme.base.muted_l;
         let muted_s = 35;
         let nav_s = 17;
@@ -136,10 +148,14 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --background-h: var(--link-h);
                 --background-l: {background_l}%;
                 --background-s: calc({background_s}% * (var(--tint-back) / 100));
-                --bg-1: hsl(0 0% {bg_1_hsl_l}%);
-                --bg-1-overlay: hsl(0 0% {bg_1_hsl_l}% / 80%);
+                --bg-1: {bg_1_hsl};
+                --bg-1-overlay: {bg_1_overlay_hsl};
+                --bg-2-overlay: {bg_2_overlay_hsl};
                 --cover-border-radius: {cover_border_radius};
                 --faint-l: {faint_l}%;
+                --fg-1: {fg_1_hsl};
+                --fg-2: {fg_2_hsl};
+                --fg-3: {fg_3_hsl};
                 --header-a: {header_a};
                 --header-l: {header_l}%;
                 --header-link-l: {header_link_l}%;
@@ -148,6 +164,7 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --link-l: {link_l}%;
                 --link-s: {link_s}%;
                 --link-hover-l: {link_hover_l}%;
+                --mg: {mg_hsl};
                 --muted-h: var(--link-h);
                 --muted-l: {muted_l}%;
                 --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
@@ -160,8 +177,13 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
             }}
             @supports (color: oklch(0% 0 0)) {{
                 :root {{
-                    --bg-1: oklch({bg_1_oklch_l}% 0 0);
-                    --bg-1-overlay: oklch({bg_1_oklch_l}% 0 0 / 80%);
+                    --bg-1: {bg_1_oklch};
+                    --bg-1-overlay: {bg_1_overlay_oklch};
+                    --bg-2-overlay: {bg_2_overlay_oklch};
+                    --fg-1: {fg_1_oklch};
+                    --fg-2: {fg_2_oklch};
+                    --fg-3: {fg_3_oklch};
+                    --mg: {mg_oklch};
                 }}
             }}
             {font_declaration}

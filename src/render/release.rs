@@ -137,28 +137,39 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let track_title = track.title();
 
             let duration_formatted = format_time(duration_seconds);
-            let track_number = release.track_numbering.format(track_number);
+            let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
             let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
             let waveform_svg = waveform(&catalog.theme, track);
 
+            let copy_icon = icons::copy(&build.locale.translations.copy_link);
+            let more_icon = icons::more(&build.locale.translations.more);
             let play_icon = icons::play(&build.locale.translations.play);
             formatdoc!(r#"
                 <div class="track">
-                    <a class="track_controls outer">{play_icon}</a>
-                    <span class="track_number outer">{track_number}</span>
+                    <span class="track_number outer">{track_number_formatted}</span>
                     <span class="track_header">
-                        <a class="track_controls inner">{play_icon}</a>
-                        <span class="track_number inner">{track_number}</span>
-                        <a class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
-                        <span class="duration"><span class="track_time"></span>{duration_formatted}</span>
+                        <span class="track_number inner">{track_number_formatted}</span>
+                        <a class="track_title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                        <span class="duration">{duration_formatted}</span>
+                        <div class="more">
+                            <button class="track_playback">
+                                {play_icon}
+                            </button>
+                            <button>
+                                {copy_icon}
+                            </button>
+                        </div>
+                        <button class="more_button">
+                            {more_icon}
+                        </button>
                     </span>
                     <audio controls preload="none">
                         {audio_sources}
                     </audio>
                     <div class="waveform">
                         {waveform_svg}
-                        <input aria-valuetext="0" max="{duration_seconds}" min="0" type="range" value="0">
+                        <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" type="range" value="0">
                         <div class="decoration"></div>
                     </div>
                 </div>
@@ -246,6 +257,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let r_player_icon_templates = player_icon_templates(build);
 
+    let play_icon = icons::play(&build.locale.translations.play);
     let body = formatdoc!(
         r##"
             <div class="vcenter_page_outer">
@@ -253,6 +265,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="cover">{cover}</div>
 
                     <div class="release_label">
+                        <button class="big_play_button">
+                            {play_icon}
+                        </button>
                         <h1>{release_title_unlisted}</h1>
                         <div class="release_artists">{artists}</div>
                     </div>
@@ -337,7 +352,8 @@ pub fn waveform(theme: &Theme, track: &Track) -> String {
         formatdoc!(r#"
             <svg data-duration="{duration_seconds}"
                  data-peaks="{peaks_base64}">
-                <path class="progress"/>
+                <path class="seek"/>
+                <path class="playback"/>
                 <path class="base"/>
             </svg>
         "#)

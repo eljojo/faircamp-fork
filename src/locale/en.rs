@@ -58,6 +58,7 @@ Here are some tips for writing good image descriptions:<br>\
         loading: String::from("Loading"),
         made_or_arranged_payment: String::from("I have made or arranged the payment"),
         missing_image_description_note: String::from("Missing image description<br>Click to learn more"),
+        more: String::from("More"),
         name_your_price: String::from("Name your price"),
         option: String::from("Option"),
         pause: String::from("Pause"),
