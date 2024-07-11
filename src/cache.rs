@@ -237,21 +237,27 @@ impl Cache {
             }
         });
 
-        let paths = image_mut.views
-            .iter()
-            .map(|view| view.file_meta.path.display().to_string())
-            .collect::<Vec<String>>()
-            .join(", ");
+        let views_context = if image_mut.views.is_empty() {
+            "without views".to_string()
+        } else {
+            let paths = image_mut.views
+                .iter()
+                .map(|view| view.file_meta.path.display().to_string())
+                .collect::<Vec<String>>()
+                .join(", ");
+
+            format!("for {paths}")
+        };
 
         {
-            let mut optimize = |asset_option: &mut Option<Asset>, format: &str, paths: &str| {
+            let mut optimize = |asset_option: &mut Option<Asset>, format: &str, views_context: &str| {
                 match asset_option.as_ref().map(|asset| self.obsolete(build, &asset.marked_stale)) {
                     Some(true) => {
                         let _ = fs::remove_file(build.cache_dir.join(asset_option.take().unwrap().filename));
                         info_cache!(
-                            "Removed cached image asset ({}) for {}.",
+                            "Removed cached image asset ({}) {}.",
                             format,
-                            paths
+                            views_context
                         );
                     }
                     Some(false) => keep_container = true,
@@ -259,8 +265,8 @@ impl Cache {
                 }
             };
 
-            optimize(&mut image_mut.background_asset, "background", &paths);
-            optimize(&mut image_mut.feed_asset, "feed", &paths);
+            optimize(&mut image_mut.background_asset, "background", &views_context);
+            optimize(&mut image_mut.feed_asset, "feed", &views_context);
         }
 
         {
@@ -269,9 +275,9 @@ impl Cache {
                     for asset in image_mut.artist_assets.take().unwrap().all() {
                         let _ = fs::remove_file(build.cache_dir.join(&asset.filename));
                         info_cache!(
-                            "Removed cached image asset ({}) for {} {}x{}.",
+                            "Removed cached image asset ({}) {} {}x{}.",
                             "artist",
-                            &paths,
+                            &views_context,
                             asset.height,
                             asset.width
                         );
@@ -288,9 +294,9 @@ impl Cache {
                     for asset in image_mut.cover_assets.take().unwrap().all() {
                         let _ = fs::remove_file(build.cache_dir.join(&asset.filename));
                         info_cache!(
-                            "Removed cached image asset ({}) for {} {}x{}.",
+                            "Removed cached image asset ({}) {} {}x{}.",
                             "cover",
-                            &paths,
+                            &views_context,
                             asset.edge_size,
                             asset.edge_size
                         );
@@ -324,20 +330,26 @@ impl Cache {
         });
 
         if transcodes_mut.formats.iter().any(|transcode| self.obsolete(build, &transcode.asset.marked_stale)) {
-            let paths = transcodes_mut.views
-                .iter()
-                .map(|view| view.file_meta.path.display().to_string())
-                .collect::<Vec<String>>()
-                .join(", ");
+             let views_context = if transcodes_mut.views.is_empty() {
+                "without views".to_string()
+            } else {
+                let paths = transcodes_mut.views
+                    .iter()
+                    .map(|view| view.file_meta.path.display().to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ");
+
+                format!("for {paths}")
+            };
 
             transcodes_mut.formats.retain_mut(|transcode| {
                 if self.obsolete(build, &transcode.asset.marked_stale) {
 
                     let _ = fs::remove_file(build.cache_dir.join(&transcode.asset.filename));
                     info_cache!(
-                        "Removed cached transcode ({}) for {}.",
+                        "Removed cached transcode ({}) {}.",
                         transcode.format,
-                        paths
+                        views_context
                     );
 
                     false
