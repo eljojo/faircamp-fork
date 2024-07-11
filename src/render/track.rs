@@ -156,7 +156,7 @@ pub fn track_html(
             </audio>
             <div class="waveform">
                 {waveform_svg}
-                <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" type="range" value="0">
+                <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" step="any" type="range" value="0">
                 <div class="decoration"></div>
             </div>
         </div>

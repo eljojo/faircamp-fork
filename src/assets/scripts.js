@@ -97,13 +97,22 @@ async function mountAndPlay(container, seek) {
         audio.load();
 
         const aborted = await new Promise(resolve => {
-            const loadInterval = setInterval(() => {
-                if (audio.readyState >= audio.HAVE_CURRENT_DATA) {
+            function checkEnoughLoaded() {
+                if (audio.readyState < audio.HAVE_METADATA) return;
+
+                if (seek) {
+                    audio.currentTime = seek;
+                    if (audio.currentTime !== seek) return;
+                    seek = null;
+                }
+
+                if (audio.readyState >= audio.HAVE_ENOUGH_DATA) {
                     delete window.activeTrack.abortLoad;
                     clearInterval(loadInterval);
                     resolve(false);
                 }
-            }, 100);
+            }
+            const loadInterval = setInterval(checkEnoughLoaded, 30);
             window.activeTrack.abortLoad = () => {
                 delete window.activeTrack.abortLoad
                 clearInterval(loadInterval);
@@ -288,7 +297,7 @@ for (const track of document.querySelectorAll('.track')) {
 
     waveformInput.addEventListener('change', () => {
         const container = waveformInput.closest('.track');
-        const seek = waveformInput.value;
+        const seek = parseFloat(waveformInput.value);
         togglePlayback(container, seek);
     });
 
