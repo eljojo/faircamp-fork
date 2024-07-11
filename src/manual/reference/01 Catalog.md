@@ -11,8 +11,9 @@ Site-wide metadata and settings, such as the title and site URL.
 # catalog
 
 base_url: https://myawesomemusic.site/
+cache_optimization: delayed
 favicon: my_favicon.png
-embedding: enabled
+embedding: disabled
 label_mode
 language: en
 show_support_artists
@@ -23,12 +24,47 @@ description = Me in my studio
 file = studio_3.png
 
 -- text
-My self hosted faircamp site,
-which presents some of my awesome music.
+My self hosted faircamp site, presenting some of my music.
 
-Nice of you to stop by!
+Thanks for stopping by!
 -- text
 ```
+
+## `cache_optimization`
+
+```eno
+cache_optimization: delayed
+```
+
+Advanced control over caching strategy.
+
+Allowed options: `delayed`, `immediate`, `wipe`, `manual`
+
+Faircamp maintains an asset cache that holds the results of all
+computation-heavy build artifacts (transcoded audio files, images, and
+compressed archives). By default this cache uses the `delayed` optimization
+strategy: Any asset that is not directly used in a build gets marked as stale
+and past a certain period (e.g. 24 hours) gets purged from the cache during a
+follow-up build (if it is not meanwhile reactivated because it's needed
+again). This strikes a nice balance for achieving instant build speeds during
+editing (after assets have been generated initially) without inadvertently
+growing a storage resource leak in a directory you don't ever look at
+normally.
+
+If you're short on disk space you can switch to `immediate` optimization,
+which purges stale assets right after each build (which might result in small
+configuration mistakes wiping cached assets that took long to generate as a
+drawback).
+
+If you're even shorter on disk space you can use `wipe` optimization, which
+just completely wipes the cache right after each build (so everything needs
+to be regenerated on each build).
+
+If you want full control you can use `manual` optimization, which does not
+automatically purge anything from the cache but instead reports stale
+assets after each build and lets you use `faircamp --optimize-cache`
+and/or `faircamp --wipe-cache` accordingly whenever you're done with
+your changes and e.g. don't expect to generate any new builds for a while.
 
 ## `embedding`
 

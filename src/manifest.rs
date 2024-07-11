@@ -333,18 +333,7 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "cache", path) {
-        if let Some((value, line)) = optional_field_value_with_line(section, "optimization") {
-            match CacheOptimization::from_manifest_key(value.as_str()) {
-                Some(strategy) => {
-                    if cache.optimization != CacheOptimization::Default {
-                        warn_global_set_repeatedly!("cache.optimization", cache.optimization, strategy);
-                    }
-
-                    cache.optimization = strategy;
-                }
-                None => error!("Ignoring invalid cache.optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}:{}", value, path.display(), line)
-            }
-        }
+        error!(r##"From faircamp 0.16.0 onwards, the "# cache ... " section was merged into "# catalog ..." as the "cache_optimization: delayed|immediate|wipe|manual" option, please move and adapt the current definiton in {}:{} accordingly."##, path.display(), section.line_number);
     }
     
     if let Some(section) = optional_section(&document, "catalog", path) {
@@ -367,6 +356,27 @@ pub fn apply_options(
                     }
                     Err(err) => error!("Ignoring invalid catalog.base_url setting value '{}' in {}:{} ({})", value, path.display(), line, err)
                 }
+            }
+
+            match section.optional_field("cache_optimization") {
+                Ok(Some(field)) => match field.optional_value() {
+                    Ok(Some(value)) => {
+                        match CacheOptimization::from_manifest_key(value.as_str()) {
+                            Some(strategy) => {
+                                if cache.optimization != CacheOptimization::Default {
+                                    warn_global_set_repeatedly!("cache.optimization", cache.optimization, strategy);
+                                }
+
+                                cache.optimization = strategy;
+                            }
+                            None => error!("Ignoring invalid catalog.cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}:{}", value, path.display(), field.line_number)
+                        }
+                    }
+                    Ok(None) => (),
+                    Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
+                }
+                Ok(None) => (),
+                Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
             }
 
             if optional_flag_present(section, "disable_feed") {
