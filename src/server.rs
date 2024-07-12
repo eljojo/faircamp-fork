@@ -32,7 +32,7 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
         match bind_server(build_dir.to_owned(), port) {
             Ok(server) => (server, port),
             Err(err) => {
-                error!("Could not bind preview server to 127.0.0.1:{} ({})", port, err);
+                error!("Could not bind preview server to {}:{} ({})", PREVIEW_IP, port, err);
                 return
             }
         }
@@ -45,7 +45,8 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
                 Err(err) => {
                     if port > DEFAULT_PREVIEW_PORT + MAX_PORT_ATTEMPTS {
                         error!(
-                            "Could not bind preview server to 127.0.0.1 on any port in the range {}-{} (last error was {}).\nUse --preview-port to manually set a port and/or check that no other issue is at play.",
+                            "Could not bind preview server to {} on any port in the range {}-{} (last error was {}).\nUse --preview-port to manually set a port and/or check that no other issue is at play.",
+                            PREVIEW_IP,
                             DEFAULT_PREVIEW_PORT,
                             port,
                             err
