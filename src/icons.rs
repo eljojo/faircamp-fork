@@ -73,7 +73,8 @@ pub fn loading(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <title>{label}</title>
-            <circle class="loading" cx="32" cy="32" r="31.535"/>
+            <path class="loading_left" d="m11.494 56.995v-49.985h15.592v49.985z"/>
+            <path class="loading_right" d="m36.915 56.995v-49.985h15.592v49.985z"/>
         </svg>
     "#)
 }

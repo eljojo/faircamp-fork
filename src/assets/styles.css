@@ -247,21 +247,61 @@ nav {
     width: 100%;
     z-index: 9;
 }
-circle.loading {
-    animation: pulse 2000ms linear 0ms infinite;
+path.loading_left {
+    /* The loading icon is at first the pause icon, but after about 500ms
+       (400ms delay + ~100ms until first tweening occurs) the loading
+       animation (loading-left-shrink) sets in, then . */
+    animation:
+        loading-left-shrink 1600ms cubic-bezier(.65, .05, .36, 1) 400ms 1,
+        loading-left-shuffle 1600ms cubic-bezier(.65, .05, .36, 1) 2000ms infinite;
     transform-origin: 50% 50%;
 }
-@keyframes pulse {
-    0% {
+@keyframes loading-left-shrink {
+    0% { transform: translateX(0) scaleY(1); }
+    25% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(40%) scaleY(.35); }
+    75% { transform: translateX(40%) scaleY(.35); }
+    100% { transform: translateX(0%) scaleY(.35); }
+}
+@keyframes loading-left-shuffle {
+    0% { transform: translateX(0) scaleY(.35); }
+    25% {
         opacity: 1;
-        transform: scale(0%);
+        transform: translateX(0) scaleY(.35);
     }
-    20% {
+    37.25% { opacity: .5; }
+    50% {
         opacity: 1;
+        transform: translateX(40%) scaleY(.35);
     }
+    75% { transform: translateX(40%) scaleY(.35); }
+    100% { transform: translateX(0%) scaleY(.35); }
+}
+path.loading_right {
+    animation:
+        loading-right-shrink 1600ms cubic-bezier(.65, .05, .36, 1) 400ms 1,
+        loading-right-shuffle 1600ms cubic-bezier(.65, .05, .36, 1) 2000ms infinite;
+    transform-origin: 50% 50%;
+}
+@keyframes loading-right-shrink {
+    0% { transform: translateX(0) scaleY(1); }
+    25% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(-40%) scaleY(.35); }
+    75% { transform: translateX(-40%) scaleY(.35); }
+    100% { transform: translateX(0%) scaleY(.35); }
+}
+@keyframes loading-right-shuffle {
+    0% { transform: translateX(0) scaleY(.35); }
+    25% { transform: translateX(0) scaleY(.35); }
+    50% { transform: translateX(-40%) scaleY(.35); }
+    75% {
+        opacity: 1;
+        transform: translateX(-40%) scaleY(.35);
+    }
+    87.25% { opacity: .5; }
     100% {
-        opacity: 0;
-        transform: scale(100%);
+        opacity: 1;
+        transform: translateX(0%) scaleY(.35);
     }
 }
 #overlay {
