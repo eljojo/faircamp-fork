@@ -88,7 +88,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     }
 
     for link in &catalog.links {
-        let external_icon = icons::external(&build.locale.translations.share);
+        let external_icon = icons::external(&build.locale.translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;

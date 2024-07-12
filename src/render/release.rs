@@ -217,7 +217,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     }
 
     for link in &release.links {
-        let external_icon = icons::external(&build.locale.translations.share);
+        let external_icon = icons::external(&build.locale.translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;
