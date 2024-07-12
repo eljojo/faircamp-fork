@@ -286,7 +286,8 @@ bigPlaybackButton.addEventListener('click', () => {
 for (const track of document.querySelectorAll('.track')) {
     const more = track.querySelector('.more');
     const moreButton = track.querySelector('.more_button');
-    const waveformInput = track.querySelector('.waveform input');
+    const waveform = track.querySelector('.waveform');
+    const waveformInput = waveform.querySelector('input');
 
     moreButton.addEventListener('focus', event => {
         // When this focus event occurs, the buttons in .more
@@ -297,47 +298,51 @@ for (const track of document.querySelectorAll('.track')) {
         event.preventDefault();
     });
 
-    waveformInput.addEventListener('change', () => {
-        const container = waveformInput.closest('.track');
-        const seek = parseFloat(waveformInput.value);
-        togglePlayback(container, seek);
+    waveform.addEventListener('click', event => {
+        event.preventDefault();
+        const factor = (event.clientX - waveformInput.getBoundingClientRect().x) / waveformInput.getBoundingClientRect().width;
+        const seek = factor * waveformInput.max
+        togglePlayback(track, seek);
+        waveformInput.classList.add('focus_from_click');
+        waveformInput.focus();
+    });
+
+    waveform.addEventListener('mouseenter', event => {
+        track.classList.add('seek');
+    });
+
+    waveform.addEventListener('mousemove', event => {
+        const factor = (event.clientX - waveform.getBoundingClientRect().x) / waveform.getBoundingClientRect().width;
+        const waveformSvg = track.querySelector('.waveform svg');
+        waveformSvg.querySelector('linearGradient.seek stop:nth-child(1)').setAttribute('offset', factor);
+        waveformSvg.querySelector('linearGradient.seek stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+    });
+
+    waveform.addEventListener('mouseout', event => {
+        track.classList.remove('seek');
+    });
+
+    waveformInput.addEventListener('blur', () => {
+        waveformInput.classList.remove('focus_from_click');
     });
 
     waveformInput.addEventListener('focus', () => {
         announcePlayhead(waveformInput);
     });
 
-    waveformInput.addEventListener('keydown', event => {
+    track.addEventListener('keydown', event => {
         if (event.key == ' ' || event.key == 'Enter') {
             event.preventDefault();
-            const container = waveformInput.closest('.track');
-            togglePlayback(container);
+            togglePlayback(track);
         } else if (event.key == 'ArrowLeft') {
-            const container = waveformInput.closest('.track');
             event.preventDefault();
             const seek = Math.max(0, parseFloat(waveformInput.value) - 5);
-            togglePlayback(container, seek);
+            togglePlayback(track, seek);
         } else if (event.key == 'ArrowRight') {
-            const container = waveformInput.closest('.track');
             event.preventDefault();
             const seek = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
-            togglePlayback(container, seek);
+            togglePlayback(track, seek);
         }
-    });
-
-    waveformInput.addEventListener('mouseenter', event => {
-        track.classList.add('seek');
-    });
-
-    waveformInput.addEventListener('mousemove', event => {
-        const factor = (event.clientX - waveformInput.getBoundingClientRect().x) / waveformInput.getBoundingClientRect().width;
-        const waveformSvg = track.querySelector('.waveform svg');
-        waveformSvg.querySelector('linearGradient.seek stop:nth-child(1)').setAttribute('offset', factor);
-        waveformSvg.querySelector('linearGradient.seek stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
-    });
-
-    waveformInput.addEventListener('mouseout', event => {
-        track.classList.remove('seek');
     });
 }
 
