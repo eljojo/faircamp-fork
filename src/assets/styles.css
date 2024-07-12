@@ -367,30 +367,6 @@ pre { margin: 0; }
     justify-self: center;
 }
 .release { grid-column-start: 1 }
-#share {
-    align-items: center;
-    bottom: 0;
-    display: none;
-    justify-content: center;
-    left: 0;
-    pointer-events: none;
-    position: fixed;
-    right: 0;
-    top: 0;
-    z-index: 999;
-}
-#share .inner {
-    align-items: center;
-    background-color: var(--color-background);
-    border-radius: .4rem;
-    box-shadow: 0 0 1rem hsla(0, 0%, 0%, .2);
-    column-gap: .8rem;
-    display: flex;
-    margin: 4rem;
-    padding: 1rem;
-    pointer-events: all;
-}
-#share:target { display: flex; }
 small { font-size: var(--clearly-smaller); }
 svg {
     display: block;
@@ -417,9 +393,30 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: flex;
 }
 .track:focus-within .more_button,
-.track:hover .more_button,
 .track.active .more_button {
-    display: none;
+    height: 0;
+    margin-left: 0;
+    width: 0;
+}
+@media (any-hover: none) {
+    /* In chromium based browsers, on a pointer-less device, when doing a touch on the
+       .more_button element, any focus or click states are preceded by a hover state
+       on the .more_button, which displaces/hides the .more_button if we just
+       use ".track:hover .more_button" before any focus or click state could occur.
+       This then leads to the focus/click happening on the element that "replaces"
+       it spatially - e.g. the playback button. Hence we patch this with an exception. */
+    .track:hover .more_button:not(:hover) {
+        height: 0;
+        margin-left: 0;
+        width: 0;
+    }
+}
+@media (any-hover: hover) {
+    .track:hover .more_button {
+        height: 0;
+        margin-left: 0;
+        width: 0;
+    }
 }
 .track.active .duration,
 .track.active .track_number.outer {
@@ -442,7 +439,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: none;
     margin-left: .4rem;
 }
-.track .more_button { margin-left: .4rem; }
+.track .more_button {
+    margin-left: .4rem;
+    overflow: hidden;
+}
 .track_download_option { position: relative; }
 .track_number {
     color: var(--fg-3);

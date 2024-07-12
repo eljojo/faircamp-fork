@@ -139,6 +139,9 @@ pub fn track_html(
                 <span class="track_number inner">{track_number_formatted}</span>
                 <span class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
                 <span class="duration">{duration_formatted}</span>
+                <button class="more_button" tabindex="-1">
+                    {more_icon}
+                </button>
                 <div class="more">
                     <button class="track_playback">
                         {play_icon}
@@ -147,9 +150,6 @@ pub fn track_html(
                         {copy_icon}
                     </button>
                 </div>
-                <button class="more_button">
-                    {more_icon}
-                </button>
             </span>
             <audio controls preload="none">
                 {audio_sources}

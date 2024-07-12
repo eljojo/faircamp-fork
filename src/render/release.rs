@@ -152,6 +152,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         <span class="track_number inner">{track_number_formatted}</span>
                         <a class="track_title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
                         <span class="duration">{duration_formatted}</span>
+                        <button class="more_button" tabindex="-1">
+                            {more_icon}
+                        </button>
                         <div class="more">
                             <button class="track_playback">
                                 {play_icon}
@@ -160,9 +163,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                                 {copy_icon}
                             </button>
                         </div>
-                        <button class="more_button">
-                            {more_icon}
-                        </button>
                     </span>
                     <audio controls preload="none">
                         {audio_sources}

@@ -249,41 +249,44 @@ function updatePlayhead(activeTrack, reset = false) {
     waveformInput.value = audio.currentTime;
 }
 
-document.body.addEventListener('click', event => {
-    const { target } = event;
-
-    // TODO: Change to directing bindings, remove pointer-events: none on
-    // buttons (respectively whereever else it would be prudent)
-    if (target.classList.contains('track_playback')) {
-        const container = target.closest('.track')
-        togglePlayback(container);
-    } else if ('copy' in target.dataset) {
-        event.preventDefault();
-        copyToClipboard(target);
-    }
-});
-
 bigPlaybackButton.addEventListener('click', () => {
     togglePlayback();
 });
 
+for (const copyButton of document.querySelectorAll('[data-copy]')) {
+    copyButton.addEventListener('click', () => {
+        copyToClipboard(copyButton);
+    });
+}
+
 for (const track of document.querySelectorAll('.track')) {
     const more = track.querySelector('.more');
     const moreButton = track.querySelector('.more_button');
+    const playbackButton = track.querySelector('.track_playback');
     const waveform = track.querySelector('.waveform');
     const waveformInput = waveform.querySelector('input');
 
-    moreButton.addEventListener('focus', event => {
-        // When this focus event occurs, the buttons in .more
-        // just became visible and focusable, then we immediately
-        // move focus to one of them, after which the .more_button
-        // becomes invisible and unfocusable.
-        more.querySelector(':first-child').focus();
+    playbackButton.addEventListener('click', event => {
         event.preventDefault();
+        togglePlayback(track);
+    });
+
+    track.addEventListener('keydown', event => {
+        if (event.key == ' ' || event.key == 'Enter') {
+            event.preventDefault();
+            togglePlayback(track);
+        } else if (event.key == 'ArrowLeft') {
+            event.preventDefault();
+            const seek = Math.max(0, parseFloat(waveformInput.value) - 5);
+            togglePlayback(track, seek);
+        } else if (event.key == 'ArrowRight') {
+            event.preventDefault();
+            const seek = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
+            togglePlayback(track, seek);
+        }
     });
 
     waveform.addEventListener('click', event => {
-        event.preventDefault();
         const factor = (event.clientX - waveformInput.getBoundingClientRect().x) / waveformInput.getBoundingClientRect().width;
         const seek = factor * waveformInput.max
         togglePlayback(track, seek);
@@ -312,21 +315,6 @@ for (const track of document.querySelectorAll('.track')) {
 
     waveformInput.addEventListener('focus', () => {
         announcePlayhead(waveformInput);
-    });
-
-    track.addEventListener('keydown', event => {
-        if (event.key == ' ' || event.key == 'Enter') {
-            event.preventDefault();
-            togglePlayback(track);
-        } else if (event.key == 'ArrowLeft') {
-            event.preventDefault();
-            const seek = Math.max(0, parseFloat(waveformInput.value) - 5);
-            togglePlayback(track, seek);
-        } else if (event.key == 'ArrowRight') {
-            event.preventDefault();
-            const seek = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
-            togglePlayback(track, seek);
-        }
     });
 }
 
