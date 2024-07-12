@@ -102,7 +102,9 @@ async function mountAndPlay(container, seek) {
 
                 if (seek) {
                     audio.currentTime = seek;
-                    if (audio.currentTime !== seek) return;
+                    // If currentTime is within 1ms of our requested seek time we consider
+                    // the two equal (this accounts for float inaccuracies).
+                    if (Math.abs(audio.currentTime - seek) > 0.001) return;
                     seek = null;
                 }
 
