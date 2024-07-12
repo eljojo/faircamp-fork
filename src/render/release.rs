@@ -347,11 +347,8 @@ pub fn waveform(theme: &Theme, track: &Track) -> String {
             .collect::<Vec<String>>()
             .join("");
 
-        let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
-
         formatdoc!(r#"
-            <svg data-duration="{duration_seconds}"
-                 data-peaks="{peaks_base64}">
+            <svg data-peaks="{peaks_base64}">
                 <path class="seek"/>
                 <path class="playback"/>
                 <path class="base"/>
