@@ -585,6 +585,7 @@ input[type="text"].disabled,
     .vpad_adaptive { padding-top: 2rem; }
 }
 @media (max-width: 29.999rem) {
+    .big_play_button { display: none; }
     .track_number.outer { display: none; }
 }
 @media (min-width: 30rem) {
