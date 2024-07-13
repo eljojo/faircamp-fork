@@ -178,7 +178,7 @@ pub fn embed_choices_html(
     let embed_icon = icons::embed(t_embed);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!(r#"<a href=".{index_suffix}">{embed_icon} {t_embed}</a>"#)
+        format!(r#"<a href="">{embed_icon} {t_embed}</a>"#)
     ];
 
     layout(

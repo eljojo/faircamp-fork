@@ -180,7 +180,7 @@ pub fn track_html(
         let embed_icon = icons::embed(&build.locale.translations.embed);
         let t_embed = &build.locale.translations.embed;
         let embed_link = formatdoc!(r#"
-            <a href="embed{index_suffix}">
+            <a href="../embed{index_suffix}">
                 {embed_icon}
                 <span>{t_embed}</span>
             </a>
@@ -275,7 +275,7 @@ pub fn track_html(
 
     let breadcrumbs = &[
         format!(r#"<a href="..{index_suffix}">{release_title_escaped}</a>"#),
-        format!(r#"<a href=".{index_suffix}">{track_title_escaped}</a>"#)
+        format!(r#"<a href="">{track_title_escaped}</a>"#)
     ];
 
     // TODO: Track-level unlisted properties?

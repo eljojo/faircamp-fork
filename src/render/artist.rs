@@ -141,7 +141,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     "##);
 
     let breadcrumbs = &[
-        format!(r#"<a href=".{index_suffix}">{artist_name_escaped}</a>"#)
+        format!(r#"<a href="">{artist_name_escaped}</a>"#)
     ];
 
     let crawler_meta = if artist.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };

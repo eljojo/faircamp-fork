@@ -260,7 +260,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let download_icon = icons::download(&build.locale.translations.download);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!(r#"<a href=".{index_suffix}">{download_icon} {t_downloads}</a>"#)
+        format!(r#"<a href="">{download_icon} {t_downloads}</a>"#)
     ];
 
     layout(

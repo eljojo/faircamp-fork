@@ -289,7 +289,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let breadcrumbs = &[
         format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!(r#"<a href=".{index_suffix}">{icon} {breadcrumb_heading}</a>"#)
+        format!(r#"<a href="">{icon} {breadcrumb_heading}</a>"#)
     ];
 
     layout(
