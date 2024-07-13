@@ -81,7 +81,6 @@ body {
     height: 1.6rem;
     width: 1.6rem;
 }
-button > * { pointer-events: none; }
 button, input { font-size: 1rem; }
 button.link {
     background: none;

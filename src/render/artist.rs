@@ -4,6 +4,7 @@
 use indoc::formatdoc;
 
 use crate::{Artist, Build, Catalog, CrawlerMeta, ReleaseRc};
+use crate::icons;
 use crate::render::{
     artist_image,
     copy_button,
@@ -29,21 +30,38 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let mut action_links = Vec::new();
 
+    let templates;
     if artist.copy_link {
-        let content = match &build.base_url {
-            Some(base_url) => Some(
-                base_url
-                    .join(&format!("{}{index_suffix}", &artist.permalink.slug))
-                    .unwrap()
-                    .to_string()
-            ),
-            None => None
+        let (content_key, content_value) = match &build.base_url {
+            Some(base_url) => {
+                let url = base_url.join(&format!("{}{index_suffix}", &artist.permalink.slug)).unwrap().to_string();
+                ("content", url)
+            }
+            None => ("dynamic-url", String::new())
         };
 
+
+        let copy_icon = icons::copy(None);
         let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(build, content.as_deref(), t_copy_link);
+        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
         action_links.push(r_copy_link);
-    }
+
+        let failed_icon = icons::failure(&build.locale.translations.failed);
+        let success_icon = icons::success(&build.locale.translations.copied);
+        templates = format!(r#"
+            <template id="copy_icon">
+                {copy_icon}
+            </template>
+            <template id="failed_icon">
+                {failed_icon}
+            </template>
+            <template id="success_icon">
+                {success_icon}
+            </template>
+        "#);
+    } else {
+        templates = String::new();
+    };
 
     let r_action_links = if action_links.is_empty() {
         String::new()
@@ -119,6 +137,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                 {releases_rendered}
             </div>
         </div>
+        {templates}
     "##);
 
     let breadcrumbs = &[

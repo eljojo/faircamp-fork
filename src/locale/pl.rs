@@ -23,6 +23,7 @@ pub fn translations() -> Translations {
         copied: String::from("Skopiowane"),
         copy: String::from("Kopiuj"),
         copy_link: untranslated!(copy_link),
+        copy_link_to_track: untranslated!(copy_link_to_track),
         confirm: String::from("Potwierdź"),
         r#continue: String::from("Kontynuuj"),
         cover_image: String::from("Okładka"),

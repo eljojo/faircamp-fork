@@ -69,6 +69,8 @@ pub fn embed_choices_html(
     let release_prefix = "../";
     let root_prefix = "../../";
 
+    let copy_icon = icons::copy(None);
+
     let track_choices_rendered = release.tracks
         .iter()
         .enumerate()
@@ -88,7 +90,7 @@ pub fn embed_choices_html(
             );
 
             let t_copy = &build.locale.translations.copy;
-            let r_copy_button = copy_button(build, Some(&embed_copy_code), t_copy);
+            let r_copy_button = copy_button("content", &embed_copy_code, &copy_icon, t_copy);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
 
             formatdoc!(r#"
@@ -129,7 +131,22 @@ pub fn embed_choices_html(
     );
 
     let t_copy = &build.locale.translations.copy;
-    let r_copy_button = copy_button(build, Some(&embed_copy_code), t_copy);
+    let r_copy_button = copy_button("content", &embed_copy_code, &copy_icon, t_copy);
+
+    let copy_icon = icons::copy(None);
+    let failed_icon = icons::failure(&build.locale.translations.failed);
+    let success_icon = icons::success(&build.locale.translations.copied);
+    let templates = format!(r#"
+        <template id="copy_icon">
+            {copy_icon}
+        </template>
+        <template id="failed_icon">
+            {failed_icon}
+        </template>
+        <template id="success_icon">
+            {success_icon}
+        </template>
+    "#);
 
     let t_embed = &build.locale.translations.embed;
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;
@@ -151,6 +168,8 @@ pub fn embed_choices_html(
         {track_choices_rendered}
 
         <div class="margin_page_bottom"></div>
+
+        {templates}
     "##);
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);

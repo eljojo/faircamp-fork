@@ -111,30 +111,13 @@ fn compact_release_identifier(
     "#)
 }
 
-/// A button enriched with data attributes and templates that client scripting can use
+/// A button enriched with data attributes that client scripting can use
 /// to copy the content (embed code or link) to clipboard and display success/failure state.
-pub fn copy_button(build: &Build, content: Option<&str>, label: &str) -> String {
-    let data_content = match content {
-        Some(content) => format!(r#"data-content="{content}""#),
-        None => String::new()
-    };
-
-    let copy_icon = icons::copy(label);
-    let failed_icon = icons::failure(&build.locale.translations.failed);
-    let success_icon = icons::success(&build.locale.translations.copied);
+pub fn copy_button(content_key: &str, content_value: &str, copy_icon: &str, label: &str) -> String {
     formatdoc!(r##"
-        <button class="link" {data_content} data-copy>
+        <button class="link" data-{content_key}="{content_value}" data-copy>
             <span class="icon">{copy_icon}</span>
             <span>{label}</span>
-            <template data-icon="copy">
-                {copy_icon}
-            </template>
-            <template data-icon="failed">
-                {failed_icon}
-            </template>
-            <template data-icon="success">
-                {success_icon}
-            </template>
         </button>
     "##)
 }
@@ -320,26 +303,25 @@ fn layout(
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
     let theming_widget = if build.theming_widget {
-        formatdoc!(
-            r#"
-                <script>
-                    const LINK_H = {link_h};
-                    const LINK_L = {link_l};
-                    const LINK_S = {link_s};
-                    const TEXT_H = {text_h};
-                    const TINT_BACK = {tint_back};
-                    const TINT_FRONT = {tint_front};
-                </script>
-                {template}
-            "#,
-            link_h = catalog.theme.link_h,
-            link_l = catalog.theme.link_l.unwrap_or(catalog.theme.base.link_l),
-            link_s = catalog.theme.link_s.unwrap_or(catalog.theme.base.link_s),
-            template = include_str!("templates/theming_widget.html"),
-            text_h = catalog.theme.text_h,
-            tint_back = catalog.theme.tint_back,
-            tint_front = catalog.theme.tint_front
-        )
+        let link_h = catalog.theme.link_h;
+        let link_l = catalog.theme.link_l.unwrap_or(catalog.theme.base.link_l);
+        let link_s = catalog.theme.link_s.unwrap_or(catalog.theme.base.link_s);
+        let template = include_str!("templates/theming_widget.html");
+        let text_h = catalog.theme.text_h;
+        let tint_back = catalog.theme.tint_back;
+        let tint_front = catalog.theme.tint_front;
+
+        formatdoc!(r#"
+            <script>
+                const LINK_H = {link_h};
+                const LINK_L = {link_l};
+                const LINK_S = {link_s};
+                const TEXT_H = {text_h};
+                const TINT_BACK = {tint_back};
+                const TINT_FRONT = {tint_front};
+            </script>
+            {template}
+        "#)
     } else {
         String::new()
     };

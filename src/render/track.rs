@@ -129,7 +129,15 @@ pub fn track_html(
     let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
     let waveform_svg = waveform(&catalog.theme, track);
 
-    let copy_icon = icons::copy(&build.locale.translations.copy_link);
+    let (copy_track_key, copy_track_value) = match &build.base_url {
+        Some(base_url) => {
+            let url = base_url.join(&format!("{}/{track_number}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
+            ("content", url)
+        }
+        None => ("dynamic-url", format!("{track_number}{index_suffix}"))
+    };
+
+    let copy_track_icon = icons::copy(Some(&build.locale.translations.copy_link_to_track));
     let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(&build.locale.translations.play);
     let track_rendered = formatdoc!(r#"
@@ -146,8 +154,8 @@ pub fn track_html(
                     <button class="track_playback">
                         {play_icon}
                     </button>
-                    <button>
-                        {copy_icon}
+                    <button data-{copy_track_key}="{copy_track_value}" data-copy-track>
+                        {copy_track_icon}
                     </button>
                 </div>
             </span>
@@ -180,20 +188,39 @@ pub fn track_html(
         action_links.push(embed_link);
     }
 
+    let failed_icon = icons::failure(&build.locale.translations.failed);
+    let success_icon = icons::success(&build.locale.translations.copied);
+    let mut templates = format!(r#"
+        <template id="copy_track_icon">
+            {copy_track_icon}
+        </template>
+        <template id="failed_icon">
+            {failed_icon}
+        </template>
+        <template id="success_icon">
+            {success_icon}
+        </template>
+    "#);
+
     if track.copy_link {
-        let content = match &build.base_url {
-            Some(base_url) => Some(
-                base_url
-                    .join(&format!("{}{index_suffix}", &release.permalink.slug))
-                    .unwrap()
-                    .to_string()
-            ),
-            None => None
+        let (content_key, content_value) = match &build.base_url {
+            Some(base_url) => {
+                let url = base_url.join(&format!("{}/{track_number}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
+                ("content", url)
+            }
+            None => ("dynamic-url", String::new())
         };
 
+        let copy_icon = icons::copy(None);
         let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(build, content.as_deref(), t_copy_link);
+        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
         action_links.push(r_copy_link);
+
+        templates.push_str(&format!(r#"
+            <template id="copy_icon">
+                {copy_icon}
+            </template>
+        "#));
     }
 
     let r_action_links = if action_links.is_empty() {
@@ -237,6 +264,7 @@ pub fn track_html(
                     {track_text}
                 </div>
             </div>
+            {templates}
         "##,
         artists = list_track_artists(index_suffix, root_prefix, catalog, track),
         // TODO: Track-level cover support

@@ -100,6 +100,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let longest_track_duration = release.longest_track_duration();
 
+    let copy_track_icon = icons::copy(Some(&build.locale.translations.copy_link_to_track));
+    let more_icon = icons::more(&build.locale.translations.more);
+    let play_icon = icons::play(&build.locale.translations.play);
+
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
@@ -142,9 +146,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
             let waveform_svg = waveform(&catalog.theme, track);
 
-            let copy_icon = icons::copy(&build.locale.translations.copy_link);
-            let more_icon = icons::more(&build.locale.translations.more);
-            let play_icon = icons::play(&build.locale.translations.play);
+            let (copy_track_key, copy_track_value) = match &build.base_url {
+                Some(base_url) => {
+                    let url = base_url.join(&format!("{}/{track_number}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
+                    ("content", url)
+                }
+                None => ("dynamic-url", format!("{track_number}{index_suffix}"))
+            };
+
             formatdoc!(r#"
                 <div class="track">
                     <span class="track_number outer">{track_number_formatted}</span>
@@ -159,8 +168,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             <button class="track_playback">
                                 {play_icon}
                             </button>
-                            <button>
-                                {copy_icon}
+                            <button data-{copy_track_key}="{copy_track_value}" data-copy-track>
+                                {copy_track_icon}
                             </button>
                         </div>
                     </span>
@@ -200,20 +209,39 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         action_links.push(embed_link);
     };
 
+    let failed_icon = icons::failure(&build.locale.translations.failed);
+    let success_icon = icons::success(&build.locale.translations.copied);
+    let mut templates = format!(r#"
+        <template id="copy_track_icon">
+            {copy_track_icon}
+        </template>
+        <template id="failed_icon">
+            {failed_icon}
+        </template>
+        <template id="success_icon">
+            {success_icon}
+        </template>
+    "#);
+
     if release.copy_link {
-        let content = match &build.base_url {
-            Some(base_url) => Some(
-                base_url
-                    .join(&format!("{}{index_suffix}", &release.permalink.slug))
-                    .unwrap()
-                    .to_string()
-            ),
-            None => None
+        let (content_key, content_value) = match &build.base_url {
+            Some(base_url) => {
+                let url = base_url.join(&format!("{}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
+                ("content", url)
+            }
+            None => ("dynamic-url", String::new())
         };
 
+        let copy_icon = icons::copy(None);
         let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(build, content.as_deref(), t_copy_link);
+        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
         action_links.push(r_copy_link);
+
+        templates.push_str(&format!(r#"
+            <template id="copy_icon">
+                {copy_icon}
+            </template>
+        "#));
     }
 
     for link in &release.links {
@@ -249,7 +277,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let relative_waveforms = if release.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
 
-    let release_title_unlisted = if release.unlisted {
+    let release_title_with_unlisted_badge = if release.unlisted {
         format!("{release_title_escaped} {}", unlisted_badge(build))
     } else {
         release_title_escaped.clone()
@@ -257,34 +285,33 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let r_player_icon_templates = player_icon_templates(build);
 
-    let play_icon = icons::play(&build.locale.translations.play);
-    let body = formatdoc!(
-        r##"
-            <div class="vcenter_page_outer">
-                <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
-                    <div class="cover">{cover}</div>
+    let artists = list_release_artists(index_suffix, root_prefix, catalog, release);
+    let cover = cover_image(build, index_suffix, "", root_prefix, release);
 
-                    <div class="release_label">
-                        <button class="big_play_button">
-                            {play_icon}
-                        </button>
-                        <h1>{release_title_unlisted}</h1>
-                        <div class="release_artists">{artists}</div>
-                    </div>
+    let body = formatdoc!(r#"
+        <div class="vcenter_page_outer">
+            <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
+                <div class="cover">{cover}</div>
 
-                    <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
-                    {tracks_rendered}
-                    {r_player_icon_templates}
+                <div class="release_label">
+                    <button class="big_play_button">
+                        {play_icon}
+                    </button>
+                    <h1>{release_title_with_unlisted_badge}</h1>
+                    <div class="release_artists">{artists}</div>
                 </div>
-                <div class="additional">
-                    {r_action_links}
-                    {release_text}
-                </div>
+
+                <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
+                {tracks_rendered}
+                {r_player_icon_templates}
             </div>
-        "##,
-        artists = list_release_artists(index_suffix, root_prefix, catalog, release),
-        cover = cover_image(build, index_suffix, "", root_prefix, release)
-    );
+            <div class="additional">
+                {r_action_links}
+                {release_text}
+            </div>
+        </div>
+        {templates}
+    "#);
 
     let breadcrumbs = &[
         format!(r#"<a href=".{index_suffix}">{release_title_escaped}</a>"#)

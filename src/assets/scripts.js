@@ -1,39 +1,47 @@
+const failedIcon = document.querySelector('#failed_icon');
 const loadingIcon = document.querySelector('#loading_icon');
 const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
+const successIcon = document.querySelector('#success_icon');
 
 const bigPlaybackButton = document.querySelector('.big_play_button');
 
-const copyNotificationTimeouts = {};
+const copyFeedbackTimeouts = {};
 
 window.activeTrack = null;
 
+function copyFeedback(content, feedbackIcon, iconContainer, originalIcon) {
+    if (content in copyFeedbackTimeouts) {
+        clearTimeout(copyFeedbackTimeouts[content]);
+        delete copyFeedbackTimeouts[content];
+    }
+
+    iconContainer.replaceChildren(feedbackIcon.content.cloneNode(true));
+
+    copyFeedbackTimeouts[content] = setTimeout(
+        () => iconContainer.replaceChildren(originalIcon.content.cloneNode(true)),
+        3000
+    );
+}
+
 function copyToClipboard(button) {
-    const notify = (success, content) => {
-        if (content in copyNotificationTimeouts) {
-            clearTimeout(copyNotificationTimeouts[content]);
-            delete copyNotificationTimeouts[content];
-        }
-
-        if (success) {
-            const successIcon = button.querySelector('[data-icon="success"]');
-            button.querySelector('.icon').replaceChildren(successIcon.content.cloneNode(true));
-        } else {
-            const failedIcon = button.querySelector('[data-icon="failed"]');
-            button.querySelector('.icon').replaceChildren(failedIcon.content.cloneNode(true));
-        }
-
-        copyNotificationTimeouts[content] = setTimeout(() => {
-            const copyIcon = button.querySelector('[data-icon="copy"]');
-            button.querySelector('.icon').replaceChildren(copyIcon.content.cloneNode(true));
-        }, 3000);
-    };
-
     const content = button.dataset.content;
+    const iconContainer = button.querySelector('.icon');
+    const originalIcon = document.querySelector('#copy_icon');
     navigator.clipboard
         .writeText(content)
-        .then(() => notify(true, content))
-        .catch(_err => notify(false, content));
+        .then(() => copyFeedback(content, successIcon, iconContainer, originalIcon))
+        .catch(_err => copyFeedback(content, failedIcon, iconContainer, originalIcon));
+};
+
+function copyTrackToClipboard(button) {
+    const content = button.dataset.content;
+    const iconContainer = button;
+    const originalIcon = document.querySelector('#copy_track_icon');
+    navigator.clipboard
+        .writeText(content)
+        .then(() => copyFeedback(content, successIcon, iconContainer, originalIcon))
+        .catch(_err => copyFeedback(content, failedIcon, iconContainer, originalIcon));
 };
 
 function formatTime(seconds) {
@@ -249,13 +257,21 @@ function updatePlayhead(activeTrack, reset = false) {
     waveformInput.value = audio.currentTime;
 }
 
-bigPlaybackButton.addEventListener('click', () => {
-    togglePlayback();
-});
+if (bigPlaybackButton) {
+    bigPlaybackButton.addEventListener('click', () => {
+        togglePlayback();
+    });
+}
 
 for (const copyButton of document.querySelectorAll('[data-copy]')) {
     copyButton.addEventListener('click', () => {
         copyToClipboard(copyButton);
+    });
+}
+
+for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
+    copyTrackButton.addEventListener('click', () => {
+        copyTrackToClipboard(copyTrackButton);
     });
 }
 
@@ -499,14 +515,23 @@ window.addEventListener('DOMContentLoaded', event => {
     }
 
     if (navigator.clipboard) {
-        for (button of document.querySelectorAll('[data-copy]')) {
-            if (!button.dataset.content) {
-                const thisPageUrl = window.location.href.split('#')[0]; // discard hash if present
-                button.dataset.content = thisPageUrl;
+        for (button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
+            if (button.dataset.dynamicUrl !== undefined) {
+                if (button.dataset.dynamicUrl === "") {
+                    // Build link to this page dynamically
+                    const thisPageUrl = window.location.href.split('#')[0]; // discard hash if present
+                    button.dataset.content = thisPageUrl;
+                } else {
+                    // Build link to subpage dynamically
+                    let subPageUrl = window.location.href.split('#')[0]; // discard hash if present
+                    if (!subPageUrl.endsWith('/')) { subPageUrl += '/' }
+                    subPageUrl += button.dataset.dynamicUrl;
+                    button.dataset.content = subPageUrl;
+                }
             }
         }
     } else {
-        for (button of document.querySelectorAll('[data-copy]')) {
+        for (button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
             button.remove();
         }
     }
