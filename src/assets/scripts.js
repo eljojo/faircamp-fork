@@ -10,6 +10,9 @@ const copyFeedbackTimeouts = {};
 
 window.activeTrack = null;
 
+let globalOnPause = null;
+let globalUpdatePlayHeadInterval;
+
 function copyFeedback(content, feedbackIcon, iconContainer, originalIcon) {
     if (content in copyFeedbackTimeouts) {
         clearTimeout(copyFeedbackTimeouts[content]);
@@ -64,7 +67,7 @@ async function mountAndPlay(container, seek) {
     const waveformInput = container.querySelector('.waveform input');
     const waveformSvg = container.querySelector('.waveform svg');
 
-    const activeTrack = {
+    const track = {
         audio,
         container,
         playbackButton,
@@ -78,7 +81,7 @@ async function mountAndPlay(container, seek) {
         bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
 
-        window.activeTrack = activeTrack;
+        window.activeTrack = track;
 
         audio.load();
 
@@ -104,7 +107,7 @@ async function mountAndPlay(container, seek) {
                 }
 
                 if (audio.readyState >= audio.HAVE_ENOUGH_DATA) {
-                    delete activeTrack.loading;
+                    delete track.loading;
                     clearInterval(loadInterval);
                     resolve(false);
                 }
@@ -114,7 +117,7 @@ async function mountAndPlay(container, seek) {
 
             loading.abortLoading = () => {
                 clearInterval(loadInterval);
-                delete activeTrack.loading;
+                delete track.loading;
                 container.classList.remove('active');
                 bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
                 playbackButton.replaceChildren(playIcon.content.cloneNode(true));
@@ -124,7 +127,7 @@ async function mountAndPlay(container, seek) {
             // We expose both `abortLoading` and `seek` on this loading object,
             // so that consecutive parallel playback requests may either abort
             // loading or reconfigure up to which time loading should occur (seek).
-            activeTrack.loading = loading;
+            track.loading = loading;
         });
 
         if (aborted) return;
@@ -137,27 +140,29 @@ async function mountAndPlay(container, seek) {
             container.classList.remove('playing');
             bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
             playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-            clearInterval(activeTrack.updatePlayHeadInterval);
-            updatePlayhead(activeTrack);
-            announcePlayhead(waveformInput);
+            clearInterval(globalUpdatePlayHeadInterval);
+
+            if (globalOnPause !== null) {
+                globalOnPause();
+                globalOnPause = null;
+            } else {
+                updatePlayhead(track);
+                announcePlayhead(waveformInput);
+            }
         });
 
         audio.addEventListener('play', event => {
             container.classList.add('active', 'playing');
             bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
             playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-            activeTrack.updatePlayHeadInterval = setInterval(() => updatePlayhead(activeTrack), 200);
-            updatePlayhead(activeTrack);
+            globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
+            updatePlayhead(track);
             announcePlayhead(waveformInput);
         });
 
         audio.addEventListener('ended', event => {
             audio.currentTime = 0;
-            clearInterval(activeTrack.updatePlayHeadInterval);
-            updatePlayhead(activeTrack, true);
             container.classList.remove('active', 'playing');
-            bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
-            playbackButton.replaceChildren(playIcon.content.cloneNode(true));
 
             const nextContainer = container.nextElementSibling;
             if (nextContainer && nextContainer.classList.contains('track')) {
@@ -170,7 +175,7 @@ async function mountAndPlay(container, seek) {
 
     if (seek) { audio.currentTime = seek; }
 
-    window.activeTrack = activeTrack;
+    window.activeTrack = track;
 
     audio.play();
 }
@@ -212,18 +217,27 @@ function togglePlayback(container = null, seek = null) {
 
             if (activeTrack.loading) {
                 activeTrack.loading.abortLoading();
+                mountAndPlay(container, seek);
             } else {
-                if (!activeTrack.audio.paused) {
+                const resetCurrentStartNext = () => {
+                    activeTrack.audio.currentTime = 0;
+                    updatePlayhead(activeTrack, true);
+                    announcePlayhead(activeTrack.waveformInput);
+                    activeTrack.container.classList.remove('active');
+
+                    mountAndPlay(container, seek);
+                }
+
+                if (activeTrack.audio.paused) {
+                    resetCurrentStartNext();
+                } else {
+                    // The pause event occurs with a delay, so we defer resetting the track
+                    // and starting the next one until just after the pause event fires.
+                    globalOnPause = resetCurrentStartNext;
                     activeTrack.audio.pause();
                 }
 
-                activeTrack.audio.currentTime = 0;
-                updatePlayhead(activeTrack, true);
-                announcePlayhead(activeTrack.waveformInput);
-                activeTrack.container.classList.remove('active');
             }
-
-            mountAndPlay(container, seek);
         }
     } else {
         // No track is active, so we start either the requested one, or the first one on the page.
