@@ -3,11 +3,11 @@
 
 use std::path::Path;
 
-use id3::{Tag, TagLike, Version};
+use id3::{Tag, TagLike};
 
 use crate::decode::mp3;
 
-use super::{AudioMeta, compute_peaks, trim_and_reject_empty};
+use super::{AudioMeta, compute_peaks, Id3Util};
 
 pub fn extract(path: &Path) -> AudioMeta {
     let (duration_seconds, peaks) = match mp3::decode(path) {
@@ -19,47 +19,12 @@ pub fn extract(path: &Path) -> AudioMeta {
     };
 
     if let Ok(tag) = Tag::read_from_path(path) {
-        // Due to a bug in the id3 crate, in ID3v2.2 and ID3v2.3 tags
-        // the character '/' (slash) is replaced with '\0' (null byte).
-        // The issue is a bit more complex than that, hence unresolved,
-        // but as a practical workaround we are for the time being re-
-        // replacing '\0' with '/' when we encounter it. A bugreport
-        // for the underlying issue is found at the following url:
-        // https://github.com/polyfloyd/rust-id3/issues/103
-        let trim_and_reject_empty_override = match tag.version() {
-            Version::Id3v22 |
-            Version::Id3v23 => |string: &str| -> Option<String> {
-                let repaired_string = string.replace('\0', "/");
-                trim_and_reject_empty(&repaired_string)
-            },
-            Version::Id3v24 => trim_and_reject_empty
-        };
+        let id3_util = Id3Util::new(&tag);
 
-        let album = match tag.album() {
-            Some(album) => trim_and_reject_empty_override(album),
-            None => None
-        };
-
-        let album_artists = match tag.album_artist() {
-            Some(album_artist) => match trim_and_reject_empty_override(album_artist) {
-                Some(album_artist) => vec![album_artist],
-                None => Vec::new()
-            },
-            None => Vec::new()
-        };
-
-        let artists = match tag.artist() {
-            Some(artist) => match trim_and_reject_empty_override(artist) {
-                Some(artist) => vec![artist],
-                None => Vec::new()
-            },
-            None => Vec::new()
-        };
-
-        let title = match tag.title() {
-            Some(title) => trim_and_reject_empty_override(title),
-            None => None
-        };
+        let album = id3_util.album();
+        let album_artists = id3_util.album_artists();
+        let artists = id3_util.artists();
+        let title = id3_util.title();
 
         AudioMeta {
             album,

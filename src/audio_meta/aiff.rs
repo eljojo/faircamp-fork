@@ -7,7 +7,7 @@ use id3::{Tag, TagLike};
 
 use crate::decode::aiff;
 
-use super::{AudioMeta, compute_peaks, trim_and_reject_empty};
+use super::{AudioMeta, compute_peaks, Id3Util};
 
 pub fn extract(path: &Path) -> AudioMeta {
     let (duration_seconds, peaks) = match aiff::decode(path) {
@@ -19,31 +19,12 @@ pub fn extract(path: &Path) -> AudioMeta {
     };
 
     if let Ok(tag) = Tag::read_from_path(path) {
-        let album = match tag.album() {
-            Some(album) => trim_and_reject_empty(album),
-            None => None
-        };
+        let id3_util = Id3Util::new(&tag);
 
-        let album_artists = match tag.album_artist() {
-            Some(album_artist) => match trim_and_reject_empty(album_artist) {
-                Some(album_artist) => vec![album_artist],
-                None => Vec::new()
-            },
-            None => Vec::new()
-        };
-
-        let artists = match tag.artist() {
-            Some(artist) => match trim_and_reject_empty(artist) {
-                Some(artist) => vec![artist],
-                None => Vec::new()
-            },
-            None => Vec::new()
-        };
-
-        let title = match tag.title() {
-            Some(title) => trim_and_reject_empty(title),
-            None => None
-        };
+        let album = id3_util.album();
+        let album_artists = id3_util.album_artists();
+        let artists = id3_util.artists();
+        let title = id3_util.title();
 
         AudioMeta {
             album,

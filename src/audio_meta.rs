@@ -18,10 +18,13 @@ use crate::decode::DecodeResult;
 mod aiff;
 mod alac;
 mod flac;
+mod id3_util;
 mod mp3;
 mod ogg_vorbis;
 mod opus;
 mod wav;
+
+use id3_util::Id3Util;
 
 /// Sometimes a tag storing the track number might contain either only
 /// the track number ("01") or also the total track count ("01/07").
