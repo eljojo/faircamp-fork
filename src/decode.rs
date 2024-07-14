@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2022-2024 Simon Repp
-// SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pub mod aiff;
