@@ -8,9 +8,9 @@ const bigPlaybackButton = document.querySelector('.big_play_button');
 
 const copyFeedbackTimeouts = {};
 
-window.activeTrack = null;
+let activeTrack = null;
+let firstTrack = null;
 
-let globalOnPause = null;
 let globalUpdatePlayHeadInterval;
 
 function copyFeedback(content, feedbackIcon, iconContainer, originalIcon) {
@@ -60,193 +60,134 @@ function formatTime(seconds) {
     }
 }
 
-async function mountAndPlay(container, seek) {
-    const audio = container.querySelector('audio');
-    const playbackButton = container.querySelector('.track_playback');
-    const time = container.querySelector('.duration');
-    const waveformInput = container.querySelector('.waveform input');
-    const waveformSvg = container.querySelector('.waveform svg');
+async function mountAndPlay(track, seekTo) {
+    activeTrack = track;
 
-    const track = {
-        audio,
-        container,
-        playbackButton,
-        time,
-        waveformInput,
-        waveformSvg
+    // The pause and loading icon are visually indistinguishable (until the
+    // actual loading animation kicks in after 500ms), hence we right away
+    // transistion to the loading icon to make the interface feel snappy,
+    // even if we potentially replace it with the pause icon right after that
+    // if there doesn't end up to be any loading required.
+    track.container.classList.add('active');
+    track.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+    bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+
+    if (track.audio.preload !== 'auto') {
+        track.audio.preload = 'auto';
+        track.audio.load();
+    }
+
+    const play = () => {
+        track.audio.play();
     };
 
-    if (audio.readyState === audio.HAVE_NOTHING) {
-        container.classList.add('active');
-        bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
-        playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+    if (seekTo === null) {
+        play();
+    } else {
+        const seeking = {
+            to: seekTo
+        };
 
-        window.activeTrack = track;
+        let closestPerformedSeek = 0;
 
-        audio.load();
+        function tryFinishSeeking() {
+            let closestAvailableSeek = 0;
+            const { seekable } = track.audio;
+            for (let index = 0; index < seekable.length; index++) {
+                if (seekable.start(index) <= seeking.to) {
+                    if (seekable.end(index) >= seeking.to) {
+                        track.audio.currentTime = seeking.to;
+                        delete track.seeking;
+                        clearInterval(seekInterval);
+                        play();
+                    } else {
+                        closestAvailableSeek = seekable.end(index);
+                    }
+                } else {
+                    break;
+                }
+            }
 
-        const loading = {};
-
-        if (seek) {
-            loading.seek = seek;
-            seek = null;
-        } else {
-            loading.seek = null;
+            // If we can not yet seek to exactly the point we want to get to,
+            // but we can get at least one second closer to that point, we do it.
+            // (the idea being that this more likely triggers preloading of the
+            // area that we need to seek to)
+            if (seeking.to !== null && closestAvailableSeek - closestPerformedSeek > 1) {
+                track.audio.currentTime = closestAvailableSeek;
+                closestPerformedSeek = closestAvailableSeek;
+            }
         }
 
-        const aborted = await new Promise(resolve => {
-            function tryFinishLoading() {
-                if (audio.readyState < audio.HAVE_METADATA) return;
+        const seekInterval = setInterval(tryFinishSeeking, 30);
 
-                if (loading.seek !== null) {
-                    audio.currentTime = loading.seek;
-                    // If currentTime is within 1ms of our requested seek time we consider
-                    // the two equal (this accounts for float inaccuracies).
-                    if (Math.abs(audio.currentTime - loading.seek) > 0.001) return;
-                    loading.seek = null;
-                }
-
-                if (audio.readyState >= audio.HAVE_ENOUGH_DATA) {
-                    delete track.loading;
-                    clearInterval(loadInterval);
-                    resolve(false);
-                }
-            }
-
-            const loadInterval = setInterval(tryFinishLoading, 30);
-
-            loading.abortLoading = () => {
-                clearInterval(loadInterval);
-                delete track.loading;
-                container.classList.remove('active');
-                bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
-                playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-                resolve(true);
-            };
-
-            // We expose both `abortLoading` and `seek` on this loading object,
-            // so that consecutive parallel playback requests may either abort
-            // loading or reconfigure up to which time loading should occur (seek).
-            track.loading = loading;
-        });
-
-        if (aborted) return;
-    }
-
-    if (!audio.dataset.boundListeners) {
-        audio.dataset.boundListeners = true;
-
-        audio.addEventListener('pause', event => {
-            container.classList.remove('playing');
+        seeking.abortSeeking = () => {
+            clearInterval(seekInterval);
+            delete track.seeking;
+            track.container.classList.remove('active');
+            track.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
             bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
-            playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-            clearInterval(globalUpdatePlayHeadInterval);
+        };
 
-            if (globalOnPause !== null) {
-                globalOnPause();
-                globalOnPause = null;
-            } else {
-                updatePlayhead(track);
-                announcePlayhead(waveformInput);
-            }
-        });
-
-        audio.addEventListener('play', event => {
-            container.classList.add('active', 'playing');
-            bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-            playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-            globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
-            updatePlayhead(track);
-            announcePlayhead(waveformInput);
-        });
-
-        audio.addEventListener('ended', event => {
-            audio.currentTime = 0;
-            container.classList.remove('active', 'playing');
-
-            const nextContainer = container.nextElementSibling;
-            if (nextContainer && nextContainer.classList.contains('track')) {
-                togglePlayback(nextContainer);
-            } else {
-                window.activeTrack = null;
-            }
-        });
+        // We expose both `abortSeeking` and `seek` on this seeking object,
+        // so that consecutive parallel playback requests may either abort
+        // seeking or reconfigure up to which time seeking should occur (seek).
+        track.seeking = seeking;
     }
-
-    if (seek) { audio.currentTime = seek; }
-
-    window.activeTrack = track;
-
-    audio.play();
 }
 
-function togglePlayback(container = null, seek = null) {
-    const { activeTrack } = window;
-
-    if (activeTrack) {
-        if (container === null) {
-            container = activeTrack.container;
-        }
-
-        if (container === activeTrack.container) {
-            // Here we do something with the already active track
-
-            if (activeTrack.loading) {
-                // This track is already requested for playback and actively loading.
-                // We only update the requested `seek` if necessary.
-                if (seek !== null) { activeTrack.loading.seek = seek; }
-            } else if (activeTrack.audio.paused) {
-                // This track is paused, we resume playback (and if requested, perform a seek beforehand)
-                if (seek !== null) {
-                    activeTrack.audio.currentTime = seek;
-                }
-                activeTrack.audio.play();
+function togglePlayback(track, seekTo = null) {
+    if (!activeTrack) {
+        mountAndPlay(track, seekTo);
+    } else if (track === activeTrack) {
+        if (track.seeking) {
+            if (seekTo === null) {
+                track.seeking.abortSeeking();
             } else {
-                // This track is playing, we either pause it, or perform a seek
-                if (seek === null) {
-                    activeTrack.audio.pause();
-                } else {
-                    activeTrack.audio.currentTime = seek;
-                    updatePlayhead(activeTrack);
-                    announcePlayhead(activeTrack.waveformInput);
-                }
+                track.seeking.to = seekTo;
             }
+        } else if (track.audio.paused) {
+            if (seekTo !== null) {
+                // TODO: Needs to be wrapped in an async mechanism that first ensures we can seek to that point
+                track.audio.currentTime = seekTo;
+            }
+            track.audio.play();
         } else {
-            // Another track is active, so we either abort its loading (if applies) or
-            // pause it (if necessary) and reset it. Then we start the new track.
-
-            if (activeTrack.loading) {
-                activeTrack.loading.abortLoading();
-                mountAndPlay(container, seek);
+            // This track is playing, we either pause it, or perform a seek
+            if (seekTo === null) {
+                track.audio.pause();
             } else {
-                const resetCurrentStartNext = () => {
-                    activeTrack.audio.currentTime = 0;
-                    updatePlayhead(activeTrack, true);
-                    announcePlayhead(activeTrack.waveformInput);
-                    activeTrack.container.classList.remove('active');
-
-                    mountAndPlay(container, seek);
-                }
-
-                if (activeTrack.audio.paused) {
-                    resetCurrentStartNext();
-                } else {
-                    // The pause event occurs with a delay, so we defer resetting the track
-                    // and starting the next one until just after the pause event fires.
-                    globalOnPause = resetCurrentStartNext;
-                    activeTrack.audio.pause();
-                }
-
+                // TODO: Needs to be wrapped in an async mechanism that first ensures we can seek to that point
+                track.audio.currentTime = seekTo;
+                updatePlayhead(track);
+                announcePlayhead(track);
             }
         }
     } else {
-        // No track is active, so we start either the requested one, or the first one on the page.
+        // Another track is active, so we either abort its loading (if applies) or
+        // pause it (if necessary) and reset it. Then we start the new track.
+        if (activeTrack.loading) {
+            activeTrack.loading.abortSeeking();
+            mountAndPlay(track, seekTo);
+        } else {
+            const resetCurrentStartNext = () => {
+                activeTrack.audio.currentTime = 0;
+                updatePlayhead(activeTrack, true);
+                announcePlayhead(activeTrack);
+                activeTrack.container.classList.remove('active');
 
-        if (container === null) {
-            container = document.querySelector('.track');
+                mountAndPlay(track, seekTo);
+            }
+
+            if (activeTrack.audio.paused) {
+                resetCurrentStartNext();
+            } else {
+                // The pause event occurs with a delay, so we defer resetting the track
+                // and starting the next one until just after the pause event fires.
+                activeTrack.onPause = resetCurrentStartNext;
+                activeTrack.audio.pause();
+            }
+
         }
-
-        mountAndPlay(container, seek);
     }
 }
 
@@ -254,13 +195,14 @@ function togglePlayback(container = null, seek = null) {
 // range input and visible svg representation) change granularly, we only
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
-function announcePlayhead(waveformInput) {
+function announcePlayhead(track) {
+    const { waveformInput } = track;
     // TODO: Announce "current: xxxx, remaining: xxxxx"?
     waveformInput.setAttribute('aria-valuetext', formatTime(waveformInput.value));
 }
 
-function updatePlayhead(activeTrack, reset = false) {
-    const { audio, time, waveformInput, waveformSvg } = activeTrack;
+function updatePlayhead(track, reset = false) {
+    const { audio, time, waveformInput, waveformSvg } = track;
     const duration = parseFloat(waveformInput.max);
     const factor = reset ? 0 : audio.currentTime / duration;
 
@@ -273,7 +215,7 @@ function updatePlayhead(activeTrack, reset = false) {
 
 if (bigPlaybackButton) {
     bigPlaybackButton.addEventListener('click', () => {
-        togglePlayback();
+        togglePlayback(activeTrack ?? firstTrack);
     });
 }
 
@@ -289,51 +231,121 @@ for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
     });
 }
 
-for (const track of document.querySelectorAll('.track')) {
-    const more = track.querySelector('.more');
-    const moreButton = track.querySelector('.more_button');
-    const playbackButton = track.querySelector('.track_playback');
-    const waveform = track.querySelector('.waveform');
-    const waveformInput = waveform.querySelector('input');
+let previousTrack = null;
+for (const container of document.querySelectorAll('.track')) {
+    const audio = container.querySelector('audio');
+    const playbackButton = container.querySelector('.track_playback');
+    const time = container.querySelector('.duration');
+    const waveformInput = container.querySelector('.waveform input');
+    const waveformSvg = container.querySelector('.waveform svg');
+
+    const track = {
+        audio,
+        container,
+        playbackButton,
+        time,
+        waveformInput,
+        waveformSvg
+    };
+
+    if (firstTrack === null) {
+        firstTrack = track;
+    }
+
+    if (previousTrack !== null) {
+        previousTrack.nextTrack = track;
+    }
+
+    previousTrack = track;
+
+    audio.addEventListener('ended', event => {
+        audio.currentTime = 0;
+        container.classList.remove('active', 'playing');
+
+        if (track.nextTrack) {
+            togglePlayback(track.nextTrack);
+        } else {
+            activeTrack = null;
+        }
+    });
+
+    audio.addEventListener('pause', event => {
+        clearInterval(globalUpdatePlayHeadInterval);
+
+        container.classList.remove('playing');
+        playbackButton.replaceChildren(playIcon.content.cloneNode(true));
+        bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
+
+        if (track.onPause) {
+            track.onPause();
+            delete track.onPause;
+        } else {
+            updatePlayhead(track);
+            announcePlayhead(track);
+        }
+    });
+
+    audio.addEventListener('play', event => {
+        container.classList.add('active', 'playing');
+        playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+        bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+        globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
+        updatePlayhead(track);
+        announcePlayhead(track);
+    });
+
+    audio.addEventListener('playing', event => {
+        playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+        bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+    });
+
+    audio.addEventListener('waiting', event => {
+        // TODO: Eventually we could augment various screenreader labels here to
+        //       indicate the loading state too
+        playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+        bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+    });
 
     playbackButton.addEventListener('click', event => {
         event.preventDefault();
         togglePlayback(track);
     });
 
-    track.addEventListener('keydown', event => {
+    container.addEventListener('keydown', event => {
         if (event.key == 'ArrowLeft') {
             event.preventDefault();
-            const seek = Math.max(0, parseFloat(waveformInput.value) - 5);
-            togglePlayback(track, seek);
+            const seekTo = Math.max(0, parseFloat(waveformInput.value) - 5);
+            togglePlayback(track, seekTo);
         } else if (event.key == 'ArrowRight') {
             event.preventDefault();
-            const seek = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
-            togglePlayback(track, seek);
+            const seekTo = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
+            togglePlayback(track, seekTo);
         }
     });
 
+    const waveform = container.querySelector('.waveform');
+
     waveform.addEventListener('click', event => {
         const factor = (event.clientX - waveformInput.getBoundingClientRect().x) / waveformInput.getBoundingClientRect().width;
-        const seek = factor * waveformInput.max
-        togglePlayback(track, seek);
+        const seekTo = factor * waveformInput.max
+        togglePlayback(track, seekTo);
         waveformInput.classList.add('focus_from_click');
         waveformInput.focus();
     });
 
     waveform.addEventListener('mouseenter', event => {
-        track.classList.add('seek');
+        container.classList.add('seek');
     });
 
     waveform.addEventListener('mousemove', event => {
         const factor = (event.clientX - waveform.getBoundingClientRect().x) / waveform.getBoundingClientRect().width;
-        const waveformSvg = track.querySelector('.waveform svg');
+        const waveformSvg = container.querySelector('.waveform svg');
         waveformSvg.querySelector('linearGradient.seek stop:nth-child(1)').setAttribute('offset', factor);
         waveformSvg.querySelector('linearGradient.seek stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
     });
 
     waveform.addEventListener('mouseout', event => {
-        track.classList.remove('seek');
+        container.classList.remove('seek');
     });
 
     waveformInput.addEventListener('blur', () => {
@@ -341,7 +353,7 @@ for (const track of document.querySelectorAll('.track')) {
     });
 
     waveformInput.addEventListener('focus', () => {
-        announcePlayhead(waveformInput);
+        announcePlayhead(track);
     });
 
     waveformInput.addEventListener('keydown', event => {
@@ -553,4 +565,3 @@ window.addEventListener('DOMContentLoaded', event => {
         }
     }
 });
-
