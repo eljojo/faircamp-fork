@@ -13,6 +13,12 @@ let firstTrack = null;
 
 let globalUpdatePlayHeadInterval;
 
+let volume = 1;
+const persistedVolume = localStorage.getItem('faircampVolume');
+if (persistedVolume !== null) {
+    volume = parseFloat(persistedVolume);
+}
+
 function copyFeedback(content, feedbackIcon, iconContainer, originalIcon) {
     if (content in copyFeedbackTimeouts) {
         clearTimeout(copyFeedbackTimeouts[content]);
@@ -78,6 +84,7 @@ async function mountAndPlay(track, seekTo) {
     }
 
     const play = () => {
+        track.audio.volume = volume;
         track.audio.play();
     };
 
@@ -213,6 +220,16 @@ function updatePlayhead(track, reset = false) {
     waveformInput.value = audio.currentTime;
 }
 
+function updateVolume() {
+    console.log(`Volume = ${volume}`);
+
+    if (activeTrack) {
+        activeTrack.audio.volume = volume;
+    }
+
+    localStorage.setItem('faircampVolume', volume.toString());
+}
+
 if (bigPlaybackButton) {
     bigPlaybackButton.addEventListener('click', () => {
         togglePlayback(activeTrack ?? firstTrack);
@@ -230,6 +247,20 @@ for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
         copyTrackToClipboard(copyTrackButton);
     });
 }
+
+document.addEventListener('keydown', event => {
+    if (event.key === '+') {
+        if (volume + 0.1 <= 1) {
+            volume += 0.1;
+            updateVolume();
+        }
+    } else if (event.key === '-') {
+        if (volume - 0.1 >= 0) {
+            volume -= 0.1;
+            updateVolume();
+        }
+    }
+});
 
 let previousTrack = null;
 for (const container of document.querySelectorAll('.track')) {
@@ -312,11 +343,11 @@ for (const container of document.querySelectorAll('.track')) {
     });
 
     container.addEventListener('keydown', event => {
-        if (event.key == 'ArrowLeft') {
+        if (event.key === 'ArrowLeft') {
             event.preventDefault();
             const seekTo = Math.max(0, parseFloat(waveformInput.value) - 5);
             togglePlayback(track, seekTo);
-        } else if (event.key == 'ArrowRight') {
+        } else if (event.key === 'ArrowRight') {
             event.preventDefault();
             const seekTo = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
             togglePlayback(track, seekTo);
@@ -357,7 +388,7 @@ for (const container of document.querySelectorAll('.track')) {
     });
 
     waveformInput.addEventListener('keydown', event => {
-        if (event.key == ' ' || event.key == 'Enter') {
+        if (event.key === ' ' || event.key === 'Enter') {
             togglePlayback(track);
         }
     });
@@ -546,7 +577,7 @@ window.addEventListener('DOMContentLoaded', event => {
     if (navigator.clipboard) {
         for (button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
             if (button.dataset.dynamicUrl !== undefined) {
-                if (button.dataset.dynamicUrl === "") {
+                if (button.dataset.dynamicUrl === '') {
                     // Build link to this page dynamically
                     const thisPageUrl = window.location.href.split('#')[0]; // discard hash if present
                     button.dataset.content = thisPageUrl;
