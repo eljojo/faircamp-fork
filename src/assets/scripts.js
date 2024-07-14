@@ -302,10 +302,7 @@ for (const track of document.querySelectorAll('.track')) {
     });
 
     track.addEventListener('keydown', event => {
-        if (event.key == ' ' || event.key == 'Enter') {
-            event.preventDefault();
-            togglePlayback(track);
-        } else if (event.key == 'ArrowLeft') {
+        if (event.key == 'ArrowLeft') {
             event.preventDefault();
             const seek = Math.max(0, parseFloat(waveformInput.value) - 5);
             togglePlayback(track, seek);
@@ -345,6 +342,12 @@ for (const track of document.querySelectorAll('.track')) {
 
     waveformInput.addEventListener('focus', () => {
         announcePlayhead(waveformInput);
+    });
+
+    waveformInput.addEventListener('keydown', event => {
+        if (event.key == ' ' || event.key == 'Enter') {
+            togglePlayback(track);
+        }
     });
 }
 
