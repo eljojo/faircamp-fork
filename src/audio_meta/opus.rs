@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::collections::HashMap;
 use std::path::Path;
 
 use opus_headers::parse_from_path;
@@ -26,32 +27,10 @@ pub fn extract(path: &Path) -> AudioMeta {
     if let Ok(headers) = parse_from_path(path) {
         let user_comments = headers.comments.user_comments;
 
-        let album = match user_comments.get("album") {
-            Some(album) => trim_and_reject_empty(album),
-            None => None
-        };
-
-        let album_artists = match user_comments.get("albumartist")
-            .or_else(|| user_comments.get("album artist")) {
-            Some(album_artist) => match trim_and_reject_empty(album_artist) {
-                Some(album_artist) => vec![album_artist],
-                None => Vec::new()
-            },
-            None => Vec::new()
-        };
-
-        let artists = match user_comments.get("artist") {
-            Some(artist) => match trim_and_reject_empty(artist) {
-                Some(artist) => vec![artist],
-                None => Vec::new()
-            },
-            None => Vec::new()
-        };
-
-        let title = match user_comments.get("title") {
-            Some(title) => trim_and_reject_empty(title),
-            None => None
-        };
+        let album = extract_single("album", &user_comments);
+        let album_artists = extract_multiple_alternatives(&["albumartist", "album artist"], &user_comments);
+        let artists = extract_multiple("artist", &user_comments);
+        let title = extract_single("title", &user_comments);
 
         let track_number = match user_comments.get("tracknumber") {
             Some(track_number) => parse_track_number_ignoring_total_tracks(track_number),
@@ -79,5 +58,34 @@ pub fn extract(path: &Path) -> AudioMeta {
             title: None,
             track_number: None
         }
+    }
+}
+
+fn extract_multiple(key: &str, user_comments: &HashMap<String, String>) -> Vec<String> {
+    match user_comments.get(key) {
+        Some(value) => match trim_and_reject_empty(value) {
+            Some(value) => vec![value],
+            None => Vec::new()
+        },
+        None => Vec::new()
+    }
+}
+
+fn extract_multiple_alternatives(keys: &[&str], user_comments: &HashMap<String, String>) -> Vec<String> {
+    for key in keys {
+        if let Some(value) = user_comments.get(*key) {
+            if let Some(value) = trim_and_reject_empty(value) {
+                return vec![value];
+            }
+        }
+    }
+
+    Vec::new()
+}
+
+fn extract_single (key: &str, user_comments: &HashMap<String, String>) -> Option<String> {
+    match user_comments.get(key) {
+        Some(value) => trim_and_reject_empty(value),
+        None => None
     }
 }

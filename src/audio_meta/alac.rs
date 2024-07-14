@@ -5,8 +5,11 @@ use std::path::Path;
 
 use crate::decode::alac;
 
+use mp4parse::TryString;
+
 use super::{AudioMeta, compute_peaks};
 
+/// Extract peaks and tag data using mp4parse
 pub fn extract(path: &Path) -> AudioMeta {
     let (duration_seconds, peaks) = match alac::decode(path) {
         Some(decode_result) => (
@@ -17,37 +20,10 @@ pub fn extract(path: &Path) -> AudioMeta {
     };
 
     if let Some(meta) = alac::decode_meta(path) {
-        let album = match meta.album {
-            Some(try_string) => match String::from_utf8(try_string.to_vec()) {
-                Ok(string) => Some(string),
-                Err(_) => None
-            }
-            None => None
-        };
-
-        let album_artists = match meta.album_artist {
-            Some(try_string) => match String::from_utf8(try_string.to_vec()) {
-                Ok(string) => vec![string],
-                Err(_) => Vec::new()
-            }
-            None => Vec::new()
-        };
-
-        let artists = match meta.artist {
-            Some(try_string) => match String::from_utf8(try_string.to_vec()) {
-                Ok(string) => vec![string],
-                Err(_) => Vec::new()
-            }
-            None => Vec::new()
-        };
-
-        let title = match meta.title {
-            Some(try_string) => match String::from_utf8(try_string.to_vec()) {
-                Ok(string) => Some(string),
-                Err(_) => None
-            }
-            None => None
-        };
+        let album = extract_single(meta.album); // '©alb'
+        let album_artists = extract_multiple(meta.album_artist); // 'aART'
+        let artists = extract_multiple(meta.artist); // '©art' or '©ART'
+        let title = extract_single(meta.title); // '©nam'
 
         let track_number = meta.track_number.map(|number| number as u32);
 
@@ -72,5 +48,25 @@ pub fn extract(path: &Path) -> AudioMeta {
             title: None,
             track_number: None
         }
+    }
+}
+
+fn extract_multiple(metadata_option: Option<TryString>) -> Vec<String> {
+    match metadata_option {
+        Some(try_string) => match String::from_utf8(try_string.to_vec()) {
+            Ok(string) => vec![string],
+            Err(_) => Vec::new()
+        }
+        None => Vec::new()
+    }
+}
+
+fn extract_single (metadata_option: Option<TryString>) -> Option<String> {
+    match metadata_option {
+        Some(try_string) => match String::from_utf8(try_string.to_vec()) {
+            Ok(string) => Some(string),
+            Err(_) => None
+        }
+        None => None
     }
 }

@@ -66,14 +66,14 @@ pub fn extract(path: &Path) -> AudioMeta {
         }
     } else {
         AudioMeta {
-            album: None,
-            album_artists: Vec::new(),
-            artists: Vec::new(),
+            album,
+            album_artists,
+            artists,
             duration_seconds,
             lossless: false,
             peaks,
-            title: None,
-            track_number: None
+            title,
+            track_number
         }
     }
 }
