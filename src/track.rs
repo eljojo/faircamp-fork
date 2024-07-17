@@ -40,30 +40,31 @@ pub struct Track {
 impl Track {
     pub fn transcode_as(
         &mut self,
-        format: AudioFormat,
+        target_format: AudioFormat,
         build: &Build,
         asset_intent: AssetIntent,
         tag_mapping: &TagMapping
     ) {
         let mut transcodes_mut = self.transcodes.borrow_mut();
 
-        if let Some(transcode) = transcodes_mut.get_mut(format, generic_hash(tag_mapping)) {
+        if let Some(transcode) = transcodes_mut.get_mut(target_format, generic_hash(tag_mapping)) {
             if asset_intent == AssetIntent::Deliverable {
                 transcode.asset.unmark_stale();
             }
         } else {
-            let target_filename = format!("{}{}", util::uid(), format.extension());
+            let target_filename = format!("{}{}", util::uid(), target_format.extension());
 
-            info_transcoding!("{:?} to {}", self.transcodes.file_meta.path, format);
+            info_transcoding!("{:?} to {}", self.transcodes.file_meta.path, target_format);
             ffmpeg::transcode(
                 &build.catalog_dir.join(&self.transcodes.file_meta.path),
                 &build.cache_dir.join(&target_filename),
-                format,
+                transcodes_mut.source_meta.format_family,
+                target_format,
                 tag_mapping
             ).unwrap();
 
             let asset = Asset::new(build, target_filename, asset_intent);
-            transcodes_mut.formats.push(Transcode::new(asset, format, generic_hash(tag_mapping)));
+            transcodes_mut.formats.push(Transcode::new(asset, target_format, generic_hash(tag_mapping)));
         }
     }
     

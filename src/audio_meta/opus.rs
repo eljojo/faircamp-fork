@@ -6,6 +6,7 @@ use std::path::Path;
 
 use opus_headers::parse_from_path;
 
+use crate::AudioFormatFamily;
 use crate::decode::opus;
 
 use super::{
@@ -16,6 +17,9 @@ use super::{
 };
 
 pub fn extract(path: &Path) -> AudioMeta {
+    let format_family = AudioFormatFamily::Opus;
+    let lossless = false;
+
     let (duration_seconds, peaks) = match opus::decode(path) {
         Some(decode_result) => (
             decode_result.duration,
@@ -42,7 +46,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists,
             artists,
             duration_seconds,
-            lossless: false,
+            format_family,
+            lossless,
             peaks,
             title,
             track_number
@@ -53,7 +58,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists: Vec::new(),
             artists: Vec::new(),
             duration_seconds,
-            lossless: false,
+            format_family,
+            lossless,
             peaks,
             title: None,
             track_number: None

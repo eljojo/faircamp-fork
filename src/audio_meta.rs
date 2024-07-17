@@ -13,6 +13,7 @@ use std::path::Path;
 
 use serde_derive::{Serialize, Deserialize};
 
+use crate::AudioFormatFamily;
 use crate::decode::DecodeResult;
 
 mod aiff;
@@ -26,34 +27,6 @@ mod wav;
 
 use id3_util::Id3Util;
 
-/// Sometimes a tag storing the track number might contain either only
-/// the track number ("01") or also the total track count ("01/07").
-/// We don't ever need the total track count so this is a parsing routine
-/// that extracts only the track number. This function practically also
-/// accepts nonsense like "01/boom", happily returning 1, as there's
-/// not really any harm coming from that.
-pub fn parse_track_number_ignoring_total_tracks(string: &str) -> Option<u32> {
-    let mut split_by_slash = string.trim().split('/');
-
-    if let Some(first_token) = split_by_slash.next() {
-        match first_token.trim_end().parse::<u32>() {
-            Ok(number) => Some(number),
-            Err(_) => None
-        }
-    } else {
-        None
-    }
-}
-
-/// Return None if the passed string is empty or all whitespace,
-/// otherwise pass Some(String) containing the trimmed input string. 
-fn trim_and_reject_empty(string: &str) -> Option<String> {
-    match string.trim() {
-        "" => None,
-        trimmed => Some(trimmed.to_string())
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
     pub album: Option<String>,
@@ -62,6 +35,7 @@ pub struct AudioMeta {
     /// Vec because vorbis comments support multiple artists
     pub artists: Vec<String>,
     pub duration_seconds: f32,
+    pub format_family: AudioFormatFamily,
     pub lossless: bool,
     pub peaks: Option<Vec<f32>>,
     pub title: Option<String>,
@@ -93,6 +67,7 @@ impl AudioMeta {
                     album_artists: Vec::new(),
                     artists: Vec::new(),
                     duration_seconds: 0.0,
+                    format_family: AudioFormatFamily::Aac,
                     lossless,
                     peaks: None,
                     title: None,
@@ -157,4 +132,32 @@ fn compute_peaks(decode_result: DecodeResult, points: u32) -> Vec<f32> {
     
         })
         .collect()
+}
+
+/// Sometimes a tag storing the track number might contain either only
+/// the track number ("01") or also the total track count ("01/07").
+/// We don't ever need the total track count so this is a parsing routine
+/// that extracts only the track number. This function practically also
+/// accepts nonsense like "01/boom", happily returning 1, as there's
+/// not really any harm coming from that.
+pub fn parse_track_number_ignoring_total_tracks(string: &str) -> Option<u32> {
+    let mut split_by_slash = string.trim().split('/');
+
+    if let Some(first_token) = split_by_slash.next() {
+        match first_token.trim_end().parse::<u32>() {
+            Ok(number) => Some(number),
+            Err(_) => None
+        }
+    } else {
+        None
+    }
+}
+
+/// Return None if the passed string is empty or all whitespace,
+/// otherwise pass Some(String) containing the trimmed input string.
+fn trim_and_reject_empty(string: &str) -> Option<String> {
+    match string.trim() {
+        "" => None,
+        trimmed => Some(trimmed.to_string())
+    }
 }

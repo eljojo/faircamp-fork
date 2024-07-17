@@ -5,11 +5,15 @@ use std::path::Path;
 
 use id3::{Tag, TagLike};
 
+use crate::AudioFormatFamily;
 use crate::decode::aiff;
 
 use super::{AudioMeta, compute_peaks, Id3Util};
 
 pub fn extract(path: &Path) -> AudioMeta {
+    let format_family = AudioFormatFamily::Aiff;
+    let lossless = true;
+
     let (duration_seconds, peaks) = match aiff::decode(path) {
         Some(decode_result) => (
             decode_result.duration,
@@ -31,7 +35,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists,
             artists,
             duration_seconds,
-            lossless: true,
+            format_family,
+            lossless,
             peaks,
             title,
             track_number: tag.track()
@@ -42,7 +47,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists: Vec::new(),
             artists: Vec::new(),
             duration_seconds,
-            lossless: true,
+            format_family,
+            lossless,
             peaks,
             title: None,
             track_number: None

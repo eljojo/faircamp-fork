@@ -66,10 +66,11 @@ impl Transcode {
 }
 
 impl Transcodes {
-    /// Increase version on each change to the data layout of [Transcodes].
-    /// This automatically informs the cache not to try to deserialize
-    /// manifests that hold old, incompatible data.
-    pub const CACHE_SERIALIZATION_KEY: &'static str = "transcodes1";
+    /// Increase version on each change to the data layout of [Transcodes]
+    /// (or underlying structs that are contained within). This automatically
+    /// informs the cache not to try to deserialize manifests that hold old,
+    /// incompatible data.
+    pub const CACHE_SERIALIZATION_KEY: &'static str = "transcodes2";
 
     pub fn deserialize_cached(path: &Path) -> Option<Transcodes> {
         match fs::read(path) {

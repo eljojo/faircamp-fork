@@ -5,7 +5,7 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
-use crate::{AudioFormat, TagMapping};
+use crate::{AudioFormat, AudioFormatFamily, TagMapping};
 
 #[cfg(not(target_os = "windows"))]
 pub const FFMPEG_BINARY: &str = "ffmpeg";
@@ -13,9 +13,83 @@ pub const FFMPEG_BINARY: &str = "ffmpeg";
 #[cfg(target_os = "windows")]
 pub const FFMPEG_BINARY: &str = "ffmpeg.exe";
 
+/// FFmpeg does not always copy tags, this depends on the combination of
+/// source and target format for a specific transcode. This function applies
+/// extra flags to ensure tag copying in as many format combinations as
+/// possible (it might not always be possible).
+fn apply_tag_copy_flags(
+    command: &mut Command,
+    source_format_family: AudioFormatFamily,
+    target_format_family: AudioFormatFamily
+) {
+    // With certain source/target format combinations we need to
+    // explicitly map metadata from source to target. We can not
+    // apply this explicit mapping by default, because for other
+    // format combinations it has the opposite effect - no tags
+    // would be copied at all there.
+
+    // If we copy from Ogg Vorbis to anything but Ogg Vorbis or
+    // Opus, expliclity map metadata.
+    if source_format_family == AudioFormatFamily::OggVorbis {
+        match target_format_family {
+            AudioFormatFamily::Aac |
+            AudioFormatFamily::Aiff |
+            AudioFormatFamily::Alac |
+            AudioFormatFamily::Flac |
+            AudioFormatFamily::Mp3 |
+            AudioFormatFamily::Wav => {
+                command.arg("-map_metadata").arg("0:s:a:0");
+            }
+            AudioFormatFamily::OggVorbis |
+            AudioFormatFamily::Opus => ()
+        }
+    }
+
+    // If we copy from Opus to anything but Ogg Vorbis or
+    // Opus, expliclity map metadata.
+    if source_format_family == AudioFormatFamily::Opus {
+        match target_format_family {
+            AudioFormatFamily::Aac |
+            AudioFormatFamily::Aiff |
+            AudioFormatFamily::Alac |
+            AudioFormatFamily::Flac |
+            AudioFormatFamily::Mp3 |
+            AudioFormatFamily::Wav => {
+                command.arg("-map_metadata").arg("0:s:a:0");
+            }
+            AudioFormatFamily::OggVorbis |
+            AudioFormatFamily::Opus => ()
+        }
+    }
+}
+
+/// FFmpeg does not always write tags, this depends on the muxer used for
+// a specific format. This function applies extra flags to enable tag
+// writing for all formats.
+fn apply_tag_write_flags(
+    command: &mut Command,
+    target_format_family: AudioFormatFamily
+) {
+    // FFmpeg's adts (aac) muxer does not write (ID3v2.4) tags by default,
+    // hence we manually enable it whenever we encode an AAC file.
+    // (see https://ffmpeg.org/ffmpeg-formats.html#adts-1)
+    if target_format_family == AudioFormatFamily::Aac {
+        command.arg("-write_id3v2").arg("1");
+    }
+
+    // FFmpeg's aiff muxer does not write (ID3v2) tags by default,
+    // hence we manually enable it whenever we encode an AIFF file.
+    // With this enabled, ID3v2.4 tags are the default to be written.
+    // (see https://ffmpeg.org/ffmpeg-formats.html#aiff-1)
+    if target_format_family == AudioFormatFamily::Aiff {
+        command.arg("-write_id3v2").arg("1");
+    }
+}
+
 pub fn transcode(
     input_file: &Path,
     output_file: &Path,
+    source_format_family: AudioFormatFamily,
     target_format: AudioFormat,
     tag_mapping: &TagMapping
 ) -> Result<(), String> {
@@ -26,10 +100,10 @@ pub fn transcode(
 
     match tag_mapping {
         TagMapping::Copy => {
-            // Copy metadata from first audio stream to output.
-            // Necessary because some conversions do not automatically carry
-            // over the metadata (e.g. observed for opus to mp3).
-            command.arg("-map_metadata").arg("0:s:a:0");
+            let target_format_family = target_format.family();
+
+            apply_tag_copy_flags(&mut command, source_format_family, target_format_family);
+            apply_tag_write_flags(&mut command, target_format_family);
         }
         TagMapping::Custom { album, album_artist, artist, image, title, track } => {
             command.arg("-map_metadata").arg("-1");
@@ -60,6 +134,8 @@ pub fn transcode(
             if let Some(track) = track {
                 command.arg("-metadata").arg(format!("track={}", track));
             }
+
+            apply_tag_write_flags(&mut command, target_format.family());
         }
         TagMapping::Remove => {
             command.arg("-map_metadata").arg("-1");

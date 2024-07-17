@@ -52,7 +52,7 @@ use archives::{Archive, Archives, ArchivesRc};
 use args::Args;
 use artist::{Artist, ArtistRc};
 use asset::{Asset, AssetIntent};
-use audio_format::AudioFormat;
+use audio_format::{AudioFormat, AudioFormatFamily};
 use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
 use cache::{Cache, CacheOptimization, View};

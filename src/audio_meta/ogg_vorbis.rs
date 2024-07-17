@@ -3,6 +3,7 @@
 
 use std::path::Path;
 
+use crate::AudioFormatFamily;
 use crate::decode::ogg_vorbis;
 
 use super::{
@@ -13,6 +14,9 @@ use super::{
 };
 
 pub fn extract(path: &Path) -> AudioMeta {
+    let format_family = AudioFormatFamily::OggVorbis;
+    let lossless = false;
+
     let (duration_seconds, peaks, comment_header) = match ogg_vorbis::decode(path) {
         Some((decode_result, comment_header)) => (
             decode_result.duration,
@@ -59,7 +63,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists,
             artists,
             duration_seconds,
-            lossless: false,
+            format_family,
+            lossless,
             peaks,
             title,
             track_number
@@ -70,7 +75,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists,
             artists,
             duration_seconds,
-            lossless: false,
+            format_family,
+            lossless,
             peaks,
             title,
             track_number

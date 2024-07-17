@@ -5,6 +5,7 @@ use std::path::Path;
 
 use metaflac::Tag;
 
+use crate::AudioFormatFamily;
 use crate::decode::flac;
 
 use super::{
@@ -15,6 +16,9 @@ use super::{
 };
 
 pub fn extract(path: &Path) -> AudioMeta {
+    let format_family = AudioFormatFamily::Flac;
+    let lossless = true;
+
     let (duration_seconds, peaks) = match flac::decode(path) {
         Some(decode_result) => (
             decode_result.duration,
@@ -48,7 +52,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists,
             artists,
             duration_seconds,
-            lossless: true,
+            format_family,
+            lossless,
             peaks,
             title,
             track_number
@@ -59,7 +64,8 @@ pub fn extract(path: &Path) -> AudioMeta {
             album_artists: Vec::new(),
             artists: Vec::new(),
             duration_seconds,
-            lossless: true,
+            format_family,
+            lossless,
             peaks,
             title: None,
             track_number: None

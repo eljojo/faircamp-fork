@@ -28,6 +28,19 @@ pub enum AudioFormat {
     Wav
 }
 
+/// A simplified format description, agnostic of bitrate.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+pub enum AudioFormatFamily {
+    Aac,
+    Aiff,
+    Alac,
+    Flac,
+    Mp3,
+    OggVorbis,
+    Opus,
+    Wav
+}
+
 impl AudioFormat {
     /// Assets for each format are rendered into their own directory in order
     /// to avoid filename collisions and this returns the dirname for a format.
@@ -62,6 +75,23 @@ impl AudioFormat {
             AudioFormat::Opus96Kbps |
             AudioFormat::Opus128Kbps => ".opus",
             AudioFormat::Wav => ".wav"
+        }
+    }
+
+    pub fn family(&self) -> AudioFormatFamily {
+        match self {
+            AudioFormat::Aac => AudioFormatFamily::Aac,
+            AudioFormat::Aiff => AudioFormatFamily::Aiff,
+            AudioFormat::Alac => AudioFormatFamily::Alac,
+            AudioFormat::Flac => AudioFormatFamily::Flac,
+            AudioFormat::Mp3VbrV0 |
+            AudioFormat::Mp3VbrV5 |
+            AudioFormat::Mp3VbrV7 => AudioFormatFamily::Mp3,
+            AudioFormat::OggVorbis => AudioFormatFamily::OggVorbis,
+            AudioFormat::Opus48Kbps |
+            AudioFormat::Opus96Kbps |
+            AudioFormat::Opus128Kbps => AudioFormatFamily::Opus,
+            AudioFormat::Wav => AudioFormatFamily::Wav
         }
     }
 
