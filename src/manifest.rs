@@ -804,11 +804,11 @@ pub fn apply_options(
         if let Some((value, line)) = optional_field_value_with_line(section, "rewrite_tags") {
             match value.as_str() {
                 "no" => {
-                    info!("From faircamp 0.15.0 onwards, 'rewrite_tags: no' should be specified as 'tags: copy' - this will eventually become mandatory (seen) in {}:{}).", path.display(), line);
+                    info!("From faircamp 0.15.0 onwards, 'rewrite_tags: no' should be specified as 'tags: copy' - this will eventually become mandatory (seen in {}:{}).", path.display(), line);
                     overrides.tag_agenda = TagAgenda::Copy;
                 }
                 "yes" => {
-                    info!("From faircamp 0.15.0 onwards, 'rewrite_tags: yes' should be specified as 'tags: normalize' - this will eventually become mandatory (seen) in {}:{}).", path.display(), line);
+                    info!("From faircamp 0.15.0 onwards, 'rewrite_tags: yes' should be specified as 'tags: normalize' - this will eventually become mandatory (seen in {}:{}).", path.display(), line);
                     overrides.tag_agenda = TagAgenda::normalize();
                 }
                 other => error!("Ignoring invalid release.rewrite_tags value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
@@ -853,10 +853,10 @@ pub fn apply_options(
                         "copy" => overrides.tag_agenda = TagAgenda::Copy,
                         "normalize" => overrides.tag_agenda = TagAgenda::normalize(),
                         "remove" => overrides.tag_agenda = TagAgenda::Remove,
-                        other => error!("Ignoring invalid release.tags value '{}' (allowed are either 'copy', 'remove' or 'rewrite') in {}:{}", other, path.display(), field.line_number)
+                        other => error!("Ignoring invalid release.tags value '{}' (allowed are either 'copy', 'normalize' or 'remove') in {}:{}", other, path.display(), field.line_number)
                     }
                 } else {
-                    error!("Ignoring invalid release.tags setting (allowed are either 'copy', 'remove', 'rewrite' as value, or a customization with attributes such as 'title = copy', 'artist = rewrite', 'album_artist = remove' etc.) in {}:{}", path.display(), field.line_number)
+                    error!("Ignoring invalid release.tags setting (allowed are either 'copy', 'normalize', 'remove' as value, or a customization with attributes such as 'title = copy', 'artist = rewrite', 'album_artist = remove' etc.) in {}:{}", path.display(), field.line_number)
                 }
             }
             Err(err) => error!("{} {}", err.message, err_line!(path, err)),
