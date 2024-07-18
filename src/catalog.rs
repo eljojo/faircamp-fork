@@ -38,6 +38,8 @@ use crate::util::{generic_hash, url_safe_hash_base64};
 const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aif", "aifc", "aiff", "alac", "flac", "mp3", "ogg", "opus", "wav"];
 const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png", "webp"];
 
+const UNSUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aac", "m4a"];
+
 const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through manifests (see faircamp's README.md)";
 
 #[derive(Debug)]
@@ -471,6 +473,8 @@ impl Catalog {
                                         track_paths.push((path, extension));
                                     } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
                                         image_paths.push(path);
+                                    } else if UNSUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
+                                        error!("Support for reading audio files with the extension '{}' from the catalog is not yet supported - please get in touch or open an issue if you need this", extension);
                                     } else {
                                         extra_paths.push(path);
                                     }
