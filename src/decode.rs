@@ -15,6 +15,9 @@ const I24_MAX: i32 = 8388607;
 pub struct DecodeResult {
     pub channels: u16,
     pub duration: f32,
+    /// This sample count is decoupled from channel count, i.e. a mono file with
+    /// 48kHz sample rate will have the same sample count as a stereo file
+    /// with 48kHz sample rate (that is, 48000 in both cases).
     pub sample_count: u32,
     pub sample_rate: u32,
     /// Samples are stored interleaved
