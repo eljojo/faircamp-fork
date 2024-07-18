@@ -5,6 +5,11 @@
 
 # Changelog
 
+## 0.15.1
+
+- Ensure that tags are correctly copied/written by ffmpeg for any possible source/target format combination (7127c61)
+- Update outdated tag configuration hints for manifest field deprecations/errors (724eebb)
+
 ## 0.15.0
 
 - Apply round corners to home/artist images when shown detached (b87802d)
