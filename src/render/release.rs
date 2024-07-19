@@ -313,10 +313,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         {templates}
     "#);
 
-    let breadcrumbs = &[
-        format!(r#"<a href="">{release_title_escaped}</a>"#)
-    ];
-
     let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
 
     layout(
@@ -326,7 +322,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         catalog,
         &release.theme,
         &release.title,
-        breadcrumbs,
         crawler_meta
     )
 }

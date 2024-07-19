@@ -13,9 +13,7 @@ use crate::{
     PaymentOption,
     Release
 };
-use crate::icons;
 use crate::render::{compact_release_identifier, layout};
-use crate::util::html_escape_outside_attribute;
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
@@ -24,9 +22,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let (
         content,
-        breadcrumb_heading,
-        heading,
-        icon
+        heading
     ) = if let DownloadOption::Paid(currency, range) = &release.download_option {
         let currency_code = currency.code();
         let currency_symbol = currency.symbol();
@@ -196,14 +192,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#);
 
-        let buy_icon = icons::buy(&build.locale.translations.buy); // TODO: "Purchase" ? (also everywhere else this occurs and in code then of course too)
-
-        (
-            content,
-            build.locale.translations.downloads.as_str(),
-            build.locale.translations.purchase_downloads.as_str(),
-            buy_icon
-        )
+        (content, build.locale.translations.purchase_downloads.as_str())
     } else if let DownloadOption::Codes { unlock_text, .. } = &release.download_option {
         let custom_or_default_unlock_text = unlock_text
             .as_ref()
@@ -252,14 +241,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             </div>
         "#);
 
-        let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-
-        (
-            content,
-            build.locale.translations.downloads.as_str(),
-            build.locale.translations.unlock_downloads.as_str(),
-            unlock_icon
-        )
+        (content, build.locale.translations.unlock_downloads.as_str())
     } else {
         unreachable!();
     };
@@ -286,12 +268,6 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         </div>
     "#);
 
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let breadcrumbs = &[
-        format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!(r#"<a href="">{icon} {breadcrumb_heading}</a>"#)
-    ];
-
     layout(
         root_prefix,
         &body,
@@ -299,7 +275,6 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         catalog,
         &release.theme,
         &release.title,
-        breadcrumbs,
         CrawlerMeta::NoIndexNoFollow
     )
 }

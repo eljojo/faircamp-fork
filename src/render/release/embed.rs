@@ -172,15 +172,6 @@ pub fn embed_choices_html(
         {templates}
     "##);
 
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
-
-    let t_embed = &build.locale.translations.embed;
-    let embed_icon = icons::embed(t_embed);
-    let breadcrumbs = &[
-        format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!(r#"<a href="">{embed_icon} {t_embed}</a>"#)
-    ];
-
     layout(
         root_prefix,
         &body,
@@ -188,7 +179,6 @@ pub fn embed_choices_html(
         catalog,
         &release.theme,
         &release.title,
-        breadcrumbs,
         CrawlerMeta::NoIndexNoFollow
     )
 }

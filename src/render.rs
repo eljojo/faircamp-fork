@@ -289,7 +289,6 @@ fn layout(
     catalog: &Catalog,
     theme: &Theme,
     title: &str,
-    breadcrumbs: &[String],
     crawler_meta: CrawlerMeta
 ) -> String {
     let feed_meta_link = match build.base_url.is_some() && catalog.feed_enabled {
@@ -326,16 +325,9 @@ fn layout(
         String::new()
     };
 
-    let breadcrumbs = breadcrumbs
-        .iter()
-        .map(|link| format!(" <span>›</span> {link}"))
-        .collect::<Vec<String>>()
-        .join("");
-
     format!(
         include_str!("templates/layout.html"),
         body = body,
-        breadcrumbs = breadcrumbs,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,

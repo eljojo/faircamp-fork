@@ -12,7 +12,6 @@ use crate::{
     Release,
     TagMapping
 };
-use crate::icons;
 use crate::render::{compact_release_identifier, layout};
 use crate::util::{format_bytes, generic_hash, html_escape_outside_attribute};
 
@@ -59,9 +58,6 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         .join("\n");
 
     let release_prefix = "../../";
-
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
-
     let release_link = format!("../..{index_suffix}");
 
     let compact_release_identifier_rendered = compact_release_identifier(
@@ -257,12 +253,6 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         "##
     );
 
-    let download_icon = icons::download(&build.locale.translations.download);
-    let breadcrumbs = &[
-        format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#),
-        format!(r#"<a href="">{download_icon} {t_downloads}</a>"#)
-    ];
-
     layout(
         root_prefix,
         &body,
@@ -270,7 +260,6 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         catalog,
         &release.theme,
         &release.title,
-        breadcrumbs,
         CrawlerMeta::NoIndexNoFollow
     )
 }

@@ -32,7 +32,6 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
         catalog,
         &catalog.theme,
         t_image_descriptions,
-        &[],
         CrawlerMeta::NoIndexNoFollow
     )
 }

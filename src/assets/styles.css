@@ -324,7 +324,6 @@ path.loading_right {
     object-fit: scale-down;
 }
 .path {
-    color: hsl(var(--text-h), var(--text-s), var(--header-text-l));
     overflow-x: hidden;
     padding-right: 1rem;
     position: relative;
@@ -334,7 +333,6 @@ path.loading_right {
 }
 a.logo,
 .path a { color: hsl(var(--text-h), var(--text-s), var(--header-link-l)); }
-.path span { padding: 0 .2rem; }
 .path svg {
     display: inline-block;
     height: var(--boldly-larger);

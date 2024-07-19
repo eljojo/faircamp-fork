@@ -271,12 +271,8 @@ pub fn track_html(
         cover = cover_image(build, index_suffix, "../", root_prefix, release)
     );
 
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
-
-    let breadcrumbs = &[
-        format!(r#"<a href="..{index_suffix}">{release_title_escaped}</a>"#),
-        format!(r#"<a href="">{track_title_escaped}</a>"#)
-    ];
+    // TODO: Should probably feature on the track page somewhere!
+    // let release_title_escaped = html_escape_outside_attribute(&release.title);
 
     // TODO: Track-level unlisted properties?
     let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
@@ -288,7 +284,6 @@ pub fn track_html(
         catalog,
         &track.theme,
         &track_title,
-        breadcrumbs,
         crawler_meta
     )
 }
