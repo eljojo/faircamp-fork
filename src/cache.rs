@@ -777,7 +777,11 @@ impl Cache {
 
         let source_meta = AudioMeta::extract(&build.catalog_dir.join(source_path), extension);
         let transcodes = TranscodesRc::new(file_meta.clone(), hash, source_meta);
+
+        transcodes.borrow().persist_to_cache(&build.cache_dir);
+
         self.transcodes.push(transcodes.clone());
+
         TranscodesRcView::new(file_meta, transcodes)
     }
 }
