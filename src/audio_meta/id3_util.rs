@@ -37,14 +37,6 @@ impl<'a> Id3Util<'a> {
         }
     }
 
-        match self.tag.get(id) {
-            Some(frame) => match frame.content().text() {
-                Some(text) => self.patched_trim_and_reject_empty(text),
-                None => None
-            }
-            None => None
-        }
-    }
 
     pub fn new(tag: &'a Tag) -> Id3Util {
         Id3Util {
