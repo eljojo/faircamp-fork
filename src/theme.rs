@@ -52,6 +52,7 @@ pub struct Theme {
 pub struct ThemeBase {
     pub bg_1: Lightness,
     pub bg_2: Lightness,
+    pub bg_3: Lightness,
     pub background_l: u8,
     pub faint_l: u8,
     pub fg_1: Lightness,
@@ -177,6 +178,10 @@ impl ThemeBase {
             hsl_l: HashableF32(10.0),
             oklch_l: HashableF32(21.56)
         },
+        bg_3: Lightness {
+            hsl_l: HashableF32(19.9),
+            oklch_l: HashableF32(32.0)
+        },
         background_l: 0,
         faint_l: 15,
         fg_1: Lightness {
@@ -216,6 +221,10 @@ impl ThemeBase {
         bg_2: Lightness {
             hsl_l: HashableF32(10.0),
             oklch_l: HashableF32(21.56)
+        },
+        bg_3: Lightness {
+            hsl_l: HashableF32(19.9),
+            oklch_l: HashableF32(32.0)
         },
         background_l: 0,
         faint_l: 15,
@@ -257,6 +266,10 @@ impl ThemeBase {
             hsl_l: HashableF32(12.23),
             oklch_l: HashableF32(24.0)
         },
+        bg_3: Lightness {
+            hsl_l: HashableF32(19.9),
+            oklch_l: HashableF32(32.0)
+        },
         background_l: 10,
         faint_l: 15,
         fg_1: Lightness {
@@ -296,6 +309,10 @@ impl ThemeBase {
         bg_2: Lightness {
             hsl_l: HashableF32(76.83),
             oklch_l: HashableF32(82.0)
+        },
+        bg_3: Lightness {
+            hsl_l: HashableF32(62.06),
+            oklch_l: HashableF32(70.0)
         },
         background_l: 90,
         faint_l: 85,
@@ -337,6 +354,10 @@ impl ThemeBase {
             hsl_l: HashableF32(90.0),
             oklch_l: HashableF32(92.34)
         },
+        bg_3: Lightness {
+            hsl_l: HashableF32(62.06),
+            oklch_l: HashableF32(70.0)
+        },
         background_l: 100,
         faint_l: 87,
         fg_1: Lightness {
@@ -376,6 +397,10 @@ impl ThemeBase {
         bg_2: Lightness {
             hsl_l: HashableF32(90.0),
             oklch_l: HashableF32(92.34)
+        },
+        bg_3: Lightness {
+            hsl_l: HashableF32(62.06),
+            oklch_l: HashableF32(70.0)
         },
         background_l: 100,
         faint_l: 87,

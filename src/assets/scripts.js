@@ -5,6 +5,8 @@ const playIcon = document.querySelector('#play_icon');
 const successIcon = document.querySelector('#success_icon');
 
 const bigPlaybackButton = document.querySelector('.big_play_button');
+const volumeButton = document.querySelector('.volume_button');
+const volumeInput = document.querySelector('.volume input');
 
 const copyFeedbackTimeouts = {};
 
@@ -13,10 +15,25 @@ let firstTrack = null;
 
 let globalUpdatePlayHeadInterval;
 
-let volume = 1;
-const persistedVolume = localStorage.getItem('faircampVolume');
-if (persistedVolume !== null) {
-    volume = parseFloat(persistedVolume);
+const volume = {
+    level: 1,
+    muted: false
+};
+
+if (volumeButton) {
+    const persistedVolume = localStorage.getItem('faircampVolume');
+    if (persistedVolume !== null) {
+        if (persistedVolume === '0') {
+            volume.muted = true;
+        } else {
+            const level = parseFloat(persistedVolume);
+            if (level >= 0 && level <= 1) {
+                volume.level = level;
+
+            }
+        }
+    }
+    updateVolume();
 }
 
 function copyFeedback(content, feedbackIcon, iconContainer, originalIcon) {
@@ -84,7 +101,8 @@ async function mountAndPlay(track, seekTo) {
     }
 
     const play = () => {
-        track.audio.volume = volume;
+        track.audio.muted = volume.muted;
+        track.audio.volume = volume.level;
         track.audio.play();
     };
 
@@ -221,18 +239,130 @@ function updatePlayhead(track, reset = false) {
 }
 
 function updateVolume() {
-    console.log(`Volume = ${volume}`);
-
     if (activeTrack) {
-        activeTrack.audio.volume = volume;
+        activeTrack.audio.muted = volume.muted;
+        activeTrack.audio.volume = volume.level;
     }
 
-    localStorage.setItem('faircampVolume', volume.toString());
+    const volumeToPersist = volume.muted ? '0' : volume.level.toString();
+    localStorage.setItem('faircampVolume', volumeToPersist);
+
+    const knobLevel = volume.muted ? 0 : volume.level;
+
+    // Draws a ring segment. In clock terms we start at 12 o'clock and we go clockwise.
+    const beginAngle = -135;
+    const arcAngle = knobLevel * 270;
+    const radius = 32;
+
+    let largeArcFlag = arcAngle < 180 ? 0 : 1 ;
+
+    const degToRad = deg => (deg * Math.PI) / 180;
+
+    let beginAngleRad = degToRad(beginAngle);
+    let beginX = Math.sin(beginAngleRad);
+    let beginY = -Math.cos(beginAngleRad);
+
+    let endAngleRad = degToRad(beginAngle + arcAngle);
+    let endX = Math.sin(endAngleRad);
+    let endY = -Math.cos(endAngleRad);
+
+    const outerRadius = radius * 0.9;
+    let segmentOuterBeginX = radius + beginX * outerRadius;
+    let segmentOuterBeginY = radius + beginY * outerRadius;
+
+    let segmentOuterEndX = radius + endX * outerRadius;
+    let segmentOuterEndY = radius + endY * outerRadius;
+
+    let innerRadius = radius * 0.8;
+    let segmentInnerBeginX = radius + beginX * innerRadius;
+    let segmentInnerBeginY = radius + beginY * innerRadius;
+
+    let segmentInnerEndX = radius + endX * innerRadius;
+    let segmentInnerEndY = radius + endY * innerRadius;
+
+    const knobAngle = beginAngle + arcAngle;
+    volumeButton.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
+
+    let volumeLabel;
+    if (knobLevel === 0) {
+        volumeLabel = 'Muted';
+    } else if (knobLevel === 1) {
+        volumeLabel = 'Full Volume';
+    } else {
+        volumeLabel = `${Math.trunc(knobLevel * 100)}%`;
+    }
+
+    volumeButton.querySelector('span').innerHTML = volumeLabel;
+
+    volumeButton.querySelector('path.active_range').setAttribute('d', `
+        M ${segmentOuterBeginX},${segmentOuterBeginY}
+        A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${segmentOuterEndX},${segmentOuterEndY}
+        L ${segmentInnerEndX},${segmentInnerEndY}
+        A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${segmentInnerBeginX},${segmentInnerBeginY}
+        Z"
+    `);
+
+    volumeInput.value = volume.level;
 }
 
 if (bigPlaybackButton) {
     bigPlaybackButton.addEventListener('click', () => {
         togglePlayback(activeTrack ?? firstTrack);
+    });
+}
+
+if (volumeButton) {
+    volumeButton.addEventListener('click', () => {
+        if (volume.muted) {
+            volume.muted = false;
+            if (volume.level < 0.01) { volume.level = 1; }
+        } else {
+            volume.muted = true;
+        }
+        updateVolume();
+    });
+
+    volumeButton.addEventListener('wheel', event => {
+        event.preventDefault();
+
+        const delta = event.deltaY * -0.0001;
+
+        if (delta > 0) {
+            if (volume.muted) {
+                volume.level = delta;
+                volume.muted = false;
+            } else {
+                volume.level += delta;
+            }
+
+            if (volume.level > 1) {
+                volume.level = 1;
+            }
+
+            updateVolume();
+        } else if (!volume.muted) {
+            volume.level += delta;
+
+            if (volume.level < 0.01) {
+                volume.level = 0;
+                volume.muted = true;
+            }
+
+            updateVolume();
+        }
+    });
+
+    volumeInput.addEventListener('input', () => {
+        if (volumeInput.value < 0.01) {
+            volume.muted = true;
+            volume.level = 0;
+            volumeInput.value = 0;
+        } else {
+            volume.muted = false;
+            volume.level = parseFloat(volumeInput.value);
+        }
+
+        updateVolume();
     });
 }
 
@@ -247,20 +377,6 @@ for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
         copyTrackToClipboard(copyTrackButton);
     });
 }
-
-document.addEventListener('keydown', event => {
-    if (event.key === '+') {
-        if (volume + 0.1 <= 1) {
-            volume += 0.1;
-            updateVolume();
-        }
-    } else if (event.key === '-') {
-        if (volume - 0.1 >= 0) {
-            volume -= 0.1;
-            updateVolume();
-        }
-    }
-});
 
 let previousTrack = null;
 for (const container of document.querySelectorAll('.track')) {

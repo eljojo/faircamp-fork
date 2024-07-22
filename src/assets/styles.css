@@ -81,12 +81,13 @@ body {
     height: 1.6rem;
     width: 1.6rem;
 }
-button, input { font-size: 1rem; }
+button, input { font-size: 1em; }
 button.link {
     background: none;
     border: none;
     padding: 0;
 }
+button svg { display: inline-block; }
 .catalog {
     align-items: center;
     display: grid;
@@ -510,6 +511,30 @@ input[type="text"].disabled,
     min-height: calc(100vh - 2.5rem);
 }
 .vpad { margin: 1rem 0; }
+.volume {
+    height: 0;
+    overflow: hidden;
+    width: 0;
+}
+.volume input {
+    max-width: 6rem;
+}
+.volume_button {
+    border: 0;
+    color: var(--fg-1);
+}
+.volume_button path.passive_range { color: var(--bg-3); }
+.volume_slider {
+    visibility: hidden;
+    width: 0;
+}
+.volume_button:focus-visible + .volume_slider,
+.volume_button:hover + .volume_slider,
+.volume_slider:focus-visible,
+.volume_slider:hover {
+    visibility: visible;
+    width: 8rem;
+}
 .vpad_adaptive {
     padding-bottom: 2rem;
     padding-top: 1rem;

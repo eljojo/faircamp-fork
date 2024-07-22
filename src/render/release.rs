@@ -288,6 +288,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let artists = list_release_artists(index_suffix, root_prefix, catalog, release);
     let cover = cover_image(build, index_suffix, "", root_prefix, release);
 
+    let volume_icon = icons::volume(&build.locale.translations.play); // TODO: Label, and a few other things
     let body = formatdoc!(r#"
         <div class="vcenter_page_outer">
             <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
@@ -304,6 +305,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
                 {tracks_rendered}
                 {r_player_icon_templates}
+                <div class="volume">
+                    <button class="volume_button">
+                        {volume_icon} <span style="font-size: 1rem;">100%</span>
+                    </button>
+                    <div class="volume_slider">
+                        <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                    </div>
+                </div>
             </div>
             <div class="additional">
                 {r_action_links}
