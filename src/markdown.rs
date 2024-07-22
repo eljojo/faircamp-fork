@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use indoc::formatdoc;
 use pulldown_cmark::{Event, html, Parser, Tag, TagEnd};
 
 /// We render some incoming markdown (such as artist/catalog text)
@@ -17,6 +18,21 @@ pub struct HtmlAndStripped {
 pub fn to_html(markdown_text: &str) -> String {
     let parser = Parser::new(markdown_text);
     
+    let parser = parser.map(|event| match event {
+        Event::Rule => {
+            let logo = formatdoc!(r#"
+                <div class="divider">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            "#);
+
+            Event::Html(logo.into())
+        }
+        _ => event
+    });
+
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
     

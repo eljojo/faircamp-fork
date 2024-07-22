@@ -109,6 +109,19 @@ button svg { display: inline-block; }
     display: block;
     margin-bottom: .5rem;
 }
+.divider {
+    color: var(--bg-3);
+    display: flex;
+}
+.divider > span { border-bottom: 1px solid; }
+.divider > span:first-child,
+.divider > span:last-child {
+    width: .5rem;
+}
+.divider > span:nth-child(2) {
+    opacity: .2;
+    flex-grow: 1;
+}
 .download_entry { display: flex; }
 .download_formats {
     display: flex;
@@ -380,6 +393,15 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .text a:hover {
     text-decoration: none;
 }
+.text ol,
+.text ul {
+    padding-left: 0;
+}
+.text ol li::marker,
+.text ul li::marker {
+    color: var(--fg-3);
+}
+.text ul { list-style: circle; }
 .track {
     height: 3.5rem;
     padding-top: .4rem;
@@ -610,6 +632,10 @@ input[type="text"].disabled,
 @media (max-width: 29.999rem) {
     .big_play_button { display: none; }
     .track_number.outer { display: none; }
+}
+@media (max-width: 39.999rem) {
+    .text ol { padding-left: 1rem; }
+    .text ul { padding-left: .7rem; }
 }
 @media (min-width: 30rem) {
     .action_links a,
