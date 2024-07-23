@@ -18,6 +18,10 @@ pub fn generate(build: &Build, catalog: &Catalog) {
     generate_common(build);
     generate_theme(build, &catalog.theme);
 
+    for artist in &catalog.featured_artists {
+        generate_theme(build, &artist.borrow().theme);
+    }
+
     for release in &catalog.releases {
         let release_ref = release.borrow();
 
