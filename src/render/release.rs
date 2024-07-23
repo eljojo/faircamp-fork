@@ -319,7 +319,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
-    let volume_icon = icons::volume(&build.locale.translations.play); // TODO: Label, and a few other things
+    let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
+    let t_dimmed = &build.locale.translations.dimmed;
+    let t_muted = &build.locale.translations.muted;
     let t_play = &build.locale.translations.play;
     let body = formatdoc!(r##"
         <div class="vcenter_page_outer">
@@ -346,19 +348,20 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
                     <div class="progress" style="width: 0%;"></div>
                 </div>
-                <div style="display: flex;">
+                <div class="elements">
                     <button class="big_play_button">
                         {play_icon}
                     </button>
                     <div class="volume">
                         <button class="volume_button">
                             {volume_icon}
-                            <span>100%</span>
                         </button>
-                        <div class="element volume_slider">
+                        <span class="volume_slider">
                             <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
-                        </div>
+                        </span>
                     </div>
+                    <span class="element volume_hint dimmed">{t_dimmed}</span>
+                    <span class="element volume_hint muted">{t_muted}</span>
                     <span class="element track_time">{first_track_time}</span>
                     <span class="element track_title">{first_track_title}</span>
                     <button class="previous_track_button">

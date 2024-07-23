@@ -31,21 +31,16 @@ if (dockedPlayer.container) {
 let globalUpdatePlayHeadInterval;
 
 const volume = {
+    container: document.querySelector('.volume'),
     level: 1,
-    muted: false
 };
 
 if (volumeButton) {
     const persistedVolume = localStorage.getItem('faircampVolume');
     if (persistedVolume !== null) {
-        if (persistedVolume === '0') {
-            volume.muted = true;
-        } else {
-            const level = parseFloat(persistedVolume);
-            if (level >= 0 && level <= 1) {
-                volume.level = level;
-
-            }
+        const level = parseFloat(persistedVolume);
+        if (level >= 0 && level <= 1) {
+            volume.level = level;
         }
     }
     updateVolume();
@@ -108,6 +103,7 @@ async function mountAndPlay(track, seekTo) {
     dockedPlayer.trackTitle.innerHTML = track.container.querySelector('.track_title').innerHTML;
 
     activeWaveform();
+    updateVolume();
 
     // The pause and loading icon are visually indistinguishable (until the
     // actual loading animation kicks in after 500ms), hence we right away
@@ -124,7 +120,6 @@ async function mountAndPlay(track, seekTo) {
     }
 
     const play = () => {
-        track.audio.muted = volume.muted;
         track.audio.volume = volume.level;
         track.audio.play();
     };
@@ -263,71 +258,82 @@ function updatePlayhead(track, reset = false) {
     track.waveformInput.value = audio.currentTime;
 }
 
-function updateVolume() {
+function updateVolume(restoreLevel = null) {
     if (activeTrack) {
-        activeTrack.audio.muted = volume.muted;
         activeTrack.audio.volume = volume.level;
     }
 
-    const volumeToPersist = volume.muted ? '0' : volume.level.toString();
-    localStorage.setItem('faircampVolume', volumeToPersist);
+    localStorage.setItem('faircampVolume', volume.level.toString());
 
-    const knobLevel = volume.muted ? 0 : volume.level;
-
-    // Draws a ring segment. In clock terms we start at 12 o'clock and we go clockwise.
-    const beginAngle = -135;
-    const arcAngle = knobLevel * 270;
-    const radius = 32;
-
-    let largeArcFlag = arcAngle < 180 ? 0 : 1 ;
-
+    const RADIUS = 32;
     const degToRad = deg => (deg * Math.PI) / 180;
 
-    let beginAngleRad = degToRad(beginAngle);
-    let beginX = Math.sin(beginAngleRad);
-    let beginY = -Math.cos(beginAngleRad);
+    // Compute a path's d attribute for a ring segment.
+    // In clock terms we start at 12 o'clock and we go clockwise.
+    const segmentD = (beginAngle, arcAngle) => {
+        let largeArcFlag = arcAngle < 180 ? 0 : 1 ;
 
-    let endAngleRad = degToRad(beginAngle + arcAngle);
-    let endX = Math.sin(endAngleRad);
-    let endY = -Math.cos(endAngleRad);
+        let beginAngleRad = degToRad(beginAngle);
+        let beginX = Math.sin(beginAngleRad);
+        let beginY = -Math.cos(beginAngleRad);
 
-    const outerRadius = radius * 0.9;
-    let segmentOuterBeginX = radius + beginX * outerRadius;
-    let segmentOuterBeginY = radius + beginY * outerRadius;
+        let endAngleRad = degToRad(beginAngle + arcAngle);
+        let endX = Math.sin(endAngleRad);
+        let endY = -Math.cos(endAngleRad);
 
-    let segmentOuterEndX = radius + endX * outerRadius;
-    let segmentOuterEndY = radius + endY * outerRadius;
+        const outerRadius = RADIUS;
+        let segmentOuterBeginX = RADIUS + beginX * outerRadius;
+        let segmentOuterBeginY = RADIUS + beginY * outerRadius;
 
-    let innerRadius = radius * 0.8;
-    let segmentInnerBeginX = radius + beginX * innerRadius;
-    let segmentInnerBeginY = radius + beginY * innerRadius;
+        let segmentOuterEndX = RADIUS + endX * outerRadius;
+        let segmentOuterEndY = RADIUS + endY * outerRadius;
 
-    let segmentInnerEndX = radius + endX * innerRadius;
-    let segmentInnerEndY = radius + endY * innerRadius;
+        let innerRadius = RADIUS * 0.8;
+        let segmentInnerBeginX = RADIUS + beginX * innerRadius;
+        let segmentInnerBeginY = RADIUS + beginY * innerRadius;
+
+        let segmentInnerEndX = RADIUS + endX * innerRadius;
+        let segmentInnerEndY = RADIUS + endY * innerRadius;
+
+        return `
+            M ${segmentOuterBeginX},${segmentOuterBeginY}
+            A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${segmentOuterEndX},${segmentOuterEndY}
+            L ${segmentInnerEndX},${segmentInnerEndY}
+            A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${segmentInnerBeginX},${segmentInnerBeginY}
+            Z"
+        `;
+    };
+
+    if (volume.level === 1) {
+        document.querySelector('.volume_hint.dimmed').classList.remove('active');
+        document.querySelector('.volume_hint.muted').classList.remove('active');
+    } else if (volume.level == 0) {
+        document.querySelector('.volume_hint.dimmed').classList.remove('active');
+        document.querySelector('.volume_hint.muted').classList.add('active');
+    } else {
+        document.querySelector('.volume_hint.dimmed').classList.add('active');
+        document.querySelector('.volume_hint.muted').classList.remove('active');
+    }
+
+    const beginAngle = -135;
+    const arcAngle = volume.level * 270;
 
     const knobAngle = beginAngle + arcAngle;
     volumeButton.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
 
-    let volumeLabel;
-    if (knobLevel === 0) {
-        volumeLabel = 'Muted';
-    } else if (knobLevel === 1) {
-        volumeLabel = 'Full Volume';
-    } else {
-        volumeLabel = `${Math.trunc(knobLevel * 100)}%`;
-    }
+    const activeD = volume.level > 0 ? segmentD(beginAngle, arcAngle) : '';
+    volumeButton.querySelector('path.active_range').setAttribute('d', activeD);
 
-    volumeButton.querySelector('span').innerHTML = volumeLabel;
-
-    volumeButton.querySelector('path.active_range').setAttribute('d', `
-        M ${segmentOuterBeginX},${segmentOuterBeginY}
-        A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${segmentOuterEndX},${segmentOuterEndY}
-        L ${segmentInnerEndX},${segmentInnerEndY}
-        A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${segmentInnerBeginX},${segmentInnerBeginY}
-        Z"
-    `);
+    const inactiveD = volume.level < 1 ? segmentD(beginAngle + arcAngle, 270 - arcAngle) : '';
+    volumeButton.querySelector('path.inactive_range').setAttribute('d', inactiveD);
 
     volumeInput.value = volume.level;
+
+    if (restoreLevel === null) {
+        delete volume.restoreLevel;
+    } else {
+        volume.restoreLevel = restoreLevel;
+    }
 }
 
 if (bigPlaybackButton) {
@@ -367,58 +373,39 @@ if (bigBar) {
 }
 
 if (volumeButton) {
-    volumeButton.addEventListener('click', () => {
-        if (volume.muted) {
-            volume.muted = false;
-            if (volume.level < 0.01) { volume.level = 1; }
-        } else {
-            volume.muted = true;
+    volume.container.addEventListener('wheel', event => {
+        event.preventDefault();
+
+        volume.level += event.deltaY * -0.0001;
+
+        if (volume.level > 1) {
+            volume.level = 1;
+        } else if (volume.level < 0) {
+            volume.level = 0;
         }
+
         updateVolume();
     });
 
-    volumeButton.addEventListener('wheel', event => {
-        event.preventDefault();
-
-        const delta = event.deltaY * -0.0001;
-
-        if (delta > 0) {
-            if (volume.muted) {
-                volume.level = delta;
-                volume.muted = false;
-            } else {
-                volume.level += delta;
-            }
-
-            if (volume.level > 1) {
-                volume.level = 1;
-            }
-
-            updateVolume();
-        } else if (!volume.muted) {
-            volume.level += delta;
-
-            if (volume.level < 0.01) {
-                volume.level = 0;
-                volume.muted = true;
-            }
-
+    volumeButton.addEventListener('click', () => {
+        if (volume.level > 0) {
+            const restoreLevel = volume.level;
+            volume.level = 0;
+            updateVolume(restoreLevel);
+        } else {
+            volume.level = volume.restoreLevel ?? 1;
             updateVolume();
         }
     });
 
     volumeInput.addEventListener('input', () => {
-        if (volumeInput.value < 0.01) {
-            volume.muted = true;
-            volume.level = 0;
-            volumeInput.value = 0;
-        } else {
-            volume.muted = false;
-            volume.level = parseFloat(volumeInput.value);
-        }
-
+        volume.level = parseFloat(volumeInput.value);
         updateVolume();
     });
+
+    // This was observed to "scroll" between 0 and 1 without a single step in between,
+    // hence we disable the default behavior and let the event bubble up to our own handler
+    volumeInput.addEventListener('wheel', event => event.preventDefault());
 }
 
 for (const copyButton of document.querySelectorAll('[data-copy]')) {

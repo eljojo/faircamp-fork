@@ -158,9 +158,22 @@ button svg { display: inline-block; }
 .docked_player button {
     border: none;
     color: var(--fg-1);
-    padding: .5rem;
+    padding: .8em .6em;
 }
-.docked_player .element { padding: .5rem; }
+.docked_player button svg {
+    position: relative;
+    top: .1em;
+}
+.docked_player .element {
+    margin-left: .6em;
+    margin-right: .6em;
+}
+.docked_player .elements {
+    align-items: center;
+    display: flex;
+}
+.docked_player .elements > :first-child { margin-left: .4rem; }
+.docked_player .elements > :last-child { margin-right: .4rem; }
 .docked_player .track_title { flex-grow: 1; }
 .download_entry { display: flex; }
 .download_formats {
@@ -652,23 +665,33 @@ input[type="text"].disabled,
     min-height: calc(100vh - 2.5rem);
 }
 .volume {
+    align-items: center;
     display: flex;
 }
-.volume input { width: 100%; }
+.volume input {
+    opacity: 0;
+    margin-right: 0;
+    transition: opacity 200ms ease, margin-right 200ms ease, width 200ms ease;
+    width: 0;
+}
 .volume_button {
     border: 0;
     color: var(--fg-1);
 }
-.volume_button path.passive_range { color: var(--bg-3); }
-.volume_button span { display: none; }
-.volume_slider {
-    visibility: hidden;
-    transition: width 200ms ease;
-    width: 0;
+.volume_button path.inactive_range { color: var(--bg-2); }
+.volume_hint {
+    background: var(--fg-1);
+    border-radius: .2rem;
+    color: var(--bg-1);
+    font-size: .8rem;
+    padding: .3rem .4rem;
 }
-.volume:focus-within,
-.volume:hover .volume_slider {
-    visibility: visible;
+.volume_hint:not(.active) { display: none; }
+.volume:hover input,
+.volume input:focus-visible,
+.volume_button:focus-visible + .volume_slider input {
+    opacity: 1;
+    margin-right: .6rem;
     width: 6rem;
 }
 .vpad {
