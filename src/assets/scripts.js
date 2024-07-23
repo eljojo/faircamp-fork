@@ -4,7 +4,12 @@ const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
 const successIcon = document.querySelector('#success_icon');
 
+const bigBar = document.querySelector('.big_bar');
+const bigBarInput = document.querySelector('input');
 const bigPlaybackButton = document.querySelector('.big_play_button');
+const previousTrackButton = document.querySelector('.previous_track_button');
+const nextTrackButton = document.querySelector('.next_track_button');
+const playAllButton = document.querySelector('.play_all_button');
 const volumeButton = document.querySelector('.volume_button');
 const volumeInput = document.querySelector('.volume input');
 
@@ -12,6 +17,16 @@ const copyFeedbackTimeouts = {};
 
 let activeTrack = null;
 let firstTrack = null;
+
+const dockedPlayer = {
+    container: document.querySelector('.docked_player')
+};
+
+if (dockedPlayer.container) {
+    dockedPlayer.progress = dockedPlayer.container.querySelector('.progress');
+    dockedPlayer.trackTime = dockedPlayer.container.querySelector('.track_time');
+    dockedPlayer.trackTitle = dockedPlayer.container.querySelector('.track_title');
+}
 
 let globalUpdatePlayHeadInterval;
 
@@ -85,6 +100,14 @@ function formatTime(seconds) {
 
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
+
+    bigBarInput.max = track.waveformInput.max;
+
+    dockedPlayer.container.classList.add('active');
+    dockedPlayer.trackTime.innerHTML = `0:00 / ${formatTime(activeTrack.duration)}`;
+    dockedPlayer.trackTitle.innerHTML = track.container.querySelector('.track_title').innerHTML;
+
+    activeWaveform();
 
     // The pause and loading icon are visually indistinguishable (until the
     // actual loading animation kicks in after 500ms), hence we right away
@@ -227,15 +250,17 @@ function announcePlayhead(track) {
 }
 
 function updatePlayhead(track, reset = false) {
-    const { audio, time, waveformInput, waveformSvg } = track;
-    const duration = parseFloat(waveformInput.max);
-    const factor = reset ? 0 : audio.currentTime / duration;
+    const { audio } = track;
+    const factor = reset ? 0 : audio.currentTime / track.duration;
 
-    waveformSvg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
-    waveformSvg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
-    time.innerHTML = reset ? formatTime(duration) : `- ${formatTime(duration - audio.currentTime)}`;
+    track.waveformSvg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
+    track.waveformSvg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+    track.time.innerHTML = reset ? formatTime(track.duration) : `- ${formatTime(track.duration - audio.currentTime)}`;
 
-    waveformInput.value = audio.currentTime;
+    dockedPlayer.progress.style.setProperty('width', `${factor * 100}%`);
+    dockedPlayer.trackTime.innerHTML = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
+
+    track.waveformInput.value = audio.currentTime;
 }
 
 function updateVolume() {
@@ -308,6 +333,36 @@ function updateVolume() {
 if (bigPlaybackButton) {
     bigPlaybackButton.addEventListener('click', () => {
         togglePlayback(activeTrack ?? firstTrack);
+    });
+
+    nextTrackButton.addEventListener('click', () => {
+        if (activeTrack?.nextTrack) {
+            togglePlayback(activeTrack.nextTrack);
+        }
+    });
+
+    playAllButton.addEventListener('click', () => {
+        togglePlayback(firstTrack, 0);
+    });
+
+    previousTrackButton.addEventListener('click', () => {
+        if (activeTrack?.previousTrack) {
+            togglePlayback(activeTrack.previousTrack);
+        }
+    });
+}
+
+if (bigBar) {
+    bigBar.addEventListener('click', () => {
+        const factor = (event.clientX - bigBar.getBoundingClientRect().x) / bigBar.getBoundingClientRect().width;
+        const seekTo = factor * bigBarInput.max;
+        togglePlayback(activeTrack, seekTo);
+        bigBarInput.classList.add('focus_from_click');
+        bigBarInput.focus();
+    });
+
+    bigBarInput.addEventListener('blur', () => {
+        bigBarInput.classList.remove('focus_from_click');
     });
 }
 
@@ -382,13 +437,16 @@ let previousTrack = null;
 for (const container of document.querySelectorAll('.track')) {
     const audio = container.querySelector('audio');
     const playbackButton = container.querySelector('.track_playback');
-    const time = container.querySelector('.duration');
+    const time = container.querySelector('.track_time');
     const waveformInput = container.querySelector('.waveform input');
     const waveformSvg = container.querySelector('.waveform svg');
+
+    const duration = parseFloat(waveformInput.max);
 
     const track = {
         audio,
         container,
+        duration,
         playbackButton,
         time,
         waveformInput,
@@ -400,6 +458,7 @@ for (const container of document.querySelectorAll('.track')) {
     }
 
     if (previousTrack !== null) {
+        track.previousTrack = previousTrack;
         previousTrack.nextTrack = track;
     }
 
@@ -542,6 +601,7 @@ const TRACK_HEIGHT_EM = 1.5;
 const WAVEFORM_PADDING_EM = 0.3;
 const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
+const activeWaveformRenderState = {};
 const waveformRenderState = {};
 
 function waveforms() {
@@ -681,13 +741,86 @@ function waveforms() {
     waveformRenderState.widthRem = maxWaveformWidthRem;
 }
 
+const ACTIVE_WAVEFORM_HEIGHT = 2;
+
+function activeWaveform() {
+    const baseFontSizePx = parseFloat(
+        window.getComputedStyle(document.documentElement)
+              .getPropertyValue('font-size')
+              .replace('px', '')
+    );
+    const viewportWidthRem = window.innerWidth / baseFontSizePx;
+
+    if (activeWaveformRenderState.widthRem === viewportWidthRem && activeWaveformRenderState.track === activeTrack) return;
+
+    const activeSvg = document.querySelector('svg.active_waveform');
+    const peaks = decode(activeTrack.container.querySelector('svg[data-peaks]').dataset.peaks).map(peak => peak / 63);
+
+    // Render the waveform with n samples. Prefer 0.75 samples per pixel, but if there
+    // are less peaks available than that, sample exactly at every peak.
+    // 1 samples per pixel = More detail, but more jagged
+    // 0.5 samples per pixel = Smoother, but more sampling artifacts
+    // 0.75 looked like a good in-between (on my low-dpi test screen anyway)
+    const preferredNumSamples = Math.round(0.75 * viewportWidthRem * baseFontSizePx);
+    const numSamples = Math.min(preferredNumSamples, peaks.length);
+
+    const prevY = (1 - peaks[0]) * ACTIVE_WAVEFORM_HEIGHT;
+    let d = `M 0,${prevY.toFixed(2)}`;
+
+    let yChangeOccured = false;
+    for (let sample = 1; sample < numSamples; sample += 1) {
+        const factor = sample / (numSamples - 1);
+        const floatIndex = factor * (peaks.length - 1);
+        const previousIndex = Math.floor(floatIndex);
+        const nextIndex = Math.ceil(floatIndex);
+
+        let peak;
+        if (previousIndex === nextIndex) {
+            peak = peaks[previousIndex];
+        } else {
+            const interPeakBias = floatIndex - previousIndex;
+            peak = peaks[previousIndex] * (1 - interPeakBias) + peaks[nextIndex] * interPeakBias;
+        }
+
+        const x = factor * viewportWidthRem;
+        const y = (1 - peak) * ACTIVE_WAVEFORM_HEIGHT;
+
+        // If the y coordinate is always exactly the same on all points, the linear
+        // gradient applied to the .playback path does not show up at all (firefox).
+        // This only happens when the track is perfectly silent/same level all the
+        // way through, which currently is the case when with the disable_waveforms option.
+        // We counter this here by introducing minimal jitter on the y dimension.
+        const yJitter = (y === prevY ? '1' : '');
+
+        d += ` L ${x.toFixed(2)},${y.toFixed(2)}${yJitter}`;
+    }
+
+    const SVG_XMLNS = 'http://www.w3.org/2000/svg';
+
+    if (!activeWaveformRenderState.initialized) {
+        activeSvg.setAttribute('xmlns', SVG_XMLNS);
+        activeSvg.setAttribute('height', `${ACTIVE_WAVEFORM_HEIGHT}em`);
+    }
+
+    activeSvg.setAttribute('viewBox', `0 0 ${viewportWidthRem} ${ACTIVE_WAVEFORM_HEIGHT}`);
+    activeSvg.setAttribute('width', `${viewportWidthRem}em`);
+    activeSvg.querySelector('path.area').setAttribute('d', d);
+
+    activeWaveformRenderState.initialized = true;
+    activeWaveformRenderState.track = activeTrack;
+    activeWaveformRenderState.widthRem = viewportWidthRem;
+}
+
 window.addEventListener('DOMContentLoaded', event => {
     // TODO: Potentially split player js into seperate script file
     //       so we don't need the check, and only load the additional
     //       js payload where it's needed.
     if (document.querySelector('[data-peaks]')) {
         waveforms();
-        window.addEventListener('resize', waveforms);
+        window.addEventListener('resize', () => {
+            if (activeTrack) { activeWaveform(); }
+            waveforms()
+        });
     }
 
     if (navigator.clipboard) {

@@ -135,6 +135,14 @@ impl Extra {
 }
 
 impl Release {
+    pub fn duration(&self) -> f32 {
+        let mut duration = 0.0;
+        for track in &self.tracks {
+            duration += track.transcodes.borrow().source_meta.duration_seconds;
+        }
+        duration
+    }
+
     /// It is critical that every last detail of this hashing implementation
     /// stays the same - unless explicitly needed of course - because this signature
     /// makes or breaks finding cached archives.

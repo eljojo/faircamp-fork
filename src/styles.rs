@@ -102,6 +102,8 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         let bg_1_oklch = theme.base.bg_1.to_gray_oklch();
         let bg_1_overlay_hsl = theme.base.bg_1.to_transparent_gray_hsl(80.0);
         let bg_1_overlay_oklch = theme.base.bg_1.to_transparent_gray_oklch(80.0);
+        let bg_2_hsl = theme.base.bg_2.to_gray_hsl();
+        let bg_2_oklch = theme.base.bg_2.to_gray_oklch();
         let bg_2_overlay_hsl = theme.base.bg_2.to_transparent_gray_hsl(80.0);
         let bg_2_overlay_oklch = theme.base.bg_2.to_transparent_gray_oklch(80.0);
         let bg_3_hsl = theme.base.bg_3.to_gray_hsl();
@@ -152,6 +154,7 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --background-s: calc({background_s}% * (var(--tint-back) / 100));
                 --bg-1: {bg_1_hsl};
                 --bg-1-overlay: {bg_1_overlay_hsl};
+                --bg-2: {bg_2_hsl};
                 --bg-2-overlay: {bg_2_overlay_hsl};
                 --bg-3: {bg_3_hsl};
                 --cover-border-radius: {cover_border_radius};
@@ -182,6 +185,7 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 :root {{
                     --bg-1: {bg_1_oklch};
                     --bg-1-overlay: {bg_1_overlay_oklch};
+                    --bg-2: {bg_2_oklch};
                     --bg-2-overlay: {bg_2_overlay_oklch};
                     --bg-3: {bg_3_oklch};
                     --fg-1: {fg_1_oklch};

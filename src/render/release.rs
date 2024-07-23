@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use chrono::Datelike;
 use indoc::formatdoc;
 
 use crate::{
@@ -88,10 +89,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         Some(html_and_stripped) => {
             let html = &html_and_stripped.html;
             formatdoc!(r#"
-                <div class="hcenter_narrow mobile_hpadding">
-                    <div class="text vpad" style="margin-top: 1.5rem;">
-                        {html}
-                    </div>
+                <div class="hcenter_narrow mobile_hpadding text">
+                    {html}
                 </div>
             "#)
         }
@@ -140,7 +139,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
             let track_title = track.title();
 
-            let duration_formatted = format_time(duration_seconds);
+            let track_duration_formatted = format_time(duration_seconds);
             let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
             let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
@@ -160,7 +159,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <span class="track_header">
                         <span class="track_number inner">{track_number_formatted}</span>
                         <a class="track_title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
-                        <span class="duration">{duration_formatted}</span>
+                        <span class="track_time">{track_duration_formatted}</span>
                         <button class="more_button" tabindex="-1">
                             {more_icon}
                         </button>
@@ -194,20 +193,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     if !download_link.is_empty() {
         action_links.push(download_link);
     }
-
-    if release.embedding && build.base_url.is_some() {
-        let t_embed = &build.locale.translations.embed;
-        let embed_icon = icons::embed(t_embed);
-
-        let embed_link = formatdoc!(r#"
-            <a href="embed{index_suffix}">
-                {embed_icon}
-                <span>{t_embed}</span>
-            </a>
-        "#);
-
-        action_links.push(embed_link);
-    };
 
     let failed_icon = icons::failure(&build.locale.translations.failed);
     let success_icon = icons::success(&build.locale.translations.copied);
@@ -244,6 +229,34 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         "#));
     }
 
+    if release.embedding && build.base_url.is_some() {
+        let t_embed = &build.locale.translations.embed;
+        let embed_icon = icons::embed(t_embed);
+
+        let embed_link = formatdoc!(r#"
+            <a href="embed{index_suffix}">
+                {embed_icon}
+                <span>{t_embed}</span>
+            </a>
+        "#);
+
+        action_links.push(embed_link);
+    };
+
+    let r_action_links = if action_links.is_empty() {
+        String::new()
+    } else {
+        let joined = action_links.join("");
+
+        formatdoc!(r#"
+            <div class="release_actions">
+                {joined}
+            </div>
+        "#)
+    };
+
+    let mut links = Vec::new();
+
     for link in &release.links {
         let external_icon = icons::external(&build.locale.translations.external_link);
 
@@ -260,16 +273,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             "#)
         };
 
-        action_links.push(r_link);
+        links.push(r_link);
     }
 
-    let r_action_links = if action_links.is_empty() {
+    let r_links = if links.is_empty() {
         String::new()
     } else {
-        let joined = action_links.join(" &nbsp; ");
+        let joined = links.join("");
 
         formatdoc!(r#"
-            <div class="action_links hcenter_narrow mobile_hpadding">
+            <div class="links hcenter_narrow mobile_hpadding">
                 {joined}
             </div>
         "#)
@@ -283,44 +296,97 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         release_title_escaped.clone()
     };
 
-    let r_player_icon_templates = player_icon_templates(build);
+    templates.push_str(&player_icon_templates(build));
 
     let artists = list_release_artists(index_suffix, root_prefix, catalog, release);
     let cover = cover_image(build, index_suffix, "", root_prefix, release);
 
+    let release_duration = format_time(release.duration());
+    let release_year = match release.date {
+        Some(naive_date) => format!("({})", naive_date.year()),
+        None => String::new()
+    };
+
+
+    let (first_track_time, first_track_title) = {
+        let first_track = &release.tracks.iter().next().unwrap();
+
+        let time = format!("00:00 / {}", format_time(first_track.transcodes.borrow().source_meta.duration_seconds));
+        let title = html_escape_outside_attribute(&first_track.title());
+
+        (time, title)
+    };
+
+    let next_track_icon = icons::next_track(&build.locale.translations.next_track);
+    let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
     let volume_icon = icons::volume(&build.locale.translations.play); // TODO: Label, and a few other things
-    let body = formatdoc!(r#"
+    let t_play = &build.locale.translations.play;
+    let body = formatdoc!(r##"
         <div class="vcenter_page_outer">
             <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
                 <div class="cover">{cover}</div>
 
                 <div class="release_label">
-                    <button class="big_play_button">
-                        {play_icon}
-                    </button>
                     <h1>{release_title_with_unlisted_badge}</h1>
-                    <div class="release_artists">{artists}</div>
+                    <div class="quick_actions">
+                        <button class="play_all_button">{t_play} {play_icon}</button>
+                        <a href="#details">More {more_icon}</a>
+                    </div>
+                    <!--div class="release_artists">{artists}</div-->
                 </div>
 
                 <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
                 {tracks_rendered}
-                {r_player_icon_templates}
-                <div class="volume">
-                    <button class="volume_button">
-                        {volume_icon} <span style="font-size: 1rem;">100%</span>
+            </div>
+            <div class="docked_player">
+                <svg class="active_waveform">
+                    <path class="area"/>
+                </svg>
+                <div class="big_bar">
+                    <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
+                    <div class="progress" style="width: 0%;"></div>
+                </div>
+                <div style="display: flex;">
+                    <button class="big_play_button">
+                        {play_icon}
                     </button>
-                    <div class="volume_slider">
-                        <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                    <div class="volume">
+                        <button class="volume_button">
+                            {volume_icon}
+                            <span>100%</span>
+                        </button>
+                        <div class="element volume_slider">
+                            <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                        </div>
                     </div>
+                    <span class="element track_time">{first_track_time}</span>
+                    <span class="element track_title">{first_track_title}</span>
+                    <button class="previous_track_button">
+                        {previous_track_icon}
+                    </button>
+                    <button class="next_track_button">
+                        {next_track_icon}
+                    </button>
                 </div>
             </div>
+            <a id="details"></a>
             <div class="additional">
-                {r_action_links}
+                <div class="hcenter_narrow mobile_hpadding release_info">
+                    <div>
+                        <div>
+                            {release_title_escaped} {release_year}
+                        </div>
+                        <div>{artists}</div>
+                        {release_duration}
+                    </div>
+                    {r_action_links}
+                </div>
                 {release_text}
+                {r_links}
             </div>
         </div>
         {templates}
-    "#);
+    "##);
 
     let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
 

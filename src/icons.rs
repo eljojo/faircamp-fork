@@ -96,6 +96,15 @@ pub fn more(label: &str) -> String {
     "#)
 }
 
+pub fn next_track(label: &str) -> String {
+    formatdoc!(r#"
+        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <title>{label}</title>
+            <path d="m0 5.1309v54.547h11.049v-54.547h-11.049zm18.455 0 0.06836 54.547 45.477-26.453-45.545-28.094z"/>
+        </svg>
+    "#)
+}
+
 pub fn pause(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -110,6 +119,15 @@ pub fn play(label: &str) -> String {
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <title>{label}</title>
             <path d="m11.116 59.677 45.476-26.453-45.544-28.093z"/>
+        </svg>
+    "#)
+}
+
+pub fn previous_track(label: &str) -> String {
+    formatdoc!(r#"
+        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <title>{label}</title>
+            <path d="m64 5.1309v54.547h-11.049v-54.547zm-18.455 0-0.06836 54.547-45.477-26.453z"/>
         </svg>
     "#)
 }
