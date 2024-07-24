@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2021-2023 Simon Repp
+    SPDX-FileCopyrightText: 2021-2024 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -61,15 +61,28 @@ playlist) level - and within the manifest itself also down to the *track*
 would make no sense, e.g. a release's permalink must be unique and therefore
 makes no sense to propagate.
 
-## Faircamp is in Beta
+## Faircamp 1.0
 
-Faircamp can be stably built and run from the main branch. Feature and design
-improvements are usually rolled out piece by piece, or in larger waves every
-few weeks. Some more advanced features are only half-way implemented
-(see below). Technically nothing about the catalog format is set in stone,
-but practically speaking actual changes have been few and far between.
-Faircamp is not production-grade software, but in a very usable state, in
-steady development.
+Development in 2024 is financed by the European Commission's [Next Generation Internet](https://www.ngi.eu/)
+programme through the [NGI0 Entrust](https://nlnet.nl/entrust/) fund established by [NLnet](https://nlnet.nl/).
+
+Also see the [project grant website](https://nlnet.nl/project/Faircamp/) for more details.
+
+## Stability and completeness
+
+Install one of the available [packages](https://simonrepp.com/faircamp/manual/installation.html)
+or build faircamp yourself from the latest tag for the most stable experience. Faircamp can
+also be built and run from the main branch directly, this opts you in to the
+occasional design experiment and temporary development glitches though.
+Throughout summer and fall 2024 expect lots of movement in the course of the
+[Faircamp 1.0 NGI0 grant](https://nlnet.nl/project/Faircamp/) to happen. Some
+more advanced features are only half-way implemented (see below). Technically
+nothing about the catalog format is set in stone, but practically speaking
+actual changes have been few and far between and are only made for significant
+reasons. Note that although faircamp is still pre-1.0, it already runs over
+a hundred artist and label websites, i.e. it is not so much beta in the sense of
+lacking stability, but rather because one or two key features are still in
+development.
 
 These features are knowingly incomplete right now:
 
