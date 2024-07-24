@@ -336,6 +336,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </svg>
                 <div class="timeline">
                     <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
+                    <div class="base"></div>
                     <div class="progress" style="width: 0%;"></div>
                 </div>
                 <div class="elements">

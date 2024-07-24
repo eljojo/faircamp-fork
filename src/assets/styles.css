@@ -5,7 +5,6 @@
     --color-link-hover: hsl(var(--link-h), var(--link-s), var(--link-hover-l));
     --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
     --color-text-dimmed: hsla(var(--text-h), var(--text-s), var(--text-l), .5);
-    --clearly-smaller: .83rem;
     --subtly-larger: 1.14rem;
     --boldly-larger: 1.17rem;
     --large: 1.5rem;
@@ -123,10 +122,6 @@ button svg { display: inline-block; }
     display: none;
 }
 .docked_player:hover .active_waveform path.area { stroke: var(--fg-3); }
-.docked_player > div:last-child {
-    background: var(--bg-1-overlay);
-    box-shadow: 0 0 .5rem var(--bg-2);
-}
 .docked_player button {
     border: none;
     color: var(--fg-1);
@@ -147,6 +142,7 @@ button svg { display: inline-block; }
 }
 .docked_player .elements {
     align-items: center;
+    background: var(--bg-1-overlay);
     display: flex;
 }
 .docked_player .elements > :first-child { margin-left: .4rem; }
@@ -154,16 +150,24 @@ button svg { display: inline-block; }
 .docked_player .title { flex-grow: 1; }
 .docked_player .timeline {
     cursor: pointer;
-    height: .5rem;
+    height: .8rem;
+    margin-bottom: -.3rem;
     position: relative;
-    bottom: 100%;
 }
-.docked_player .timeline:hover .progress { height: .3rem; }
+.docked_player .timeline .base,
 .docked_player .timeline .progress {
-    background-color: var(--fg-1);
-    bottom: 0;
-    height: .2rem;
+    bottom: .3rem;
+    height: .15rem;
     position: absolute;
+}
+.docked_player .timeline .base {
+    background: var(--bg-3);
+    width: 100%;
+}
+.docked_player .timeline .progress { background: var(--fg-1); }
+.docked_player .timeline:hover .base,
+.docked_player .timeline:hover .progress {
+    height: .25rem;
 }
 .docked_player .timeline input {
     height: 100%;
@@ -186,7 +190,7 @@ button svg { display: inline-block; }
 .download_hints {
     display: flex;
     flex-direction: column;
-    font-size: var(--clearly-smaller);
+    font-size: .83rem;
     margin: 2rem 0;
     row-gap: .8rem;
 }
@@ -500,7 +504,6 @@ pre { margin: 0; }
     padding: 1rem;
     justify-self: center;
 }
-small { font-size: var(--clearly-smaller); }
 svg {
     display: block;
     fill: currentColor;
