@@ -123,7 +123,7 @@ pub fn track_html(
     let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
     let track_title = track.title();
 
-    let duration_formatted = format_time(duration_seconds);
+    let track_duration_formatted = format_time(duration_seconds);
     let track_number_formatted = release.track_numbering.format(track_number);
     let track_title_escaped = html_escape_outside_attribute(&track_title);
     let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
@@ -142,11 +142,11 @@ pub fn track_html(
     let play_icon = icons::play(&build.locale.translations.play);
     let track_rendered = formatdoc!(r#"
         <div class="track">
-            <span class="track_number outer">{track_number_formatted}</span>
+            <span class="number outer">{track_number_formatted}</span>
             <span class="track_header">
-                <span class="track_number inner">{track_number_formatted}</span>
-                <span class="track_title" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
-                <span class="duration">{duration_formatted}</span>
+                <span class="number inner">{track_number_formatted}</span>
+                <span class="title" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
+                <span class="time">{track_duration_formatted}</span>
                 <button class="more_button" tabindex="-1">
                     {more_icon}
                 </button>
@@ -240,36 +240,75 @@ pub fn track_html(
 
     let r_player_icon_templates = player_icon_templates(build);
 
-    let play_icon = icons::play(&build.locale.translations.play);
-    let body = formatdoc!(
-        r##"
-            <div class="vcenter_page_outer">
-                <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
-                    <div class="cover">{cover}</div>
+    let artists = list_track_artists(index_suffix, root_prefix, catalog, track);
+    // TODO: Track-level cover support
+    let cover = cover_image(build, index_suffix, "../", root_prefix, release);
 
-                    <div class="release_label">
-                        <button class="big_play_button">
-                            {play_icon}
-                        </button>
-                        <h1>{track_title_escaped}</h1>
-                        <div class="release_artists">{artists}</div>
+    let next_track_icon = icons::next_track(&build.locale.translations.next_track);
+    let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
+    let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
+    let t_dimmed = &build.locale.translations.dimmed;
+    let t_muted = &build.locale.translations.muted;
+    let t_play = &build.locale.translations.play;
+    let play_icon = icons::play(t_play);
+    let body = formatdoc!(r##"
+        <div class="vcenter_page_outer">
+            <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
+                <div class="cover">{cover}</div>
+
+                <div class="release_label">
+                    <h1>{track_title_escaped}</h1>
+                    <!--div class="release_artists">{artists}</div-->
+                    <div class="quick_actions">
+                        <button class="play_release">{t_play} {play_icon}</button>
+                        <a href="#details">More {more_icon}</a>
                     </div>
-
-                    <div {relative_waveforms}data-longest-duration="{track_duration}"></div>
-                    {track_rendered}
-                    {r_player_icon_templates}
                 </div>
-                <div class="additional">
-                    {r_action_links}
-                    {track_text}
+
+                <div {relative_waveforms}data-longest-duration="{track_duration}"></div>
+                {track_rendered}
+                {r_player_icon_templates}
+            </div>
+            <div class="docked_player">
+                <svg class="active_waveform">
+                    <path class="area"/>
+                </svg>
+                <div class="timeline">
+                    <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
+                    <div class="progress" style="width: 0%;"></div>
+                </div>
+                <div class="elements">
+                    <button class="playback">
+                        {play_icon}
+                    </button>
+                    <div class="volume">
+                        <button>
+                            {volume_icon}
+                        </button>
+                        <span class="slider">
+                            <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                        </span>
+                    </div>
+                    <span class="element volume_hint dimmed">{t_dimmed}</span>
+                    <span class="element volume_hint muted">{t_muted}</span>
+                    <span class="element time"></span>
+                    <span class="element title"></span>
+                    <button class="previous_track">
+                        {previous_track_icon}
+                    </button>
+                    <button class="next_track">
+                        {next_track_icon}
+                    </button>
                 </div>
             </div>
-            {templates}
-        "##,
-        artists = list_track_artists(index_suffix, root_prefix, catalog, track),
-        // TODO: Track-level cover support
-        cover = cover_image(build, index_suffix, "../", root_prefix, release)
-    );
+            <a id="details"></a>
+            <div class="additional">
+                {r_action_links}
+                {track_text}
+            </div>
+        </div>
+        {templates}
+    "##);
 
     // TODO: Should probably feature on the track page somewhere!
     // let release_title_escaped = html_escape_outside_attribute(&release.title);
