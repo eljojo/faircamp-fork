@@ -4,28 +4,30 @@ const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
 const successIcon = document.querySelector('#success_icon');
 
-const bigBar = document.querySelector('.big_bar');
-const bigBarInput = document.querySelector('input');
-const bigPlaybackButton = document.querySelector('.big_play_button');
-const previousTrackButton = document.querySelector('.previous_track_button');
-const nextTrackButton = document.querySelector('.next_track_button');
-const playAllButton = document.querySelector('.play_all_button');
-const volumeButton = document.querySelector('.volume_button');
-const volumeInput = document.querySelector('.volume input');
+const playReleaseButton = document.querySelector('button.play_release');
 
 const copyFeedbackTimeouts = {};
 
 let activeTrack = null;
 let firstTrack = null;
 
-const dockedPlayer = {
-    container: document.querySelector('.docked_player')
-};
+let dockedPlayer;
+if (document.querySelector('.docked_player')) {
+    const container = document.querySelector('.docked_player');
 
-if (dockedPlayer.container) {
-    dockedPlayer.progress = dockedPlayer.container.querySelector('.progress');
-    dockedPlayer.trackTime = dockedPlayer.container.querySelector('.track_time');
-    dockedPlayer.trackTitle = dockedPlayer.container.querySelector('.track_title');
+    dockedPlayer = {
+        container,
+        playbackButton: container.querySelector('button.playback'),
+        progress: container.querySelector('.progress'),
+        nextTrackButton: container.querySelector('button.next_track'),
+        previousTrackButton: container.querySelector('button.previous_track'),
+        time: container.querySelector('.time'),
+        timeline: container.querySelector('.timeline'),
+        timelineInput: container.querySelector('.timeline input'),
+        title: container.querySelector('.title'),
+        volumeButton: container.querySelector('.volume button'),
+        volumeInput: container.querySelector('.volume input')
+    };
 }
 
 let globalUpdatePlayHeadInterval;
@@ -35,7 +37,7 @@ const volume = {
     level: 1,
 };
 
-if (volumeButton) {
+if (dockedPlayer) {
     const persistedVolume = localStorage.getItem('faircampVolume');
     if (persistedVolume !== null) {
         const level = parseFloat(persistedVolume);
@@ -96,13 +98,11 @@ function formatTime(seconds) {
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
-    bigBarInput.max = track.waveformInput.max;
-
     dockedPlayer.container.classList.add('active');
-    dockedPlayer.trackTime.innerHTML = `0:00 / ${formatTime(activeTrack.duration)}`;
-    dockedPlayer.trackTitle.innerHTML = track.container.querySelector('.track_title').innerHTML;
+    dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
+    dockedPlayer.timelineInput.max = track.waveformInput.max;
+    dockedPlayer.title.textContent = track.title.textContent;
 
-    activeWaveform();
     updateVolume();
 
     // The pause and loading icon are visually indistinguishable (until the
@@ -112,7 +112,7 @@ async function mountAndPlay(track, seekTo) {
     // if there doesn't end up to be any loading required.
     track.container.classList.add('active');
     track.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
-    bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+    dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
 
     if (track.audio.preload !== 'auto') {
         track.audio.preload = 'auto';
@@ -166,9 +166,9 @@ async function mountAndPlay(track, seekTo) {
         seeking.abortSeeking = () => {
             clearInterval(seekInterval);
             delete track.seeking;
+            dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
             track.container.classList.remove('active');
             track.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-            bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
         };
 
         // We expose both `abortSeeking` and `seek` on this seeking object,
@@ -250,10 +250,10 @@ function updatePlayhead(track, reset = false) {
 
     track.waveformSvg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
     track.waveformSvg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
-    track.time.innerHTML = reset ? formatTime(track.duration) : `- ${formatTime(track.duration - audio.currentTime)}`;
+    track.time.textContent = reset ? formatTime(track.duration) : `- ${formatTime(track.duration - audio.currentTime)}`;
 
     dockedPlayer.progress.style.setProperty('width', `${factor * 100}%`);
-    dockedPlayer.trackTime.innerHTML = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
+    dockedPlayer.time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
 
     track.waveformInput.value = audio.currentTime;
 }
@@ -319,15 +319,15 @@ function updateVolume(restoreLevel = null) {
     const arcAngle = volume.level * 270;
 
     const knobAngle = beginAngle + arcAngle;
-    volumeButton.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
+    dockedPlayer.volumeButton.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
 
     const activeD = volume.level > 0 ? segmentD(beginAngle, arcAngle) : '';
-    volumeButton.querySelector('path.active_range').setAttribute('d', activeD);
+    dockedPlayer.volumeButton.querySelector('path.active_range').setAttribute('d', activeD);
 
     const inactiveD = volume.level < 1 ? segmentD(beginAngle + arcAngle, 270 - arcAngle) : '';
-    volumeButton.querySelector('path.inactive_range').setAttribute('d', inactiveD);
+    dockedPlayer.volumeButton.querySelector('path.inactive_range').setAttribute('d', inactiveD);
 
-    volumeInput.value = volume.level;
+    dockedPlayer.volumeInput.value = volume.level;
 
     if (restoreLevel === null) {
         delete volume.restoreLevel;
@@ -336,43 +336,41 @@ function updateVolume(restoreLevel = null) {
     }
 }
 
-if (bigPlaybackButton) {
-    bigPlaybackButton.addEventListener('click', () => {
+if (dockedPlayer) {
+    dockedPlayer.playbackButton.addEventListener('click', () => {
         togglePlayback(activeTrack ?? firstTrack);
     });
 
-    nextTrackButton.addEventListener('click', () => {
+    dockedPlayer.nextTrackButton.addEventListener('click', () => {
         if (activeTrack?.nextTrack) {
             togglePlayback(activeTrack.nextTrack);
         }
     });
 
-    playAllButton.addEventListener('click', () => {
-        togglePlayback(firstTrack, 0);
-    });
-
-    previousTrackButton.addEventListener('click', () => {
+    dockedPlayer.previousTrackButton.addEventListener('click', () => {
         if (activeTrack?.previousTrack) {
             togglePlayback(activeTrack.previousTrack);
         }
     });
+
+    playReleaseButton.addEventListener('click', () => {
+        togglePlayback(firstTrack, 0);
+    });
 }
 
-if (bigBar) {
-    bigBar.addEventListener('click', () => {
-        const factor = (event.clientX - bigBar.getBoundingClientRect().x) / bigBar.getBoundingClientRect().width;
-        const seekTo = factor * bigBarInput.max;
+if (dockedPlayer) {
+    dockedPlayer.timeline.addEventListener('click', () => {
+        const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
+        const seekTo = factor * dockedPlayer.timelineInput.max;
         togglePlayback(activeTrack, seekTo);
-        bigBarInput.classList.add('focus_from_click');
-        bigBarInput.focus();
+        dockedPlayer.timelineInput.classList.add('focus_from_click');
+        dockedPlayer.timelineInput.focus();
     });
 
-    bigBarInput.addEventListener('blur', () => {
-        bigBarInput.classList.remove('focus_from_click');
+    dockedPlayer.timelineInput.addEventListener('blur', () => {
+        dockedPlayer.timelineInput.classList.remove('focus_from_click');
     });
-}
 
-if (volumeButton) {
     volume.container.addEventListener('wheel', event => {
         event.preventDefault();
 
@@ -387,7 +385,7 @@ if (volumeButton) {
         updateVolume();
     });
 
-    volumeButton.addEventListener('click', () => {
+    dockedPlayer.volumeButton.addEventListener('click', () => {
         if (volume.level > 0) {
             const restoreLevel = volume.level;
             volume.level = 0;
@@ -398,14 +396,14 @@ if (volumeButton) {
         }
     });
 
-    volumeInput.addEventListener('input', () => {
-        volume.level = parseFloat(volumeInput.value);
+    dockedPlayer.volumeInput.addEventListener('input', () => {
+        volume.level = parseFloat(dockedPlayer.volumeInput.value);
         updateVolume();
     });
 
     // This was observed to "scroll" between 0 and 1 without a single step in between,
     // hence we disable the default behavior and let the event bubble up to our own handler
-    volumeInput.addEventListener('wheel', event => event.preventDefault());
+    dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
 }
 
 for (const copyButton of document.querySelectorAll('[data-copy]')) {
@@ -424,7 +422,8 @@ let previousTrack = null;
 for (const container of document.querySelectorAll('.track')) {
     const audio = container.querySelector('audio');
     const playbackButton = container.querySelector('.track_playback');
-    const time = container.querySelector('.track_time');
+    const time = container.querySelector('.time');
+    const title = container.querySelector('.title');
     const waveformInput = container.querySelector('.waveform input');
     const waveformSvg = container.querySelector('.waveform svg');
 
@@ -436,6 +435,7 @@ for (const container of document.querySelectorAll('.track')) {
         duration,
         playbackButton,
         time,
+        title,
         waveformInput,
         waveformSvg
     };
@@ -466,8 +466,8 @@ for (const container of document.querySelectorAll('.track')) {
         clearInterval(globalUpdatePlayHeadInterval);
 
         container.classList.remove('playing');
+        dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
         playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-        bigPlaybackButton.replaceChildren(playIcon.content.cloneNode(true));
 
         if (track.onPause) {
             track.onPause();
@@ -480,23 +480,23 @@ for (const container of document.querySelectorAll('.track')) {
 
     audio.addEventListener('play', event => {
         container.classList.add('active', 'playing');
+        dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-        bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
         updatePlayhead(track);
         announcePlayhead(track);
     });
 
     audio.addEventListener('playing', event => {
+        dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-        bigPlaybackButton.replaceChildren(pauseIcon.content.cloneNode(true));
     });
 
     audio.addEventListener('waiting', event => {
         // TODO: Eventually we could augment various screenreader labels here to
         //       indicate the loading state too
+        dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
-        bigPlaybackButton.replaceChildren(loadingIcon.content.cloneNode(true));
     });
 
     playbackButton.addEventListener('click', event => {
@@ -588,7 +588,6 @@ const TRACK_HEIGHT_EM = 1.5;
 const WAVEFORM_PADDING_EM = 0.3;
 const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
 
-const activeWaveformRenderState = {};
 const waveformRenderState = {};
 
 function waveforms() {
@@ -728,86 +727,13 @@ function waveforms() {
     waveformRenderState.widthRem = maxWaveformWidthRem;
 }
 
-const ACTIVE_WAVEFORM_HEIGHT = 2;
-
-function activeWaveform() {
-    const baseFontSizePx = parseFloat(
-        window.getComputedStyle(document.documentElement)
-              .getPropertyValue('font-size')
-              .replace('px', '')
-    );
-    const viewportWidthRem = window.innerWidth / baseFontSizePx;
-
-    if (activeWaveformRenderState.widthRem === viewportWidthRem && activeWaveformRenderState.track === activeTrack) return;
-
-    const activeSvg = document.querySelector('svg.active_waveform');
-    const peaks = decode(activeTrack.container.querySelector('svg[data-peaks]').dataset.peaks).map(peak => peak / 63);
-
-    // Render the waveform with n samples. Prefer 0.75 samples per pixel, but if there
-    // are less peaks available than that, sample exactly at every peak.
-    // 1 samples per pixel = More detail, but more jagged
-    // 0.5 samples per pixel = Smoother, but more sampling artifacts
-    // 0.75 looked like a good in-between (on my low-dpi test screen anyway)
-    const preferredNumSamples = Math.round(0.75 * viewportWidthRem * baseFontSizePx);
-    const numSamples = Math.min(preferredNumSamples, peaks.length);
-
-    const prevY = (1 - peaks[0]) * ACTIVE_WAVEFORM_HEIGHT;
-    let d = `M 0,${prevY.toFixed(2)}`;
-
-    let yChangeOccured = false;
-    for (let sample = 1; sample < numSamples; sample += 1) {
-        const factor = sample / (numSamples - 1);
-        const floatIndex = factor * (peaks.length - 1);
-        const previousIndex = Math.floor(floatIndex);
-        const nextIndex = Math.ceil(floatIndex);
-
-        let peak;
-        if (previousIndex === nextIndex) {
-            peak = peaks[previousIndex];
-        } else {
-            const interPeakBias = floatIndex - previousIndex;
-            peak = peaks[previousIndex] * (1 - interPeakBias) + peaks[nextIndex] * interPeakBias;
-        }
-
-        const x = factor * viewportWidthRem;
-        const y = (1 - peak) * ACTIVE_WAVEFORM_HEIGHT;
-
-        // If the y coordinate is always exactly the same on all points, the linear
-        // gradient applied to the .playback path does not show up at all (firefox).
-        // This only happens when the track is perfectly silent/same level all the
-        // way through, which currently is the case when with the disable_waveforms option.
-        // We counter this here by introducing minimal jitter on the y dimension.
-        const yJitter = (y === prevY ? '1' : '');
-
-        d += ` L ${x.toFixed(2)},${y.toFixed(2)}${yJitter}`;
-    }
-
-    const SVG_XMLNS = 'http://www.w3.org/2000/svg';
-
-    if (!activeWaveformRenderState.initialized) {
-        activeSvg.setAttribute('xmlns', SVG_XMLNS);
-        activeSvg.setAttribute('height', `${ACTIVE_WAVEFORM_HEIGHT}em`);
-    }
-
-    activeSvg.setAttribute('viewBox', `0 0 ${viewportWidthRem} ${ACTIVE_WAVEFORM_HEIGHT}`);
-    activeSvg.setAttribute('width', `${viewportWidthRem}em`);
-    activeSvg.querySelector('path.area').setAttribute('d', d);
-
-    activeWaveformRenderState.initialized = true;
-    activeWaveformRenderState.track = activeTrack;
-    activeWaveformRenderState.widthRem = viewportWidthRem;
-}
-
 window.addEventListener('DOMContentLoaded', event => {
     // TODO: Potentially split player js into seperate script file
     //       so we don't need the check, and only load the additional
     //       js payload where it's needed.
     if (document.querySelector('[data-peaks]')) {
         waveforms();
-        window.addEventListener('resize', () => {
-            if (activeTrack) { activeWaveform(); }
-            waveforms()
-        });
+        window.addEventListener('resize', waveforms);
     }
 
     if (navigator.clipboard) {

@@ -534,7 +534,7 @@ fn releases(
                         {cover}
                     </div>
                     <div>
-                        <a href="{href}" style="color: var(--color-text); font-size: var(--subtly-larger);">
+                        <a href="{href}" style="color: var(--fg-2); font-size: var(--subtly-larger);">
                             {release_title_escaped}
                         </a>
                         {artists}

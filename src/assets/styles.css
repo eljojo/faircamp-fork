@@ -4,7 +4,6 @@
     --color-link: hsl(var(--link-h), var(--link-s), var(--link-l));
     --color-link-hover: hsl(var(--link-h), var(--link-s), var(--link-hover-l));
     --color-muted: hsl(var(--muted-h), var(--muted-s), var(--muted-l));
-    --color-text: hsl(var(--text-h), var(--text-s), var(--text-l));
     --color-text-dimmed: hsla(var(--text-h), var(--text-s), var(--text-l), .5);
     --clearly-smaller: .83rem;
     --subtly-larger: 1.14rem;
@@ -68,37 +67,9 @@ a * { pointer-events: none; }
 }
 body {
     background-color: var(--color-background);
-    color: var(--color-text);
+    color: var(--fg-2);
     margin: 0;
     min-height: 100vh;
-}
-.big_bar {
-    cursor: pointer;
-    height: .5rem;
-    position: relative;
-    bottom: 100%;
-}
-.big_bar:hover div { height: .3rem; }
-.big_bar > div {
-    background-color: var(--fg-1);
-    bottom: 0;
-    height: .2rem;
-    position: absolute;
-}
-.big_bar input {
-    height: 100%;
-    left: 0;
-    margin: 0;
-    opacity: 0;
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    z-index: 1;
-}
-.big_play_button {
-    border: 0;
-    color: var(--fg-1);
 }
 button, input { font-size: 1em; }
 button.link {
@@ -160,6 +131,10 @@ button svg { display: inline-block; }
     color: var(--fg-1);
     padding: .8em .6em;
 }
+.docked_player button:focus-visible,
+.docked_player button:hover {
+    color: var(--fg-2);
+}
 .docked_player button svg {
     position: relative;
     top: .1em;
@@ -174,7 +149,31 @@ button svg { display: inline-block; }
 }
 .docked_player .elements > :first-child { margin-left: .4rem; }
 .docked_player .elements > :last-child { margin-right: .4rem; }
-.docked_player .track_title { flex-grow: 1; }
+.docked_player .title { flex-grow: 1; }
+.docked_player .timeline {
+    cursor: pointer;
+    height: .5rem;
+    position: relative;
+    bottom: 100%;
+}
+.docked_player .timeline:hover .progress { height: .3rem; }
+.docked_player .timeline .progress {
+    background-color: var(--fg-1);
+    bottom: 0;
+    height: .2rem;
+    position: absolute;
+}
+.docked_player .timeline input {
+    height: 100%;
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+}
 .download_entry { display: flex; }
 .download_formats {
     display: flex;
@@ -564,7 +563,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     }
 }
 .track.active .duration,
-.track.active .track_number.outer {
+.track.active .number.outer {
     color: var(--fg-1);
 }
 .track:not(.seek) path.seek { opacity: 0; }
@@ -588,33 +587,34 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-left: .4rem;
     overflow: hidden;
 }
-.track .track_time { margin-left: .4rem; }
-.track_download_option { position: relative; }
-.track_number {
+.track .number {
     color: var(--fg-3);
     padding-right: .5rem;
 }
-.track_number.outer {
+.track .number.outer {
     pointer-events: none;
     position: absolute;
     right: calc(100%);
     text-align: right;
 }
+.track .time { margin-left: .4rem; }
+.track_download_option { position: relative; }
 .track_header { display: flex; }
-.track_time {
+.docked_player .time,
+.track .time {
     color: var(--fg-3);
     user-select: none;
     white-space: nowrap;
 }
-.track_title {
+.track .title {
     color: var(--fg-1);
     flex-shrink: 1;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.track_title:focus-visible,
-.track_title:hover {
+.track .title:focus-visible,
+.track .title:hover {
     color: var(--fg-2);
 }
 button,
@@ -634,7 +634,7 @@ input[type="number"],
 input[type="text"] {
     background-color: hsla(var(--link-h), var(--background-s), var(--header-l), .5); /* TODO: header-l not ideal here */
     border: 1px solid var(--color-link);
-    color: var(--color-text);
+    color: var(--fg-2);
 }
 button:not(.link).disabled,
 input[type="number"].disabled,
@@ -674,11 +674,11 @@ input[type="text"].disabled,
     transition: opacity 200ms ease, margin-right 200ms ease, width 200ms ease;
     width: 0;
 }
-.volume_button {
+.volume button {
     border: 0;
     color: var(--fg-1);
 }
-.volume_button path.inactive_range { color: var(--bg-2); }
+.volume button path.inactive_range { color: var(--bg-2); }
 .volume_hint {
     background: var(--fg-1);
     border-radius: .2rem;
@@ -689,7 +689,7 @@ input[type="text"].disabled,
 .volume_hint:not(.active) { display: none; }
 .volume:hover input,
 .volume input:focus-visible,
-.volume_button:focus-visible + .volume_slider input {
+.volume button:focus-visible + .slider input {
     opacity: 1;
     margin-right: .6rem;
     width: 6rem;
@@ -771,7 +771,7 @@ input[type="text"].disabled,
     .vpad_adaptive { padding-top: 2rem; }
 }
 @media (max-width: 29.999rem) {
-    .track_number.outer { display: none; }
+    .track .number.outer { display: none; }
 }
 @media (max-width: 39.999rem) {
     .text ol { padding-left: 1rem; }
@@ -807,7 +807,7 @@ input[type="text"].disabled,
     .release:nth-child(3n+2) { grid-column-start: 2 }
     .release:nth-child(3n+3) { grid-column-start: 3 }
     .releases { max-width: 33rem; grid-auto-columns: .33333fr; }
-    .track_number.inner { display: none; }
+    .track .number.inner { display: none; }
     .vcenter_page_outer { min-height: calc(100vh - 3.2rem); }
 }
 @media (min-width: 60rem) {

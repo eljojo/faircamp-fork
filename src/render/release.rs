@@ -155,11 +155,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             formatdoc!(r#"
                 <div class="track">
-                    <span class="track_number outer">{track_number_formatted}</span>
+                    <span class="number outer">{track_number_formatted}</span>
                     <span class="track_header">
-                        <span class="track_number inner">{track_number_formatted}</span>
-                        <a class="track_title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
-                        <span class="track_time">{track_duration_formatted}</span>
+                        <span class="number inner">{track_number_formatted}</span>
+                        <a class="title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                        <span class="time">{track_duration_formatted}</span>
                         <button class="more_button" tabindex="-1">
                             {more_icon}
                         </button>
@@ -307,16 +307,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         None => String::new()
     };
 
-
-    let (first_track_time, first_track_title) = {
-        let first_track = &release.tracks.iter().next().unwrap();
-
-        let time = format!("00:00 / {}", format_time(first_track.transcodes.borrow().source_meta.duration_seconds));
-        let title = html_escape_outside_attribute(&first_track.title());
-
-        (time, title)
-    };
-
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
@@ -331,7 +321,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <div class="release_label">
                     <h1>{release_title_with_unlisted_badge}</h1>
                     <div class="quick_actions">
-                        <button class="play_all_button">{t_play} {play_icon}</button>
+                        <button class="play_release">{t_play} {play_icon}</button>
                         <a href="#details">More {more_icon}</a>
                     </div>
                     <!--div class="release_artists">{artists}</div-->
@@ -344,30 +334,30 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <svg class="active_waveform">
                     <path class="area"/>
                 </svg>
-                <div class="big_bar">
+                <div class="timeline">
                     <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
                     <div class="progress" style="width: 0%;"></div>
                 </div>
                 <div class="elements">
-                    <button class="big_play_button">
+                    <button class="playback">
                         {play_icon}
                     </button>
                     <div class="volume">
-                        <button class="volume_button">
+                        <button>
                             {volume_icon}
                         </button>
-                        <span class="volume_slider">
+                        <span class="slider">
                             <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
                         </span>
                     </div>
                     <span class="element volume_hint dimmed">{t_dimmed}</span>
                     <span class="element volume_hint muted">{t_muted}</span>
-                    <span class="element track_time">{first_track_time}</span>
-                    <span class="element track_title">{first_track_title}</span>
-                    <button class="previous_track_button">
+                    <span class="element time"></span>
+                    <span class="element title"></span>
+                    <button class="previous_track">
                         {previous_track_icon}
                     </button>
-                    <button class="next_track_button">
+                    <button class="next_track">
                         {next_track_icon}
                     </button>
                 </div>
