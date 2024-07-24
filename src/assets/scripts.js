@@ -329,6 +329,9 @@ function updateVolume(restoreLevel = null) {
     const inactiveD = volume.level < 1 ? segmentD(beginAngle + arcAngle, 270 - arcAngle) : '';
     dockedPlayer.volumeButton.querySelector('path.inactive_range').setAttribute('d', inactiveD);
 
+    const percent = volume.level * 100;
+    const percentFormatted = percent % 1 > 0.1 ? (Math.trunc(percent * 10) / 10) : Math.trunc(percent);
+    dockedPlayer.volumeInput.setAttribute('aria-valuetext', `${percentFormatted}%`);
     dockedPlayer.volumeInput.value = volume.level;
 
     if (restoreLevel === null) {
@@ -401,6 +404,28 @@ if (dockedPlayer) {
     dockedPlayer.volumeInput.addEventListener('input', () => {
         volume.level = parseFloat(dockedPlayer.volumeInput.value);
         updateVolume();
+    });
+
+    // This was observed to jump between 0 and 1 without a single step in between,
+    // hence we disable the default behavior and handle it ourselves
+    dockedPlayer.volumeInput.addEventListener('keydown', event => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+            volume.level -= 0.02;
+        } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+            volume.level += 0.02;
+        } else {
+            return;
+        }
+
+        if (volume.level > 1) {
+            volume.level = 1;
+        } else if (volume.level < 0) {
+            volume.level = 0;
+        }
+
+        updateVolume();
+
+        event.preventDefault();
     });
 
     // This was observed to "scroll" between 0 and 1 without a single step in between,
