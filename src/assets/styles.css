@@ -136,6 +136,7 @@ button svg { display: inline-block; }
 .docked_player button:hover {
     color: var(--fg-2);
 }
+.docked_player button[disabled] { color: var(--bg-3); }
 .docked_player button svg {
     position: relative;
     top: .1em;

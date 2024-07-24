@@ -99,6 +99,8 @@ async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
     dockedPlayer.container.classList.add('active');
+    dockedPlayer.nextTrackButton.toggleAttribute('disabled', !track.nextTrack);
+    dockedPlayer.previousTrackButton.toggleAttribute('disabled', !track.previousTrack);
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
     dockedPlayer.timelineInput.max = track.waveformInput.max;
     dockedPlayer.title.textContent = track.title.textContent;
