@@ -20,7 +20,6 @@ pub fn translations() -> Translations {
         auto_generated_cover: String::from("Image de couverture générée automatiquement"),
         available_formats: String::from("Formats disponibles:"),
         buy: untranslated!(buy),
-        close: String::from("Fermer"),
         copied: String::from("Copié"),
         copy: String::from("Copier"),
         copy_link: untranslated!(copy_link),

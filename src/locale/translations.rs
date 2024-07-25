@@ -21,7 +21,6 @@ pub struct Translations {
     pub available_formats: String,
     pub buy: String,
     /// We keep this one around for now as we could possibly use it for a feed selection overlay
-    pub close: String,
     pub copied: String,
     pub copy: String,
     pub copy_link: String,
@@ -101,7 +100,6 @@ impl Translations {
             auto_generated_cover: String::from("audio_player_widget_for_track"),
             available_formats: String::from("available_formats"),
             buy: String::from("buy"),
-            close: String::from("close"),
             copied: String::from("copied"),
             copy: String::from("copy"),
             copy_link: String::from("copy_link"),

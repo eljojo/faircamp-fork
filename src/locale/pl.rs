@@ -19,7 +19,6 @@ pub fn translations() -> Translations {
         auto_generated_cover: String::from("Automatycznie wygenerowana okładka"),
         available_formats: String::from("Dostępne czczionki:"),
         buy: untranslated!(buy),
-        close: String::from("Zamknij"),
         copied: String::from("Skopiowane"),
         copy: String::from("Kopiuj"),
         copy_link: untranslated!(copy_link),
