@@ -48,45 +48,35 @@ impl CoverGenerator {
                 let altitude_width = radius / release.tracks.len() as f32;
                 let track_arc_range = source_meta.duration_seconds / longest_track_duration;
 
-                if let Some(peaks) = &source_meta.peaks {
-                    let mut samples = Vec::new();
-                    let step = 2;
+                let mut samples = Vec::new();
+                let step = 2;
 
-                    let mut previous = None;
+                let mut previous = None;
 
-                    let track_compensation = 0.25 + (1.0 - track_arc_range) / 2.0;
+                let track_compensation = 0.25 + (1.0 - track_arc_range) / 2.0;
 
-                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
-                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32 * -1.0; // 0-1
+                for (peak_index, peak) in source_meta.peaks.iter().step_by(step).enumerate() {
+                    let peak_offset = peak_index as f32 / (source_meta.peaks.len() - 1) as f32 * step as f32 * -1.0; // 0-1
 
-                        let x_vector = ((track_compensation + peak_offset * track_arc_range) * TAU).sin();
-                        let y_vector = ((track_compensation + peak_offset * track_arc_range) * TAU).cos();
+                    let x_vector = ((track_compensation + peak_offset * track_arc_range) * TAU).sin();
+                    let y_vector = ((track_compensation + peak_offset * track_arc_range) * TAU).cos();
 
-                        let x = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * x_vector;
-                        let y = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * y_vector;
+                    let x = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * x_vector;
+                    let y = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * y_vector;
 
-                        if let Some((x_prev, y_prev)) = previous {
-                            let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
-                            let stroke_width = peak * 0.24; // .06px is our ideal for waveforms
-                            let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
-                            samples.push(sample);
-                        }
-
-                        previous = Some((x, y));
+                    if let Some((x_prev, y_prev)) = previous {
+                        let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
+                        let stroke_width = peak * 0.24; // .06px is our ideal for waveforms
+                        let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
+                        samples.push(sample);
                     }
 
-                    track_offset += track_arc_range;
-
-                    samples.join("\n")
-                } else {
-                    let cx = radius + (edge / 3.0) * (track_offset * TAU).sin();
-                    let cy = radius + (edge / 3.0) * (track_offset * TAU).cos();
-
-                    track_offset += track_arc_range;
-
-                    let fill = format!("hsl(0, 0%, {text_l}%)");
-                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="{fill}" r="1"/>"##)
+                    previous = Some((x, y));
                 }
+
+                track_offset += track_arc_range;
+
+                samples.join("\n")
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -131,38 +121,30 @@ impl CoverGenerator {
 
                 let track_arc_range = source_meta.duration_seconds / total_duration;
 
-                if let Some(peaks) = &source_meta.peaks {
-                    let mut samples = Vec::new();
-                    let step = 4;
+                let mut samples = Vec::new();
+                let step = 4;
 
-                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
-                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32; // 0-1
+                for (peak_index, peak) in source_meta.peaks.iter().step_by(step).enumerate() {
+                    let peak_offset = peak_index as f32 / (source_meta.peaks.len() - 1) as f32 * step as f32; // 0-1
 
-                        let x_vector = ((track_offset + peak_offset * (track_arc_range - gap_arc)) * TAU).sin();
-                        let y_vector = ((track_offset + peak_offset * (track_arc_range - gap_arc) + 0.25) * TAU).sin(); // TODO: Use cos (also elsewhere)
+                    let x_vector = ((track_offset + peak_offset * (track_arc_range - gap_arc)) * TAU).sin();
+                    let y_vector = ((track_offset + peak_offset * (track_arc_range - gap_arc) + 0.25) * TAU).sin(); // TODO: Use cos (also elsewhere)
 
-                        let x = (edge / 2.0) + (edge / 6.0 + (1.0 - peak) * edge / 3.5) * x_vector;
-                        let y = (edge / 2.0) + (edge / 6.0 + (1.0 - peak) * edge / 3.5) * y_vector;
+                    let x = (edge / 2.0) + (edge / 6.0 + (1.0 - peak) * edge / 3.5) * x_vector;
+                    let y = (edge / 2.0) + (edge / 6.0 + (1.0 - peak) * edge / 3.5) * y_vector;
 
-                        let command = if peak_index == 0 { "M" } else { "L" };
-                        let sample = format!("{command} {x} {y}");
+                    let command = if peak_index == 0 { "M" } else { "L" };
+                    let sample = format!("{command} {x} {y}");
 
-                        samples.push(sample);
-                    }
-
-                    let d = samples.join(" ");
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
-                } else {
-                    let cx = (edge / 2.0) + (edge / 3.0) * (track_offset * TAU).sin();
-                    let cy = (edge / 2.0) + (edge / 3.0) * ((track_offset + 0.25) * TAU).sin();
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="#ffffff" r="1"/>"##)
+                    samples.push(sample);
                 }
+
+                let d = samples.join(" ");
+
+                track_offset += track_arc_range;
+
+                format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
+
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -196,47 +178,38 @@ impl CoverGenerator {
                 let altitude_width = radius * altitude_range / release.tracks.len() as f32;
                 let track_arc_range = source_meta.duration_seconds / longest_track_duration;
 
-                if let Some(peaks) = &source_meta.peaks {
-                    let mut samples = Vec::new();
-                    let step = 1;
+                let mut samples = Vec::new();
+                let step = 1;
 
-                    let mut previous = None;
+                let mut previous = None;
 
-                    let track_compensation = 0.25 + (1.0 - track_arc_range) / 2.0;
+                let track_compensation = 0.25 + (1.0 - track_arc_range) / 2.0;
 
-                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
-                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32 * -1.0; // 0-1
+                for (peak_index, peak) in source_meta.peaks.iter().step_by(step).enumerate() {
+                    let peak_offset = peak_index as f32 / (source_meta.peaks.len() - 1) as f32 * step as f32 * -1.0; // 0-1
 
-                        let arc_offset = (track_compensation + peak_offset * track_arc_range) * TAU;
-                        let amplitude =
-                            radius * 0.25 +
-                            (max_tracks_in_release - 1 - track_index) as f32 * altitude_width +
-                            (peak * 0.3 * altitude_width);
+                    let arc_offset = (track_compensation + peak_offset * track_arc_range) * TAU;
+                    let amplitude =
+                        radius * 0.25 +
+                        (max_tracks_in_release - 1 - track_index) as f32 * altitude_width +
+                        (peak * 0.3 * altitude_width);
 
-                        let x = radius + amplitude * arc_offset.sin();
-                        let y = radius + amplitude * arc_offset.cos();
+                    let x = radius + amplitude * arc_offset.sin();
+                    let y = radius + amplitude * arc_offset.cos();
 
-                        if let Some((x_prev, y_prev)) = previous {
-                            let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
-                            let stroke_width = peak * 0.32;
-                            let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
-                            samples.push(sample);
-                        }
-
-                        previous = Some((x, y));
+                    if let Some((x_prev, y_prev)) = previous {
+                        let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
+                        let stroke_width = peak * 0.32;
+                        let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
+                        samples.push(sample);
                     }
 
-                    track_offset += track_arc_range;
-
-                    samples.join("\n")
-                } else {
-                    let cx = radius + (edge / 3.0) * (track_offset * TAU).sin();
-                    let cy = radius + (edge / 3.0) * (track_offset * TAU).cos();
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="#ffffff" r="1"/>"##)
+                    previous = Some((x, y));
                 }
+
+                track_offset += track_arc_range;
+
+                samples.join("\n")
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -272,38 +245,29 @@ impl CoverGenerator {
 
                 let stroke_or_fill = format!("hsl(0, 0%, {text_l}%)");
 
-                if let Some(peaks) = &source_meta.peaks {
-                    let mut samples = Vec::new();
-                    let step = 2;
+                let mut samples = Vec::new();
+                let step = 2;
 
-                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
-                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32; // 0-1
+                for (peak_index, peak) in source_meta.peaks.iter().step_by(step).enumerate() {
+                    let peak_offset = peak_index as f32 / (source_meta.peaks.len() - 1) as f32 * step as f32; // 0-1
 
-                        let x_vector = (peak_offset * track_arc_range * TAU).sin();
-                        let y_vector = (peak_offset * track_arc_range * TAU).cos();
+                    let x_vector = (peak_offset * track_arc_range * TAU).sin();
+                    let y_vector = (peak_offset * track_arc_range * TAU).cos();
 
-                        let x = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * altitude_width) * x_vector;
-                        let y = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * altitude_width) * y_vector;
+                    let x = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * altitude_width) * x_vector;
+                    let y = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * altitude_width) * y_vector;
 
-                        let command = if peak_index == 0 { "M" } else { "L" };
-                        let sample = format!("{command} {x} {y}");
+                    let command = if peak_index == 0 { "M" } else { "L" };
+                    let sample = format!("{command} {x} {y}");
 
-                        samples.push(sample);
-                    }
-
-                    let d = samples.join(" ");
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
-                } else {
-                    let cx = radius + (edge / 3.0) * (track_offset * TAU).sin();
-                    let cy = radius + (edge / 3.0) * (track_offset * TAU).cos();
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="{stroke_or_fill}" r="1"/>"##)
+                    samples.push(sample);
                 }
+
+                let d = samples.join(" ");
+
+                track_offset += track_arc_range;
+
+                format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -343,38 +307,30 @@ impl CoverGenerator {
                 let track_arc_range = source_meta.duration_seconds / total_duration;
 
                 let fill_or_stroke = format!("hsl(0, 0%, {text_l}%)");
-                if let Some(peaks) = &source_meta.peaks {
-                    let mut samples = Vec::new();
-                    let step = 6;
 
-                    for (peak_index, peak) in peaks.iter().step_by(step).enumerate() {
-                        let peak_offset = peak_index as f32 / (peaks.len() - 1) as f32 * step as f32; // 0-1
+                let mut samples = Vec::new();
+                let step = 6;
 
-                        let x_vector = ((track_offset + peak_offset * track_arc_range) * TAU).sin();
-                        let y_vector = ((track_offset + peak_offset * track_arc_range + 0.25) * TAU).sin(); // TODO: Use cos (also elsewhere)
+                for (peak_index, peak) in source_meta.peaks.iter().step_by(step).enumerate() {
+                    let peak_offset = peak_index as f32 / (source_meta.peaks.len() - 1) as f32 * step as f32; // 0-1
 
-                        let x = (edge / 2.0) + ((edge / 6.0) + (edge / 6.0) * altitude_factor + (1.0 - peak) * edge / 12.0) * x_vector;
-                        let y = (edge / 2.0) + ((edge / 6.0) + (edge / 6.0) * altitude_factor + (1.0 - peak) * edge / 12.0) * y_vector;
+                    let x_vector = ((track_offset + peak_offset * track_arc_range) * TAU).sin();
+                    let y_vector = ((track_offset + peak_offset * track_arc_range + 0.25) * TAU).sin(); // TODO: Use cos (also elsewhere)
 
-                        let command = if peak_index == 0 { "M" } else { "L" };
-                        let sample = format!("{command} {x} {y}");
+                    let x = (edge / 2.0) + ((edge / 6.0) + (edge / 6.0) * altitude_factor + (1.0 - peak) * edge / 12.0) * x_vector;
+                    let y = (edge / 2.0) + ((edge / 6.0) + (edge / 6.0) * altitude_factor + (1.0 - peak) * edge / 12.0) * y_vector;
 
-                        samples.push(sample);
-                    }
+                    let command = if peak_index == 0 { "M" } else { "L" };
+                    let sample = format!("{command} {x} {y}");
 
-                    let d = samples.join(" ");
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<path d="{d}" fill="none" stroke="{fill_or_stroke}" stroke-width=".06px"/>"##)
-                } else {
-                    let cx = (edge / 2.0) + (edge / 3.0) * (track_offset * TAU).sin();
-                    let cy = (edge / 2.0) + (edge / 3.0) * ((track_offset + 0.25) * TAU).sin();
-
-                    track_offset += track_arc_range;
-
-                    format!(r##"<circle cx="{cx}" cy="{cy}" fill="{fill_or_stroke}" r="1"/>"##)
+                    samples.push(sample);
                 }
+
+                let d = samples.join(" ");
+
+                track_offset += track_arc_range;
+
+                format!(r##"<path d="{d}" fill="none" stroke="{fill_or_stroke}" stroke-width=".06px"/>"##)
             })
             .collect::<Vec<String>>()
             .join("\n");

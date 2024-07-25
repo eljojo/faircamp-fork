@@ -20,7 +20,7 @@ pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let (duration_seconds, peaks, comment_header) = match ogg_vorbis::decode(path) {
         Ok((decode_result, comment_header)) => (
             decode_result.duration,
-            Some(compute_peaks(decode_result, 320)),
+            compute_peaks(decode_result, 320),
             Some(comment_header)
         ),
         Err(err) => return Err(err)

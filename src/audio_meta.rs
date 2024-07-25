@@ -37,7 +37,9 @@ pub struct AudioMeta {
     pub duration_seconds: f32,
     pub format_family: AudioFormatFamily,
     pub lossless: bool,
-    pub peaks: Option<Vec<f32>>,
+    /// A simplified, compressed sequence of peaks in the audio,
+    /// which are used to later compute the waveform visualization
+    pub peaks: Vec<f32>,
     pub title: Option<String>,
     pub track_number: Option<u32>
 }

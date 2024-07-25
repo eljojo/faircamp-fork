@@ -22,7 +22,7 @@ pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let (duration_seconds, peaks) = match flac::decode(path) {
         Ok(decode_result) => (
             decode_result.duration,
-            Some(compute_peaks(decode_result, 320))
+            compute_peaks(decode_result, 320)
         ),
         Err(err) => return Err(err)
     };
