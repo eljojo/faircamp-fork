@@ -62,10 +62,23 @@ artists:
 - Bob
 ```
 
+## `track_numbering`
+
+```eno
+track_numbering: arabic-dotted
+```
+
 `track_numbering` allows configuration of the numbering style
-used - by default it's `arabic` (01 02 03 …) but can be set to `hexadecimal`
-(0x01 0x02 0x03 …), `roman` (I II
-III …) or `disabled`.
+used, offering the following choices:
+
+- `arabic` (1 2 3 …)
+- `arabic-padded` (01 02 03 …) (default)
+- `arabic-dotted` (1. 2. 3. …)
+- `disabled` (Don't display track numbers)
+- `hexadecimal` (0x1 0x2 0x3 …)
+- `hexadecimal-padded` (0x01 0x02 0x03 …)
+- `roman` (I II III …)
+- `roman-dotted` (I. II. III. …)
 
 Tracks are sorted by the track numbers found in the audio file metadata,
 otherwise they are alphabetically sorted. Tracks with track numbers in

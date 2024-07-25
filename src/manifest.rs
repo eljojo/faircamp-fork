@@ -107,7 +107,7 @@ impl Overrides {
             release_artists: None,
             release_cover: None,
             release_text: None,
-            release_track_numbering: TrackNumbering::Arabic,
+            release_track_numbering: TrackNumbering::ArabicPadded,
             streaming_quality: StreamingQuality::Standard,
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),

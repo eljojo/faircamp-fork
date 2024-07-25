@@ -108,7 +108,7 @@ disable_relative_waveforms
 
 ## Disabling waveforms altogether
 
-This will render all waveforms simply as flat lines.
+This will not display waveforms on the release page, resulting in a more compact layout.
 
 ```eno
 # theme

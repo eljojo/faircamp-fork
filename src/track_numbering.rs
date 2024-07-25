@@ -3,28 +3,40 @@
 
 #[derive(Clone, Debug)]
 pub enum TrackNumbering {
-    Disabled,
     Arabic,
+    ArabicDotted,
+    ArabicPadded,
+    Disabled,
     Hexadecimal,
-    Roman
+    HexadecimalPadded,
+    Roman,
+    RomanDotted
 }
 
 impl TrackNumbering {
     pub fn format(&self, number: usize) -> String {
         match self {
+            TrackNumbering::Arabic => number.to_string(),
+            TrackNumbering::ArabicDotted => format!("{number}."),
+            TrackNumbering::ArabicPadded => format!("{number:02}"),
             TrackNumbering::Disabled => String::from(""),
-            TrackNumbering::Arabic => format!("{:02}", number),
-            TrackNumbering::Hexadecimal => format!("0x{:02X}", number),
-            TrackNumbering::Roman => Self::to_roman(number)
+            TrackNumbering::Hexadecimal => format!("0x{number:X}"),
+            TrackNumbering::HexadecimalPadded => format!("0x{number:02X}"),
+            TrackNumbering::Roman => Self::to_roman(number),
+            TrackNumbering::RomanDotted => format!("{}.", Self::to_roman(number))
         }
     }
 
     pub fn from_manifest_key(key: &str) -> Option<TrackNumbering> {
         match key {
-            "disabled" => Some(TrackNumbering::Disabled),
             "arabic" => Some(TrackNumbering::Arabic),
+            "arabic-dotted" => Some(TrackNumbering::ArabicDotted),
+            "arabic-padded" => Some(TrackNumbering::ArabicPadded),
+            "disabled" => Some(TrackNumbering::Disabled),
             "hexadecimal" => Some(TrackNumbering::Hexadecimal),
+            "hexadecimal-padded" => Some(TrackNumbering::HexadecimalPadded),
             "roman" => Some(TrackNumbering::Roman),
+            "roman-dotted" => Some(TrackNumbering::RomanDotted),
             _ =>  None
         }
     }
