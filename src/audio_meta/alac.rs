@@ -11,19 +11,19 @@ use mp4parse::TryString;
 use super::{AudioMeta, compute_peaks};
 
 /// Extract peaks and tag data using mp4parse
-pub fn extract(path: &Path) -> AudioMeta {
+pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let format_family = AudioFormatFamily::Alac;
     let lossless = true;
 
     let (duration_seconds, peaks) = match alac::decode(path) {
-        Some(decode_result) => (
+        Ok(decode_result) => (
             decode_result.duration,
             Some(compute_peaks(decode_result, 320))
         ),
-        None => (0.0, None)
+        Err(err) => return Err(err)
     };
 
-    if let Some(meta) = alac::decode_meta(path) {
+    let audio_meta = if let Some(meta) = alac::decode_meta(path) {
         let album = extract_single(meta.album); // '©alb'
         let album_artists = extract_multiple(meta.album_artist); // 'aART'
         let artists = extract_multiple(meta.artist); // '©art' or '©ART'
@@ -54,7 +54,9 @@ pub fn extract(path: &Path) -> AudioMeta {
             title: None,
             track_number: None
         }
-    }
+    };
+
+    Ok(audio_meta)
 }
 
 fn extract_multiple(metadata_option: Option<TryString>) -> Vec<String> {

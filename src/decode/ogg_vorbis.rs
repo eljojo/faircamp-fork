@@ -9,13 +9,13 @@ use lewton::inside_ogg::OggStreamReader;
 
 use super::DecodeResult;
 
-pub fn decode(path: &Path) -> Option<(DecodeResult, CommentHeader)> {
+pub fn decode(path: &Path) -> Result<(DecodeResult, CommentHeader), String> {
     let mut reader = match File::open(path) {
         Ok(file) => match OggStreamReader::new(file) {
             Ok(reader) => reader,
-            Err(_) => return None
+            Err(err) => return Err(err.to_string())
         },
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
 
     let mut result = DecodeResult {
@@ -37,5 +37,9 @@ pub fn decode(path: &Path) -> Option<(DecodeResult, CommentHeader)> {
         result.duration = result.sample_count as f32 / result.sample_rate as f32;
     }
 
-    Some((result, reader.comment_hdr))
+    if result.sample_count == 0 {
+        return Err(DecodeResult::zero_length_message());
+    }
+
+    Ok((result, reader.comment_hdr))
 }

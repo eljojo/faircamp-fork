@@ -15,19 +15,19 @@ use super::{
     trim_and_reject_empty
 };
 
-pub fn extract(path: &Path) -> AudioMeta {
+pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let format_family = AudioFormatFamily::Flac;
     let lossless = true;
 
     let (duration_seconds, peaks) = match flac::decode(path) {
-        Some(decode_result) => (
+        Ok(decode_result) => (
             decode_result.duration,
             Some(compute_peaks(decode_result, 320))
         ),
-        None => (0.0, None)
+        Err(err) => return Err(err)
     };
 
-    if let Ok(tag) = Tag::read_from_path(path) {
+    let audio_meta = if let Ok(tag) = Tag::read_from_path(path) {
         // FLAC uses vorbis comments, which support multiple
         // fields with the same key. For artists/album artists
         // (where this makes sense) we make use of it. All other
@@ -70,7 +70,9 @@ pub fn extract(path: &Path) -> AudioMeta {
             title: None,
             track_number: None
         }
-    }
+    };
+
+    Ok(audio_meta)
 }
 
 fn extract_multiple<'a>(key: &str, tag: &Tag) -> Vec<String> {

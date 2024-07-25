@@ -9,13 +9,13 @@ use mp4parse::MetadataBox;
 
 use super::DecodeResult;
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let reader = match File::open(path) {
         Ok(file) => match Reader::new(file) {
             Ok(reader) => reader,
-            Err(_) => return None
+            Err(err) => return Err(err.to_string())
         },
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
 
     let stream_info = reader.stream_info();
@@ -36,10 +36,14 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         result.samples.push(sample.unwrap() as f32 / std::i32::MAX as f32);
     }
 
+    if result.sample_count == 0 {
+        return Err(DecodeResult::zero_length_message());
+    }
+
     result.sample_count /= result.channels as u32;
     result.duration = result.sample_count as f32 / result.sample_rate as f32;
 
-    Some(result)
+    Ok(result)
 }
 
 pub fn decode_meta(path: &Path) -> Option<MetadataBox> {

@@ -23,3 +23,9 @@ pub struct DecodeResult {
     /// Samples are stored interleaved
     pub samples: Vec<f32>
 }
+
+impl DecodeResult {
+    pub fn zero_length_message() -> String {
+        "Audio files without samples (zero length) are not supported".to_string()
+    }
+}

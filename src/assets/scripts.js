@@ -650,18 +650,10 @@ function waveforms() {
 
         const trackDuration = parseFloat(input.max);
 
-        let waveformWidthRem;
-        if (longestTrackDuration > 0) {
-            waveformWidthRem = maxWaveformWidthRem;
+        let waveformWidthRem = maxWaveformWidthRem;
 
-            if (relativeWaveforms) {
-                waveformWidthRem *= (trackDuration / longestTrackDuration);
-            }
-        } else {
-            // TODO: Probably nonsensical, (copied from earlier rust implementation)
-            //       General topic/problem here is that we simply don't want a state
-            //       where we have tracks whose length we don't know.
-            waveformWidthRem = 0;
+        if (relativeWaveforms) {
+            waveformWidthRem *= (trackDuration / longestTrackDuration);
         }
 
         // Render the waveform with n samples. Prefer 0.75 samples per pixel, but if there

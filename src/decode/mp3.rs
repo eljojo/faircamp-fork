@@ -8,10 +8,10 @@ use rmp3::{Decoder, Frame};
 
 use super::DecodeResult;
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let buffer = match fs::read(path) {
         Ok(buffer) => buffer,
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
     
     let mut decoder = Decoder::new(&buffer);
@@ -45,6 +45,12 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
             }
         }
     }
-    
-    result
+
+    if let Some(decode_result) = result {
+        if decode_result.duration > 0.0 {
+            return Ok(decode_result);
+        }
+    }
+
+    Err(DecodeResult::zero_length_message())
 }

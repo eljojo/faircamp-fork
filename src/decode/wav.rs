@@ -7,13 +7,18 @@ use hound::{SampleFormat, WavReader};
 
 use super::{DecodeResult, I24_MAX};
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let mut reader = match WavReader::open(path) {
         Ok(reader) => reader,
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
     
     let sample_count = reader.duration();
+
+    if sample_count == 0 {
+        return Err(DecodeResult::zero_length_message());
+    }
+
     let spec = reader.spec();
     
     let mut result = DecodeResult {
@@ -43,5 +48,5 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         _ => unimplemented!()
     }
     
-    Some(result)
+    Ok(result)
 }

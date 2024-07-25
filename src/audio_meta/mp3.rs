@@ -10,19 +10,19 @@ use crate::decode::mp3;
 
 use super::{AudioMeta, compute_peaks, Id3Util};
 
-pub fn extract(path: &Path) -> AudioMeta {
+pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let format_family = AudioFormatFamily::Mp3;
     let lossless = false;
 
     let (duration_seconds, peaks) = match mp3::decode(path) {
-        Some(decode_result) => (
+        Ok(decode_result) => (
             decode_result.duration,
             Some(compute_peaks(decode_result, 320))
         ),
-        None => (0.0, None)
+        Err(err) => return Err(err)
     };
 
-    if let Ok(tag) = Tag::read_from_path(path) {
+    let audio_meta = if let Ok(tag) = Tag::read_from_path(path) {
         let id3_util = Id3Util::new(&tag);
 
         let album = id3_util.album();
@@ -53,5 +53,7 @@ pub fn extract(path: &Path) -> AudioMeta {
             title: None,
             track_number: None
         }
-    }
+    };
+
+    Ok(audio_meta)
 }

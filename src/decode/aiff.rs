@@ -8,15 +8,19 @@ use pacmog::PcmReader;
 
 use super::DecodeResult;
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let buffer = match fs::read(path) {
         Ok(buffer) => buffer,
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
 
     let reader = PcmReader::new(&buffer);
 
     let specs = reader.get_pcm_specs();
+
+    if specs.num_samples == 0 {
+        return Err(DecodeResult::zero_length_message());
+    }
 
     let mut result = DecodeResult {
         channels: specs.num_channels,
@@ -33,5 +37,5 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         }
     }
 
-    Some(result)
+    Ok(result)
 }

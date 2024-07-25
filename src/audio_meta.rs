@@ -43,10 +43,33 @@ pub struct AudioMeta {
 }
 
 impl AudioMeta {
-    pub fn extract(path: &Path, extension: &str) -> AudioMeta {
+    pub fn extract(path: &Path, extension: &str) -> Result<AudioMeta, String> {
         info_decoding!("{:?} (Generating waveform/reading metadata)", path);
 
         match extension {
+            "aac" => {
+                // TODO: AAC is not yet supported as an input file - there was
+                //       previously no library available for this. We could use
+                //       ffmpeg and ffprobe to work around this but given aac
+                //       is not a good input format either, and proprietary,
+                //       this has low priority.
+
+                // AudioMeta {
+                //     album: None,
+                //     album_artists: Vec::new(),
+                //     artists: Vec::new(),
+                //     comment: None,
+                //     duration_seconds: 0.0,
+                //     format_family: AudioFormatFamily::Aac,
+                //     license: None,
+                //     lossless: false,
+                //     peaks: None,
+                //     title: None,
+                //     track_number: None
+                // }
+
+                unreachable!()
+            }
             "aif" |
             "aifc" |
             "aiff" => aiff::extract(path),
@@ -56,24 +79,7 @@ impl AudioMeta {
             "ogg" => ogg_vorbis::extract(path),
             "opus" => opus::extract(path),
             "wav" => wav::extract(path),
-            _ => {
-                let lossless = match extension {
-                    "aac" => false,
-                    _ => unimplemented!("Determination whether extension {} indicates lossless audio in the file not yet implemented.", extension)
-                };
-
-                AudioMeta {
-                    album: None,
-                    album_artists: Vec::new(),
-                    artists: Vec::new(),
-                    duration_seconds: 0.0,
-                    format_family: AudioFormatFamily::Aac,
-                    lossless,
-                    peaks: None,
-                    title: None,
-                    track_number: None
-                }
-            }
+            _ => unreachable!()
         }
     }
 }

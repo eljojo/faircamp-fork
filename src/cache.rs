@@ -752,17 +752,20 @@ impl Cache {
         ImageRcView::new(file_meta, image)
     }
 
+    /// Obtain transcodes by either reviving a view or computing a new
+    /// transcodes instance from scratch. This may fail when we create
+    /// a new instance and the decoding fails somehow.
     pub fn get_or_create_transcodes(
         &mut self,
         build: &Build,
         source_path: &Path,
         extension: &str
-    ) -> TranscodesRcView {
+    ) -> Result<TranscodesRcView, String> {
         let file_meta = FileMeta::new(build, source_path);
 
         for transcodes in &self.transcodes {
             if transcodes.revive_view(&file_meta) {
-                return TranscodesRcView::new(file_meta, transcodes.clone());
+                return Ok(TranscodesRcView::new(file_meta, transcodes.clone()));
             }
         }
 
@@ -771,18 +774,22 @@ impl Cache {
         for transcodes in &self.transcodes {
             if transcodes.matches_hash(&hash) {
                 transcodes.add_view(&file_meta);
-                return TranscodesRcView::new(file_meta, transcodes.clone());
+                return Ok(TranscodesRcView::new(file_meta, transcodes.clone()));
             }
         }
 
-        let source_meta = AudioMeta::extract(&build.catalog_dir.join(source_path), extension);
+        let source_meta = match AudioMeta::extract(&build.catalog_dir.join(source_path), extension) {
+            Ok(audio_meta) => audio_meta,
+            Err(err) => return Err(err)
+        };
+
         let transcodes = TranscodesRc::new(file_meta.clone(), hash, source_meta);
 
         transcodes.borrow().persist_to_cache(&build.cache_dir);
 
         self.transcodes.push(transcodes.clone());
 
-        TranscodesRcView::new(file_meta, transcodes)
+        Ok(TranscodesRcView::new(file_meta, transcodes))
     }
 }
 

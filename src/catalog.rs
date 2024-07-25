@@ -523,7 +523,13 @@ impl Catalog {
                     info!("Reading track {}", path_relative_to_catalog.display());
                 }
 
-                let transcodes = cache.get_or_create_transcodes(build, path_relative_to_catalog, extension);
+                let transcodes = match cache.get_or_create_transcodes(build, path_relative_to_catalog, extension) {
+                    Ok(transcodes) => transcodes,
+                    Err(err) => {
+                        error!("Skipping track {} due to decoding error ({})", path_relative_to_catalog.display(), err);
+                        continue;
+                    }
+                };
 
                 if let Some(release_title) = &transcodes.borrow().source_meta.album {
                     if let Some(metric) = &mut release_title_metrics

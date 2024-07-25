@@ -7,10 +7,10 @@ use claxon::{Block, FlacReader};
 
 use super::{DecodeResult, I24_MAX};
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let mut reader = match FlacReader::open(path) {
         Ok(reader) => reader,
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
     
     let streaminfo = reader.streaminfo();
@@ -30,7 +30,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         match frame_reader.read_next_or_eof(block.into_buffer()) {
             Ok(Some(next_block)) => block = next_block,
             Ok(None) => break,
-            Err(_) => return None
+            Err(err) => return Err(err.to_string())
         }
         
         let sample_count = block.duration();
@@ -53,7 +53,11 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         }
     }
 
+    if result.sample_count == 0 {
+        return Err(DecodeResult::zero_length_message());
+    }
+
     result.duration = result.sample_count as f32 / result.sample_rate as f32;
     
-    Some(result)
+    Ok(result)
 }

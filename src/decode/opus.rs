@@ -9,10 +9,10 @@ use opus::{Channels, Decoder};
 
 use super::DecodeResult;
 
-pub fn decode(path: &Path) -> Option<DecodeResult> {
+pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let identification_header = match opus_headers::parse_from_path(path) {
         Ok(headers) => headers.id,
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
 
     let channels: u16 = identification_header.channel_count as u16;
@@ -20,7 +20,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
 
     let mut reader = match File::open(path) {
         Ok(file) => PacketReader::new(file),
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
 
     // Opus only supports mono and stereo, see https://opus-codec.org/
@@ -28,9 +28,7 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
 
     let mut decoder = match Decoder::new(sample_rate, channels_enum) {
         Ok(decoder) => decoder,
-        // TODO: Here and in all other decoders pass error information upwards
-        //       so it can be gracefully (or as an hard error) be handled.
-        Err(_) => return None
+        Err(err) => return Err(err.to_string())
     };
 
     let mut result = DecodeResult {
@@ -56,7 +54,11 @@ pub fn decode(path: &Path) -> Option<DecodeResult> {
         }
     }
 
+    if result.sample_count == 0 {
+        return Err(DecodeResult::zero_length_message());
+    }
+
     result.duration = result.sample_count as f32 / result.sample_rate as f32;
 
-    Some(result)
+    Ok(result)
 }

@@ -13,20 +13,17 @@ use super::{
     trim_and_reject_empty
 };
 
-pub fn extract(path: &Path) -> AudioMeta {
+pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let format_family = AudioFormatFamily::OggVorbis;
     let lossless = false;
 
     let (duration_seconds, peaks, comment_header) = match ogg_vorbis::decode(path) {
-        Some((decode_result, comment_header)) => (
+        Ok((decode_result, comment_header)) => (
             decode_result.duration,
             Some(compute_peaks(decode_result, 320)),
             Some(comment_header)
         ),
-        // TODO: Shall we make it a hard error when we can't determine duration?
-        //       It creates strange states e.g. in the audio player rendering when
-        //       we don't actually know the duration. (here and elsewhere)
-        None => (0.0, None, None)
+        Err(err) => return Err(err)
     };
 
     let mut album = None;
@@ -35,7 +32,7 @@ pub fn extract(path: &Path) -> AudioMeta {
     let mut title = None;
     let mut track_number = None;
 
-    if let Some(comment_header) = comment_header {
+    let audio_meta = if let Some(comment_header) = comment_header {
         for (key, value) in comment_header.comment_list {
             match key.as_str() {
                 "album" => if let Some(trimmed) = trim_and_reject_empty(&value) {
@@ -81,5 +78,7 @@ pub fn extract(path: &Path) -> AudioMeta {
             title,
             track_number
         }
-    }
+    };
+
+    Ok(audio_meta)
 }

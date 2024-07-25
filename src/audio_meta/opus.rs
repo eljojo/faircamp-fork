@@ -16,19 +16,19 @@ use super::{
     trim_and_reject_empty
 };
 
-pub fn extract(path: &Path) -> AudioMeta {
+pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     let format_family = AudioFormatFamily::Opus;
     let lossless = false;
 
     let (duration_seconds, peaks) = match opus::decode(path) {
-        Some(decode_result) => (
+        Ok(decode_result) => (
             decode_result.duration,
             Some(compute_peaks(decode_result, 320))
         ),
-        None => (0.0, None)
+        Err(err) => return Err(err)
     };
 
-    if let Ok(headers) = parse_from_path(path) {
+    let audio_meta = if let Ok(headers) = parse_from_path(path) {
         let user_comments = headers.comments.user_comments;
 
         let album = extract_single("album", &user_comments);
@@ -64,7 +64,9 @@ pub fn extract(path: &Path) -> AudioMeta {
             title: None,
             track_number: None
         }
-    }
+    };
+
+    Ok(audio_meta)
 }
 
 fn extract_multiple(key: &str, user_comments: &HashMap<String, String>) -> Vec<String> {
