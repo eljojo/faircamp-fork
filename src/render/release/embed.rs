@@ -245,7 +245,7 @@ pub fn embed_release_html(
                 "#,
                 track_duration = format_time(track.transcodes.borrow().source_meta.duration_seconds),
                 track_title = html_escape_outside_attribute(&track.title()),
-                waveform = waveform(&catalog.theme, track)
+                waveform = waveform(track)
             )
         })
         .collect::<Vec<String>>()
@@ -361,7 +361,7 @@ pub fn embed_track_html(
         track_number = release.track_numbering.format(track_number),
         track_title_escaped = html_escape_outside_attribute(&track_title),
         track_title_attribute_escaped = html_escape_inside_attribute(&track_title),
-        waveform = waveform(&catalog.theme, track)
+        waveform = waveform(track)
     );
 
     let body = formatdoc!(

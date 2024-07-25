@@ -127,7 +127,6 @@ pub fn track_html(
     let track_number_formatted = release.track_numbering.format(track_number);
     let track_title_escaped = html_escape_outside_attribute(&track_title);
     let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
-    let waveform_svg = waveform(&catalog.theme, track);
 
     let (copy_track_key, copy_track_value) = match &build.base_url {
         Some(base_url) => {
@@ -137,12 +136,30 @@ pub fn track_html(
         None => ("dynamic-url", format!("{track_number}{index_suffix}"))
     };
 
+    let compact;
+    let r_waveform;
+    if release.theme.waveforms {
+        let waveform_svg = waveform(track);
+
+        compact = "";
+        r_waveform = formatdoc!(r#"
+            <div class="waveform">
+                {waveform_svg}
+                <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" step="any" type="range" value="0">
+                <div class="decoration"></div>
+            </div>
+        "#);
+    } else {
+        compact = "compact";
+        r_waveform = String::new();
+    };
+
     let copy_track_icon = icons::copy(Some(&build.locale.translations.copy_link_to_track));
     let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(&build.locale.translations.play);
     let track_rendered = formatdoc!(r#"
-        <div class="track">
             <span class="number outer">{track_number_formatted}</span>
+        <div class="{compact} track" data-duration="{duration_seconds}">
             <span class="track_header">
                 <span class="number inner">{track_number_formatted}</span>
                 <span class="title" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
@@ -162,11 +179,7 @@ pub fn track_html(
             <audio controls preload="none">
                 {audio_sources}
             </audio>
-            <div class="waveform">
-                {waveform_svg}
-                <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" step="any" type="range" value="0">
-                <div class="decoration"></div>
-            </div>
+            {r_waveform}
         </div>
     "#);
 
@@ -270,9 +283,6 @@ pub fn track_html(
                 {r_player_icon_templates}
             </div>
             <div class="docked_player">
-                <svg class="active_waveform">
-                    <path class="area"/>
-                </svg>
                 <div class="timeline">
                     <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
                     <div class="base"></div>

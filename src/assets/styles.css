@@ -40,11 +40,6 @@ a * { pointer-events: none; }
     top: .2rem;
     width: 1rem;
 }
-.active_waveform { display: none; }
-.active_waveform path.area {
-    fill: none;
-    stroke-width: .06px;
-}
 .additional { background-color: hsla(0, 0%, var(--text-l), var(--release-additional-a)); }
 .additional > .action_links {
     margin-bottom: 1rem;
@@ -121,7 +116,6 @@ button svg { display: inline-block; }
 .docked_player:not(.active) {
     display: none;
 }
-.docked_player:hover .active_waveform path.area { stroke: var(--fg-3); }
 .docked_player button {
     border: none;
     color: var(--fg-1);
@@ -536,6 +530,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     padding-top: .4rem;
     position: relative;
 }
+.track.compact { height: 1.5rem; }
 .track:focus-within .more,
 .track:hover .more,
 .track.active .more {
@@ -571,8 +566,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track.active .number.outer {
     color: var(--fg-1);
 }
-.track:not(.seek) path.seek { opacity: 0; }
-.track.seek .waveform path.base { stroke: var(--mg); }
 .track button {
     border: none;
     color: var(--fg-3);
@@ -587,6 +580,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     column-gap: .4rem;
     display: none;
     margin-left: .4rem;
+}
+.track .more svg {
+    position: relative;
+    top: .15rem;
 }
 .track .more_button {
     margin-left: .4rem;
@@ -747,6 +744,8 @@ input[type="text"].disabled,
 }
 .waveform path.playback { stroke-width: .06px; }
 .waveform path.seek { stroke-width: .02px; }
+.waveform:not(.seek) path.seek { opacity: 0; }
+.waveform.seek path.base { stroke: var(--mg); }
 .unlisted {
     border-radius: .2em;
     border: 1px solid var(--color-muted);

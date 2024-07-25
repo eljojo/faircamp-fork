@@ -10,7 +10,6 @@ use crate::{
     CrawlerMeta,
     DownloadOption,
     Release,
-    Theme,
     Track
 };
 use crate::render::{
@@ -143,7 +142,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
             let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
-            let waveform_svg = waveform(&catalog.theme, track);
 
             let (copy_track_key, copy_track_value) = match &build.base_url {
                 Some(base_url) => {
@@ -153,8 +151,26 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 None => ("dynamic-url", format!("{track_number}{index_suffix}"))
             };
 
+            let compact;
+            let r_waveform;
+            if release.theme.waveforms {
+                let waveform_svg = waveform(track);
+
+                compact = "";
+                r_waveform = formatdoc!(r#"
+                    <div class="waveform">
+                        {waveform_svg}
+                        <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" step="any" type="range" value="0">
+                        <div class="decoration"></div>
+                    </div>
+                "#);
+            } else {
+                compact = "compact";
+                r_waveform = String::new();
+            };
+
             formatdoc!(r#"
-                <div class="track">
+                <div class="{compact} track" data-duration="{duration_seconds}">
                     <span class="number outer">{track_number_formatted}</span>
                     <span class="track_header">
                         <span class="number inner">{track_number_formatted}</span>
@@ -175,11 +191,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <audio controls preload="none">
                         {audio_sources}
                     </audio>
-                    <div class="waveform">
-                        {waveform_svg}
-                        <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" step="any" type="range" value="0">
-                        <div class="decoration"></div>
-                    </div>
+                    {r_waveform}
                 </div>
             "#)
         })
@@ -331,9 +343,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 {tracks_rendered}
             </div>
             <div class="docked_player">
-                <svg class="active_waveform">
-                    <path class="area"/>
-                </svg>
                 <div class="timeline">
                     <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
                     <div class="base"></div>
@@ -395,7 +404,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     )
 }
 
-pub fn waveform(theme: &Theme, track: &Track) -> String {
+pub fn waveform(track: &Track) -> String {
     if let Some(peaks) = &track.transcodes.borrow().source_meta.peaks {
         let peaks_base64 = peaks.iter()
             .map(|peak| {
@@ -417,11 +426,7 @@ pub fn waveform(theme: &Theme, track: &Track) -> String {
                 //   versions, so all peaks are correctly recalculated for everyone then.
                 // - Then also remove this peak_limited correction and rely on the raw
                 //   value again.
-                let peak_limited = if theme.waveforms {
-                    if *peak > 1.0 { 1.0 } else { *peak }
-                } else {
-                    0.5
-                };
+                let peak_limited = if *peak > 1.0 { 1.0 } else { *peak };
 
                 // Limit range to 0-63
                 let peak64 = ((peak_limited / 1.0) * 63.0) as u8;

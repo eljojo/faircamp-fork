@@ -102,7 +102,7 @@ async function mountAndPlay(track, seekTo) {
     dockedPlayer.nextTrackButton.toggleAttribute('disabled', !track.nextTrack);
     dockedPlayer.previousTrackButton.toggleAttribute('disabled', !track.previousTrack);
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
-    dockedPlayer.timelineInput.max = track.waveformInput.max;
+    dockedPlayer.timelineInput.max = track.container.dataset.duration;
     dockedPlayer.title.textContent = track.title.textContent;
 
     updateVolume();
@@ -241,23 +241,26 @@ function togglePlayback(track, seekTo = null) {
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
-    const { waveformInput } = track;
-    // TODO: Announce "current: xxxx, remaining: xxxxx"?
-    waveformInput.setAttribute('aria-valuetext', formatTime(waveformInput.value));
+    if (track.waveform) {
+        // TODO: Announce "current: xxxx, remaining: xxxxx"?
+        track.waveform.input.setAttribute('aria-valuetext', formatTime(track.waveform.input.value));
+    }
 }
 
 function updatePlayhead(track, reset = false) {
     const { audio } = track;
     const factor = reset ? 0 : audio.currentTime / track.duration;
 
-    track.waveformSvg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
-    track.waveformSvg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
     track.time.textContent = reset ? formatTime(track.duration) : `- ${formatTime(track.duration - audio.currentTime)}`;
 
     dockedPlayer.progress.style.setProperty('width', `${factor * 100}%`);
     dockedPlayer.time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
 
-    track.waveformInput.value = audio.currentTime;
+    if (track.waveform) {
+        track.waveform.svg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
+        track.waveform.svg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+        track.waveform.input.value = audio.currentTime;
+    }
 }
 
 function updateVolume(restoreLevel = null) {
@@ -358,12 +361,6 @@ if (dockedPlayer) {
         }
     });
 
-    playReleaseButton.addEventListener('click', () => {
-        togglePlayback(firstTrack, 0);
-    });
-}
-
-if (dockedPlayer) {
     dockedPlayer.timeline.addEventListener('click', () => {
         const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
         const seekTo = factor * dockedPlayer.timelineInput.max;
@@ -431,6 +428,10 @@ if (dockedPlayer) {
     // This was observed to "scroll" between 0 and 1 without a single step in between,
     // hence we disable the default behavior and let the event bubble up to our own handler
     dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
+
+    playReleaseButton.addEventListener('click', () => {
+        togglePlayback(firstTrack, 0);
+    });
 }
 
 for (const copyButton of document.querySelectorAll('[data-copy]')) {
@@ -451,10 +452,8 @@ for (const container of document.querySelectorAll('.track')) {
     const playbackButton = container.querySelector('.track_playback');
     const time = container.querySelector('.time');
     const title = container.querySelector('.title');
-    const waveformInput = container.querySelector('.waveform input');
-    const waveformSvg = container.querySelector('.waveform svg');
 
-    const duration = parseFloat(waveformInput.max);
+    const duration = parseFloat(container.dataset.duration);
 
     const track = {
         audio,
@@ -462,10 +461,20 @@ for (const container of document.querySelectorAll('.track')) {
         duration,
         playbackButton,
         time,
-        title,
-        waveformInput,
-        waveformSvg
+        title
     };
+
+    const waveformContainer = container.querySelector('.waveform');
+    if (waveformContainer) {
+        const input = waveformContainer.querySelector('.waveform input');
+        const svg = waveformContainer.querySelector('.waveform svg');
+
+        track.waveform = {
+            container: waveformContainer,
+            input,
+            svg
+        };
+    }
 
     if (firstTrack === null) {
         firstTrack = track;
@@ -534,53 +543,53 @@ for (const container of document.querySelectorAll('.track')) {
     container.addEventListener('keydown', event => {
         if (event.key === 'ArrowLeft') {
             event.preventDefault();
-            const seekTo = Math.max(0, parseFloat(waveformInput.value) - 5);
+            const seekTo = Math.max(0, track.audio.currentTime - 5);
             togglePlayback(track, seekTo);
         } else if (event.key === 'ArrowRight') {
             event.preventDefault();
-            const seekTo = Math.min(parseFloat(waveformInput.max) - 1, parseFloat(waveformInput.value) + 5);
+            const seekTo = Math.min(track.duration - 1, track.audio.currentTime + 5);
             togglePlayback(track, seekTo);
         }
     });
 
-    const waveform = container.querySelector('.waveform');
+    if (track.waveform) {
+        track.waveform.container.addEventListener('click', event => {
+            const factor = (event.clientX - track.waveform.input.getBoundingClientRect().x) / track.waveform.input.getBoundingClientRect().width;
+            const seekTo = factor * track.waveform.input.max
+            togglePlayback(track, seekTo);
+            track.waveform.input.classList.add('focus_from_click');
+            track.waveform.input.focus();
+        });
 
-    waveform.addEventListener('click', event => {
-        const factor = (event.clientX - waveformInput.getBoundingClientRect().x) / waveformInput.getBoundingClientRect().width;
-        const seekTo = factor * waveformInput.max
-        togglePlayback(track, seekTo);
-        waveformInput.classList.add('focus_from_click');
-        waveformInput.focus();
-    });
+        track.waveform.container.addEventListener('mouseenter', event => {
+            track.waveform.container.classList.add('seek');
+        });
 
-    waveform.addEventListener('mouseenter', event => {
-        container.classList.add('seek');
-    });
+        track.waveform.container.addEventListener('mousemove', event => {
+            const factor = (event.clientX - track.waveform.container.getBoundingClientRect().x) / track.waveform.container.getBoundingClientRect().width;
+            // TODO: Pre-store the two querySelector results
+            track.waveform.svg.querySelector('linearGradient.seek stop:nth-child(1)').setAttribute('offset', factor);
+            track.waveform.svg.querySelector('linearGradient.seek stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+        });
 
-    waveform.addEventListener('mousemove', event => {
-        const factor = (event.clientX - waveform.getBoundingClientRect().x) / waveform.getBoundingClientRect().width;
-        const waveformSvg = container.querySelector('.waveform svg');
-        waveformSvg.querySelector('linearGradient.seek stop:nth-child(1)').setAttribute('offset', factor);
-        waveformSvg.querySelector('linearGradient.seek stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
-    });
+        track.waveform.container.addEventListener('mouseout', event => {
+            track.waveform.container.classList.remove('seek');
+        });
 
-    waveform.addEventListener('mouseout', event => {
-        container.classList.remove('seek');
-    });
+        track.waveform.input.addEventListener('blur', () => {
+            track.waveform.input.classList.remove('focus_from_click');
+        });
 
-    waveformInput.addEventListener('blur', () => {
-        waveformInput.classList.remove('focus_from_click');
-    });
+        track.waveform.input.addEventListener('focus', () => {
+            announcePlayhead(track);
+        });
 
-    waveformInput.addEventListener('focus', () => {
-        announcePlayhead(track);
-    });
-
-    waveformInput.addEventListener('keydown', event => {
-        if (event.key === ' ' || event.key === 'Enter') {
-            togglePlayback(track);
-        }
-    });
+        track.waveform.input.addEventListener('keydown', event => {
+            if (event.key === ' ' || event.key === 'Enter') {
+                togglePlayback(track);
+            }
+        });
+    }
 }
 
 function decode(string) {
