@@ -254,32 +254,32 @@ pub fn embed_release_html(
 
     let release_prefix = "../../";
 
-    let body = formatdoc!(
-        r##"
-            <div class="hcenter_unconstrained">
-                <div class="vpad">
-                    <div class="cover">
-                        {cover}
-                    </div>
+    let artists_truncation = Some((40, format!("{release_prefix}#description")));
+    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
+    let cover = cover_image(build, index_suffix, release_prefix, root_prefix, release);
+    let release_title = html_escape_outside_attribute(&release.title);
 
-                    <div class="release_label">
-                        <h1>{release_title}</h1>
-                        <div class="release_artists">{artists}</div>
-                    </div>
+    let body = formatdoc!(r##"
+        <div class="hcenter_unconstrained">
+            <div class="vpad">
+                <div class="cover">
+                    {cover}
+                </div>
 
-                    <div data-longest-duration="{longest_track_duration}"></div>
-                    {tracks_rendered}
+                <div class="release_label">
+                    <h1>{release_title}</h1>
+                    <div class="release_artists">{artists}</div>
+                </div>
 
-                    <div>
-                        Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>
-                    </div>
+                <div data-longest-duration="{longest_track_duration}"></div>
+                {tracks_rendered}
+
+                <div>
+                    Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>
                 </div>
             </div>
-        "##,
-        artists = list_release_artists(index_suffix, root_prefix, catalog, release),
-        cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
-        release_title = html_escape_outside_attribute(&release.title)
-    );
+        </div>
+    "##);
 
     embed_layout(root_prefix, &body, build, catalog, &release.title)
 }
@@ -365,30 +365,30 @@ pub fn embed_track_html(
         waveform = waveform(track)
     );
 
-    let body = formatdoc!(
-        r##"
-            <div class="hcenter_unconstrained">
-                <div class="vpad">
-                    <div class="cover">{cover}</div>
+    let artists_truncation = Some((40, format!("{release_prefix}#description")));
+    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
+    let cover = cover_image(build, index_suffix, release_prefix, root_prefix, release);
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
 
-                    <div class="release_label">
-                        <h1>{release_title_escaped}</h1>
-                        <div class="release_artists">{artists}</div>
-                    </div>
+    let body = formatdoc!(r##"
+        <div class="hcenter_unconstrained">
+            <div class="vpad">
+                <div class="cover">{cover}</div>
 
-                    <div data-longest-duration="{track_duration}" disable-relative-wavforms></div>
-                    {track_rendered}
+                <div class="release_label">
+                    <h1>{release_title_escaped}</h1>
+                    <div class="release_artists">{artists}</div>
+                </div>
 
-                    <div>
-                        Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>
-                    </div>
+                <div data-longest-duration="{track_duration}" disable-relative-wavforms></div>
+                {track_rendered}
+
+                <div>
+                    Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>
                 </div>
             </div>
-        "##,
-        artists = list_release_artists(index_suffix, root_prefix, catalog, release),
-        cover = cover_image(build, index_suffix, release_prefix, root_prefix, release),
-        release_title_escaped = html_escape_outside_attribute(&release.title)
-    );
+        </div>
+    "##);
 
     embed_layout(root_prefix, &body, build, catalog, &release.title)
 }

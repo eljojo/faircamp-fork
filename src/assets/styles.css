@@ -501,13 +501,9 @@ pre { margin: 0; }
     width: 100%;
 }
 .release img { width: 100% }
-.release_artists a {
-    color: var(--fg-3);
-    font-size: 1.1rem;
-}
-.release_artists a:hover {
-    color: var(--fg-3-focus);
-}
+.release_artists { font-size: 1.1rem; }
+.release_artists a { color: var(--fg-3); }
+.release_artists a:hover { color: var(--fg-3-focus); }
 .release_info {
     align-items: center;
     column-gap: 1rem;

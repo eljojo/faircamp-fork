@@ -97,6 +97,7 @@ Reemplaza el parte final de la direccion - /{unlock_permalink}/{page_hash}{index
 con /{downloads_permalink}/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
         up_to_xxx: String::from("Hasta {xxx}"),
         visual_impairment: untranslated!(visual_impairment),
+        xxx_and_others: String::from(r#"{xxx} y <a href="{others_link}">otros</a>"#),
         xxx_or_more: String::from("{xxx} o más")
     }
 }

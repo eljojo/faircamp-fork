@@ -358,7 +358,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     templates.push_str(&player_icon_templates(build));
 
-    let artists = list_release_artists(index_suffix, root_prefix, catalog, release);
+    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, None, release);
+    let artists_truncation = Some((80, "#description".to_string()));
+    let artists_truncated = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let cover = cover_image(build, index_suffix, "", root_prefix, release);
 
     let release_duration = format_time(release.duration());
@@ -393,7 +395,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <div class="cover">{cover}</div>
                 <div style="max-width: 26rem;">
                     <h1>{release_title_with_unlisted_badge}</h1>
-                    <div class="release_artists">{artists}</div>
+                    <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}
                     <a class="scroll_link" href="#description">
@@ -422,7 +424,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                                 {release_title_escaped} {release_year}
                             </div>
                             <div>{release_duration}</div>
-                            <div>{artists}</div>
+                            <div class="release_artists">{artists}</div>
                         </div>
                         {r_secondary_actions}
                     </div>

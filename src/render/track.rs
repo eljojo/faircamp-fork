@@ -314,7 +314,9 @@ pub fn track_html(
 
     templates.push_str(&player_icon_templates(build));
 
-    let artists = list_track_artists(index_suffix, root_prefix, catalog, track);
+    let artists = list_track_artists(build, index_suffix, root_prefix, catalog, None, track);
+    let artists_truncation = Some((80, "#description".to_string()));
+    let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
     // TODO: Track-level cover support
     let cover = cover_image(build, index_suffix, "../", root_prefix, release);
 
@@ -346,7 +348,7 @@ pub fn track_html(
                 <div class="cover">{cover}</div>
                 <div style="max-width: 26rem;">
                     <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->
-                    <div class="release_artists">{artists}</div>
+                    <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}
                     <a class="scroll_link" href="#description">
@@ -368,14 +370,14 @@ pub fn track_html(
         <a class="scroll_target" id="description"></a>
         <div class="page" data-description>
             <div class="page_center">
-                <div>
+                <div style="max-width: 32rem;">
                     <div class="release_info">
                         <div>
                             <div>
                                 {track_title_escaped} {release_year}
                             </div>
                             <div>{track_duration_formatted}</div>
-                            <div>{artists}</div>
+                            <div class="release_artists">{artists}</div>
                         </div>
                         {r_secondary_actions}
                     </div>

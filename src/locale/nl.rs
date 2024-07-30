@@ -97,6 +97,7 @@ Vervang het laatste deel van het adres - /{unlock_permalink}/{page_hash}{index_s
 met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens op Enter."),
         up_to_xxx: String::from("Tot {xxx}"),
         visual_impairment: untranslated!(visual_impairment),
+        xxx_and_others: String::from(r#"{xxx} en <a href="{others_link}">meer</a>"#),
         xxx_or_more: String::from("{xxx} of meer")
     }
 }

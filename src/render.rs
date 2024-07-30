@@ -127,7 +127,8 @@ fn compact_release_identifier(
     release_prefix: &str,
     root_prefix: &str
 ) -> String {
-    let artists = list_release_artists(index_suffix, root_prefix, catalog, release);
+    let artists_truncation = Some((40, format!("{release_prefix}#description")));
+    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let cover = cover_image_tiny(build, release_prefix, &release.cover, release_link);
 
@@ -416,11 +417,16 @@ fn layout(
 /// listed depends on the catalog settings, by default they are not. The
 /// catalog artist and main artists are always sorted first, in that order.
 fn list_release_artists(
+    build: &Build,
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
+    truncation: Option<(usize, String)>,
     release: &Release
 ) -> String {
+    // .1 is the char count of the name, .2 is either the plain name or a link to the artist
+    let mut items: Vec<(usize, String)> = Vec::new();
+
     let mut main_artists_sorted: Vec<ArtistRc> = release.main_artists.clone();
 
     // Sort so the catalog artist comes first
@@ -432,59 +438,56 @@ fn list_release_artists(
         Ordering::Equal
     });
 
-    let main_artists = main_artists_sorted
-        .iter()
-        .map(|artist| {
+    for artist in &main_artists_sorted {
+        let artist_ref = artist.borrow();
+
+        let name_chars = artist_ref.name.chars().count();
+        let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+
+        if !artist_ref.unlisted {
+            if catalog.label_mode {
+                let permalink = &artist_ref.permalink.slug;
+                let artist_link = format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
+                items.push((name_chars, artist_link));
+                continue;
+            }
+
+            if let Some(catalog_artist) = &catalog.artist {
+                if ArtistRc::ptr_eq(artist, catalog_artist) {
+                    let catalog_artist_link = format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#);
+                    items.push((name_chars, catalog_artist_link));
+                    continue;
+                }
+            }
+        }
+
+        items.push((name_chars, name_escaped));
+    }
+
+    if catalog.feature_support_artists {
+        for artist in &release.support_artists {
             let artist_ref = artist.borrow();
+            let name_chars = artist_ref.name.chars().count();
             let name_escaped = html_escape_outside_attribute(&artist_ref.name);
 
             if artist_ref.unlisted {
-                name_escaped
-            } else if catalog.label_mode {
-                let permalink = &artist_ref.permalink.slug;
-                format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
-            } else if let Some(catalog_artist) = &catalog.artist {
-                if ArtistRc::ptr_eq(artist, catalog_artist) {
-                    format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#)
-                } else {
-                    name_escaped
-                }
+                items.push((name_chars, name_escaped));
             } else {
-                name_escaped
+                let permalink = &artist_ref.permalink.slug;
+                let artist_link = format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
+                items.push((name_chars, artist_link));
             }
-        })
-        .collect::<Vec<String>>()
-        .join(", ");
-
-    if catalog.feature_support_artists && !release.support_artists.is_empty() {
-        let support_artists = release.support_artists
-            .iter()
-            .map(|artist| {
-                let artist_ref = artist.borrow();
-                let name_escaped = html_escape_outside_attribute(&artist_ref.name);
-
-                if artist_ref.unlisted {
-                    name_escaped
-                } else {
-                    let permalink = &artist_ref.permalink.slug;
-                    format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
-                }
-            })
-            .collect::<Vec<String>>()
-            .join(", ");
-
-        format!("{main_artists}, {support_artists}")
-    } else if catalog.show_support_artists && !release.support_artists.is_empty() {
-        let support_artists = release.support_artists
-            .iter()
-            .map(|artist| html_escape_outside_attribute(&artist.borrow().name))
-            .collect::<Vec<String>>()
-            .join(", ");
-
-        format!("{main_artists}, {support_artists}")
-    } else {
-        main_artists
+        }
+    } else if catalog.show_support_artists {
+        for artist in &release.support_artists {
+            let artist_ref = artist.borrow();
+            let name_chars = artist_ref.name.chars().count();
+            let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+            items.push((name_chars, name_escaped));
+        }
     }
+
+    truncate_artist_list(build, catalog, items, truncation)
 }
 
 /// Render the artists of a track in the style of "Alice, Bob", where each
@@ -494,11 +497,16 @@ fn list_release_artists(
 /// linked (to the site's homepage in this case). The catalog artist is
 /// always sorted first.
 fn list_track_artists(
+    build: &Build,
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
+    truncation: Option<(usize, String)>,
     track: &Track
 ) -> String {
+    // .1 is the char count of the name, .2 is either the plain name or a link to the artist
+    let mut items: Vec<(usize, String)> = Vec::new();
+
     let mut track_artists_sorted: Vec<ArtistRc> = track.artists.clone();
 
     // Sort so the catalog artist comes first
@@ -510,29 +518,33 @@ fn list_track_artists(
         Ordering::Equal
     });
 
-    track_artists_sorted
-        .iter()
-        .map(|artist| {
-            let artist_ref = artist.borrow();
-            let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+    for artist in &track_artists_sorted {
+        let artist_ref = artist.borrow();
 
-            if artist_ref.unlisted {
-                name_escaped
-            } else if catalog.label_mode {
+        let name_chars = artist_ref.name.chars().count();
+        let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+
+        if !artist_ref.unlisted {
+            if catalog.label_mode {
                 let permalink = &artist_ref.permalink.slug;
-                format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#)
-            } else if let Some(catalog_artist) = &catalog.artist {
-                if ArtistRc::ptr_eq(artist, catalog_artist) {
-                    format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#)
-                } else {
-                    name_escaped
-                }
-            } else {
-                name_escaped
+                let artist_link = format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
+                items.push((name_chars, artist_link));
+                continue;
             }
-        })
-        .collect::<Vec<String>>()
-        .join(", ")
+
+            if let Some(catalog_artist) = &catalog.artist {
+                if ArtistRc::ptr_eq(artist, catalog_artist) {
+                    let catalog_artist_link = format!(r#"<a href="{root_prefix}.{index_suffix}">{name_escaped}</a>"#);
+                    items.push((name_chars, catalog_artist_link));
+                    continue;
+                }
+            }
+        }
+
+        items.push((name_chars, name_escaped));
+    }
+
+    truncate_artist_list(build, catalog, items, truncation)
 }
 
 /// These are rendered alongside the release player and provide prepared and translated
@@ -576,7 +588,8 @@ fn releases(
             let href = format!("{root_prefix}{permalink}{index_suffix}");
 
             let artists = if catalog.label_mode {
-                let list = list_release_artists(index_suffix, root_prefix, catalog, &release_ref);
+                let artists_truncation = Some((40, format!("{href}#description")));
+                let list = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, &release_ref);
                 format!(r#"<div class="release_artists">{list}</div>"#)
             } else {
                 String::new()
@@ -606,6 +619,58 @@ fn releases(
         })
         .collect::<Vec<String>>()
         .join("\n")
+}
+
+/// Pass in a Vec holding tuples containing the char count and plain name or
+/// link to an artist each, alongside a possible truncation option
+/// (character limit and a link that can be followed to see the truncated
+/// artists). The list then gets truncated (if needed) and joined with ", ".
+fn truncate_artist_list(
+    build: &Build,
+    catalog: &Catalog,
+    items: Vec<(usize, String)>,
+    truncation: Option<(usize, String)>
+) -> String {
+    if items.len() > 2 {
+        if let Some((max_chars, others_link)) = truncation {
+            let name_chars: usize = items.iter().map(|item| item.0).sum();
+            let separator_chars = (items.len() - 1) * 2; // All separating ", " between the artists
+
+            if name_chars + separator_chars > max_chars {
+                // Here we have more than two artists, we have a char limit,
+                // and we cannot fit all artists within the limit, thus
+                // we truncate the list.
+
+                if catalog.label_mode {
+                    // In label mode we show at least one artist, then as many
+                    // additional ones as fit, e.g. "[artist],[artist] and
+                    // more"
+                    let mut chars_used = 0;
+                    let truncated_items = items
+                        .into_iter()
+                        .filter(|item| {
+                            if chars_used == 0 {
+                                chars_used += item.0;
+                                return true;
+                            }
+
+                            chars_used += item.0;
+                            chars_used < max_chars
+                        });
+
+                    let r_items = truncated_items.into_iter().map(|item| item.1).collect::<Vec<String>>().join(", ");
+                    return build.locale.translations.xxx_and_others(&r_items, &others_link)
+                }
+
+                // In artist mode we show only "[catalog artist] and others".
+                // Our sorting ensures the catalog artist is the first one,
+                // so we can just take that.
+                return build.locale.translations.xxx_and_others(&items[0].1, &others_link)
+            }
+        }
+    }
+
+    items.into_iter().map(|item| item.1).collect::<Vec<String>>().join(", ")
 }
 
 pub fn unlisted_badge(build: &Build) -> String {

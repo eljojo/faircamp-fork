@@ -97,6 +97,7 @@ Zamień ostatnią część adresu - /{unlock_permalink}/{page_hash}{index_suffix
 na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij Enter."),
         up_to_xxx: String::from("Aż do {xxx}"),
         visual_impairment: untranslated!(visual_impairment),
+        xxx_and_others: untranslated!(xxx_and_others),
         xxx_or_more: String::from("{xxx} i więcej")
     }
 }

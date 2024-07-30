@@ -79,6 +79,7 @@ pub struct Translations {
     pub unlock_manual_instructions: String,
     pub up_to_xxx: String,
     pub visual_impairment: String,
+    pub xxx_and_others: String,
     pub xxx_or_more: String
 }
 
@@ -160,6 +161,7 @@ impl Translations {
             unlock_manual_instructions: String::from("unlock_manual_instructions"),
             up_to_xxx: String::from("up_to_xxx"),
             visual_impairment: String::from("visual_impairment"),
+            xxx_and_others: String::from("xxx_and_others"),
             xxx_or_more: String::from("xxx_or_more")
         }
     }
@@ -178,6 +180,12 @@ impl Translations {
 
     pub fn up_to_xxx(&self, xxx: &str) -> String {
         self.up_to_xxx.replace("{xxx}", xxx)
+    }
+
+    pub fn xxx_and_others(&self, xxx: &str, others_link: &str) -> String {
+        self.xxx_and_others
+            .replace("{xxx}", xxx)
+            .replace("{others_link}", others_link)
     }
 
     pub fn xxx_or_more(&self, xxx: &str) -> String {
@@ -206,6 +214,8 @@ fn check_translations() {
         assert!(&translations.unlock_manual_instructions.contains("{page_hash}"));
         assert!(&translations.unlock_manual_instructions.contains("{unlock_permalink}"));
         assert!(&translations.up_to_xxx.contains("{xxx}"));
+        assert!(&translations.xxx_and_others.contains("{xxx}"));
+        assert!(&translations.xxx_and_others.contains("{others_link}"));
         assert!(&translations.xxx_or_more.contains("{xxx}"));
 
         let disallowed_char = |c: char| !c.is_ascii_alphanumeric() && c != '-' ;
