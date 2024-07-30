@@ -1,17 +1,14 @@
 // SPDX-FileCopyrightText: 2022-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
+// According to https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl the
+// chroma component in oklch does never exceed 0.37 in P3 or sRGB.
+
+use std::hash::Hash;
 use std::path::PathBuf;
 
 use crate::{CoverGenerator, ImageRcView};
-use crate::util::url_safe_hash_base64;
-
-/// We need float values in our themes to be automatically hashable (which f32
-/// isn't), so we use the newtype pattern to ensure this property.
-#[derive(Clone, Debug)]
-pub struct HashableF32(f32);
+use crate::util::{HashableF32, url_safe_hash_base64};
 
 /// Lightness for both hsl and oklch given in 0-100%
 #[derive(Clone, Debug, Hash)]
@@ -28,18 +25,20 @@ pub struct Lightness {
 /// tint_front          0-100 percent
 #[derive(Clone, Debug, Hash)]
 pub struct Theme {
+    pub accent_chroma: HashableF32,
+    pub accent_hue: u16,
     pub background_alpha: u8,
     pub background_image: Option<ImageRcView>,
     pub base: ThemeBase,
+    pub background_chroma: HashableF32,
+    pub background_hue: u16,
     pub cover_generator: CoverGenerator,
     pub font: ThemeFont,
     pub link_h: u16,
-    pub link_l: Option<u8>,
     pub link_s: Option<u8>,
     pub relative_waveforms: bool,
     pub round_corners: bool,
     pub text_h: u16,
-    pub tint_back: u8,
     pub tint_front: u8,
     pub waveforms: bool
 }
@@ -53,16 +52,20 @@ pub struct ThemeBase {
     pub bg_1: Lightness,
     pub bg_2: Lightness,
     pub bg_3: Lightness,
+    pub bg_mg: Lightness,
     pub background_l: u8,
     pub faint_l: u8,
     pub fg_1: Lightness,
+    pub fg_1_focus: &'static str,
     pub fg_2: Lightness,
     pub fg_3: Lightness,
+    pub fg_3_focus: &'static str,
+    pub fg_mg: Lightness,
     pub header_a: HashableF32,
     pub header_l: u8,
     pub header_link_l: u8,
-    pub header_shadow_a: HashableF32,
     pub header_text_l: u8,
+    pub label: &'static str,
     pub link_l: u8,
     pub link_s: u8,
     pub link_hover_l: u8,
@@ -102,51 +105,33 @@ impl CoverGenerator {
     }
 }
 
-impl Display for HashableF32 {
-    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
-        write!(formatter, "{}", self.0)
-    }
-}
-
-impl Hash for HashableF32 {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.to_string().hash(state);
-    }
-}
-
 impl Lightness {
     pub fn to_gray_hsl(&self) -> String {
         format!("hsl(0 0% {}%)", self.hsl_l)
     }
 
-    pub fn to_gray_oklch(&self) -> String {
-        format!("oklch({}% 0 0)", self.oklch_l)
-    }
-
     pub fn to_transparent_gray_hsl(&self, a: f32) -> String {
         format!("hsl(0 0% {}% / {a}%)", self.hsl_l)
-    }
-
-    pub fn to_transparent_gray_oklch(&self, a: f32) -> String {
-        format!("oklch({}% 0 0 / {a}%)", self.oklch_l)
     }
 }
 
 impl Theme {
     pub fn new() -> Theme {
         Theme {
+            accent_chroma: HashableF32(0.0),
+            accent_hue: 0,
             background_alpha: 10,
+            background_chroma: HashableF32(0.0),
+            background_hue: 0,
             background_image: None,
             base: ThemeBase::DARK,
             cover_generator: CoverGenerator::LooneyTunes,
             font: ThemeFont::Default,
             link_h: 0,
-            link_l: None,
             link_s: None,
             relative_waveforms: true,
             round_corners: false,
             text_h: 0,
-            tint_back: 0,
             tint_front: 0,
             waveforms: true
         }
@@ -182,12 +167,17 @@ impl ThemeBase {
             hsl_l: HashableF32(19.9),
             oklch_l: HashableF32(32.0)
         },
+        bg_mg: Lightness {
+            hsl_l: HashableF32(30.0),
+            oklch_l: HashableF32(41.0)
+        },
         background_l: 0,
         faint_l: 15,
         fg_1: Lightness {
             hsl_l: HashableF32(100.0),
             oklch_l: HashableF32(100.0)
         },
+        fg_1_focus: "--fg-3",
         fg_2: Lightness {
             hsl_l: HashableF32(81.88),
             oklch_l: HashableF32(86.0)
@@ -196,11 +186,16 @@ impl ThemeBase {
             hsl_l: HashableF32(64.48),
             oklch_l: HashableF32(72.0)
         },
+        fg_3_focus: "--fg-1",
+        fg_mg: Lightness {
+            hsl_l: HashableF32(53.0),
+            oklch_l: HashableF32(61.0)
+        },
         header_a: HashableF32(0.8),
         header_l: 0,
         header_link_l: 86,
-        header_shadow_a: HashableF32(0.0),
         header_text_l: 68,
+        label: "black",
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
@@ -226,12 +221,17 @@ impl ThemeBase {
             hsl_l: HashableF32(19.9),
             oklch_l: HashableF32(32.0)
         },
+        bg_mg: Lightness {
+            hsl_l: HashableF32(30.0),
+            oklch_l: HashableF32(41.0)
+        },
         background_l: 0,
         faint_l: 15,
         fg_1: Lightness {
             hsl_l: HashableF32(100.0),
             oklch_l: HashableF32(100.0)
         },
+        fg_1_focus: "--fg-3",
         fg_2: Lightness {
             hsl_l: HashableF32(81.88),
             oklch_l: HashableF32(86.0)
@@ -240,11 +240,16 @@ impl ThemeBase {
             hsl_l: HashableF32(64.48),
             oklch_l: HashableF32(72.0)
         },
+        fg_3_focus: "--fg-1",
+        fg_mg: Lightness {
+            hsl_l: HashableF32(53.0),
+            oklch_l: HashableF32(61.0)
+        },
         header_a: HashableF32(0.9),
         header_l: 10,
         header_link_l: 86,
-        header_shadow_a: HashableF32(0.2),
         header_text_l: 72,
+        label: "black_alternate",
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
@@ -263,12 +268,16 @@ impl ThemeBase {
             oklch_l: HashableF32(21.56)
         },
         bg_2: Lightness {
-            hsl_l: HashableF32(12.23),
-            oklch_l: HashableF32(24.0)
+            hsl_l: HashableF32(14.0),
+            oklch_l: HashableF32(26.0)
         },
         bg_3: Lightness {
             hsl_l: HashableF32(19.9),
             oklch_l: HashableF32(32.0)
+        },
+        bg_mg: Lightness {
+            hsl_l: HashableF32(30.0),
+            oklch_l: HashableF32(41.0)
         },
         background_l: 10,
         faint_l: 15,
@@ -276,6 +285,7 @@ impl ThemeBase {
             hsl_l: HashableF32(100.0),
             oklch_l: HashableF32(100.0)
         },
+        fg_1_focus: "--fg-3",
         fg_2: Lightness {
             hsl_l: HashableF32(81.88),
             oklch_l: HashableF32(86.0)
@@ -284,11 +294,16 @@ impl ThemeBase {
             hsl_l: HashableF32(64.48),
             oklch_l: HashableF32(72.0)
         },
+        fg_3_focus: "--fg-1",
+        fg_mg: Lightness {
+            hsl_l: HashableF32(53.0),
+            oklch_l: HashableF32(61.0)
+        },
         header_a: HashableF32(0.8),
         header_l: 10,
         header_link_l: 86,
-        header_shadow_a: HashableF32(0.0),
         header_text_l: 72,
+        label: "dark",
         link_hover_l: 82,
         link_l: 68,
         link_s: 62,
@@ -314,12 +329,17 @@ impl ThemeBase {
             hsl_l: HashableF32(62.06),
             oklch_l: HashableF32(70.0)
         },
+        bg_mg: Lightness {
+            hsl_l: HashableF32(52.0),
+            oklch_l: HashableF32(60.0)
+        },
         background_l: 90,
         faint_l: 85,
         fg_1: Lightness {
             hsl_l: HashableF32(0.0),
             oklch_l: HashableF32(0.0)
         },
+        fg_1_focus: "--fg-3",
         fg_2: Lightness {
             hsl_l: HashableF32(8.6),
             oklch_l: HashableF32(20.0)
@@ -328,11 +348,16 @@ impl ThemeBase {
             hsl_l: HashableF32(28.06),
             oklch_l: HashableF32(40.0)
         },
+        fg_3_focus: "--bg-mg",
+        fg_mg: Lightness {
+            hsl_l: HashableF32(28.0),
+            oklch_l: HashableF32(45.0)
+        },
         header_a: HashableF32(0.9),
         header_l: 90,
         header_link_l: 14,
-        header_shadow_a: HashableF32(0.0),
         header_text_l: 14,
+        label: "light",
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
@@ -355,8 +380,12 @@ impl ThemeBase {
             oklch_l: HashableF32(92.34)
         },
         bg_3: Lightness {
-            hsl_l: HashableF32(62.06),
-            oklch_l: HashableF32(70.0)
+            hsl_l: HashableF32(79.0),
+            oklch_l: HashableF32(84.0)
+        },
+        bg_mg: Lightness {
+            hsl_l: HashableF32(61.0),
+            oklch_l: HashableF32(67.0)
         },
         background_l: 100,
         faint_l: 87,
@@ -364,6 +393,7 @@ impl ThemeBase {
             hsl_l: HashableF32(0.0),
             oklch_l: HashableF32(0.0)
         },
+        fg_1_focus: "--fg-3",
         fg_2: Lightness {
             hsl_l: HashableF32(8.6),
             oklch_l: HashableF32(20.0)
@@ -372,11 +402,16 @@ impl ThemeBase {
             hsl_l: HashableF32(28.06),
             oklch_l: HashableF32(40.0)
         },
+        fg_3_focus: "--bg-mg",
+        fg_mg: Lightness {
+            hsl_l: HashableF32(28.0),
+            oklch_l: HashableF32(45.0)
+        },
         header_a: HashableF32(0.9),
         header_l: 100,
         header_link_l: 14,
-        header_shadow_a: HashableF32(0.0),
         header_text_l: 14,
+        label: "white",
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,
@@ -399,8 +434,12 @@ impl ThemeBase {
             oklch_l: HashableF32(92.34)
         },
         bg_3: Lightness {
-            hsl_l: HashableF32(62.06),
-            oklch_l: HashableF32(70.0)
+            hsl_l: HashableF32(79.0),
+            oklch_l: HashableF32(84.0)
+        },
+        bg_mg: Lightness {
+            hsl_l: HashableF32(61.0),
+            oklch_l: HashableF32(67.0)
         },
         background_l: 100,
         faint_l: 87,
@@ -408,6 +447,7 @@ impl ThemeBase {
             hsl_l: HashableF32(0.0),
             oklch_l: HashableF32(0.0)
         },
+        fg_1_focus: "--fg-3",
         fg_2: Lightness {
             hsl_l: HashableF32(8.6),
             oklch_l: HashableF32(20.0)
@@ -416,11 +456,16 @@ impl ThemeBase {
             hsl_l: HashableF32(28.06),
             oklch_l: HashableF32(40.0)
         },
+        fg_3_focus: "--bg-mg",
+        fg_mg: Lightness {
+            hsl_l: HashableF32(28.0),
+            oklch_l: HashableF32(45.0)
+        },
         header_a: HashableF32(0.82),
         header_l: 0,
         header_link_l: 100,
-        header_shadow_a: HashableF32(0.2),
         header_text_l: 85,
+        label: "white_alternate",
         link_hover_l: 48,
         link_l: 42,
         link_s: 100,

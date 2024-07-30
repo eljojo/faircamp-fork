@@ -237,16 +237,18 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let t_downloads = &build.locale.translations.downloads;
     let body = formatdoc!(
         r##"
-            <div class="vcenter_page_outer">
-                <div class="hcenter_medium mobile_hpadding vcenter_page vpad_adaptive">
-                    <h1>{t_downloads}</h1>
+            <div class="page">
+                <div class="page_center">
+                    <div style="max-width: 28rem;">
+                        <h1>{t_downloads}</h1>
 
-                    {compact_release_identifier_rendered}
-                    {entire_release_downloads}
-                    {single_file_downloads}
+                        {compact_release_identifier_rendered}
+                        {entire_release_downloads}
+                        {single_file_downloads}
 
-                    <div class="download_hints" id="hints">
-                        {download_hints}
+                        <div class="download_hints" id="hints">
+                            {download_hints}
+                        </div>
                     </div>
                 </div>
             </div>

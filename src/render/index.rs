@@ -8,10 +8,11 @@ use crate::icons;
 use crate::render::{
     artist_image,
     copy_button,
+    cover_image_tiny,
     layout,
     releases
 };
-use crate::util::html_escape_outside_attribute;
+use crate::util::{format_time, html_escape_outside_attribute};
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -28,24 +29,32 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     // catalog.featured_artists is only populated in label mode, otherwise empty
-    let featured_artists = if catalog.featured_artists.iter().any(|artist| !artist.borrow().unlisted) {
-        let artist_links = catalog.featured_artists
-            .iter()
-            .filter(|artist| !artist.borrow().unlisted)
-            .map(|artist| {
-                let artist_ref = artist.borrow();
-                let name = &artist_ref.name;
-                let permalink = &artist_ref.permalink.slug;
+    let featured_artists = catalog.featured_artists
+        .iter()
+        .filter(|artist| !artist.borrow().unlisted)
+        .map(|artist| {
+            let artist_ref = artist.borrow();
+            let name = &artist_ref.name;
+            let permalink = &artist_ref.permalink.slug;
 
-                format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name}</a>"#)
-            })
-            .collect::<Vec<String>>()
-            .join("");
+            let releases = artist_ref.public_releases()
+                .map(|release| {
+                    let release_ref = release.borrow();
+                    let release_prefix = format!("{}/", release_ref.permalink.slug);
+                    cover_image_tiny(build, &release_prefix, &release_ref.cover, &release_prefix)
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
 
-        format!(r#"<div class="artists">{artist_links}</div>"#)
-    } else {
-        String::new()
-    };
+            formatdoc!(r#"
+                <div class="artist">
+                    <a href="{root_prefix}{permalink}{index_suffix}">{name}</a>
+                    {releases}
+                </div>
+            "#)
+        })
+        .collect::<Vec<String>>()
+        .join("");
 
     let title_escaped = html_escape_outside_attribute(&catalog_title);
 
@@ -60,7 +69,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
-    let mut action_links = Vec::new();
+    let mut actions = Vec::new();
 
     if build.base_url.is_some() && catalog.feed_enabled {
         let t_feed = &build.locale.translations.feed;
@@ -73,10 +82,11 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             </a>
         "#);
 
-        action_links.push(feed_link);
+        actions.push(feed_link);
     };
 
-    let templates;
+    let mut templates = String::new();
+
     if catalog.copy_link {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
@@ -89,11 +99,11 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         let copy_icon = icons::copy(None);
         let t_copy_link = &build.locale.translations.copy_link;
         let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
-        action_links.push(r_copy_link);
+        actions.push(r_copy_link);
 
         let failed_icon = icons::failure(&build.locale.translations.failed);
         let success_icon = icons::success(&build.locale.translations.copied);
-        templates = format!(r#"
+        templates.push_str(&format!(r#"
             <template id="copy_icon">
                 {copy_icon}
             </template>
@@ -103,9 +113,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             <template id="success_icon">
                 {success_icon}
             </template>
-        "#);
-    } else {
-        templates = String::new();
+        "#));
     };
 
     for link in &catalog.links {
@@ -124,36 +132,22 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             "#)
         };
 
-        action_links.push(r_link);
+        actions.push(r_link);
     }
 
-    let r_action_links = if action_links.is_empty() {
+    let r_actions = if actions.is_empty() {
         String::new()
     } else {
-        let joined = action_links.join(" &nbsp; ");
+        let joined = actions.join("");
 
         formatdoc!(r#"
-            <div class="action_links">
+            <div class="actions">
                 {joined}
             </div>
         "#)
     };
 
-    let catalog_info = formatdoc!(r##"
-        <div class="catalog">
-            {home_image}
-            <div class="catalog_info_padded">
-                <h1 style="font-size: var(--largest); margin-top: 1rem;">
-                    {title_escaped}
-                </h1>
-                {catalog_text}
-                {r_action_links}
-                {featured_artists}
-            </div>
-        </div>
-    "##);
-
-    let listed_releases: Vec<ReleaseRc> = catalog.releases
+    let public_releases: Vec<ReleaseRc> = catalog.releases
         .iter()
         .filter_map(|release| {
             match release.borrow().unlisted {
@@ -163,29 +157,119 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         })
         .collect();
 
-    let releases_rendered = releases(
+    let r_releases = releases(
         build,
         index_suffix,
         root_prefix,
         catalog,
-        &listed_releases
+        &public_releases
     );
 
-    let index_vcentered = if
-        catalog.home_image.is_none() &&
-        listed_releases.len() <= 2 &&
-        catalog.text.as_ref().is_some_and(|html_and_stripped| html_and_stripped.stripped.len() <= 1024) {
-        "index_vcentered"
-    } else {
-        ""
+    let public_releases_count = public_releases.len();
+    let public_tracks_count: usize = public_releases.iter().map(|release| release.borrow().tracks.len()).sum();
+    let total_listening_duration = public_releases
+        .iter()
+        .map(|release|
+            release.borrow().tracks
+                .iter()
+                .map(|track| track.transcodes.borrow().source_meta.duration_seconds)
+                .sum::<f32>()
+        ).sum();
+    let total_listening_duration_formatted = format_time(total_listening_duration);
+
+    let synopsis = match &catalog.synopsis {
+        Some(synopsis) => {
+            formatdoc!(r#"
+                <div style="margin-bottom: 1rem; margin-top: 1rem;">
+                    {synopsis}
+                </div>
+            "#)
+        }
+        None => String::new()
     };
 
+    // TODO: Make configurable
+    let faircamp_notice = if true {
+        let faircamp_version = env!("CARGO_PKG_VERSION");
+        let t_this_site_was_created_with_faircamp = build.locale.translations.this_site_was_created_with_faircamp(r#"<a href="https://simonrepp.com/faircamp/">Faircamp</a>"#);
+        formatdoc!(r#"
+            <footer class="faircamp_notice" data-version="{faircamp_version}">
+                {t_this_site_was_created_with_faircamp}
+            </footer>
+        "#)
+    } else {
+        String::new()
+    };
+
+    let grid_icon = icons::grid();
+    let list_icon = icons::list();
+    let scroll_icon = icons::scroll();
+    let t_more = &build.locale.translations.more;
+    let t_more_info = &build.locale.translations.more_info;
+    let t_top = &build.locale.translations.top;
+    let t_releases = &build.locale.translations.releases;
+    let t_tracks = &build.locale.translations.tracks;
     let body = formatdoc!(r##"
-        <div class="index_split {index_vcentered}">
-            {catalog_info}
-            <div class="releases" id="releases">
-                {releases_rendered}
+        <div class="page" data-overview>
+            <div class="page_split">
+                {home_image}
+                <div style="max-width: 26rem;">
+                    <h1>{title_escaped}</h1>
+                    <div class="actions primary">
+                        <a class="emphasized" href="#releases">
+                            {grid_icon}
+                            {t_releases}
+                        </a>
+                        <!--a class="emphasized" href="#artists">
+                            {list_icon}
+                            Artists
+                        </a-->
+                    </div>
+                    {synopsis}
+                    <a class="scroll_link" href="#description">
+                        {scroll_icon}
+                        {t_more_info}
+                    </a>
+                </div>
             </div>
+        </div>
+        <a class="scroll_target" id="releases"></a>
+        <div class="additional page">
+            <div class="page_grid">
+                <div>
+                    {r_releases}
+                </div>
+            </div>
+        </div>
+        <!--a class="scroll_target" id="artists"></a>
+        <div class="page">
+            <div class="page_center">
+                <div>
+                    {featured_artists}
+                </div>
+            </div>
+        </div-->
+        <a class="scroll_target" id="description"></a>
+        <div class="additional page" data-description>
+            <div class="page_center">
+                <div style="max-width: 32rem;">
+                    <div>{title_escaped}</div>
+                    <div>{public_releases_count} {t_releases}</div>
+                    <div>{public_tracks_count} {t_tracks}</div>
+                    <div>{total_listening_duration_formatted}</div>
+                    {r_actions}
+                    {catalog_text}
+                </div>
+            </div>
+            {faircamp_notice}
+        </div>
+        <div class="scroll_hints">
+            <a class="up" href="#">
+                {scroll_icon} {t_top}
+            </a>
+            <a class="down" href="#description">
+                <span>{scroll_icon}</span> {t_more}
+            </a>
         </div>
         {templates}
     "##);

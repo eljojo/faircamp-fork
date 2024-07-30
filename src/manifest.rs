@@ -33,6 +33,9 @@ use crate::{
     TrackNumbering,
     util
 };
+use crate::util::HashableF32;
+
+const MAX_SYNOPSIS_CHARS: usize = 256;
 
 macro_rules! err_line {
     ($path:expr, $error:expr) => {
@@ -73,6 +76,7 @@ pub struct Overrides {
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<DescribedImage>,
+    pub release_synopsis: Option<String>,
     pub release_text: Option<HtmlAndStripped>,
     pub release_track_numbering: TrackNumbering,
     pub streaming_quality: StreamingQuality,
@@ -106,6 +110,7 @@ impl Overrides {
             payment_options: Vec::new(),
             release_artists: None,
             release_cover: None,
+            release_synopsis: None,
             release_text: None,
             release_track_numbering: TrackNumbering::ArabicPadded,
             streaming_quality: StreamingQuality::Standard,
@@ -504,6 +509,20 @@ pub fn apply_options(
                 Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
             }
 
+            if let Some(synopsis) = optional_embed_value(section, "synopsis") {
+                let synopsis_chars = synopsis.chars().count();
+
+                if synopsis_chars <= MAX_SYNOPSIS_CHARS {
+                    if let Some(previous_synopsis) = &catalog.synopsis {
+                        warn_global_set_repeatedly!("catalog.synopsis", previous_synopsis, synopsis);
+                    }
+
+                    catalog.synopsis = Some(synopsis);
+                } else {
+                    error!("Ignoring catalog.synopsis value in {} because it is too long ({} / {} characters)", path.display(), synopsis_chars, MAX_SYNOPSIS_CHARS);
+                }
+            }
+
             if let Some(value) = optional_field_value(section, "title") {
                 if let Some(previous) = catalog.set_title(value.clone()) {
                     warn_global_set_repeatedly!("catalog.title", previous, value);
@@ -833,6 +852,16 @@ pub fn apply_options(
             Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
         }
 
+        if let Some(synopsis) = optional_embed_value(section, "synopsis") {
+            let synopsis_chars = synopsis.chars().count();
+
+            if synopsis_chars <= MAX_SYNOPSIS_CHARS {
+                overrides.release_synopsis = Some(synopsis);
+            } else {
+                error!("Ignoring release.synopsis value in {} because it is too long ({} / {} characters)", path.display(), synopsis_chars, MAX_SYNOPSIS_CHARS);
+            }
+        }
+
         match section.optional_field("tags") {
             Ok(Some(field)) => {
                 if let Ok(attributes) = field.attributes() {
@@ -888,10 +917,38 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
+        if let Some((value, line)) = optional_field_value_with_line(section, "accent_chroma") {
+            match value.parse::<f32>().ok().filter(|amount| *amount <= 0.37) {
+                Some(amount) => overrides.theme.accent_chroma = HashableF32(amount),
+                None => error!("Ignoring unsupported value '{}' for global 'theme.accent_chroma' (accepts an amount in the range 0-0.37) in {}:{}", value, path.display(), line)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "accent_hue") {
+            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
+                Some(degrees) => overrides.theme.accent_hue = degrees,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.accent_hue' (accepts an amount of degrees in the range 0-360)) in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "background_alpha") {
             match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
                 Some(percentage) => overrides.theme.background_alpha = percentage,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.background_alpha' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "background_chroma") {
+            match value.parse::<f32>().ok().filter(|amount| *amount <= 0.37) {
+                Some(amount) => overrides.theme.background_chroma = HashableF32(amount),
+                None => error!("Ignoring unsupported value '{}' for global 'theme.background_chroma' (accepts an amount in the range 0-0.37) in {}:{}", value, path.display(), line)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "background_hue") {
+            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
+                Some(degrees) => overrides.theme.background_hue = degrees,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.background_hue' (accepts an amount of degrees in the range 0-360)) in {}:{}", value, path.display(), line)
             }
         }
 
@@ -953,13 +1010,6 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "link_lightness") {
-            match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
-                Some(degrees) => overrides.theme.link_l = Some(degrees),
-                None => error!("Ignoring unsupported value '{}' for global 'theme.link_lightness' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
-            }
-        }
-
         if let Some((value, line)) = optional_field_value_with_line(section, "link_saturation") {
             match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
                 Some(degrees) => overrides.theme.link_s = Some(degrees),
@@ -985,13 +1035,6 @@ pub fn apply_options(
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
                 Some(degrees) => overrides.theme.text_h = degrees,
                 None => error!("Ignoring unsupported value '{}' for global 'theme.text_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
-            }
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "tint_back") {
-            match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => overrides.theme.tint_back = percentage,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.tint_back' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
             }
         }
 

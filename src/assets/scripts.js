@@ -2,9 +2,12 @@ const failedIcon = document.querySelector('#failed_icon');
 const loadingIcon = document.querySelector('#loading_icon');
 const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
+const scrollIcon = document.querySelector('#scroll_icon');
 const successIcon = document.querySelector('#success_icon');
 
-const playReleaseButton = document.querySelector('button.play_release');
+const browseButton = document.querySelector('button#browse');
+
+const listenButton = document.querySelector('button.listen');
 
 const copyFeedbackTimeouts = {};
 
@@ -17,9 +20,11 @@ if (document.querySelector('.docked_player')) {
 
     dockedPlayer = {
         container,
+        artists: container.querySelector('.artists'),
         playbackButton: container.querySelector('button.playback'),
         progress: container.querySelector('.progress'),
         nextTrackButton: container.querySelector('button.next_track'),
+        number: container.querySelector('.number'),
         previousTrackButton: container.querySelector('button.previous_track'),
         time: container.querySelector('.time'),
         timeline: container.querySelector('.timeline'),
@@ -98,12 +103,18 @@ function formatTime(seconds) {
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
+    dockedPlayer.artists.textContent = track.container.dataset.artists;
     dockedPlayer.container.classList.add('active');
-    dockedPlayer.nextTrackButton.toggleAttribute('disabled', !track.nextTrack);
-    dockedPlayer.previousTrackButton.toggleAttribute('disabled', !track.previousTrack);
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
     dockedPlayer.title.textContent = track.title.textContent;
+
+    // Not available on a track player
+    if (dockedPlayer.number) {
+        dockedPlayer.nextTrackButton.toggleAttribute('disabled', !track.nextTrack);
+        dockedPlayer.number.textContent = track.container.dataset.number;
+        dockedPlayer.previousTrackButton.toggleAttribute('disabled', !track.previousTrack);
+    }
 
     updateVolume();
 
@@ -115,6 +126,8 @@ async function mountAndPlay(track, seekTo) {
     track.container.classList.add('active');
     track.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
     dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+    listenButton.querySelector('.icon').replaceChildren(loadingIcon.content.cloneNode(true));
+    listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
 
     if (track.audio.preload !== 'auto') {
         track.audio.preload = 'auto';
@@ -171,6 +184,8 @@ async function mountAndPlay(track, seekTo) {
             dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
             track.container.classList.remove('active');
             track.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
+            listenButton.querySelector('.icon').replaceChildren(playIcon.content.cloneNode(true));
+            listenButton.querySelector('.label').textContent = 'Listen'; // TODO: Translate
         };
 
         // We expose both `abortSeeking` and `seek` on this seeking object,
@@ -305,7 +320,7 @@ function updateVolume(restoreLevel = null) {
             A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${segmentOuterEndX},${segmentOuterEndY}
             L ${segmentInnerEndX},${segmentInnerEndY}
             A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${segmentInnerBeginX},${segmentInnerBeginY}
-            Z"
+            Z
         `;
     };
 
@@ -349,17 +364,20 @@ if (dockedPlayer) {
         togglePlayback(activeTrack ?? firstTrack);
     });
 
-    dockedPlayer.nextTrackButton.addEventListener('click', () => {
-        if (activeTrack?.nextTrack) {
-            togglePlayback(activeTrack.nextTrack);
-        }
-    });
+    // Not available on a track player
+    if (dockedPlayer.number) {
+        dockedPlayer.nextTrackButton.addEventListener('click', () => {
+            if (activeTrack?.nextTrack) {
+                togglePlayback(activeTrack.nextTrack);
+            }
+        });
 
-    dockedPlayer.previousTrackButton.addEventListener('click', () => {
-        if (activeTrack?.previousTrack) {
-            togglePlayback(activeTrack.previousTrack);
-        }
-    });
+        dockedPlayer.previousTrackButton.addEventListener('click', () => {
+            if (activeTrack?.previousTrack) {
+                togglePlayback(activeTrack.previousTrack);
+            }
+        });
+    }
 
     dockedPlayer.timeline.addEventListener('click', () => {
         const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
@@ -399,7 +417,7 @@ if (dockedPlayer) {
     });
 
     dockedPlayer.volumeInput.addEventListener('input', () => {
-        volume.level = parseFloat(dockedPlayer.volumeInput.value);
+        volume.level = parseFloat(dockedPlayer.volumeInput.valueAsNumber);
         updateVolume();
     });
 
@@ -429,10 +447,15 @@ if (dockedPlayer) {
     // hence we disable the default behavior and let the event bubble up to our own handler
     dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
 
-    playReleaseButton.addEventListener('click', () => {
-        togglePlayback(firstTrack, 0);
+    listenButton.addEventListener('click', () => {
+        togglePlayback(firstTrack);
     });
 }
+
+browseButton.addEventListener('click', () => {
+    // TODO: aria attributes etc.
+    browser.classList.add('active');
+});
 
 for (const copyButton of document.querySelectorAll('[data-copy]')) {
     copyButton.addEventListener('click', () => {
@@ -495,6 +518,7 @@ for (const container of document.querySelectorAll('.track')) {
             togglePlayback(track.nextTrack);
         } else {
             activeTrack = null;
+            dockedPlayer.container.classList.remove('active');
         }
     });
 
@@ -504,6 +528,8 @@ for (const container of document.querySelectorAll('.track')) {
         container.classList.remove('playing');
         dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
         playbackButton.replaceChildren(playIcon.content.cloneNode(true));
+        listenButton.querySelector('.icon').replaceChildren(playIcon.content.cloneNode(true));
+        listenButton.querySelector('.label').textContent = 'Listen'; // TODO: Translate
 
         if (track.onPause) {
             track.onPause();
@@ -518,6 +544,9 @@ for (const container of document.querySelectorAll('.track')) {
         container.classList.add('active', 'playing');
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+        listenButton.querySelector('.icon').replaceChildren(pauseIcon.content.cloneNode(true));
+        listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
+
         globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
         updatePlayhead(track);
         announcePlayhead(track);
@@ -526,6 +555,8 @@ for (const container of document.querySelectorAll('.track')) {
     audio.addEventListener('playing', event => {
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
+        listenButton.querySelector('.icon').replaceChildren(pauseIcon.content.cloneNode(true));
+        listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
     });
 
     audio.addEventListener('waiting', event => {
@@ -533,6 +564,8 @@ for (const container of document.querySelectorAll('.track')) {
         //       indicate the loading state too
         dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
+        listenButton.querySelector('.icon').replaceChildren(loadingIcon.content.cloneNode(true));
+        listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
     });
 
     playbackButton.addEventListener('click', event => {
@@ -765,7 +798,7 @@ window.addEventListener('DOMContentLoaded', event => {
     }
 
     if (navigator.clipboard) {
-        for (button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
+        for (const button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
             if (button.dataset.dynamicUrl !== undefined) {
                 if (button.dataset.dynamicUrl === '') {
                     // Build link to this page dynamically
@@ -781,8 +814,49 @@ window.addEventListener('DOMContentLoaded', event => {
             }
         }
     } else {
-        for (button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
+        for (const button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
             button.remove();
         }
+    }
+
+    const intersections = {};
+    const descriptionHint = document.querySelector('.scroll_hints a[href="#description"]');
+    const overviewHint = document.querySelector('.scroll_hints a[href="#"]');
+
+    const updateScrollHints = () => {
+        if (descriptionHint) {
+            descriptionHint.classList.toggle('active', !intersections.overview && !intersections.description);
+        }
+        if (overviewHint) {
+            overviewHint.classList.toggle('active', !intersections.overview);
+        }
+    };
+
+    if (descriptionHint) {
+        const description = document.querySelector('.page[data-description]');
+        const observer = new IntersectionObserver(entries => {
+            for (const entry of entries) {
+                if (entry.target === description) {
+                    intersections.description = entry.intersectionRatio >= 0.3;
+                    updateScrollHints();
+                }
+            }
+        }, { threshold: 0.3 });
+
+        observer.observe(description);
+    }
+
+    if (overviewHint) {
+        const overview = document.querySelector('.page[data-overview]');
+        const observer = new IntersectionObserver(entries => {
+            for (const entry of entries) {
+                if (entry.target === overview) {
+                    intersections.overview = entry.intersectionRatio >= 0.7;
+                    updateScrollHints();
+                }
+            }
+        }, { threshold: 0.7 });
+
+        observer.observe(overview);
     }
 });

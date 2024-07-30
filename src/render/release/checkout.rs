@@ -259,11 +259,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     );
 
     let body = formatdoc!(r#"
-        <div class="vcenter_page_outer">
-            <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
-                <h1>{heading}</h1>
-                {compact_release_identifier_rendered}
-                {content}
+        <div class="page">
+            <div class="page_center">
+                <div style="max-width: 28rem;">
+                    <h1>{heading}</h1>
+                    {compact_release_identifier_rendered}
+                    {content}
+                </div>
             </div>
         </div>
     "#);

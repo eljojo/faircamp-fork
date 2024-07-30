@@ -1,22 +1,71 @@
 .theming_widget {
-    background-color: hsl(var(--background-h), var(--background-s), var(--background-l), .8);
-    border: 1px solid hsl(var(--text-h), var(--text-s), var(--text-l));
-    border-radius: .1rem;
-    color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    background-color: var(--bg-1-overlay);
+    border: 1px solid var(--bg-3);
+    border-radius: .3rem;
+    color: var(--fg-2);
     bottom: 1rem;
     padding: 1rem;
     position: fixed;
     right: 1rem;
     width: 28rem;
 }
-.theming_widget .message { margin-bottom: 1em; }
+.theming_widget > :not(:last-child) { margin-bottom: 1rem; }
+.theming_widget .levels {
+    font-size: .7rem;
+    height: 3rem;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    position: relative;
+}
+.theming_widget .levels .beam {
+    background: linear-gradient(to right, oklch(0% 0 0), oklch(100% 0 0));
+    border: 1px solid var(--fg-1);
+    box-sizing: border-box;
+    height: .4rem;
+    margin-right: -1px;
+    top: 0;
+}
+.theming_widget .levels .level {
+    border-left: 1px solid var(--fg-1);
+    color: var(--fg-1);
+    height: .5rem;
+    position: absolute;
+}
+.theming_widget .levels .level > div {
+    left: -50%;
+    position: relative;
+    top: 1rem;
+    transform: rotate(-45deg);
+}
 .theming_widget .option {
     align-items: center;
     display: flex;
-    margin-bottom: 1rem;
 }
 .theming_widget .option input { width: 17rem; }
 .theming_widget .option .label { margin-left: 1rem; }
+.theming_widget .palette {
+    display: flex;
+    font-size: .8rem;
+}
+.theming_widget .palette .tone {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.theming_widget .palette .tone > div {
+    height: 2rem;
+}
+.theming_widget .palette .tone > span {
+    text-align: center;
+}
+.theming_widget .palette .accent { background: var(--accent); }
+.theming_widget .palette .bg_1 { background: var(--bg-1); }
+.theming_widget .palette .bg_2 { background: var(--bg-2); }
+.theming_widget .palette .bg_3 { background: var(--bg-3); }
+.theming_widget .palette .mg { background: var(--mg); }
+.theming_widget .palette .fg_1 { background: var(--fg-1); }
+.theming_widget .palette .fg_2 { background: var(--fg-2); }
+.theming_widget .palette .fg_3 { background: var(--fg-3); }
 .theming_widget textarea {
     height: 10rem;
     width: 100%;

@@ -43,11 +43,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
 
             let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-            let t_downloads = &build.locale.translations.downloads;
+            let t_download = &build.locale.translations.download;
             formatdoc!(r#"
                 <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
                     {unlock_icon}
-                    <span>{t_downloads}</span>
+                    <span>{t_download}</span>
                 </a>
             "#)
         },
@@ -56,12 +56,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let t_downloads_permalink = &build.locale.translations.downloads_permalink;
             let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
 
-            let download_icon = icons::download(&build.locale.translations.download);
-            let t_downloads = &build.locale.translations.downloads;
+            let download_icon = icons::download();
+            let t_download = &build.locale.translations.download;
             formatdoc!(r#"
                 <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
                     {download_icon}
-                    <span>{t_downloads}</span>
+                    <span>{t_download}</span>
                 </a>
             "#)
         },
@@ -73,11 +73,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_purchase_permalink]);
 
                 let buy_icon = icons::buy(&build.locale.translations.buy);
-                let t_downloads = &build.locale.translations.downloads;
+                let t_download = &build.locale.translations.download;
                 formatdoc!(r#"
                     <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
-                        <span>{t_downloads}</span>
+                        <span>{t_download}</span>
                     </a>
                 "#)
             }
@@ -88,7 +88,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         Some(html_and_stripped) => {
             let html = &html_and_stripped.html;
             formatdoc!(r#"
-                <div class="hcenter_narrow mobile_hpadding text">
+                <div class="text">
                     {html}
                 </div>
             "#)
@@ -98,9 +98,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let longest_track_duration = release.longest_track_duration();
 
+    let t_play = &build.locale.translations.play;
+
     let copy_track_icon = icons::copy(Some(&build.locale.translations.copy_link_to_track));
     let more_icon = icons::more(&build.locale.translations.more);
-    let play_icon = icons::play(&build.locale.translations.play);
+    let play_icon = icons::play(t_play);
+
+    let track_count = release.tracks.len();
 
     let tracks_rendered = release.tracks
         .iter()
@@ -138,6 +142,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
             let track_title = track.title();
 
+            let track_artists = track.artists.iter().map(|artist| artist.borrow().name.clone()).collect::<Vec<String>>().join(", ");
             let track_duration_formatted = format_time(duration_seconds);
             let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
@@ -170,7 +175,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             };
 
             formatdoc!(r#"
-                <div class="{compact} track" data-duration="{duration_seconds}">
+                <div
+                    class="{compact} track"
+                    data-artists="{track_artists} - "
+                    data-duration="{duration_seconds}"
+                    data-number="{track_number} / {track_count}">
                     <span class="number outer">{track_number_formatted}</span>
                     <span class="track_header">
                         <span class="number inner">{track_number_formatted}</span>
@@ -200,13 +209,47 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
-    let mut action_links = Vec::new();
+    let mut primary_actions = Vec::new();
+
+    let t_listen = &build.locale.translations.listen;
+    let listen_button = formatdoc!(r#"
+        <button class="emphasized listen">
+            <span class="icon">{play_icon}</span>
+            <span class="label">{t_listen}</span>
+        </button>
+    "#);
+
+    primary_actions.push(listen_button);
+
+    let list_icon = icons::list();
+    let t_tracks = &build.locale.translations.tracks;
+    let tracks_link = formatdoc!(r##"
+        <a href="#tracks">
+            {list_icon}
+            {t_tracks}
+        </a>
+    "##);
+
+    primary_actions.push(tracks_link);
 
     if !download_link.is_empty() {
-        action_links.push(download_link);
+        primary_actions.push(download_link);
     }
 
+    let r_primary_actions = if primary_actions.is_empty() {
+        String::new()
+    } else {
+        let joined = primary_actions.join("");
+
+        formatdoc!(r#"
+            <div class="actions primary">
+                {joined}
+            </div>
+        "#)
+    };
+
     let failed_icon = icons::failure(&build.locale.translations.failed);
+    let scroll_icon = icons::scroll();
     let success_icon = icons::success(&build.locale.translations.copied);
     let mut templates = format!(r#"
         <template id="copy_track_icon">
@@ -215,10 +258,15 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         <template id="failed_icon">
             {failed_icon}
         </template>
+        <template id="scroll_icon">
+            {scroll_icon}
+        </template>
         <template id="success_icon">
             {success_icon}
         </template>
     "#);
+
+    let mut secondary_actions = Vec::new();
 
     if release.copy_link {
         let (content_key, content_value) = match &build.base_url {
@@ -232,7 +280,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         let copy_icon = icons::copy(None);
         let t_copy_link = &build.locale.translations.copy_link;
         let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
-        action_links.push(r_copy_link);
+        secondary_actions.push(r_copy_link);
 
         templates.push_str(&format!(r#"
             <template id="copy_icon">
@@ -252,16 +300,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </a>
         "#);
 
-        action_links.push(embed_link);
+        secondary_actions.push(embed_link);
     };
 
-    let r_action_links = if action_links.is_empty() {
+    let r_secondary_actions = if secondary_actions.is_empty() {
         String::new()
     } else {
-        let joined = action_links.join("");
+        let joined = secondary_actions.join("");
 
         formatdoc!(r#"
-            <div class="release_actions">
+            <div class="actions">
                 {joined}
             </div>
         "#)
@@ -294,7 +342,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         let joined = links.join("");
 
         formatdoc!(r#"
-            <div class="links hcenter_narrow mobile_hpadding">
+            <div class="links">
                 {joined}
             </div>
         "#)
@@ -319,73 +367,108 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         None => String::new()
     };
 
+    let synopsis = match &release.synopsis {
+        Some(synopsis) => {
+            formatdoc!(r#"
+                <div style="margin-bottom: 1rem; margin-top: 1rem;">
+                    {synopsis}
+                </div>
+            "#)
+        }
+        None => String::new()
+    };
+
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
+    let scroll_icon = icons::scroll();
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
+    let t_more = &build.locale.translations.more;
+    let t_more_info = &build.locale.translations.more_info;
     let t_muted = &build.locale.translations.muted;
-    let t_play = &build.locale.translations.play;
+    let t_top = &build.locale.translations.top;
     let body = formatdoc!(r##"
-        <div class="vcenter_page_outer">
-            <div class="hcenter_narrow mobile_hpadding vcenter_page vpad_adaptive">
+        <div class="page" data-overview>
+            <div class="page_split">
                 <div class="cover">{cover}</div>
-
-                <div class="release_label">
+                <div style="max-width: 26rem;">
                     <h1>{release_title_with_unlisted_badge}</h1>
-                    <div class="quick_actions">
-                        <button class="play_release">{t_play} {play_icon}</button>
-                        <a href="#details">More {more_icon}</a>
-                    </div>
-                    <!--div class="release_artists">{artists}</div-->
-                </div>
-
-                <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
-                {tracks_rendered}
-            </div>
-            <div class="docked_player">
-                <div class="timeline">
-                    <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
-                    <div class="base"></div>
-                    <div class="progress" style="width: 0%;"></div>
-                </div>
-                <div class="elements">
-                    <button class="playback">
-                        {play_icon}
-                    </button>
-                    <div class="volume">
-                        <button>
-                            {volume_icon}
-                        </button>
-                        <span class="slider">
-                            <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
-                        </span>
-                    </div>
-                    <span class="element volume_hint dimmed">{t_dimmed}</span>
-                    <span class="element volume_hint muted">{t_muted}</span>
-                    <span class="element time"></span>
-                    <span class="element title"></span>
-                    <button class="previous_track">
-                        {previous_track_icon}
-                    </button>
-                    <button class="next_track">
-                        {next_track_icon}
-                    </button>
+                    <div class="release_artists">{artists}</div>
+                    {r_primary_actions}
+                    {synopsis}
+                    <a class="scroll_link" href="#description">
+                        {scroll_icon}
+                        {t_more_info}
+                    </a>
                 </div>
             </div>
-            <a id="details"></a>
-            <div class="additional">
-                <div class="hcenter_narrow mobile_hpadding release_info">
-                    <div>
+        </div>
+        <a class="scroll_target" id="tracks"></a>
+        <div class="additional page" data-tracks><!-- TODO: Background-color shift (subtle) -->
+            <div class="page_center">
+                <div>
+                    <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
+                    {tracks_rendered}
+                </div>
+            </div>
+        </div>
+        <a class="scroll_target" id="description"></a>
+        <div class="page" data-description>
+            <div class="page_center">
+                <div style="max-width: 32rem;">
+                    <div class="release_info">
                         <div>
-                            {release_title_escaped} {release_year}
+                            <div>
+                                {release_title_escaped} {release_year}
+                            </div>
+                            <div>{release_duration}</div>
+                            <div>{artists}</div>
                         </div>
-                        <div>{artists}</div>
-                        {release_duration}
+                        {r_secondary_actions}
                     </div>
-                    {r_action_links}
+                    {release_text}
+                    {r_links}
                 </div>
-                {release_text}
-                {r_links}
+            </div>
+        </div>
+        <div class="scroll_hints">
+            <a class="up" href="#">
+                {scroll_icon} {t_top}
+            </a>
+            <a class="down" href="#description">
+                <span>{scroll_icon}</span> {t_more}
+            </a>
+        </div>
+        <div class="docked_player">
+            <div class="timeline">
+                <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
+                <div class="base"></div>
+                <div class="progress" style="width: 0%;"></div>
+            </div>
+            <div class="elements">
+                <button class="playback">
+                    {play_icon}
+                </button>
+                <div class="volume">
+                    <button>
+                        {volume_icon}
+                    </button>
+                    <span class="slider">
+                        <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                    </span>
+                </div>
+                <span class="element volume_hint dimmed">{t_dimmed}</span>
+                <span class="element volume_hint muted">{t_muted}</span>
+                <span class="element time"></span>
+                <span class="element artists"></span>
+                <span class="element title"></span>
+                <button class="previous_track">
+                    {previous_track_icon}
+                </button>
+                <span class="element number"></span>
+                <button class="next_track">
+                    {next_track_icon}
+                </button>
             </div>
         </div>
         {templates}

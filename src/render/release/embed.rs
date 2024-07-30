@@ -91,12 +91,13 @@ pub fn embed_choices_html(
 
             let t_copy = &build.locale.translations.copy;
             let r_copy_button = copy_button("content", &embed_copy_code, &copy_icon, t_copy);
+            let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
 
             formatdoc!(r#"
                 <div class="hcenter_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
                     <div style="font-size: var(--subtly-larger);">
-                        <span class="track_number">{track_number:02}</span>
+                        <span class="track_number">{track_number_formatted}</span>
                         <span>{track_title_escaped}</span>
                     </div>
                     {r_copy_button}

@@ -1,191 +1,98 @@
-<div class="theming_widget"></div>
-<script>
-    const persistence = {
-        signature: `${LINK_H}:${LINK_L}:${LINK_S}:${TEXT_H}:${TINT_BACK}:${TINT_FRONT}`
-    };
-
-    let persistTimeout = null;
-    function persistDebounced() {
-        if (persistTimeout) { clearTimeout(persistTimeout); }
-
-        persistTimeout = setTimeout(
-            () => {
-                persistTimeout = null;
-                window.localStorage.setItem(
-                    'faircamp_theming_widget_persistence',
-                    JSON.stringify(persistence)
-                );
-            },
-            250
-        );
-    }
-
-    const persistedJson = window.localStorage.getItem('faircamp_theming_widget_persistence');
-
-    if (persistedJson) {
-        const persisted = JSON.parse(persistedJson);
-        if (persistence.signature === persisted.signature) {
-            persistence.values = persisted.values; // restore previous values
-        }
-    }
-
-    if (!persistence.values) {
-        // A new build with differing values, or we never persisted before
-        persistence.values = {
-            'link_h': LINK_H,
-            'link_l': LINK_L,
-            'link_s': LINK_S,
-            'text_h': TEXT_H,
-            'tint_back': TINT_BACK,
-            'tint_front': TINT_FRONT
-        };
-
-        window.localStorage.setItem(
-            'faircamp_theming_widget_persistence',
-            JSON.stringify(persistence)
-        );
-    }
-
-    const options = [
-        {
-            cssVariable: 'link_h',
-            default: 0,
-            label: 'Link Hue',
-            manifestOption: 'link_hue',
-            range: [0, 360],
-            step: 1,
-            tooltip: 'Sets the hue of the link color (0-360 degrees)',
-            value: persistence.values.link_h,
-            variable: '--link-h',
-            unit: 'deg'
-        },
-        {
-            cssVariable: 'link_s',
-            default: 0,
-            label: 'Link Saturation',
-            manifestOption: 'link_saturation',
-            range: [0, 100],
-            step: 1,
-            tooltip: 'Sets the saturation of the link color (0-100 percent)',
-            value: persistence.values.link_s,
-            variable: '--link-s',
-            unit: '%'
-        },
-        {
-            cssVariable: 'link_l',
-            default: 0,
-            label: 'Link Lightness',
-            manifestOption: 'link_lightness',
-            range: [0, 100],
-            step: 1,
-            tooltip: 'Sets the lightness of the link color (0-100 percent)',
-            value: persistence.values.link_l,
-            variable: '--link-l',
-            unit: '%'
-        },
-        {
-            cssVariable: 'tint_back',
-            default: 0,
-            label: 'Background Color Tint',
-            manifestOption: 'tint_back',
-            range: [0, 100],
-            step: 1,
-            tooltip: 'Applies a color tint to the page background (0-100%)',
-            value: persistence.values.tint_back,
-            variable: '--tint-back'
-        },
-        {
-            cssVariable: 'tint_front',
-            default: 0,
-            label: 'Text Color Tint',
-            manifestOption: 'tint_front',
-            range: [0, 100],
-            step: 1,
-            tooltip: 'Applies a color tint to the page foreground elements (0-100%)',
-            value: persistence.values.tint_front,
-            variable: '--tint-front'
-        },
-        {
-            cssVariable: 'text_h',
-            default: 0,
-            label: 'Text Hue',
-            manifestOption: 'text_hue',
-            range: [0, 360],
-            step: 1,
-            tooltip: 'Sets the hue of the text color (0-360 degrees)',
-            value: persistence.values.text_h,
-            variable: '--text-h',
-            unit: 'deg'
-        }
-    ];
-    
-    const message = document.createElement('div');
-    message.classList.add('message');
-
-    const customizations = document.createElement('textarea');
-    
-    customizations.readOnly = true;
-    
-    const updateTextarea = () => {
-        const customized = options.filter(option => option.value !== option.default);
-
-        if (customized.length === 0) {
-            customizations.innerHTML = '';
-            message.innerHTML = 'No customizations made (all options are at their default currently).';
-        } else {
-            customizations.innerHTML = `# theme\n\n${customized.map(option => `${option.manifestOption}: ${option.value}`).join('\n')}`;
-            message.innerHTML = 'Copy the customizations below to a manifest in your catalog';
-        }
-    };
-    
-    for (const option of options) {
-        const { cssVariable, label, range, step, tooltip, unit, variable } = option;
-
-        const variableValue = unit ? `${option.value}${unit}` : option.value.toString();
-        document.querySelector(':root').style.setProperty(variable, variableValue);
-
-        const input = document.createElement('input');
-        
-        if (range) {
-            input.min = range[0];
-            input.max = range[1];
-        }
-        
-        input.step = step;
-        input.title = tooltip;
-        input.type = 'range';
-        input.value = option.value;
-        
-        input.addEventListener('input', () => {
-            option.value = input.valueAsNumber;
-
-            const variableValue = unit ? `${option.value}${unit}` : option.value.toString();
-            document.querySelector(':root').style.setProperty(variable, variableValue);
-
-            updateTextarea();
-
-            persistence.values[option.cssVariable] = option.value;
-            persistDebounced();
-        });
-        
-        const span = document.createElement('span');
-        
-        span.classList.add('label');
-        span.innerHTML = label;
-        span.title = tooltip;
-        
-        const div = document.createElement('div');
-        
-        div.classList.add('option');
-        div.appendChild(input);
-        div.appendChild(span);
-        
-        document.querySelector('.theming_widget').appendChild(div);
-    }
-    
-    document.querySelector('.theming_widget').appendChild(message);
-
-    document.querySelector('.theming_widget').appendChild(customizations);
-
-    updateTextarea();
-</script>
+<div class="theming_widget">
+    <div>
+        {base}
+    </div>
+    <div class="levels">
+        <div class="beam"></div>
+        <div class="level" style="left: {bg_1_oklch_l}%;">
+            <div>bg-1</div>
+        </div>
+        <div class="level" style="left: {bg_2_oklch_l}%;">
+            <div>bg-2</div>
+        </div>
+        <div class="level" style="left: {bg_3_oklch_l}%;">
+            <div>bg-3</div>
+        </div>
+        <div class="level" style="left: {bg_mg_oklch_l}%;">
+            <div>bg-mg</div>
+        </div>
+        <div class="level" style="left: {fg_1_oklch_l}%;">
+            <div>fg-1</div>
+        </div>
+        <div class="level" style="left: {fg_2_oklch_l}%;">
+            <div>fg-2</div>
+        </div>
+        <div class="level" style="left: {fg_3_oklch_l}%;">
+            <div>fg-3</div>
+        </div>
+        <div class="level" style="left: {fg_mg_oklch_l}%;">
+            <div>fg-mg</div>
+        </div>
+        <div class="level" style="left: {mg_oklch_l}%;">
+            <div>mg</div>
+        </div>
+    </div>
+    <div class="palette">
+        <div class="tone">
+            <div class="accent"></div>
+            <div class="monochrome" style="background: oklch({mg_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {mg_hsl_l}%);"></div>
+            <span>accent</span>
+        </div>
+        <div class="tone">
+            <div class="bg_1"></div>
+            <div class="monochrome" style="background: oklch({bg_1_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {bg_1_hsl_l}%);"></div>
+            <span>bg-1</span>
+        </div>
+        <div class="tone">
+            <div class="bg_2"></div>
+            <div class="monochrome" style="background: oklch({bg_2_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {bg_2_hsl_l}%);"></div>
+            <span>bg-2</span>
+        </div>
+        <div class="tone">
+            <div class="bg_3"></div>
+            <div class="monochrome" style="background: oklch({bg_3_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {bg_3_hsl_l}%);"></div>
+            <span>bg-3</span>
+        </div>
+        <div class="tone">
+            <div class="bg_mg"></div>
+            <div class="monochrome" style="background: oklch({bg_mg_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {bg_mg_hsl_l}%);"></div>
+            <span>bg-mg</span>
+        </div>
+        <div class="tone">
+            <div class="mg"></div>
+            <div class="monochrome" style="background: oklch({mg_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {mg_hsl_l}%);"></div>
+            <span>mg</span>
+        </div>
+        <div class="tone">
+            <div class="fg_mg"></div>
+            <div class="monochrome" style="background: oklch({fg_mg_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {fg_mg_hsl_l}%);"></div>
+            <span>fg-mg</span>
+        </div>
+        <div class="tone">
+            <div class="fg_3"></div>
+            <div class="monochrome" style="background: oklch({fg_3_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {fg_3_hsl_l}%);"></div>
+            <span>fg-3</span>
+        </div>
+        <div class="tone">
+            <div class="fg_2"></div>
+            <div class="monochrome" style="background: oklch({fg_2_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {fg_2_hsl_l}%);"></div>
+            <span>fg-2</span>
+        </div>
+        <div class="tone">
+            <div class="fg_1"></div>
+            <div class="monochrome" style="background: oklch({fg_1_oklch_l}% 0 0);"></div>
+            <div class="monochrome" style="background: hsl(0 0% {fg_1_hsl_l}%);"></div>
+            <span>fg-1</span>
+        </div>
+    </div>
+</div>
+<script>{script}</script>

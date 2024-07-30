@@ -101,6 +101,7 @@ pub struct Release {
     pub support_artists: Vec<ArtistRc>,
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
+    pub synopsis: Option<String>,
     pub tag_agenda: TagAgenda,
     pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
@@ -212,6 +213,7 @@ impl Release {
         source_dir: PathBuf,
         streaming_quality: StreamingQuality,
         support_artists_to_map: Vec<String>,
+        synopsis: Option<String>,
         tag_agenda: TagAgenda,
         text: Option<HtmlAndStripped>,
         theme: Theme,
@@ -243,6 +245,7 @@ impl Release {
             streaming_quality,
             support_artists: Vec::new(),
             support_artists_to_map,
+            synopsis,
             tag_agenda,
             text,
             theme,

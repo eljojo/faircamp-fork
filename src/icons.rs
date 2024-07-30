@@ -3,6 +3,7 @@
 
 use indoc::formatdoc;
 
+/// A dollar sign
 pub fn buy(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -29,15 +30,16 @@ pub fn copy(text_alternative: Option<&str>) -> String {
     "#)
 }
 
-pub fn download(label: &str) -> String {
+/// An arrow pointing downwards
+pub fn download() -> String {
     formatdoc!(r#"
-        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-            <title>{label}</title>
+        <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <path d="m32.016 9.0254a3.4285 3.4285 0 0 0-3.418 3.4395l0.09961 30.846-8.8867-8.9121a3.4285 3.4285 0 0 0-2.4238-1.0078 3.4285 3.4285 0 0 0-2.4258 1.002 3.4285 3.4285 0 0 0-0.00586 4.8477l14.664 14.703a3.4288 3.4288 0 0 0 4.8555 0l14.6-14.633a3.4285 3.4285 0 0 0-0.00586-4.8477 3.4285 3.4285 0 0 0-4.8477 0.003906l-8.668 8.6875-0.097656-30.711a3.4285 3.4285 0 0 0-3.4395-3.418z"/>
         </svg>
     "#)
 }
 
+/// A dashed outline of a rounded rectangle
 pub fn embed(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -47,6 +49,7 @@ pub fn embed(label: &str) -> String {
     "#)
 }
 
+/// An arrow pointing outwards from within a square
 pub fn external(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -56,7 +59,7 @@ pub fn external(label: &str) -> String {
     "#)
 }
 
-/// Visually represented as a fully symetric X
+/// A fully symetric X
 pub fn failure(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -66,6 +69,17 @@ pub fn failure(label: &str) -> String {
     "#)
 }
 
+/// The logo
+pub fn faircamp() -> String {
+    formatdoc!(r#"
+        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <title>Faircamp</title>
+            <path d="m39.881 40.829 1.2736-3.7326c0.16935-0.49631 0.51868-0.91106 0.97898-1.1623l7.6911-4.1982c0.41894-0.22868 0.44885-0.81906 0.05516-1.0889l-5.3773-3.6858c-0.40252-0.2759-0.58586-0.77665-0.45667-1.2472l0.83396-3.0375c0.10596-0.38594 0.5597-0.55363 0.89118-0.32937l10.551 7.1384c1.1285 0.76347 1.0472 2.4511-0.14947 3.1025l-15.839 8.6228c-0.2544 0.13848-0.54634-0.10768-0.4528-0.38181zm-21.56-0.71651-10.639-7.1649c-1.1304-0.76131-1.0532-2.4495 0.14204-3.1044l16.55-9.0683c0.24626-0.13493 0.52768 0.10884 0.42925 0.37183l-1.4747 3.9402c-0.18436 0.4926-0.53964 0.90254-1.001 1.155l-8.1479 4.459c-0.41817 0.22884-0.44672 0.81879-0.0526 1.0869l5.4751 3.7252c0.40291 0.27414 0.58616 0.77467 0.45549 1.2442l-0.84196 3.0251c-0.10758 0.38652-0.56213 0.55415-0.89491 0.33004zm25.654-30.594c-3.4629 0-10.138 2.0227-15.593 24.68-4.1 17.03-7.8557 18.965-9.919 19.007-1.1051 0.0226-1.7076-1.5696-1.1711-1.9798 0.37253-0.22641 1.1535-0.80303 1.1535-1.5516 0-0.85436-0.66165-1.3217-1.521-1.3017-0.88964 0.02072-1.7065 0.98255-1.7505 2.3158 0 1.7735 1.2416 3.7938 3.7009 3.7938 4.335 0 11.759-5.0498 15.399-20.158 2.0661-8.5762 5.2058-23.614 10.028-23.614 1.5974 0 1.5175 1.4328 1.0664 1.8125-0.45106 0.37973-0.95632 0.78658-0.99971 1.5338-0.04845 0.83454 0.55753 1.8182 1.4467 1.7975 1.2133-0.02825 2.1069-0.91548 2.1069-2.3008 0-2.2179-1.6252-4.034-3.9476-4.034z"/>
+        </svg>
+    "#)
+}
+
+// The standard RSS icon with a two semi-circle arcs radiating from a dot
 pub fn feed(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +91,24 @@ pub fn feed(label: &str) -> String {
     "#)
 }
 
+/// Four squares arranged to form a grid
+pub fn grid() -> String {
+    formatdoc!(r#"
+        <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="m10.252 5.9375c-2.3905 0-4.3145 1.924-4.3145 4.3145v14.625c0 2.3905 1.924 4.3145 4.3145 4.3145h14.625c2.3905 0 4.3145-1.924 4.3145-4.3145v-14.625c0-2.3905-1.924-4.3145-4.3145-4.3145h-14.625zm28.871 0c-2.3905 0-4.3145 1.924-4.3145 4.3145v14.625c0 2.3905 1.924 4.3145 4.3145 4.3145h14.625c2.3905 0 4.3145-1.924 4.3145-4.3145v-14.625c0-2.3905-1.924-4.3145-4.3145-4.3145h-14.625zm-28.871 28.871c-2.3905 0-4.3145 1.924-4.3145 4.3145v14.625c0 2.3905 1.924 4.3145 4.3145 4.3145h14.625c2.3905 0 4.3145-1.924 4.3145-4.3145v-14.625c0-2.3905-1.924-4.3145-4.3145-4.3145h-14.625zm28.871 0c-2.3905 0-4.3145 1.924-4.3145 4.3145v14.625c0 2.3905 1.924 4.3145 4.3145 4.3145h14.625c2.3905 0 4.3145-1.924 4.3145-4.3145v-14.625c0-2.3905-1.924-4.3145-4.3145-4.3145h-14.625z"/>
+        </svg>
+    "#)
+}
+
+pub fn list() -> String {
+    formatdoc!(r#"
+        <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="m11.262 4.8711c-2.3905-1e-7 -4.3145 1.7279-4.3145 3.875 0 2.1471 1.924 3.875 4.3145 3.875h35.133c2.3905 0 4.3145-1.7279 4.3145-3.875 0-2.1471-1.924-3.875-4.3145-3.875h-35.133zm0 15.502c-2.3905 0-4.3145 1.7279-4.3145 3.875 0 2.1471 1.924 3.877 4.3145 3.877h32.547c2.3905 0 4.3145-1.7299 4.3145-3.877 0-2.1471-1.924-3.875-4.3145-3.875h-32.547zm0 15.502c-2.3905 0-4.3145 1.7299-4.3145 3.877s1.924 3.875 4.3145 3.875h41.475c2.3905 0 4.3145-1.7279 4.3145-3.875s-1.924-3.877-4.3145-3.877h-41.475zm0 15.504c-2.3905 0-4.3145 1.7279-4.3145 3.875 0 2.1471 1.924 3.875 4.3145 3.875h17.537c2.3905 0 4.3145-1.7279 4.3145-3.875 0-2.1471-1.924-3.875-4.3145-3.875h-17.537z"/>
+        </svg>
+    "#)
+}
+
+/// The pause icon, split in two paths and annotated with classes which are used to animate it with css
 pub fn loading(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -87,6 +119,7 @@ pub fn loading(label: &str) -> String {
     "#)
 }
 
+/// Three horizontal dots
 pub fn more(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -132,7 +165,25 @@ pub fn previous_track(label: &str) -> String {
     "#)
 }
 
-/// Visually represented as a checkmark
+/// The shape of a mouse from above, with an arrow inside
+pub fn scroll() -> String {
+    formatdoc!(r#"
+        <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="m19.027 0.027344c-6.6701 0-12.119 5.449-12.119 12.119v39.709c0 6.6701 5.449 12.119 12.119 12.119h25.945c6.6701 0 12.119-5.449 12.119-12.119v-39.709c0-6.6701-5.449-12.119-12.119-12.119h-25.945zm0 5.1133h25.945c3.9246 0 7.0059 3.0813 7.0059 7.0059v39.709c0 3.9246-3.0813 7.0059-7.0059 7.0059h-25.945c-3.9246 0-7.0059-3.0813-7.0059-7.0059v-39.709c0-3.9246 3.0813-7.0059 7.0059-7.0059zm10.537 11.311v23.395l-7.4316-8.8945-3.7383 3.125 13.615 16.293 13.604-16.467-3.7578-3.1035-7.4199 8.9844v-23.332h-4.8711z"/>
+        </svg>
+    "#)
+}
+
+/// A magnifying glass
+pub fn search() -> String {
+    formatdoc!(r#"
+        <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="m28.144 6.9499a21.197 21.197 0 0 0-21.197 21.197 21.197 21.197 0 0 0 21.197 21.197 21.197 21.197 0 0 0 11.999-3.7292l10.307 10.302c1.5105 1.5101 3.9592 1.5098 5.4693-6.29e-4 1.5101-1.5105 1.5099-3.9591-4.55e-4 -5.4693l-10.307-10.302a21.197 21.197 0 0 0 3.7287-11.999 21.197 21.197 0 0 0-21.197-21.197zm0 7.7512a13.446 13.446 0 0 1 13.446 13.446 13.446 13.446 0 0 1-13.446 13.446 13.446 13.446 0 0 1-13.446-13.446 13.446 13.446 0 0 1 13.446-13.446z"/>
+        </svg>
+    "#)
+}
+
+/// A checkmark
 pub fn success(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -142,6 +193,7 @@ pub fn success(label: &str) -> String {
     "#)
 }
 
+/// A half-open lock
 pub fn unlock(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -151,6 +203,7 @@ pub fn unlock(label: &str) -> String {
     "#)
 }
 
+/// A struck-through eye
 pub fn visual_impairment(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -160,6 +213,7 @@ pub fn visual_impairment(label: &str) -> String {
     "#)
 }
 
+/// A knob as found on a mixer desk, in 12 o'clock position
 pub fn volume(label: &str) -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">

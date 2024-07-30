@@ -63,6 +63,7 @@ pub struct Catalog {
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
     pub support_artists: Vec<ArtistRc>,
+    pub synopsis: Option<String>,
     pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     title: Option<String>
@@ -313,6 +314,7 @@ impl Catalog {
             releases: Vec::new(),
             show_support_artists: false,
             support_artists: Vec::new(),
+            synopsis: None,
             text: None,
             theme: Theme::new(),
             title: None
@@ -720,6 +722,7 @@ impl Catalog {
                     release_dir_relative_to_catalog,
                     merged_overrides.streaming_quality,
                     support_artists_to_map,
+                    merged_overrides.release_synopsis.clone(),
                     merged_overrides.tag_agenda.clone(),
                     merged_overrides.release_text.clone(),
                     merged_overrides.theme.clone(),

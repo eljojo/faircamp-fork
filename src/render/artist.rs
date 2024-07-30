@@ -12,7 +12,7 @@ use crate::render::{
     releases,
     unlisted_badge
 };
-use crate::util::html_escape_outside_attribute;
+use crate::util::{format_time, html_escape_outside_attribute};
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -28,7 +28,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
 
-    let mut action_links = Vec::new();
+    let mut secondary_actions = Vec::new();
 
     let templates;
     if artist.copy_link {
@@ -44,7 +44,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         let copy_icon = icons::copy(None);
         let t_copy_link = &build.locale.translations.copy_link;
         let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
-        action_links.push(r_copy_link);
+        secondary_actions.push(r_copy_link);
 
         let failed_icon = icons::failure(&build.locale.translations.failed);
         let success_icon = icons::success(&build.locale.translations.copied);
@@ -63,19 +63,19 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         templates = String::new();
     };
 
-    let r_action_links = if action_links.is_empty() {
+    let r_secondary_actions = if secondary_actions.is_empty() {
         String::new()
     } else {
-        let joined = action_links.join(" &nbsp; ");
+        let joined = secondary_actions.join("");
 
         formatdoc!(r#"
-            <div class="action_links">
+            <div class="actions">
                 {joined}
             </div>
         "#)
     };
 
-    let artist_image_rendered = match &artist.image {
+    let r_artist_image = match &artist.image {
         Some(artist_image_unpacked) => artist_image(
             build,
             index_suffix,
@@ -92,18 +92,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         artist_name_escaped.clone()
     };
 
-    let artist_info = formatdoc!(r##"
-        <div class="catalog">
-            {artist_image_rendered}
-            <div class="catalog_info_padded">
-                <h1>{name_unlisted}</h1>
-                {artist_text}
-                {r_action_links}
-            </div>
-        </div>
-    "##);
-
-    let visible_releases: Vec<ReleaseRc> = artist.releases
+    let public_releases: Vec<ReleaseRc> = artist.releases
         .iter()
         .filter_map(|release| {
             match release.borrow().unlisted {
@@ -113,29 +102,93 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         })
         .collect();
 
-    let releases_rendered = releases(
+    let r_releases = releases(
         build,
         index_suffix,
         root_prefix,
         catalog,
-        &visible_releases
+        &public_releases
     );
 
-    let index_vcentered = if
-        artist.image.is_none() &&
-        artist.releases.len() <= 2 &&
-        artist.text.as_ref().is_some_and(|html_and_stripped| html_and_stripped.stripped.len() <= 1024) {
-        "index_vcentered"
-    } else {
-        ""
+    let public_releases_count = public_releases.len();
+    let public_tracks_count: usize = public_releases.iter().map(|release| release.borrow().tracks.len()).sum();
+    let total_listening_duration = public_releases
+        .iter()
+        .map(|release|
+            release.borrow().tracks
+                .iter()
+                .map(|track| track.transcodes.borrow().source_meta.duration_seconds)
+                .sum::<f32>()
+        ).sum();
+    let total_listening_duration_formatted = format_time(total_listening_duration);
+
+    let artist_synopsis: Option<String> = None; // TODO: Think through/unmock/implement
+    let synopsis = match artist_synopsis {
+        Some(synopsis) => {
+            formatdoc!(r#"
+                <div style="margin-bottom: 1rem; margin-top: 1rem;">
+                    {synopsis}
+                </div>
+            "#)
+        }
+        None => String::new()
     };
 
+    let grid_icon = icons::grid();
+    let scroll_icon = icons::scroll();
+    let t_more = &build.locale.translations.more;
+    let t_more_info = &build.locale.translations.more_info;
+    let t_releases = &build.locale.translations.releases;
+    let t_top = &build.locale.translations.top;
+    let t_tracks = &build.locale.translations.tracks;
     let body = formatdoc!(r##"
-        <div class="index_split {index_vcentered}">
-            {artist_info}
-            <div class="releases" id="releases">
-                {releases_rendered}
+        <div class="page" data-overview>
+            <div class="page_split">
+                {r_artist_image}
+                <div style="max-width: 26rem;">
+                    <h1>{name_unlisted}</h1>
+                    <div class="actions primary">
+                        <a class="emphasized" href="#releases">
+                            {grid_icon}
+                            {t_releases}
+                        </a>
+                    </div>
+                    {synopsis}
+                    <a class="scroll_link" href="#description">
+                        {scroll_icon}
+                        {t_more_info}
+                    </a>
+                </div>
             </div>
+        </div>
+        <a class="scroll_target" id="releases"></a>
+        <div class="additional page">
+            <div class="page_grid">
+                <div>
+                    {r_releases}
+                </div>
+            </div>
+        </div>
+        <a class="scroll_target" id="description"></a>
+        <div class="additional page" data-description>
+            <div class="page_center">
+                <div>
+                    <div>{artist_name_escaped}</div>
+                    <div>{public_releases_count} {t_releases}</div>
+                    <div>{public_tracks_count} {t_tracks}</div>
+                    <div>{total_listening_duration_formatted}</div>
+                    {r_secondary_actions}
+                    {artist_text}
+                </div>
+            </div>
+        </div>
+        <div class="scroll_hints">
+            <a class="up" href="#">
+                {scroll_icon} {t_top}
+            </a>
+            <a class="down" href="#description">
+                <span>{scroll_icon}</span> {t_more}
+            </a>
         </div>
         {templates}
     "##);

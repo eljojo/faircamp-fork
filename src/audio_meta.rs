@@ -29,10 +29,13 @@ use id3_util::Id3Util;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMeta {
+    /// The album name as provided by tags
     pub album: Option<String>,
-    /// Vec because vorbis comments support multiple artists
+    /// The album artists as provided by tags
+    /// (Vec because some tag standards support multiple artists)
     pub album_artists: Vec<String>,
-    /// Vec because vorbis comments support multiple artists
+    /// The track artists as provided by tags
+    /// (Vec because some tag standards support multiple artists)
     pub artists: Vec<String>,
     pub duration_seconds: f32,
     pub format_family: AudioFormatFamily,
@@ -40,7 +43,9 @@ pub struct AudioMeta {
     /// A simplified, compressed sequence of peaks in the audio,
     /// which are used to later compute the waveform visualization
     pub peaks: Vec<f32>,
+    /// The track title as provided by tags
     pub title: Option<String>,
+    /// The track number as provided by tags
     pub track_number: Option<u32>
 }
 

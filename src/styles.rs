@@ -98,41 +98,48 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
             format!("{FONT_ELEMENTS_SELECTOR} {{ font-family: {}; }}", fonts)
         }
     };
-    
+
+    let bg_1_oklch_l = &theme.base.bg_1.oklch_l;
+    let bg_2_oklch_l = &theme.base.bg_2.oklch_l;
+    let bg_3_oklch_l = &theme.base.bg_3.oklch_l;
+    let bg_mg_oklch_l = &theme.base.bg_mg.oklch_l;
+    let fg_1_oklch_l = &theme.base.fg_1.oklch_l;
+    let fg_2_oklch_l = &theme.base.fg_2.oklch_l;
+    let fg_3_oklch_l = &theme.base.fg_3.oklch_l;
+    let fg_mg_oklch_l = &theme.base.fg_mg.oklch_l;
+    let mg_oklch_l = &theme.base.mg.oklch_l;
+
     let mut css = {
-        let tint_back = theme.tint_back;
+        let accent_chroma = &theme.accent_chroma;
+        let accent_hue = theme.accent_hue;
+        let background_chroma = &theme.background_chroma;
+        let background_hue = theme.background_hue;
         let tint_front = theme.tint_front;
         let bg_1_hsl = theme.base.bg_1.to_gray_hsl();
-        let bg_1_oklch = theme.base.bg_1.to_gray_oklch();
         let bg_1_overlay_hsl = theme.base.bg_1.to_transparent_gray_hsl(80.0);
-        let bg_1_overlay_oklch = theme.base.bg_1.to_transparent_gray_oklch(80.0);
         let bg_2_hsl = theme.base.bg_2.to_gray_hsl();
-        let bg_2_oklch = theme.base.bg_2.to_gray_oklch();
         let bg_2_overlay_hsl = theme.base.bg_2.to_transparent_gray_hsl(80.0);
-        let bg_2_overlay_oklch = theme.base.bg_2.to_transparent_gray_oklch(80.0);
         let bg_3_hsl = theme.base.bg_3.to_gray_hsl();
-        let bg_3_oklch = theme.base.bg_3.to_gray_oklch();
+        let bg_mg_hsl = theme.base.bg_mg.to_gray_hsl();
         let background_l = theme.base.background_l;
         let background_s = 41;
         let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
         let faint_l = theme.base.faint_l;
+        let fg_1_focus = theme.base.fg_1_focus;
         let fg_1_hsl = theme.base.fg_1.to_gray_hsl();
-        let fg_1_oklch = theme.base.fg_1.to_gray_oklch();
         let fg_2_hsl = theme.base.fg_2.to_gray_hsl();
-        let fg_2_oklch = theme.base.fg_2.to_gray_oklch();
+        let fg_3_focus = theme.base.fg_3_focus;
         let fg_3_hsl = theme.base.fg_3.to_gray_hsl();
-        let fg_3_oklch = theme.base.fg_3.to_gray_oklch();
+        let fg_mg_hsl = theme.base.fg_mg.to_gray_hsl();
         let header_a = &theme.base.header_a;
         let header_l = theme.base.header_l;
         let header_link_l = theme.base.header_link_l;
-        let header_shadow_a = &theme.base.header_shadow_a;
         let header_text_l = theme.base.header_text_l;
         let link_h = theme.link_h;
-        let link_l = theme.link_l.unwrap_or(theme.base.link_l);
+        let link_l = theme.base.link_l;
         let link_s = theme.link_s.unwrap_or(theme.base.link_s);
         let link_hover_l = theme.base.link_hover_l;
         let mg_hsl = theme.base.mg.to_gray_hsl();
-        let mg_oklch = theme.base.mg.to_gray_oklch();
         let muted_l = theme.base.muted_l;
         let muted_s = 35;
         let nav_s = 17;
@@ -150,9 +157,9 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         formatdoc!(r#"
             :root {{
                 --link-h: {link_h}deg;
-                --tint-back: {tint_back};
                 --tint-front: {tint_front};
                 
+                --accent: {mg_hsl};
                 --background-h: var(--link-h);
                 --background-l: {background_l}%;
                 --background-s: calc({background_s}% * (var(--tint-back) / 100));
@@ -161,15 +168,18 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --bg-2: {bg_2_hsl};
                 --bg-2-overlay: {bg_2_overlay_hsl};
                 --bg-3: {bg_3_hsl};
+                --bg-mg: {bg_mg_hsl};
                 --cover-border-radius: {cover_border_radius};
                 --faint-l: {faint_l}%;
                 --fg-1: {fg_1_hsl};
+                --fg-1-focus: var({fg_1_focus});
                 --fg-2: {fg_2_hsl};
                 --fg-3: {fg_3_hsl};
+                --fg-3-focus: var({fg_3_focus});
+                --fg-mg: {fg_mg_hsl};
                 --header-a: {header_a};
                 --header-l: {header_l}%;
                 --header-link-l: {header_link_l}%;
-                --header-shadow-a: {header_shadow_a};
                 --header-text-l: {header_text_l}%;
                 --link-l: {link_l}%;
                 --link-s: {link_s}%;
@@ -179,7 +189,7 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 --muted-l: {muted_l}%;
                 --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
                 --nav-s: calc({nav_s}% * (var(--tint-front) / 100));
-                --overlay-a: {overlay_a};
+                --overlay-a: {overlay_a}%;
                 --release-additional-a: {release_additional_a};
                 --text-h: {text_h}deg;
                 --text-l: {text_l}%;
@@ -187,15 +197,25 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
             }}
             @supports (color: oklch(0% 0 0)) {{
                 :root {{
-                    --bg-1: {bg_1_oklch};
-                    --bg-1-overlay: {bg_1_overlay_oklch};
-                    --bg-2: {bg_2_oklch};
-                    --bg-2-overlay: {bg_2_overlay_oklch};
-                    --bg-3: {bg_3_oklch};
-                    --fg-1: {fg_1_oklch};
-                    --fg-2: {fg_2_oklch};
-                    --fg-3: {fg_3_oklch};
-                    --mg: {mg_oklch};
+                    --acc-c: {accent_chroma};
+                    --acc-h: {accent_hue};
+                    /* Without accent chroma we give the accent mg_l lightness, with max chroma (0.37) we apply a 10% boost in lightness for extra pop */
+                    --accent: oklch(calc(var(--acc-c) * (10% / 0.37) + {mg_oklch_l}%) var(--acc-c) var(--acc-h));
+                    --bg-c: {background_chroma};
+                    --bg-h: {background_hue};
+                    --bg-1: oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h));
+                    --bg-1-overlay: oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h) / 80%);
+                    --bg-2: oklch({bg_2_oklch_l}% var(--bg-c) var(--bg-h));
+                    --bg-2-overlay: oklch({bg_2_oklch_l}% var(--bg-c) var(--bg-h) / 80%);
+                    --bg-3: oklch({bg_3_oklch_l}% var(--bg-c) var(--bg-h));
+                    --bg-mg: oklch({bg_mg_oklch_l}% var(--bg-c) var(--bg-h));
+                    --fg-c: 0;
+                    --fg-h: 0;
+                    --fg-1: oklch({fg_1_oklch_l}% 0 var(--bg-h));
+                    --fg-2: oklch({fg_2_oklch_l}% calc(var(--bg-c) / 2) var(--bg-h));
+                    --fg-3: oklch({fg_3_oklch_l}% calc(var(--bg-c) / 4) var(--bg-h));
+                    --fg-mg: oklch({fg_mg_oklch_l}% var(--fg-c) var(--fg-h));
+                    --mg: oklch({mg_oklch_l}% var(--bg-c) var(--bg-h));
                 }}
             }}
             {font_declaration}
@@ -207,6 +227,8 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         let filename = &image_ref.background_asset.as_ref().unwrap().filename;
         let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(filename));
 
+        let bg_1_hsl_l = &theme.base.bg_1.hsl_l;
+
         // We are using a pseudo-element floating behind all other page content
         // to display the background image. A more straight-forward way would
         // be to use "fixed" background positioning on body itself, but Apple
@@ -215,12 +237,6 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         // See e.g. https://stackoverflow.com/questions/26372127/background-fixed-no-repeat-not-working-on-mobile
         let background_override = formatdoc!("
             body::before {{
-                background:
-                    linear-gradient(
-                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100)),
-                        hsla(var(--background-h), var(--background-s), var(--background-l), calc(var(--overlay-a) / 100))
-                    ),
-                    url({hashed_filename}) center / cover;
                 content: '';
                 display: block;
                 height: 100vh;
@@ -229,6 +245,24 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 top: 0;
                 width: 100vw;
                 z-index: -1;
+            }}
+            body::before {{
+                background:
+                    linear-gradient(
+                        hsl(0 0% {bg_1_hsl_l}% / var(--overlay-a)),
+                        hsl(0 0% {bg_1_hsl_l}% / var(--overlay-a))
+                    ),
+                    url({hashed_filename}) center / cover;
+            }}
+            @supports (color: oklch(0% 0 0)) {{
+                body::before {{
+                    background:
+                        linear-gradient(
+                            oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h) / var(--overlay-a)),
+                            oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h) / var(--overlay-a))
+                        ),
+                        url({hashed_filename}) center / cover;
+                }}
             }}
         ");
 

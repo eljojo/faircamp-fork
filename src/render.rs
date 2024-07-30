@@ -85,6 +85,39 @@ fn artist_image(
     }
 }
 
+fn browser(catalog: &Catalog) -> String {
+    // let public_releases: Vec<ReleaseRc> = catalog.releases
+    //     .iter()
+    //     .filter_map(|release| {
+    //         match release.borrow().unlisted {
+    //             true => None,
+    //             false => Some(release.clone())
+    //         }
+    //     })
+    //     .collect();
+
+    // let r_releases = public_releases
+    //     .iter()
+    //     .map(|release| {
+    //         release.borrow().title.clone()
+    //     })
+    //     .collect::<Vec<String>>()
+    //     .join("\n");
+
+    let close_icon = icons::failure("Close"); // TODO: Revert removal of close translation and use
+    formatdoc!(r#"
+        <div id="browser">
+            <div class="page">
+                <div class="page_center">
+                    <div>
+                        <input type="search"> {close_icon}
+                    </div>
+                </div>
+            </div>
+        </div>
+    "#)
+}
+
 fn compact_release_identifier(
     build: &Build,
     catalog: &Catalog,
@@ -104,7 +137,7 @@ fn compact_release_identifier(
                 {cover}
             </div>
             <div>
-                <div style="font-size: var(--boldly-larger);">{release_title_escaped}</div>
+                <div style="font-size: 1.17rem;">{release_title_escaped}</div>
                 <div style="font-size: var(--subtly-larger);">{artists}</div>
             </div>
         </div>
@@ -115,7 +148,7 @@ fn compact_release_identifier(
 /// to copy the content (embed code or link) to clipboard and display success/failure state.
 pub fn copy_button(content_key: &str, content_value: &str, copy_icon: &str, label: &str) -> String {
     formatdoc!(r##"
-        <button class="link" data-{content_key}="{content_value}" data-copy>
+        <button data-{content_key}="{content_value}" data-copy>
             <span class="icon">{copy_icon}</span>
             <span>{label}</span>
         </button>
@@ -203,15 +236,16 @@ fn cover_tile_image(
             let image_ref = described_image.image.borrow();
 
             let alt = match &described_image.description {
-                Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
+                Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
                 None => String::new()
             };
 
             let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_320(release_prefix);
             let thumbnail = formatdoc!(
                 r##"
-                    <a class="image" href="{href}">
-                        <img{alt}
+                    <a href="{href}">
+                        <img
+                            {alt}
                             loading="lazy"
                             sizes="
                                 (min-width: 60rem) 20rem,
@@ -236,7 +270,7 @@ fn cover_tile_image(
         None => {
             let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
             formatdoc!(r#"
-                <a class="image" href="{href}">
+                <a href="{href}">
                     <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg"/>
                 </a>
             "#)
@@ -264,7 +298,7 @@ fn cover_image_tiny(
             };
 
             formatdoc!(r#"
-                <a class="image" href="{href_url}">
+                <a href="{href_url}">
                     <img{alt} loading="lazy" src="{src}">
                 </a>
             "#)
@@ -272,7 +306,7 @@ fn cover_image_tiny(
         None => {
             let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
             formatdoc!(r#"
-                <a class="image" href="{href_url}">
+                <a href="{href_url}">
                     <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
                 </a>
             "#)
@@ -291,6 +325,8 @@ fn layout(
     title: &str,
     crawler_meta: CrawlerMeta
 ) -> String {
+    let r_browser = browser(catalog);
+
     let feed_meta_link = match build.base_url.is_some() && catalog.feed_enabled {
         true => {
             let t_rss_feed = &build.locale.translations.rss_feed;
@@ -302,24 +338,51 @@ fn layout(
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
     let theming_widget = if build.theming_widget {
+        let accent_chroma = &catalog.theme.accent_chroma;
+        let accent_hue = catalog.theme.accent_hue;
+        let background_chroma = &catalog.theme.background_chroma;
+        let background_hue = catalog.theme.background_hue;
         let link_h = catalog.theme.link_h;
-        let link_l = catalog.theme.link_l.unwrap_or(catalog.theme.base.link_l);
         let link_s = catalog.theme.link_s.unwrap_or(catalog.theme.base.link_s);
-        let template = include_str!("templates/theming_widget.html");
         let text_h = catalog.theme.text_h;
-        let tint_back = catalog.theme.tint_back;
         let tint_front = catalog.theme.tint_front;
+
+        let r_template = format!(
+            include_str!("templates/theming_widget.html"),
+            base = theme.base.label,
+            bg_1_hsl_l = theme.base.bg_1.hsl_l,
+            bg_1_oklch_l = theme.base.bg_1.oklch_l,
+            bg_2_hsl_l = theme.base.bg_2.hsl_l,
+            bg_2_oklch_l = theme.base.bg_2.oklch_l,
+            bg_3_hsl_l = theme.base.bg_3.hsl_l,
+            bg_3_oklch_l = theme.base.bg_3.oklch_l,
+            bg_mg_hsl_l = theme.base.bg_mg.hsl_l,
+            bg_mg_oklch_l = theme.base.bg_mg.oklch_l,
+            fg_1_hsl_l = theme.base.fg_1.hsl_l,
+            fg_1_oklch_l = theme.base.fg_1.oklch_l,
+            fg_2_hsl_l = theme.base.fg_2.hsl_l,
+            fg_2_oklch_l = theme.base.fg_2.oklch_l,
+            fg_3_hsl_l = theme.base.fg_3.hsl_l,
+            fg_3_oklch_l = theme.base.fg_3.oklch_l,
+            fg_mg_hsl_l = theme.base.fg_mg.hsl_l,
+            fg_mg_oklch_l = theme.base.fg_mg.oklch_l,
+            mg_hsl_l = theme.base.mg.hsl_l,
+            mg_oklch_l = theme.base.mg.oklch_l,
+            script = include_str!("assets/theming_widget.js")
+        );
 
         formatdoc!(r#"
             <script>
+                const ACCENT_CHROMA = {accent_chroma};
+                const ACCENT_HUE = {accent_hue};
+                const BACKGROUND_CHROMA = {background_chroma};
+                const BACKGROUND_HUE = {background_hue};
                 const LINK_H = {link_h};
-                const LINK_L = {link_l};
                 const LINK_S = {link_s};
                 const TEXT_H = {text_h};
-                const TINT_BACK = {tint_back};
                 const TINT_FRONT = {tint_front};
             </script>
-            {template}
+            {r_template}
         "#)
     } else {
         String::new()
@@ -328,11 +391,14 @@ fn layout(
     format!(
         include_str!("templates/layout.html"),
         body = body,
+        browser = r_browser,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
+        faircamp_icon = icons::faircamp(),
         favicon_links = catalog.favicon.header_tags(root_prefix),
         feed_meta_link = feed_meta_link,
+        grid_icon = icons::grid(),
         index_suffix = if build.clean_urls { "/" } else { "/index.html" },
         lang = &build.locale.language,
         root_prefix = root_prefix,
@@ -511,7 +577,7 @@ fn releases(
 
             let artists = if catalog.label_mode {
                 let list = list_release_artists(index_suffix, root_prefix, catalog, &release_ref);
-                format!("<div>{list}</div>")
+                format!(r#"<div class="release_artists">{list}</div>"#)
             } else {
                 String::new()
             };
@@ -530,15 +596,11 @@ fn releases(
 
             formatdoc!(r#"
                 <div class="release">
-                    <div class="cover_listing">
-                        {cover}
-                    </div>
-                    <div>
-                        <a href="{href}" style="color: var(--fg-2); font-size: var(--subtly-larger);">
-                            {release_title_escaped}
-                        </a>
-                        {artists}
-                    </div>
+                    {cover}
+                    <a href="{href}">
+                        {release_title_escaped}
+                    </a>
+                    {artists}
                 </div>
             "#)
         })

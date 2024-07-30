@@ -46,10 +46,12 @@ pub struct Translations {
     pub image_descriptions_guide: String,
     /// Must be unique and only contain url-safe characters
     pub image_descriptions_permalink: String,
+    pub listen: String,
     pub loading: String,
     pub made_or_arranged_payment: String,
     pub missing_image_description_note: String,
     pub more: String,
+    pub more_info: String,
     pub muted: String,
     pub name_your_price: String,
     pub next_track: String,
@@ -63,7 +65,11 @@ pub struct Translations {
     /// Must be unique and only contain url-safe characters
     pub purchase_permalink: String,
     pub recommended_format: String,
+    pub releases: String,
     pub rss_feed: String,
+    pub this_site_was_created_with_faircamp: String,
+    pub top: String,
+    pub tracks: String,
     pub unlisted: String,
     pub unlock: String,
     pub unlock_downloads: String,
@@ -123,10 +129,12 @@ impl Translations {
             image_descriptions: String::from("image_descriptions"),
             image_descriptions_guide: String::from("image_descriptions_guide"),
             image_descriptions_permalink: String::from("image_descriptions_permalink"),
+            listen: String::from("listen"),
             loading: String::from("loading"),
             made_or_arranged_payment: String::from("made_or_arranged_payment"),
             missing_image_description_note: String::from("missing_image_description_note"),
             more: String::from("more"),
+            more_info: String::from("more_info"),
             muted: String::from("muted"),
             name_your_price: String::from("name_your_price"),
             next_track: String::from("next_track"),
@@ -139,7 +147,11 @@ impl Translations {
             previous_track: String::from("previous_track"),
             purchase_permalink: String::from("purchase_permalink"),
             recommended_format: String::from("recommended_format"),
+            releases: String::from("releases"),
             rss_feed: String::from("rss_feed"),
+            this_site_was_created_with_faircamp: String::from("this_site_was_created_with_faircamp"),
+            top: String::from("top"),
+            tracks: String::from("tracks"),
             unlisted: String::from("unlisted"),
             unlock: String::from("unlock"),
             unlock_downloads: String::from("unlock_downloads"),
@@ -150,6 +162,10 @@ impl Translations {
             visual_impairment: String::from("visual_impairment"),
             xxx_or_more: String::from("xxx_or_more")
         }
+    }
+
+    pub fn this_site_was_created_with_faircamp(&self, faircamp_link: &str) -> String {
+        self.this_site_was_created_with_faircamp.replace("{faircamp_link}", faircamp_link)
     }
 
     pub fn unlock_manual_instructions(&self, page_hash: &str, index_suffix: &str) -> String {
@@ -184,6 +200,7 @@ fn check_translations() {
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_release.contains("{title}"));
         assert!(&translations.audio_player_widget_for_track.contains("{title}"));
+        assert!(&translations.this_site_was_created_with_faircamp.contains("{faircamp_link}"));
         assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));
         assert!(&translations.unlock_manual_instructions.contains("{index_suffix}"));
         assert!(&translations.unlock_manual_instructions.contains("{page_hash}"));
