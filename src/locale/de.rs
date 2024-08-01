@@ -71,7 +71,6 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
         pay_on_liberapay: String::from("Auf Liberapay bezahlen:"),
         payment_options: String::from("Zahlungsoptionen:"),
         play: String::from("Abspielen"),
-        previous_track: String::from("Vorheriger Track"),
         purchase_downloads: String::from("Downloads bezahlen"),
         purchase_permalink: String::from("bezahlen"),
         recommended_format: String::from("Empfohlenes Format"),

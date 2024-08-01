@@ -20,12 +20,10 @@ if (document.querySelector('.docked_player')) {
 
     dockedPlayer = {
         container,
-        artists: container.querySelector('.artists'),
         playbackButton: container.querySelector('button.playback'),
         progress: container.querySelector('.progress'),
         nextTrackButton: container.querySelector('button.next_track'),
         number: container.querySelector('.number'),
-        previousTrackButton: container.querySelector('button.previous_track'),
         time: container.querySelector('.time'),
         timeline: container.querySelector('.timeline'),
         timelineInput: container.querySelector('.timeline input'),
@@ -103,17 +101,19 @@ function formatTime(seconds) {
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
-    dockedPlayer.artists.textContent = track.container.dataset.artists;
     dockedPlayer.container.classList.add('active');
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
+
     dockedPlayer.title.textContent = track.title.textContent;
+    if (track.title.href) {
+        dockedPlayer.title.href = track.title.href;
+    }
 
     // Not available on a track player
     if (dockedPlayer.number) {
         dockedPlayer.nextTrackButton.toggleAttribute('disabled', !track.nextTrack);
-        dockedPlayer.number.textContent = track.container.dataset.number;
-        dockedPlayer.previousTrackButton.toggleAttribute('disabled', !track.previousTrack);
+        dockedPlayer.number.textContent = track.numberInner.textContent;
     }
 
     updateVolume();
@@ -365,16 +365,10 @@ if (dockedPlayer) {
     });
 
     // Not available on a track player
-    if (dockedPlayer.number) {
+    if (dockedPlayer.nextTrackButton) {
         dockedPlayer.nextTrackButton.addEventListener('click', () => {
             if (activeTrack?.nextTrack) {
                 togglePlayback(activeTrack.nextTrack);
-            }
-        });
-
-        dockedPlayer.previousTrackButton.addEventListener('click', () => {
-            if (activeTrack?.previousTrack) {
-                togglePlayback(activeTrack.previousTrack);
             }
         });
     }
@@ -472,6 +466,7 @@ for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
 let previousTrack = null;
 for (const container of document.querySelectorAll('.track')) {
     const audio = container.querySelector('audio');
+    const numberInner = container.querySelector('.number.inner');
     const playbackButton = container.querySelector('.track_playback');
     const time = container.querySelector('.time');
     const title = container.querySelector('.title');
@@ -482,6 +477,7 @@ for (const container of document.querySelectorAll('.track')) {
         audio,
         container,
         duration,
+        numberInner,
         playbackButton,
         time,
         title
@@ -504,7 +500,6 @@ for (const container of document.querySelectorAll('.track')) {
     }
 
     if (previousTrack !== null) {
-        track.previousTrack = previousTrack;
         previousTrack.nextTrack = track;
     }
 

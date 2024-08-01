@@ -164,24 +164,13 @@ button svg { display: inline-block; }
     position: relative;
     top: .1em;
 }
-.docked_player .element {
-    margin-left: .6em;
-    margin-right: .6em;
-}
-.docked_player .element.artists { margin-right: -.4rem; }
 .docked_player .elements {
     align-items: center;
     background: var(--bg-1-overlay);
     display: flex;
 }
-.docked_player .elements > :first-child { margin-left: .4rem; }
-.docked_player .elements > :last-child { margin-right: .4rem; }
-.docked_player .title {
-    flex-grow: 1;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+.docked_player .number { margin-right: .2rem; }
+.docked_player .playback { margin-left: .4rem; }
 .docked_player .timeline {
     cursor: pointer;
     height: .8rem;
@@ -213,6 +202,18 @@ button svg { display: inline-block; }
     top: 0;
     width: 100%;
     z-index: 1;
+}
+.docked_player .title { margin-right: .6rem; }
+.docked_player .track_info {
+    margin-left: .2em;
+    margin-right: .6em;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.docked_player .volume_hint {
+    margin-left: .2em;
+    margin-right: 1.2em;
 }
 .download_entry { display: flex; }
 .download_formats {
@@ -706,6 +707,7 @@ input[type="text"].disabled,
     border-radius: .2rem;
     color: var(--bg-1);
     font-size: .8rem;
+    font-weight: 600;
     padding: .3rem .4rem;
 }
 .volume_hint:not(.active) { display: none; }
@@ -788,7 +790,7 @@ input[type="text"].disabled,
     .track .number.outer { display: none; }
 }
 @media (min-width: 30rem) {
-    .docked_player { font-size: var(--subtly-larger);  }
+    .docked_player { font-size: 1.14rem;  }
     header {
         font-size: var(--subtly-larger);
         height: 3.2rem;
@@ -805,12 +807,10 @@ input[type="text"].disabled,
     .page_grid > div { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 39.999rem) {
-    .docked_player .time { display: none; }
     .text ol { padding-left: 1rem; }
     .text ul { padding-left: .7rem; }
 }
 @media (max-width: 49.999rem) {
-    .docked_player .number { display: none; }
     .page_split { flex-direction: column; }
     .page_split > :last-child:not(:first-child) { margin-top: 0; }
     .scroll_hints { display: none; }
@@ -821,9 +821,6 @@ input[type="text"].disabled,
 }
 @media (min-width: 55rem) {
     .page { --page-margin-h: 3rem; }
-}
-@media (max-width: 59.999rem) {
-    .docked_player .artists { display: none; }
 }
 @media (min-width: 60rem) {
     .home_image {

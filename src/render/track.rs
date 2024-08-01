@@ -404,11 +404,12 @@ pub fn track_html(
                         <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
                     </span>
                 </div>
-                <span class="element volume_hint dimmed">{t_dimmed}</span>
-                <span class="element volume_hint muted">{t_muted}</span>
-                <span class="element time"></span>
-                <span class="element artists"></span>
-                <span class="element title"></span>
+                <span class="track_info">
+                    <span class="title"></span>
+                    <span class="time"></span>
+                </span>
+                <span class="volume_hint dimmed">{t_dimmed}</span>
+                <span class="volume_hint muted">{t_muted}</span>
             </div>
         </div>
         {templates}

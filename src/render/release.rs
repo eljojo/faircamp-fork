@@ -104,8 +104,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(t_play);
 
-    let track_count = release.tracks.len();
-
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
@@ -142,7 +140,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
             let track_title = track.title();
 
-            let track_artists = track.artists.iter().map(|artist| artist.borrow().name.clone()).collect::<Vec<String>>().join(", ");
             let track_duration_formatted = format_time(duration_seconds);
             let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
@@ -175,11 +172,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             };
 
             formatdoc!(r#"
-                <div
-                    class="{compact} track"
-                    data-artists="{track_artists} - "
-                    data-duration="{duration_seconds}"
-                    data-number="{track_number} / {track_count}">
+                <div class="{compact} track" data-duration="{duration_seconds}">
                     <span class="number outer">{track_number_formatted}</span>
                     <span class="track_header">
                         <span class="number inner">{track_number_formatted}</span>
@@ -381,7 +374,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
-    let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
     let scroll_icon = icons::scroll();
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
@@ -451,6 +443,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <button class="playback">
                     {play_icon}
                 </button>
+                <button class="next_track">
+                    {next_track_icon}
+                </button>
                 <div class="volume">
                     <button>
                         {volume_icon}
@@ -459,18 +454,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
                     </span>
                 </div>
-                <span class="element volume_hint dimmed">{t_dimmed}</span>
-                <span class="element volume_hint muted">{t_muted}</span>
-                <span class="element time"></span>
-                <span class="element artists"></span>
-                <span class="element title"></span>
-                <button class="previous_track">
-                    {previous_track_icon}
-                </button>
-                <span class="element number"></span>
-                <button class="next_track">
-                    {next_track_icon}
-                </button>
+                <span class="track_info">
+                    <span class="number"></span>
+                    <a class="title"></a>
+                    <span class="time"></span>
+                </span>
+                <span class="volume_hint dimmed">{t_dimmed}</span>
+                <span class="volume_hint muted">{t_muted}</span>
             </div>
         </div>
         {templates}

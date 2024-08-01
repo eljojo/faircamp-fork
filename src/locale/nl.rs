@@ -71,7 +71,6 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
         pay_on_liberapay: String::from("Op liberapay betaalen:"),
         payment_options: String::from("Betalingsmogelijkheden:"),
         play: untranslated!(play),
-        previous_track: untranslated!(previous_track),
         purchase_downloads: String::from("Downloads kopen"),
         purchase_permalink: String::from("kopen"),
         recommended_format: String::from("Aanbevolen Formaat"),

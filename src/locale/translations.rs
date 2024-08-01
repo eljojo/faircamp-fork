@@ -61,7 +61,6 @@ pub struct Translations {
     pub payment_options: String,
     pub play: String,
     pub purchase_downloads: String,
-    pub previous_track: String,
     /// Must be unique and only contain url-safe characters
     pub purchase_permalink: String,
     pub recommended_format: String,
@@ -145,7 +144,6 @@ impl Translations {
             payment_options: String::from("payment_options"),
             play: String::from("play"),
             purchase_downloads: String::from("purchase_downloads"),
-            previous_track: String::from("previous_track"),
             purchase_permalink: String::from("purchase_permalink"),
             recommended_format: String::from("recommended_format"),
             releases: String::from("releases"),

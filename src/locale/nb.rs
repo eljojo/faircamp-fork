@@ -71,7 +71,6 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         pay_on_liberapay: String::from("Betal via Liberapay"),
         payment_options: String::from("Payment options:"),
         play: untranslated!(play),
-        previous_track: untranslated!(previous_track),
         purchase_downloads: String::from("Kjøp nedlastinger"),
         purchase_permalink: String::from("kjop"),
         recommended_format: String::from("Anbefalt format"),
