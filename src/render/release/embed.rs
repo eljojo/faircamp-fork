@@ -96,7 +96,7 @@ pub fn embed_choices_html(
 
             formatdoc!(r#"
                 <div class="hcenter_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
-                    <div style="font-size: var(--subtly-larger);">
+                    <div style="font-size: 1.14rem;">
                         <span class="track_number">{track_number_formatted}</span>
                         <span>{track_title_escaped}</span>
                     </div>
@@ -160,7 +160,7 @@ pub fn embed_choices_html(
 
         <div style="margin-top: 2rem;">
             <div class="hcenter_wide embed_split mobile_hpadding">
-                <span style="font-size: var(--subtly-larger);">{t_embed_entire_release}</span>
+                <span style="font-size: 1.14rem;">{t_embed_entire_release}</span>
                 {r_copy_button}
             </div>
             {embed_display_code}

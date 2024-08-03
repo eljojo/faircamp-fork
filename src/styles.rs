@@ -5,7 +5,14 @@
 use indoc::formatdoc;
 use std::fs;
 
-use crate::{Build, Catalog, Theme, ThemeFont};
+use crate::{
+    Build,
+    Catalog,
+    Theme,
+    ThemeFont,
+    ThemeVarsHsl,
+    ThemeVarsOklch
+};
 use crate::util::url_safe_hash_base64;
 
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
@@ -99,135 +106,18 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         }
     };
 
-    let bg_1_oklch_l = &theme.base.bg_1.oklch_l;
-    let bg_2_oklch_l = &theme.base.bg_2.oklch_l;
-    let bg_3_oklch_l = &theme.base.bg_3.oklch_l;
-    let bg_mg_oklch_l = &theme.base.bg_mg.oklch_l;
-    let fg_1_oklch_l = &theme.base.fg_1.oklch_l;
-    let fg_2_oklch_l = &theme.base.fg_2.oklch_l;
-    let fg_3_oklch_l = &theme.base.fg_3.oklch_l;
-    let fg_mg_oklch_l = &theme.base.fg_mg.oklch_l;
-    let mg_oklch_l = &theme.base.mg.oklch_l;
+    let mut css = generate_vars(theme);
 
-    let mut css = {
-        let accent_chroma = &theme.accent_chroma;
-        let accent_hue = theme.accent_hue;
-        let background_chroma = &theme.background_chroma;
-        let background_hue = theme.background_hue;
-        let tint_front = theme.tint_front;
-        let bg_1_hsl = theme.base.bg_1.to_gray_hsl();
-        let bg_1_overlay_hsl = theme.base.bg_1.to_transparent_gray_hsl(80.0);
-        let bg_2_hsl = theme.base.bg_2.to_gray_hsl();
-        let bg_2_overlay_hsl = theme.base.bg_2.to_transparent_gray_hsl(80.0);
-        let bg_3_hsl = theme.base.bg_3.to_gray_hsl();
-        let bg_mg_hsl = theme.base.bg_mg.to_gray_hsl();
-        let background_l = theme.base.background_l;
-        let background_s = 41;
-        let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
-        let faint_l = theme.base.faint_l;
-        let fg_1_focus = theme.base.fg_1_focus;
-        let fg_1_hsl = theme.base.fg_1.to_gray_hsl();
-        let fg_2_hsl = theme.base.fg_2.to_gray_hsl();
-        let fg_3_focus = theme.base.fg_3_focus;
-        let fg_3_hsl = theme.base.fg_3.to_gray_hsl();
-        let fg_mg_hsl = theme.base.fg_mg.to_gray_hsl();
-        let header_a = &theme.base.header_a;
-        let header_l = theme.base.header_l;
-        let header_link_l = theme.base.header_link_l;
-        let header_text_l = theme.base.header_text_l;
-        let link_h = theme.link_h;
-        let link_l = theme.base.link_l;
-        let link_s = theme.link_s.unwrap_or(theme.base.link_s);
-        let link_hover_l = theme.base.link_hover_l;
-        let mg_hsl = theme.base.mg.to_gray_hsl();
-        let muted_l = theme.base.muted_l;
-        let muted_s = 35;
-        let nav_s = 17;
-        // To the user it's exposed as background alpha, technically it's solved
-        // the other way round though. Not the image is overlayed transparently
-        // over the background, but a solid color layer with the background color is
-        // transparently overlayed over the background image. Here we convert from
-        // background alpha to overlay alpha (simply the inverse).
-        let overlay_a = 100 - theme.background_alpha;
-        let release_additional_a = &theme.base.release_additional_a;
-        let text_h = theme.text_h;
-        let text_l = theme.base.text_l;
-        let text_s = 94; // TODO: Dynamic or elsewhere defined
-
-        formatdoc!(r#"
-            :root {{
-                --link-h: {link_h}deg;
-                --tint-front: {tint_front};
-                
-                --accent: {mg_hsl};
-                --background-h: var(--link-h);
-                --background-l: {background_l}%;
-                --background-s: calc({background_s}% * (var(--tint-back) / 100));
-                --bg-1: {bg_1_hsl};
-                --bg-1-overlay: {bg_1_overlay_hsl};
-                --bg-2: {bg_2_hsl};
-                --bg-2-overlay: {bg_2_overlay_hsl};
-                --bg-3: {bg_3_hsl};
-                --bg-mg: {bg_mg_hsl};
-                --cover-border-radius: {cover_border_radius};
-                --faint-l: {faint_l}%;
-                --fg-1: {fg_1_hsl};
-                --fg-1-focus: var({fg_1_focus});
-                --fg-2: {fg_2_hsl};
-                --fg-3: {fg_3_hsl};
-                --fg-3-focus: var({fg_3_focus});
-                --fg-mg: {fg_mg_hsl};
-                --header-a: {header_a};
-                --header-l: {header_l}%;
-                --header-link-l: {header_link_l}%;
-                --header-text-l: {header_text_l}%;
-                --link-l: {link_l}%;
-                --link-s: {link_s}%;
-                --link-hover-l: {link_hover_l}%;
-                --mg: {mg_hsl};
-                --muted-h: var(--link-h);
-                --muted-l: {muted_l}%;
-                --muted-s: calc({muted_s}% * (var(--tint-front) / 100));
-                --nav-s: calc({nav_s}% * (var(--tint-front) / 100));
-                --overlay-a: {overlay_a}%;
-                --release-additional-a: {release_additional_a};
-                --text-h: {text_h}deg;
-                --text-l: {text_l}%;
-                --text-s: calc({text_s}% * (var(--tint-front) / 100));
-            }}
-            @supports (color: oklch(0% 0 0)) {{
-                :root {{
-                    --acc-c: {accent_chroma};
-                    --acc-h: {accent_hue};
-                    /* Without accent chroma we give the accent mg_l lightness, with max chroma (0.37) we apply a 10% boost in lightness for extra pop */
-                    --accent: oklch(calc(var(--acc-c) * (10% / 0.37) + {mg_oklch_l}%) var(--acc-c) var(--acc-h));
-                    --bg-c: {background_chroma};
-                    --bg-h: {background_hue};
-                    --bg-1: oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h));
-                    --bg-1-overlay: oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h) / 80%);
-                    --bg-2: oklch({bg_2_oklch_l}% var(--bg-c) var(--bg-h));
-                    --bg-2-overlay: oklch({bg_2_oklch_l}% var(--bg-c) var(--bg-h) / 80%);
-                    --bg-3: oklch({bg_3_oklch_l}% var(--bg-c) var(--bg-h));
-                    --bg-mg: oklch({bg_mg_oklch_l}% var(--bg-c) var(--bg-h));
-                    --fg-c: 0;
-                    --fg-h: 0;
-                    --fg-1: oklch({fg_1_oklch_l}% 0 var(--bg-h));
-                    --fg-2: oklch({fg_2_oklch_l}% calc(var(--bg-c) / 2) var(--bg-h));
-                    --fg-3: oklch({fg_3_oklch_l}% calc(var(--bg-c) / 4) var(--bg-h));
-                    --fg-mg: oklch({fg_mg_oklch_l}% var(--fg-c) var(--fg-h));
-                    --mg: oklch({mg_oklch_l}% var(--bg-c) var(--bg-h));
-                }}
-            }}
-            {font_declaration}
-        "#)
-    };
+    css.push_str(&font_declaration);
 
     if let Some(image) = &theme.background_image {
         let image_ref = image.borrow();
         let filename = &image_ref.background_asset.as_ref().unwrap().filename;
         let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(filename));
 
-        let bg_1_hsl_l = &theme.base.bg_1.hsl_l;
+        let background_1_hsl_lightness = ThemeVarsHsl::BACKGROUND_1_LIGHTNESS;
+        let background_1_oklch_lightness = &theme.base.background_1_lightness;
+        let background_1_chroma_attenuator = ThemeVarsOklch::chroma_attenuator(theme.base.background_1_lightness.0);
 
         // We are using a pseudo-element floating behind all other page content
         // to display the background image. A more straight-forward way would
@@ -249,8 +139,8 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
             body::before {{
                 background:
                     linear-gradient(
-                        hsl(0 0% {bg_1_hsl_l}% / var(--overlay-a)),
-                        hsl(0 0% {bg_1_hsl_l}% / var(--overlay-a))
+                        hsl(0 0% {background_1_hsl_lightness}% / calc(100% - var(--bg-a))),
+                        hsl(0 0% {background_1_hsl_lightness}% / calc(100% - var(--bg-a)))
                     ),
                     url({hashed_filename}) center / cover;
             }}
@@ -258,8 +148,8 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 body::before {{
                     background:
                         linear-gradient(
-                            oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h) / var(--overlay-a)),
-                            oklch({bg_1_oklch_l}% var(--bg-c) var(--bg-h) / var(--overlay-a))
+                            oklch({background_1_oklch_lightness}% calc(var(--base-c) * {background_1_chroma_attenuator}) var(--base-h) / calc(100% - var(--bg-a))),
+                            oklch({background_1_oklch_lightness}% calc(var(--base-c) * {background_1_chroma_attenuator}) var(--base-h) / calc(100% - var(--bg-a)))
                         ),
                         url({hashed_filename}) center / cover;
                 }}
@@ -270,4 +160,41 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
     }
     
     fs::write(stylesheet_path, css).unwrap();
+}
+
+fn generate_vars(theme: &Theme) -> String {
+    let accent_brightening = &theme.accent_brightening;
+    let accent_chroma = match &theme.accent_chroma {
+        Some(chroma) => format!("--acc-c: {chroma}%;"),
+        None => String::new()
+    };
+    let accent_hue = match &theme.accent_hue {
+        Some(hue) => format!("--acc-h: {hue};"),
+        None => String::new()
+    };
+    let background_alpha = theme.background_alpha;
+    let base_chroma = &theme.base_chroma;
+    let base_hue = theme.base_hue;
+    let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
+    let veil_alpha = &theme.base.veil_alpha;
+
+    let vars_hsl = ThemeVarsHsl::print_vars();
+    let vars_oklch = &theme.base.print_vars();
+
+    formatdoc!(r#"
+        :root {{
+            --acc-b: {accent_brightening}%;
+            {accent_chroma}
+            {accent_hue}
+            --bg-a: {background_alpha}%;
+            --base-c: {base_chroma}%;
+            --base-h: {base_hue};
+            --cover-border-radius: {cover_border_radius};
+            --veil-a: {veil_alpha}%;
+            {vars_hsl}
+        }}
+        @supports (color: oklch(0% 0 0)) {{
+            {vars_oklch}
+        }}
+    "#)
 }

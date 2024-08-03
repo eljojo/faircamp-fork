@@ -1,5 +1,5 @@
 const persistence = {
-    signature: `${ACCENT_CHROMA}:${ACCENT_HUE}:${BACKGROUND_CHROMA}:${BACKGROUND_HUE}:${LINK_H}:${LINK_S}:${TEXT_H}:${TINT_FRONT}`
+    signature: `${ACCENT_BRIGHTENING}:${ACCENT_CHROMA}:${ACCENT_HUE}:${BACKGROUND_ALPHA}:${BASE_CHROMA}:${BASE_HUE}`
 };
 
 let persistTimeout = null;
@@ -30,14 +30,12 @@ if (persistedJson) {
 if (!persistence.values) {
     // A new build with differing values, or we never persisted before
     persistence.values = {
+        'accent_brightening': ACCENT_BRIGHTENING,
         'accent_chroma': ACCENT_CHROMA,
         'accent_hue': ACCENT_HUE,
-        'background_chroma': BACKGROUND_CHROMA,
-        'background_hue': BACKGROUND_HUE,
-        'link_hue': LINK_H,
-        'link_saturation': LINK_S,
-        'text_hue': TEXT_H,
-        'tint_front': TINT_FRONT
+        'background_alpha': BACKGROUND_ALPHA,
+        'base_chroma': BASE_CHROMA,
+        'base_hue': BASE_HUE
     };
 
     window.localStorage.setItem(
@@ -48,87 +46,62 @@ if (!persistence.values) {
 
 const options = [
     {
-        cssVariable: '--acc-c',
-        default: 0,
-        label: 'Accent Chroma',
-        manifestOption: 'accent_chroma',
-        range: [0, 0.37],
-        step: 'any',
-        tooltip: 'Sets the chroma (colorfulness) of the page accent (0-0.37)',
-        value: persistence.values.accent_chroma
-    },
-    {
-        cssVariable: '--acc-h',
-        default: 0,
-        label: 'Accent Hue',
-        manifestOption: 'accent_hue',
-        range: [0, 360],
-        step: 1,
-        tooltip: 'Sets the hue of the accent (0-360 degrees)',
-        value: persistence.values.accent_hue
-    },
-    {
-        cssVariable: '--bg-c',
-        default: 0,
-        label: 'Background Chroma',
-        manifestOption: 'background_chroma',
-        range: [0, 0.37],
-        step: 'any',
-        tooltip: 'Sets the chroma (colorfulness) of the page background (0-0.37)',
-        value: persistence.values.background_chroma
-    },
-    {
-        cssVariable: '--bg-h',
-        default: 0,
-        label: 'Background Hue',
-        manifestOption: 'background_hue',
-        range: [0, 360],
-        step: 1,
-        tooltip: 'Sets the hue of the background (0-360 degrees)',
-        value: persistence.values.background_hue
-    },
-    {
-        cssVariable: '--link-h',
-        default: 0,
-        label: 'Link Hue',
-        manifestOption: 'link_hue',
-        range: [0, 360],
-        step: 1,
-        tooltip: 'Sets the hue of the link color (0-360 degrees)',
-        value: persistence.values.link_hue,
-        unit: 'deg'
-    },
-    {
-        cssVariable: '--link-s',
-        default: 0,
-        label: 'Link Saturation',
-        manifestOption: 'link_saturation',
+        cssVariable: '--acc-b',
+        defaultValue: 50,
+        label: 'Accent Brightening',
+        manifestOption: 'accent_brightening',
         range: [0, 100],
-        step: 1,
-        tooltip: 'Sets the saturation of the link color (0-100 percent)',
-        value: persistence.values.link_saturation,
+        tooltip: 'Sets the chroma (colorfulness) for accent elements (0-100%)',
+        value: persistence.values.accent_brightening,
         unit: '%'
     },
     {
-        cssVariable: '--tint-front',
-        default: 0,
-        label: 'Text Color Tint',
-        manifestOption: 'tint_front',
+        cssVariable: '--acc-c',
+        defaultValue: null,
+        label: 'Accent Chroma',
+        manifestOption: 'accent_chroma',
         range: [0, 100],
-        step: 1,
-        tooltip: 'Applies a color tint to the page foreground elements (0-100%)',
-        value: persistence.values.tint_front
+        tooltip: 'Sets the chroma (colorfulness) for accent elements (0-100%)',
+        value: persistence.values.accent_chroma,
+        unit: '%'
     },
     {
-        cssVariable: '--text-h',
-        default: 0,
-        label: 'Text Hue',
-        manifestOption: 'text_hue',
+        cssVariable: '--acc-h',
+        defaultValue: null,
+        label: 'Accent Hue',
+        manifestOption: 'accent_hue',
         range: [0, 360],
-        step: 1,
-        tooltip: 'Sets the hue of the text color (0-360 degrees)',
-        value: persistence.values.text_hue,
-        unit: 'deg'
+        tooltip: 'Sets the hue (color) for accent elements (0-360 degrees)',
+        value: persistence.values.accent_hue
+    },
+    {
+        cssVariable: '--bg-a',
+        defaultValue: 10,
+        label: 'Background Alpha',
+        manifestOption: 'background_alpha',
+        range: [0, 100],
+        tooltip: 'Sets the background alpha (opaqueness) of the background image, if there is one (0-100%)',
+        value: persistence.values.background_alpha,
+        unit: '%'
+    },
+    {
+        cssVariable: '--base-c',
+        defaultValue: 0,
+        label: 'Base Chroma',
+        manifestOption: 'base_chroma',
+        range: [0, 100],
+        tooltip: 'Sets the base chroma (colorfulness) of the theme (0-100%)',
+        value: persistence.values.base_chroma,
+        unit: '%'
+    },
+    {
+        cssVariable: '--base-h',
+        defaultValue: 0,
+        label: 'Base Hue',
+        manifestOption: 'base_hue',
+        range: [0, 360],
+        tooltip: 'Sets the base hue (color) of the theme (0-360 degrees)',
+        value: persistence.values.base_hue
     }
 ];
 
@@ -140,7 +113,7 @@ const customizations = document.createElement('textarea');
 customizations.readOnly = true;
 
 const updateTextarea = () => {
-    const customized = options.filter(option => option.value !== option.default);
+    const customized = options.filter(option => option.value !== option.defaultValue);
 
     if (customized.length === 0) {
         customizations.innerHTML = '';
@@ -152,46 +125,59 @@ const updateTextarea = () => {
 };
 
 for (const option of options) {
-    const { cssVariable, label, manifestOption, range, step, tooltip, unit, value } = option;
+    const { cssVariable, defaultValue, label, manifestOption, range, tooltip, unit, value } = option;
 
-    const valueWithUnit = unit ? `${value}${unit}` : value.toString();
-    document.querySelector(':root').style.setProperty(cssVariable, valueWithUnit);
+    const valueLabel = () => `${option.value ?? 'None'}${option.value !== null && unit ? unit : ''}${option.value === defaultValue ? ' (Default)' : ''}`;
+
+    if (value !== null) {
+        const valueWithUnit = unit ? `${value}${unit}` : value.toString();
+        document.querySelector(':root').style.setProperty(cssVariable, valueWithUnit);
+    }
+
+    const spanValue = document.createElement('span');
+
+    spanValue.classList.add('value');
+    spanValue.textContent = valueLabel();
 
     const input = document.createElement('input');
 
-    if (range) {
-        input.min = range[0];
-        input.max = range[1];
-    }
-
-    input.step = step;
+    input.min = defaultValue === null ? range[0] - 1 : range[0];
+    input.max = range[1];
     input.title = tooltip;
     input.type = 'range';
-    input.value = value;
+    input.value = value ?? input.min;
+
 
     input.addEventListener('input', () => {
-        option.value = input.valueAsNumber;
-
-        const valueWithUnit = unit ? `${option.value}${unit}` : option.value.toString();
-        document.querySelector(':root').style.setProperty(cssVariable, valueWithUnit);
+        if (defaultValue === null && input.valueAsNumber < range[0]) {
+            option.value = null;
+            document.querySelector(':root').style.removeProperty(cssVariable);
+        } else {
+            option.value = input.valueAsNumber;
+            const valueWithUnit = unit ? `${option.value}${unit}` : option.value.toString();
+            document.querySelector(':root').style.setProperty(cssVariable, valueWithUnit);
+        }
 
         updateTextarea();
+
+        spanValue.textContent = valueLabel();
 
         persistence.values[manifestOption] = option.value;
         persistDebounced();
     });
 
-    const span = document.createElement('span');
+    const spanLabel = document.createElement('span');
 
-    span.classList.add('label');
-    span.innerHTML = label;
-    span.title = tooltip;
+    spanLabel.classList.add('label');
+    spanLabel.textContent = label;
+    spanLabel.title = tooltip;
 
     const div = document.createElement('div');
 
     div.classList.add('option');
+    div.appendChild(spanLabel);
     div.appendChild(input);
-    div.appendChild(span);
+    div.appendChild(spanValue);
 
     document.querySelector('.theming_widget').appendChild(div);
 }

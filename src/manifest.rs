@@ -28,12 +28,11 @@ use crate::{
     StreamingQuality,
     TagAgenda,
     Theme,
-    ThemeBase,
+    ThemeVarsOklch,
     ThemeFont,
     TrackNumbering,
     util
 };
-use crate::util::HashableF32;
 
 const MAX_SYNOPSIS_CHARS: usize = 256;
 
@@ -917,38 +916,31 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "theme", path) {
+        if let Some((value, line)) = optional_field_value_with_line(section, "accent_brightening") {
+            match value.parse::<u8>().ok().filter(|percentage| *percentage <= 100) {
+                Some(percentage) => overrides.theme.accent_brightening = percentage,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.accent_brightening' (accepts a percentage in the range 0-100 - without the % sign) in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "accent_chroma") {
-            match value.parse::<f32>().ok().filter(|amount| *amount <= 0.37) {
-                Some(amount) => overrides.theme.accent_chroma = HashableF32(amount),
-                None => error!("Ignoring unsupported value '{}' for global 'theme.accent_chroma' (accepts an amount in the range 0-0.37) in {}:{}", value, path.display(), line)
+            match value.parse::<u8>().ok().filter(|percentage| *percentage <= 100) {
+                Some(percentage) => overrides.theme.accent_chroma = Some(percentage),
+                None => error!("Ignoring unsupported value '{}' for global 'theme.accent_chroma' (accepts a percentage in the range 0-100 - without the % sign) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "accent_hue") {
             match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => overrides.theme.accent_hue = degrees,
+                Some(degrees) => overrides.theme.accent_hue = Some(degrees),
                 None => error!("Ignoring unsupported value '{}' for global 'theme.accent_hue' (accepts an amount of degrees in the range 0-360)) in {}:{}", value, path.display(), line)
             }
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "background_alpha") {
-            match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
+            match value.parse::<u8>().ok().filter(|percentage| *percentage <= 100) {
                 Some(percentage) => overrides.theme.background_alpha = percentage,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.background_alpha' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
-            }
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "background_chroma") {
-            match value.parse::<f32>().ok().filter(|amount| *amount <= 0.37) {
-                Some(amount) => overrides.theme.background_chroma = HashableF32(amount),
-                None => error!("Ignoring unsupported value '{}' for global 'theme.background_chroma' (accepts an amount in the range 0-0.37) in {}:{}", value, path.display(), line)
-            }
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "background_hue") {
-            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => overrides.theme.background_hue = degrees,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.background_hue' (accepts an amount of degrees in the range 0-360)) in {}:{}", value, path.display(), line)
+                None => error!("Ignoring unsupported value '{}' for global 'theme.background_alpha' (accepts a percentage in the range 0-100 - without the % sign) in {}:{}", value, path.display(), line)
             }
         }
 
@@ -963,11 +955,25 @@ pub fn apply_options(
             }
         }
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "base_chroma") {
+            match value.parse::<u8>().ok().filter(|percentage| *percentage <= 100) {
+                Some(percentage) => overrides.theme.base_chroma = percentage,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.base_chroma' (accepts a percentage in the range 0-100 - without the % sign) in {}:{}", value, path.display(), line)
+            }
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "base_hue") {
+            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
+                Some(degrees) => overrides.theme.base_hue = degrees,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.base_hue' (accepts an amount of degrees in the range 0-360)) in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {
-            match ThemeBase::from_manifest_key(value.as_str()) {
+            match ThemeVarsOklch::from_manifest_key(value.as_str()) {
                 Some(variant) => overrides.theme.base = variant,
                 None => {
-                    let supported = ThemeBase::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
+                    let supported = ThemeVarsOklch::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
                     error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are {}) in {}:{}", value, supported, path.display(), line);
                 }
             }
@@ -1003,18 +1009,16 @@ pub fn apply_options(
             overrides.theme.waveforms = false;
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "link_hue") {
-            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => overrides.theme.link_h = degrees,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.link_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
-            }
+        if let Ok(Some(field)) = section.optional_field("link_brightness") {
+            error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the link_brightness setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "link_saturation") {
-            match value.parse::<u8>().ok().filter(|degrees| *degrees <= 100) {
-                Some(degrees) => overrides.theme.link_s = Some(degrees),
-                None => error!("Ignoring unsupported value '{}' for global 'theme.link_saturation' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
-            }
+        if let Ok(Some(field)) = section.optional_field("link_hue") {
+            error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the link_hue setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
+        }
+
+        if let Ok(Some(field)) = section.optional_field("link_saturation") {
+            error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the link_saturation setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
         }
 
         if optional_flag_present(section, "round_corners") {
@@ -1031,18 +1035,16 @@ pub fn apply_options(
             };
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "text_hue") {
-            match value.parse::<u16>().ok().filter(|degrees| *degrees <= 360) {
-                Some(degrees) => overrides.theme.text_h = degrees,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.text_hue' (accepts an amount of degrees in the range 0-360) in {}:{}", value, path.display(), line)
-            }
+        if let Ok(Some(field)) = section.optional_field("tint_back") {
+            error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the tint_back setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "tint_front") {
-            match value.parse::<u8>().ok().filter(|percent| *percent <= 100) {
-                Some(percentage) => overrides.theme.tint_front = percentage,
-                None => error!("Ignoring unsupported value '{}' for global 'theme.tint_front' (accepts a percentage in the range 0-100) in {}:{}", value, path.display(), line)
-            }
+        if let Ok(Some(field)) = section.optional_field("tint_front") {
+            error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the tint_front setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
+        }
+
+        if let Ok(Some(field)) = section.optional_field("text_hue") {
+            error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the text_hue setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
         }
     }
 

@@ -40,9 +40,10 @@
 .theming_widget .option {
     align-items: center;
     display: flex;
+    column-gap: 1rem;
 }
-.theming_widget .option input { width: 17rem; }
-.theming_widget .option .label { margin-left: 1rem; }
+.theming_widget .option input { width: 10rem; }
+.theming_widget .option .label { width: 9rem; }
 .theming_widget .palette {
     display: flex;
     font-size: .8rem;
@@ -58,14 +59,6 @@
 .theming_widget .palette .tone > span {
     text-align: center;
 }
-.theming_widget .palette .accent { background: var(--accent); }
-.theming_widget .palette .bg_1 { background: var(--bg-1); }
-.theming_widget .palette .bg_2 { background: var(--bg-2); }
-.theming_widget .palette .bg_3 { background: var(--bg-3); }
-.theming_widget .palette .mg { background: var(--mg); }
-.theming_widget .palette .fg_1 { background: var(--fg-1); }
-.theming_widget .palette .fg_2 { background: var(--fg-2); }
-.theming_widget .palette .fg_3 { background: var(--fg-3); }
 .theming_widget textarea {
     height: 10rem;
     width: 100%;

@@ -36,23 +36,26 @@ If you don't set a base theme, the current default is `dark`.
 ```eno
 # theme
 
-link_hue: 13
-link_saturation: 100
-link_lightness: 75
-tint_back: 50
-tint_front: 10
-text_hue: 89
+accent_brightening: 85
+accent_chroma: 50
+accent_hue: 23
+base_chroma: 34
+base_hue: 180
 ```
 
-The link color can be set through `link_hue` (0-360), `link_lightness`
-(0-100) and `link_saturation` (0-100) - make sure to pick a color that
-clearly differs from regular text and is easily readable against the site's
-background.
+All themes are initially monochromatic (without color).
 
-If you increase `tint_back` (0-100), the link color will give a color tone to
-the entire page (except for the black/white base themes, one does not simply
-tone black/white). Similarly, `tint_front` applies color tinting to regular
-text, but the hue for this comes from `text_hue` (not from `link_hue`). 
+With `base_chroma` (0-100 (%)) you can control the overall "colorfulness"
+of your site, while the `base_hue` (0-360 (degrees)) setting adjusts
+what base color the site has.
+
+Some elements on the page are accentuated (prominent buttons and the
+"timeline" of the audio player). The colorfulness of the accentuation can be
+controlled by the `accent_chroma` (0-100 (%)) setting, while the
+`accent_hue` (0-360 (degrees)) setting again adjusts its shade. The
+`accent_brightening` (0-100 (%)) setting allows you to brighten or darken
+this color accent (it's at 50% by default), which also lets you set stronger
+or deeper colors.
 
 > Note that there is a `--theming-widget` CLI option that lets you interactively
 > explore these detail settings. Just build your catalog with the option enabled and
@@ -61,14 +64,14 @@ text, but the hue for this comes from `text_hue` (not from `link_hue`).
 
 ## Background image
 
-The previously described settings are (link color aside) mostly harmless: No
-matter the settings, your site will stay readable. Not so with this option. A
-background image can lend a nice quality to your site design, but choose
-carefully what image you use and how opaque you make it. Sharp details and
-strong contrasts within the image and against the text of the site will
+The above described settings are completely carefree - no matter the settings,
+your site will stay readable (at worst it may look funny). Not so with this
+option. A background image can lend a nice quality to your site design, but
+choose carefully what image you use and how opaque you make it. Sharp details
+and strong contrasts within the image and against the text of the site will
 render the site hard to read or even unreadable. That said,
 `background_image` lets you reference the image to use, and with
-`background_alpha` (0-100) you can optionally control its opaqueness.
+`background_alpha` (0-100 (%)) you can optionally control its opaqueness.
 
 ```eno
 # theme

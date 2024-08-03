@@ -28,11 +28,8 @@ impl CoverGenerator {
     }
 
     fn generate_best_rillen(release: &Release, theme: &Theme) -> String {
-        // TODO: This is too simplistic, text also has text_h and text_s
-        // currently (but theming may change quite a bit so no rush). Also
-        // unfortunately generated covers don't interactively repaint when
-        // using the --theming-widget, but that's probably to be accepted.
-        let text_l = theme.base.text_l;
+        // TODO: Switch to inline svg so we can realtime-theme the covers too?
+        let foreground_1_lightness = &theme.base.foreground_1_lightness;
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -65,7 +62,9 @@ impl CoverGenerator {
                     let y = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * y_vector;
 
                     if let Some((x_prev, y_prev)) = previous {
-                        let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
+                        let alpha = peak * 100.0;
+                        // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
+                        let stroke = format!("oklch({foreground_1_lightness}% 0 0 / {alpha}%)");
                         let stroke_width = peak * 0.24; // .06px is our ideal for waveforms
                         let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
                         samples.push(sample);
@@ -89,11 +88,8 @@ impl CoverGenerator {
     }
 
     fn generate_glass_splinters(release: &Release, theme: &Theme) -> String {
-        // TODO: This is too simplistic, text also has text_h and text_s
-        // currently (but theming may change quite a bit so no rush). Also
-        // unfortunately generated covers don't interactively repaint when
-        // using the --theming-widget, but that's probably to be accepted.
-        let text_l = theme.base.text_l;
+        // TODO: Switch to inline svg so we can realtime-theme the covers too?
+        let foreground_1_lightness = &theme.base.foreground_1_lightness;
         let edge = 64.0;
 
         let total_duration: f32 = release.tracks
@@ -110,7 +106,8 @@ impl CoverGenerator {
             gap_arc = min_gap_arc;
         }
 
-        let stroke_or_fill = format!("hsl(0, 0%, {text_l}%)");
+        // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
+        let stroke_or_fill = format!("oklch({foreground_1_lightness}% 0 0)");
 
         let mut track_offset = 0.0;
         let points = release.tracks
@@ -157,11 +154,8 @@ impl CoverGenerator {
     }
 
 	fn generate_looney_tunes(release: &Release, theme: &Theme, max_tracks_in_release: usize) -> String {
-        // TODO: This is too simplistic, text also has text_h and text_s
-        // currently (but theming may change quite a bit so no rush). Also
-        // unfortunately generated covers don't interactively repaint when
-        // using the --theming-widget, but that's probably to be accepted.
-        let text_l = theme.base.text_l;
+        // TODO: Switch to inline svg so we can realtime-theme the covers too?
+        let foreground_1_lightness = &theme.base.foreground_1_lightness;
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -198,7 +192,9 @@ impl CoverGenerator {
                     let y = radius + amplitude * arc_offset.cos();
 
                     if let Some((x_prev, y_prev)) = previous {
-                        let stroke = format!("hsla(0, 0%, {text_l}%, {peak})");
+                        let alpha = peak * 100.0;
+                        // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
+                        let stroke = format!("oklch({foreground_1_lightness}% 0 0 / {alpha}%)");
                         let stroke_width = peak * 0.32;
                         let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
                         samples.push(sample);
@@ -216,18 +212,15 @@ impl CoverGenerator {
 
         formatdoc!(r##"
             <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <rect fill="none" height="63.96" stroke="hsl(0, 0% {text_l}%)" stroke-width=".12px" width="63.96" x="0.02" y="0.02"/>
+                <rect fill="none" height="63.96" stroke="oklch({foreground_1_lightness}% 0 0)" stroke-width=".12px" width="63.96" x="0.02" y="0.02"/>
                 {points}
             </svg>
         "##)
     }
 
     fn generate_scratchy_faint_rillen(release: &Release, theme: &Theme) -> String {
-        // TODO: This is too simplistic, text also has text_h and text_s
-        // currently (but theming may change quite a bit so no rush). Also
-        // unfortunately generated covers don't interactively repaint when
-        // using the --theming-widget, but that's probably to be accepted.
-        let text_l = theme.base.text_l;
+        // TODO: Switch to inline svg so we can realtime-theme the covers too?
+        let foreground_1_lightness = &theme.base.foreground_1_lightness;
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -243,7 +236,8 @@ impl CoverGenerator {
                 let altitude_width = radius / release.tracks.len() as f32;
                 let track_arc_range = source_meta.duration_seconds / longest_track_duration;
 
-                let stroke_or_fill = format!("hsl(0, 0%, {text_l}%)");
+                // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
+                let stroke_or_fill = format!("oklch({foreground_1_lightness}% 0 0)");
 
                 let mut samples = Vec::new();
                 let step = 2;
@@ -280,11 +274,8 @@ impl CoverGenerator {
     }
 
     fn generate_space_time_rupture(release: &Release, theme: &Theme) -> String {
-        // TODO: This is too simplistic, text also has text_h and text_s
-        // currently (but theming may change quite a bit so no rush). Also
-        // unfortunately generated covers don't interactively repaint when
-        // using the --theming-widget, but that's probably to be accepted.
-        let text_l = theme.base.text_l;
+        // TODO: Switch to inline svg so we can realtime-theme the covers too?
+        let foreground_1_lightness = &theme.base.foreground_1_lightness;
         let edge = 64.0;
 
         let total_duration: f32 = release.tracks
@@ -306,7 +297,7 @@ impl CoverGenerator {
                 let altitude_factor = (source_meta.duration_seconds - shortest_track_duration) / (longest_track_duration - shortest_track_duration);
                 let track_arc_range = source_meta.duration_seconds / total_duration;
 
-                let fill_or_stroke = format!("hsl(0, 0%, {text_l}%)");
+                let fill_or_stroke = format!("oklch({foreground_1_lightness}% 0 0)");
 
                 let mut samples = Vec::new();
                 let step = 6;

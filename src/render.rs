@@ -139,7 +139,7 @@ fn compact_release_identifier(
             </div>
             <div>
                 <div style="font-size: 1.17rem;">{release_title_escaped}</div>
-                <div style="font-size: var(--subtly-larger);">{artists}</div>
+                <div style="font-size: 1.14rem;">{artists}</div>
             </div>
         </div>
     "#)
@@ -339,49 +339,42 @@ fn layout(
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
     let theming_widget = if build.theming_widget {
-        let accent_chroma = &catalog.theme.accent_chroma;
-        let accent_hue = catalog.theme.accent_hue;
-        let background_chroma = &catalog.theme.background_chroma;
-        let background_hue = catalog.theme.background_hue;
-        let link_h = catalog.theme.link_h;
-        let link_s = catalog.theme.link_s.unwrap_or(catalog.theme.base.link_s);
-        let text_h = catalog.theme.text_h;
-        let tint_front = catalog.theme.tint_front;
+        let accent_brightening = &catalog.theme.accent_brightening;
+        let accent_chroma = match &catalog.theme.accent_chroma {
+            Some(chroma) => chroma.to_string(),
+            None => String::from("null")
+        };
+        let accent_hue = match catalog.theme.accent_hue {
+            Some(hue) => hue.to_string(),
+            None => String::from("null")
+        };
+        let background_alpha = &catalog.theme.background_alpha;
+        let base_chroma = &catalog.theme.base_chroma;
+        let base_hue = catalog.theme.base_hue;
 
         let r_template = format!(
             include_str!("templates/theming_widget.html"),
             base = theme.base.label,
-            bg_1_hsl_l = theme.base.bg_1.hsl_l,
-            bg_1_oklch_l = theme.base.bg_1.oklch_l,
-            bg_2_hsl_l = theme.base.bg_2.hsl_l,
-            bg_2_oklch_l = theme.base.bg_2.oklch_l,
-            bg_3_hsl_l = theme.base.bg_3.hsl_l,
-            bg_3_oklch_l = theme.base.bg_3.oklch_l,
-            bg_mg_hsl_l = theme.base.bg_mg.hsl_l,
-            bg_mg_oklch_l = theme.base.bg_mg.oklch_l,
-            fg_1_hsl_l = theme.base.fg_1.hsl_l,
-            fg_1_oklch_l = theme.base.fg_1.oklch_l,
-            fg_2_hsl_l = theme.base.fg_2.hsl_l,
-            fg_2_oklch_l = theme.base.fg_2.oklch_l,
-            fg_3_hsl_l = theme.base.fg_3.hsl_l,
-            fg_3_oklch_l = theme.base.fg_3.oklch_l,
-            fg_mg_hsl_l = theme.base.fg_mg.hsl_l,
-            fg_mg_oklch_l = theme.base.fg_mg.oklch_l,
-            mg_hsl_l = theme.base.mg.hsl_l,
-            mg_oklch_l = theme.base.mg.oklch_l,
+            background_1_lightness = theme.base.background_1_lightness,
+            background_2_lightness = theme.base.background_2_lightness,
+            background_3_lightness = theme.base.background_3_lightness,
+            background_middleground_lightness = theme.base.background_middleground_lightness,
+            foreground_1_lightness = theme.base.foreground_1_lightness,
+            foreground_2_lightness = theme.base.foreground_2_lightness,
+            foreground_3_lightness = theme.base.foreground_3_lightness,
+            foreground_middleground_lightness = theme.base.foreground_middleground_lightness,
+            middleground_lightness = theme.base.middleground_lightness,
             script = include_str!("assets/theming_widget.js")
         );
 
         formatdoc!(r#"
             <script>
+                const ACCENT_BRIGHTENING = {accent_brightening};
                 const ACCENT_CHROMA = {accent_chroma};
                 const ACCENT_HUE = {accent_hue};
-                const BACKGROUND_CHROMA = {background_chroma};
-                const BACKGROUND_HUE = {background_hue};
-                const LINK_H = {link_h};
-                const LINK_S = {link_s};
-                const TEXT_H = {text_h};
-                const TINT_FRONT = {tint_front};
+                const BACKGROUND_ALPHA = {background_alpha};
+                const BASE_CHROMA = {base_chroma};
+                const BASE_HUE = {base_hue};
             </script>
             {r_template}
         "#)

@@ -75,7 +75,7 @@ use render::CrawlerMeta;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
 use tags::{TagAgenda, TagMapping};
-use theme::{Theme, ThemeBase, ThemeFont};
+use theme::{Theme, ThemeFont, ThemeVarsHsl, ThemeVarsOklch};
 use track::Track;
 use track_numbering::TrackNumbering;
 use transcodes::{Transcode, Transcodes, TranscodesRc, TranscodesRcView};
