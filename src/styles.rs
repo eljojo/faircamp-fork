@@ -10,8 +10,7 @@ use crate::{
     Catalog,
     Theme,
     ThemeFont,
-    ThemeVarsHsl,
-    ThemeVarsOklch
+    ThemeVarsHsl
 };
 use crate::util::url_safe_hash_base64;
 
@@ -49,6 +48,13 @@ fn generate_common(build: &Build) {
 
     if build.theming_widget {
         css.push_str(include_str!("assets/theming_widget.css"));
+
+        // TODO: Refactor to put these to a different location in code
+        let dark_js = crate::theme::DARK.print_js();
+        fs::write(build.build_dir.join("dark.js"), dark_js).unwrap();
+
+        let light_js = crate::theme::LIGHT.print_js();
+        fs::write(build.build_dir.join("light.js"), light_js).unwrap();
     }
 
     fs::write(build.build_dir.join("styles.css"), css).unwrap();
@@ -115,10 +121,6 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         let filename = &image_ref.background_asset.as_ref().unwrap().filename;
         let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(filename));
 
-        let background_1_hsl_lightness = ThemeVarsHsl::BACKGROUND_1_LIGHTNESS;
-        let background_1_oklch_lightness = &theme.base.background_1_lightness;
-        let background_1_chroma_attenuator = ThemeVarsOklch::chroma_attenuator(theme.base.background_1_lightness.0);
-
         // We are using a pseudo-element floating behind all other page content
         // to display the background image. A more straight-forward way would
         // be to use "fixed" background positioning on body itself, but Apple
@@ -127,6 +129,7 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
         // See e.g. https://stackoverflow.com/questions/26372127/background-fixed-no-repeat-not-working-on-mobile
         let background_override = formatdoc!("
             body::before {{
+                background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url({hashed_filename}) center / cover;
                 content: '';
                 display: block;
                 height: 100vh;
@@ -135,24 +138,6 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
                 top: 0;
                 width: 100vw;
                 z-index: -1;
-            }}
-            body::before {{
-                background:
-                    linear-gradient(
-                        hsl(0 0% {background_1_hsl_lightness}% / calc(100% - var(--bg-a))),
-                        hsl(0 0% {background_1_hsl_lightness}% / calc(100% - var(--bg-a)))
-                    ),
-                    url({hashed_filename}) center / cover;
-            }}
-            @supports (color: oklch(0% 0 0)) {{
-                body::before {{
-                    background:
-                        linear-gradient(
-                            oklch({background_1_oklch_lightness}% calc(var(--base-c) * {background_1_chroma_attenuator}) var(--base-h) / calc(100% - var(--bg-a))),
-                            oklch({background_1_oklch_lightness}% calc(var(--base-c) * {background_1_chroma_attenuator}) var(--base-h) / calc(100% - var(--bg-a)))
-                        ),
-                        url({hashed_filename}) center / cover;
-                }}
             }}
         ");
 
@@ -163,37 +148,16 @@ pub fn generate_theme(build: &Build, theme: &Theme) {
 }
 
 fn generate_vars(theme: &Theme) -> String {
-    let accent_brightening = &theme.accent_brightening;
-    let accent_chroma = match &theme.accent_chroma {
-        Some(chroma) => format!("--acc-c: {chroma}%;"),
-        None => String::new()
-    };
-    let accent_hue = match &theme.accent_hue {
-        Some(hue) => format!("--acc-h: {hue};"),
-        None => String::new()
-    };
-    let background_alpha = theme.background_alpha;
-    let base_chroma = &theme.base_chroma;
-    let base_hue = theme.base_hue;
     let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
-    let veil_alpha = &theme.base.veil_alpha;
-
-    let vars_hsl = ThemeVarsHsl::print_vars();
-    let vars_oklch = &theme.base.print_vars();
+    let vars_hsl = ThemeVarsHsl::print_vars(theme);
+    let vars_oklch = &theme.print_vars();
 
     formatdoc!(r#"
         :root {{
-            --acc-b: {accent_brightening}%;
-            {accent_chroma}
-            {accent_hue}
-            --bg-a: {background_alpha}%;
-            --base-c: {base_chroma}%;
-            --base-h: {base_hue};
             --cover-border-radius: {cover_border_radius};
-            --veil-a: {veil_alpha}%;
-            {vars_hsl}
         }}
-        @supports (color: oklch(0% 0 0)) {{
+        {vars_hsl}
+        @supports (color: oklch(0% 0% 0)) {{
             {vars_oklch}
         }}
     "#)

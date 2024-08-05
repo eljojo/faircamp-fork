@@ -12,6 +12,11 @@ catalog (setting the theme for the homepage and all release pages), but
 they can also be made locally for a group of releases or for each release
 on its own (added in 0.15.0).
 
+> Tip: There is a `--theming-widget` CLI option that lets you interactively
+> explore color-related theme settings. Just build your catalog with the option enabled and
+> every page will then contain the theming widget (don't forget to turn it off
+> before deployment).
+
 ## Base
 
 ```eno
@@ -20,16 +25,7 @@ on its own (added in 0.15.0).
 base: light
 ```
 
-This sets the overall tone, think of it as a base preset. Choose from:
-
-- `black`
-- `black_alternate`
-- `dark`
-- `light`
-- `white`
-- `white_alternate`
-
-If you don't set a base theme, the current default is `dark`.
+This sets the overall appearance, choose between `dark` (the default) and `light`.
 
 ## Detail color adjustments
 
@@ -43,35 +39,21 @@ base_chroma: 34
 base_hue: 180
 ```
 
-All themes are initially monochromatic (without color).
+A site's theme is initially monochromatic (without color).
 
 With `base_chroma` (0-100 (%)) you can control the overall "colorfulness"
 of your site, while the `base_hue` (0-360 (degrees)) setting adjusts
-what base color the site has.
+what base color the theme is built on.
 
 Some elements on the page are accentuated (prominent buttons and the
 "timeline" of the audio player). The colorfulness of the accentuation can be
-controlled by the `accent_chroma` (0-100 (%)) setting, while the
-`accent_hue` (0-360 (degrees)) setting again adjusts its shade. The
+customized with the `accent_chroma` (0-100 (%)) setting, while the
+`accent_hue` (0-360 (degrees)) setting adjusts its shade. The
 `accent_brightening` (0-100 (%)) setting allows you to brighten or darken
-this color accent (it's at 50% by default), which also lets you set stronger
-or deeper colors.
-
-> Note that there is a `--theming-widget` CLI option that lets you interactively
-> explore these detail settings. Just build your catalog with the option enabled and
-> every page will then contain the theming widget (don't forget to turn it off
-> before deployment).
+this color accent (it's at 50% by default), which allows for stronger
+and deeper colors still.
 
 ## Background image
-
-The above described settings are completely carefree - no matter the settings,
-your site will stay readable (at worst it may look funny). Not so with this
-option. A background image can lend a nice quality to your site design, but
-choose carefully what image you use and how opaque you make it. Sharp details
-and strong contrasts within the image and against the text of the site will
-render the site hard to read or even unreadable. That said,
-`background_image` lets you reference the image to use, and with
-`background_alpha` (0-100 (%)) you can optionally control its opaqueness.
 
 ```eno
 # theme
@@ -79,6 +61,14 @@ render the site hard to read or even unreadable. That said,
 background_alpha: 23
 background_image: squiggly_monsters_texture.jpg
 ```
+
+The previously described settings can be handled carefree - no matter the settings,
+your site will stay readable (at worst it may look funny). When you set a
+background image however, choose carefully what image you use and how opaque
+you make it. Sharp details and strong contrasts within the image and against
+the text of the site will render the site hard to read or even unreadable.
+That said, `background_image` lets you reference the image to use, and with
+`background_alpha` (0-100 (%)) you can optionally control its opaqueness.
 
 ## Round corners on release covers
 

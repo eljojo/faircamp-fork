@@ -1,93 +1,93 @@
 <div class="theming_widget">
-    <div>
-        {base}
-    </div>
     <div class="levels">
         <div class="beam"></div>
-        <div class="level" style="left: {background_1_lightness}%;">
+        <div class="level" data-name="background_1">
             <div>bg-1</div>
         </div>
-        <div class="level" style="left: {background_2_lightness}%;">
+        <div class="level" data-name="background_2">
             <div>bg-2</div>
         </div>
-        <div class="level" style="left: {background_3_lightness}%;">
+        <div class="level" data-name="background_3">
             <div>bg-3</div>
         </div>
-        <div class="level" style="left: {background_middleground_lightness}%;">
+        <div class="level" data-name="background_middleground">
             <div>bg-mg</div>
         </div>
-        <div class="level" style="left: {foreground_1_lightness}%;">
+        <div class="level" data-name="foreground_1">
             <div>fg-1</div>
         </div>
-        <div class="level" style="left: {foreground_2_lightness}%;">
+        <div class="level" data-name="foreground_2">
             <div>fg-2</div>
         </div>
-        <div class="level" style="left: {foreground_3_lightness}%;">
+        <div class="level" data-name="foreground_3">
             <div>fg-3</div>
         </div>
-        <div class="level" style="left: {foreground_middleground_lightness}%;">
+        <div class="level" data-name="foreground_middleground">
             <div>fg-mg</div>
         </div>
-        <div class="level" style="left: {middleground_lightness}%;">
+        <div class="level" data-name="middleground">
             <div>mg</div>
         </div>
     </div>
     <div class="palette">
         <div class="tone">
-            <div style="background: var(--bg-acc);"></div>
-            <div style="background: var(--bg-acc);"></div>
             <span>bg-acc</span>
+            <div style="background: var(--bg-acc);"></div>
+            <div class="monochrome" data-name="background_accent"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--mg-acc);"></div>
-            <div style="background: var(--mg-acc);"></div>
             <span>mg-acc</span>
+            <div style="background: var(--mg-acc);"></div>
+            <div class="monochrome" data-name="middleground_accent"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--bg-1);"></div>
-            <div class="monochrome" style="background: oklch({background_1_lightness}% 0 0);"></div>
             <span>bg-1</span>
+            <div style="background: var(--bg-1);"></div>
+            <div class="monochrome" data-name="background_1"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--bg-2);"></div>
-            <div class="monochrome" style="background: oklch({background_2_lightness}% 0 0);"></div>
             <span>bg-2</span>
+            <div style="background: var(--bg-2);"></div>
+            <div class="monochrome" data-name="background_2"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--bg-3);"></div>
-            <div class="monochrome" style="background: oklch({background_3_lightness}% 0 0);"></div>
             <span>bg-3</span>
+            <div style="background: var(--bg-3);"></div>
+            <div class="monochrome" data-name="background_3"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--bg-mg);"></div>
-            <div class="monochrome" style="background: oklch({background_middleground_lightness}% 0 0);"></div>
             <span>bg-mg</span>
+            <div style="background: var(--bg-mg);"></div>
+            <div class="monochrome" data-name="background_middleground"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--mg);"></div>
-            <div class="monochrome" style="background: oklch({middleground_lightness}% 0 0);"></div>
             <span>mg</span>
+            <div style="background: var(--mg);"></div>
+            <div class="monochrome" data-name="middleground"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--fg-mg);"></div>
-            <div class="monochrome" style="background: oklch({foreground_middleground_lightness}% 0 0);"></div>
             <span>fg-mg</span>
+            <div style="background: var(--fg-mg);"></div>
+            <div class="monochrome" data-name="foreground_middleground"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--fg-3);"></div>
-            <div class="monochrome" style="background: oklch({foreground_3_lightness}% 0 0);"></div>
             <span>fg-3</span>
+            <div style="background: var(--fg-3);"></div>
+            <div class="monochrome" data-name="foreground_3"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--fg-2);"></div>
-            <div class="monochrome" style="background: oklch({foreground_2_lightness}% 0 0);"></div>
             <span>fg-2</span>
+            <div style="background: var(--fg-2);"></div>
+            <div class="monochrome" data-name="foreground_2"></div>
         </div>
         <div class="tone">
-            <div style="background: var(--fg-1);"></div>
-            <div class="monochrome" style="background: oklch({foreground_1_lightness}% 0 0);"></div>
             <span>fg-1</span>
+            <div style="background: var(--fg-1);"></div>
+            <div class="monochrome" data-name="foreground_1"></div>
         </div>
     </div>
+    <div class="controls">
+        <textarea class="manifest" readonly></textarea>
+    </div>
 </div>
-<script>{script}</script>
+<script type="module">{script}</script>

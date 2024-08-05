@@ -488,6 +488,10 @@ pre { margin: 0; }
     margin-bottom: .5rem;
     width: 100%;
 }
+.release a svg {
+    max-height: 100%;
+    max-width: 100%;
+}
 .release img { width: 100% }
 .release_artists { font-size: 1.1rem; }
 .release_artists a { color: var(--fg-3); }

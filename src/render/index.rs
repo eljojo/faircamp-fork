@@ -8,7 +8,6 @@ use crate::icons;
 use crate::render::{
     artist_image,
     copy_button,
-    cover_image_tiny,
     layout,
     releases
 };
@@ -27,34 +26,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         ),
         None => String::new()
     };
-
-    // catalog.featured_artists is only populated in label mode, otherwise empty
-    let featured_artists = catalog.featured_artists
-        .iter()
-        .filter(|artist| !artist.borrow().unlisted)
-        .map(|artist| {
-            let artist_ref = artist.borrow();
-            let name = &artist_ref.name;
-            let permalink = &artist_ref.permalink.slug;
-
-            let releases = artist_ref.public_releases()
-                .map(|release| {
-                    let release_ref = release.borrow();
-                    let release_prefix = format!("{}/", release_ref.permalink.slug);
-                    cover_image_tiny(build, &release_prefix, &release_ref.cover, &release_prefix)
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
-
-            formatdoc!(r#"
-                <div class="artist">
-                    <a href="{root_prefix}{permalink}{index_suffix}">{name}</a>
-                    {releases}
-                </div>
-            "#)
-        })
-        .collect::<Vec<String>>()
-        .join("");
 
     let title_escaped = html_escape_outside_attribute(&catalog_title);
 
@@ -202,7 +173,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     let grid_icon = icons::grid();
-    let list_icon = icons::list();
     let scroll_icon = icons::scroll();
     let t_more = &build.locale.translations.more;
     let t_more_info = &build.locale.translations.more_info;
@@ -220,10 +190,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                             {grid_icon}
                             {t_releases}
                         </a>
-                        <!--a class="emphasized" href="#artists">
-                            {list_icon}
-                            Artists
-                        </a-->
                     </div>
                     {synopsis}
                     <a class="scroll_link" href="#description">
@@ -241,16 +207,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 </div>
             </div>
         </div>
-        <!--a class="scroll_target" id="artists"></a>
-        <div class="page">
-            <div class="page_center">
-                <div>
-                    {featured_artists}
-                </div>
-            </div>
-        </div-->
         <a class="scroll_target" id="description"></a>
-        <div class="additional page" data-description>
+        <div class="page" data-description>
             <div class="page_center">
                 <div style="max-width: 32rem;">
                     <div>{title_escaped}</div>

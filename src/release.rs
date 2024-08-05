@@ -92,6 +92,8 @@ pub struct Release {
     pub main_artists_to_map: Vec<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
+    /// Lazily generated when there is no regular cover
+    pub procedural_cover: Option<String>,
     /// Relative path of the release directory in the catalog directory.
     /// This is used to augment permalink conflict errors with additional
     /// info for resolving the conflict.
@@ -241,6 +243,7 @@ impl Release {
             main_artists_to_map,
             payment_options,
             permalink,
+            procedural_cover: None,
             source_dir,
             streaming_quality,
             support_artists: Vec::new(),

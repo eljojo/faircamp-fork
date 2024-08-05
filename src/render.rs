@@ -130,7 +130,7 @@ fn compact_release_identifier(
     let artists_truncation = Some((40, format!("{release_prefix}#description")));
     let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let cover = cover_image_tiny(build, release_prefix, &release.cover, release_link);
+    let cover = cover_image_tiny(release_prefix, release, release_link);
 
     format!(r#"
         <div style="align-items: center; column-gap: .8rem; display: flex; margin: 2em 0;">
@@ -214,10 +214,10 @@ fn cover_image(
             }
         }
         None => {
-            let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
             formatdoc!(r#"
                 <span class="image">
-                    <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
+                    {procedural_cover_svg}
                 </span>
             "#)
         }
@@ -269,10 +269,10 @@ fn cover_tile_image(
             }
         }
         None => {
-            let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
             formatdoc!(r#"
                 <a href="{href}">
-                    <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg"/>
+                    {procedural_cover_svg}
                 </a>
             "#)
         }
@@ -280,12 +280,11 @@ fn cover_tile_image(
 }
 
 fn cover_image_tiny(
-    build: &Build,
     release_prefix: &str,
-    image: &Option<DescribedImage>,
+    release: &Release,
     href_url: &str
 ) -> String {
-    match image {
+    match &release.cover {
         Some(described_image) => {
             let image_ref = described_image.image.borrow();
             let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
@@ -305,10 +304,10 @@ fn cover_image_tiny(
             "#)
         }
         None => {
-            let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
             formatdoc!(r#"
                 <a href="{href_url}">
-                    <img alt="{t_auto_generated_cover}" src="{release_prefix}cover.svg">
+                    {procedural_cover_svg}
                 </a>
             "#)
         }
@@ -349,35 +348,29 @@ fn layout(
             None => String::from("null")
         };
         let background_alpha = &catalog.theme.background_alpha;
+        let base = catalog.theme.base.to_key();
         let base_chroma = &catalog.theme.base_chroma;
         let base_hue = catalog.theme.base_hue;
+        let build_begin = build.build_begin;
+        let dynamic_range = catalog.theme.dynamic_range;
 
-        let r_template = format!(
-            include_str!("templates/theming_widget.html"),
-            base = theme.base.label,
-            background_1_lightness = theme.base.background_1_lightness,
-            background_2_lightness = theme.base.background_2_lightness,
-            background_3_lightness = theme.base.background_3_lightness,
-            background_middleground_lightness = theme.base.background_middleground_lightness,
-            foreground_1_lightness = theme.base.foreground_1_lightness,
-            foreground_2_lightness = theme.base.foreground_2_lightness,
-            foreground_3_lightness = theme.base.foreground_3_lightness,
-            foreground_middleground_lightness = theme.base.foreground_middleground_lightness,
-            middleground_lightness = theme.base.middleground_lightness,
-            script = include_str!("assets/theming_widget.js")
-        );
+        let mut script = formatdoc!(r#"
+            const BUILD_OPTIONS = {{
+                'accent_brightening': {accent_brightening},
+                'accent_chroma': {accent_chroma},
+                'accent_hue': {accent_hue},
+                'background_alpha': {background_alpha},
+                'base': '{base}',
+                'base_chroma': {base_chroma},
+                'base_hue': {base_hue},
+                'build_time': '{build_begin}',
+                'dynamic_range': {dynamic_range}
+            }};
+        "#);
 
-        formatdoc!(r#"
-            <script>
-                const ACCENT_BRIGHTENING = {accent_brightening};
-                const ACCENT_CHROMA = {accent_chroma};
-                const ACCENT_HUE = {accent_hue};
-                const BACKGROUND_ALPHA = {background_alpha};
-                const BASE_CHROMA = {base_chroma};
-                const BASE_HUE = {base_hue};
-            </script>
-            {r_template}
-        "#)
+        script.push_str(include_str!("assets/theming_widget.js"));
+
+        format!(include_str!("templates/theming_widget.html"), script = script)
     } else {
         String::new()
     };

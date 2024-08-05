@@ -28,7 +28,7 @@ use crate::{
     StreamingQuality,
     TagAgenda,
     Theme,
-    ThemeVarsOklch,
+    ThemeBase,
     ThemeFont,
     TrackNumbering,
     util
@@ -970,11 +970,10 @@ pub fn apply_options(
         }
 
         if let Some((value, line)) = optional_field_value_with_line(section, "base") {
-            match ThemeVarsOklch::from_manifest_key(value.as_str()) {
+            match ThemeBase::from_manifest_key(value.as_str()) {
                 Some(variant) => overrides.theme.base = variant,
                 None => {
-                    let supported = ThemeVarsOklch::ALL_PRESETS.map(|key| format!("'{key}'")).join(", ");
-                    error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are {}) in {}:{}", value, supported, path.display(), line);
+                    error!("Ignoring unsupported value '{}' for global 'theme.base' (supported values are dark and light) in {}:{}", value, path.display(), line);
                 }
             }
         }

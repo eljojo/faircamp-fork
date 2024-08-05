@@ -5,7 +5,7 @@ use std::f32::consts::TAU;
 
 use indoc::formatdoc;
 
-use crate::{Release, Theme};
+use crate::Release;
 
 #[derive(Clone, Debug, Hash)]
 pub enum CoverGenerator {
@@ -17,19 +17,22 @@ pub enum CoverGenerator {
 }
 
 impl CoverGenerator {
-    pub fn generate(&self, release: &Release, theme: &Theme, max_tracks_in_release: usize) -> String {
+    pub fn generate(
+        &self,
+        label: &str,
+        release: &Release,
+        max_tracks_in_release: usize
+    ) -> String {
        match self {
-            CoverGenerator::BestRillen => CoverGenerator::generate_best_rillen(release, theme),
-            CoverGenerator::GlassSplinters => CoverGenerator::generate_glass_splinters(release, theme),
-            CoverGenerator::LooneyTunes => CoverGenerator::generate_looney_tunes(release, theme, max_tracks_in_release),
-            CoverGenerator::ScratchyFaintRillen => CoverGenerator::generate_scratchy_faint_rillen(release, theme),
-            CoverGenerator::SpaceTimeRupture => CoverGenerator::generate_space_time_rupture(release, theme)
+            CoverGenerator::BestRillen => CoverGenerator::generate_best_rillen(label, release),
+            CoverGenerator::GlassSplinters => CoverGenerator::generate_glass_splinters(label, release),
+            CoverGenerator::LooneyTunes => CoverGenerator::generate_looney_tunes(label, release, max_tracks_in_release),
+            CoverGenerator::ScratchyFaintRillen => CoverGenerator::generate_scratchy_faint_rillen(label, release),
+            CoverGenerator::SpaceTimeRupture => CoverGenerator::generate_space_time_rupture(label, release)
         }
     }
 
-    fn generate_best_rillen(release: &Release, theme: &Theme) -> String {
-        // TODO: Switch to inline svg so we can realtime-theme the covers too?
-        let foreground_1_lightness = &theme.base.foreground_1_lightness;
+    fn generate_best_rillen(label: &str, release: &Release) -> String {
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -62,11 +65,8 @@ impl CoverGenerator {
                     let y = radius + ((release.tracks.len() - 1 - track_index) as f32 * altitude_width + peak * 0.3 * altitude_width) * y_vector;
 
                     if let Some((x_prev, y_prev)) = previous {
-                        let alpha = peak * 100.0;
-                        // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
-                        let stroke = format!("oklch({foreground_1_lightness}% 0 0 / {alpha}%)");
                         let stroke_width = peak * 0.24; // .06px is our ideal for waveforms
-                        let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
+                        let sample = format!(r##"<line stroke="var(--fg-1)" stroke-opacity="{peak}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
                         samples.push(sample);
                     }
 
@@ -81,15 +81,14 @@ impl CoverGenerator {
             .join("\n");
 
         formatdoc!(r##"
-            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <svg width="20em" height="20em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <title>{label}</title>
                 {points}
             </svg>
         "##)
     }
 
-    fn generate_glass_splinters(release: &Release, theme: &Theme) -> String {
-        // TODO: Switch to inline svg so we can realtime-theme the covers too?
-        let foreground_1_lightness = &theme.base.foreground_1_lightness;
+    fn generate_glass_splinters(label: &str, release: &Release) -> String {
         let edge = 64.0;
 
         let total_duration: f32 = release.tracks
@@ -105,9 +104,6 @@ impl CoverGenerator {
         if min_gap_arc < gap_arc {
             gap_arc = min_gap_arc;
         }
-
-        // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
-        let stroke_or_fill = format!("oklch({foreground_1_lightness}% 0 0)");
 
         let mut track_offset = 0.0;
         let points = release.tracks
@@ -140,22 +136,21 @@ impl CoverGenerator {
 
                 track_offset += track_arc_range;
 
-                format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
+                format!(r##"<path d="{d}" fill="none" stroke="var(--fg-1)" stroke-width=".06px"/>"##)
 
             })
             .collect::<Vec<String>>()
             .join("\n");
 
         formatdoc!(r#"
-            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <svg width="20em" height="20em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <title>{label}</title>
                 {points}
             </svg>
         "#)
     }
 
-	fn generate_looney_tunes(release: &Release, theme: &Theme, max_tracks_in_release: usize) -> String {
-        // TODO: Switch to inline svg so we can realtime-theme the covers too?
-        let foreground_1_lightness = &theme.base.foreground_1_lightness;
+	fn generate_looney_tunes(label: &str, release: &Release, max_tracks_in_release: usize) -> String {
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -192,11 +187,8 @@ impl CoverGenerator {
                     let y = radius + amplitude * arc_offset.cos();
 
                     if let Some((x_prev, y_prev)) = previous {
-                        let alpha = peak * 100.0;
-                        // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
-                        let stroke = format!("oklch({foreground_1_lightness}% 0 0 / {alpha}%)");
                         let stroke_width = peak * 0.32;
-                        let sample = format!(r##"<line stroke="{stroke}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
+                        let sample = format!(r##"<line stroke="var(--fg-1)" stroke-opacity="{peak}" stroke-width="{stroke_width}px" x1="{x_prev}" x2="{x}" y1="{y_prev}" y2="{y}"/>"##);
                         samples.push(sample);
                     }
 
@@ -211,16 +203,15 @@ impl CoverGenerator {
             .join("\n");
 
         formatdoc!(r##"
-            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <rect fill="none" height="63.96" stroke="oklch({foreground_1_lightness}% 0 0)" stroke-width=".12px" width="63.96" x="0.02" y="0.02"/>
+            <svg width="20em" height="20em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="transparent" height="64" width="64" x="0" y="0"/>
+                <title>{label}</title>
                 {points}
             </svg>
         "##)
     }
 
-    fn generate_scratchy_faint_rillen(release: &Release, theme: &Theme) -> String {
-        // TODO: Switch to inline svg so we can realtime-theme the covers too?
-        let foreground_1_lightness = &theme.base.foreground_1_lightness;
+    fn generate_scratchy_faint_rillen(label: &str, release: &Release) -> String {
         let edge = 64.0;
         let radius = edge / 2.0;
 
@@ -235,9 +226,6 @@ impl CoverGenerator {
 
                 let altitude_width = radius / release.tracks.len() as f32;
                 let track_arc_range = source_meta.duration_seconds / longest_track_duration;
-
-                // TODO: As long as we don't use inline covers we can't utilize the hsl fallback (!) do this earlier then probably
-                let stroke_or_fill = format!("oklch({foreground_1_lightness}% 0 0)");
 
                 let mut samples = Vec::new();
                 let step = 2;
@@ -261,21 +249,20 @@ impl CoverGenerator {
 
                 track_offset += track_arc_range;
 
-                format!(r##"<path d="{d}" fill="none" stroke="{stroke_or_fill}" stroke-width=".06px"/>"##)
+                format!(r##"<path d="{d}" fill="none" stroke="var(--fg-1)" stroke-width=".06px"/>"##)
             })
             .collect::<Vec<String>>()
             .join("\n");
 
         formatdoc!(r#"
-            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <svg width="20em" height="20em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <title>{label}</title>
                 {points}
             </svg>
         "#)
     }
 
-    fn generate_space_time_rupture(release: &Release, theme: &Theme) -> String {
-        // TODO: Switch to inline svg so we can realtime-theme the covers too?
-        let foreground_1_lightness = &theme.base.foreground_1_lightness;
+    fn generate_space_time_rupture(label: &str, release: &Release) -> String {
         let edge = 64.0;
 
         let total_duration: f32 = release.tracks
@@ -296,8 +283,6 @@ impl CoverGenerator {
 
                 let altitude_factor = (source_meta.duration_seconds - shortest_track_duration) / (longest_track_duration - shortest_track_duration);
                 let track_arc_range = source_meta.duration_seconds / total_duration;
-
-                let fill_or_stroke = format!("oklch({foreground_1_lightness}% 0 0)");
 
                 let mut samples = Vec::new();
                 let step = 6;
@@ -321,13 +306,14 @@ impl CoverGenerator {
 
                 track_offset += track_arc_range;
 
-                format!(r##"<path d="{d}" fill="none" stroke="{fill_or_stroke}" stroke-width=".06px"/>"##)
+                format!(r##"<path d="{d}" fill="none" stroke="var(--fg-1)" stroke-width=".06px"/>"##)
             })
             .collect::<Vec<String>>()
             .join("\n");
 
         formatdoc!(r#"
-            <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <svg width="20em" height="20em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <title>{label}</title>
                 {points}
             </svg>
         "#)

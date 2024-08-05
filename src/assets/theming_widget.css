@@ -1,65 +1,115 @@
 .theming_widget {
-    background-color: var(--bg-1-overlay);
-    border: 1px solid var(--bg-3);
-    border-radius: .3rem;
-    color: var(--fg-2);
-    bottom: 1rem;
-    padding: 1rem;
+    bottom: 6rem;
+    box-sizing: border-box;
+    color: var(--fg-1-theming-widget);
+    display: flex;
+    flex-direction: column;
+    left: 2rem;
+    opacity: .1;
     position: fixed;
-    right: 1rem;
-    width: 28rem;
+    right: 2rem;
+    row-gap: 2rem;
+    transition: opacity 500ms ease;
+    z-index: 99;
 }
-.theming_widget > :not(:last-child) { margin-bottom: 1rem; }
+.theming_widget:hover {
+    opacity: 1;
+}
+.theming_widget .controls {
+    background: var(--bg-2-overlay-theming-widget);
+    border-radius: .2rem;
+    column-gap: 1rem;
+    display: grid;
+    font-size: .9rem;
+    grid-template-columns: min-content min-content 1fr;
+    padding: 1rem;
+    row-gap: .5rem;
+}
+.theming_widget .controls .manifest { grid-area: 1 / 3 / 5 / 3; }
+.theming_widget .controls [data-name="accent_brightening"] { grid-area: 1 / 2; }
+.theming_widget .controls [data-name="accent_chroma"] { grid-area: 2 / 2; }
+.theming_widget .controls [data-name="accent_hue"] { grid-area: 3 / 2; }
+.theming_widget .controls [data-name="background_alpha"] { grid-area: 4 / 2; }
+.theming_widget .controls [data-name="base"] { grid-area: 1 / 1; }
+.theming_widget .controls [data-name="base_chroma"] { grid-area: 3 / 1; }
+.theming_widget .controls [data-name="base_hue"] { grid-area: 4 / 1; }
+.theming_widget .controls [data-name="dynamic_range"] { grid-area: 2 / 1; }
 .theming_widget .levels {
     font-size: .7rem;
-    height: 3rem;
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
+    height: 1rem;
     position: relative;
+}
+.theming_widget:not(.advanced) .levels,
+.theming_widget:not(.advanced) .palette {
+    display: none;
 }
 .theming_widget .levels .beam {
     background: linear-gradient(to right, oklch(0% 0 0), oklch(100% 0 0));
-    border: 1px solid var(--fg-1);
+    border: 1px solid var(--mg-theming-widget);
     box-sizing: border-box;
     height: .4rem;
     margin-right: -1px;
     top: 0;
 }
 .theming_widget .levels .level {
-    border-left: 1px solid var(--fg-1);
-    color: var(--fg-1);
-    height: .5rem;
+    border-left: 1px solid;
+    height: .8rem;
     position: absolute;
+    top: -.6rem;
 }
 .theming_widget .levels .level > div {
+    background: var(--bg-1-overlay-theming-widget);
     left: -50%;
+    padding: .2rem;
     position: relative;
-    top: 1rem;
-    transform: rotate(-45deg);
+    top: -1rem;
 }
 .theming_widget .option {
     align-items: center;
     display: flex;
-    column-gap: 1rem;
+    column-gap: .5rem;
 }
-.theming_widget .option input { width: 10rem; }
-.theming_widget .option .label { width: 9rem; }
+.theming_widget .option input {
+    max-width: 8rem;
+    min-width: 4rem;
+}
+.theming_widget .option .label { width: 8rem; }
+.theming_widget .option .value { width: 6rem; }
 .theming_widget .palette {
     display: flex;
     font-size: .8rem;
+    margin-top: -1rem;
 }
 .theming_widget .palette .tone {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    position: relative;
 }
+.theming_widget .palette .tone:first-child div:first-of-type { border-top-left-radius: .2rem }
+.theming_widget .palette .tone:first-child div:last-child { border-bottom-left-radius: .2rem }
+.theming_widget .palette .tone:last-child div:first-of-type { border-top-right-radius: .2rem }
+.theming_widget .palette .tone:last-child div:last-child { border-bottom-right-radius: .2rem }
 .theming_widget .palette .tone > div {
-    height: 2rem;
+    height: 1rem;
 }
 .theming_widget .palette .tone > span {
-    text-align: center;
+    background: var(--bg-1-overlay-theming-widget);
+    border-radius: .2rem;
+    left: 50%;
+    padding: .2rem;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 .theming_widget textarea {
-    height: 10rem;
-    width: 100%;
+    background: var(--fg-1-veil);
+    border: 0;
+    border-bottom-right-radius: .2rem;
+    border-top-right-radius: .2rem;
+    box-sizing: border-box;
+    color: var(--fg-2-theming-widget);
+    margin: calc(-1rem) calc(-1rem) calc(-1rem) 0;
+    min-height: 6rem;
+    padding: 1rem;
 }

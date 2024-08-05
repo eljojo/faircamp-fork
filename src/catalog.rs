@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use sanitize_filename::sanitize;
-use std::fs;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
@@ -1019,9 +1018,9 @@ impl Catalog {
 
                 image_mut.persist_to_cache(&build.cache_dir);
             } else {
-                // TODO: Consider generating inline svg, so this can interact with theme variables (instead of needing to hard-code into file)
-                let svg = self.theme.cover_generator.generate(&release_mut, &self.theme, max_tracks_in_release);
-                fs::write(release_dir.join("cover.svg"), svg).unwrap();
+                let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
+                let procedural_cover = self.theme.cover_generator.generate(t_auto_generated_cover, &release_mut, max_tracks_in_release);
+                release_mut.procedural_cover = Some(procedural_cover);
             }
 
             for streaming_format in release_mut.streaming_quality.formats() {
