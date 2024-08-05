@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::cell::{Ref, RefCell, RefMut};
+use std::collections::HashSet;
 use std::fs::File;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::prelude::*;
@@ -380,6 +381,8 @@ impl Release {
 
                     let mut buffer = Vec::new();
 
+                    let mut used_filenames = HashSet::new();
+
                     for (track, tag_mapping) in self.tracks.iter_mut().zip(tag_mappings.iter()) {
                         let transcodes_ref = track.transcodes.borrow();
                         let transcode = transcodes_ref.get_unchecked(download_format.as_audio_format(), generic_hash(&tag_mapping));
@@ -391,6 +394,7 @@ impl Release {
                         );
 
                         zip_writer.start_file(&*filename, options).unwrap();
+                        used_filenames.insert(filename);
 
                         let mut zip_inner_file = File::open(
                             &build.cache_dir.join(&transcode.asset.filename)
@@ -408,7 +412,10 @@ impl Release {
                         let source_path = &described_image.image.file_meta.path;
                         let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
 
-                        zip_writer.start_file("cover.jpg", options).unwrap();
+                        let cover_filename = String::from("cover.jpg");
+
+                        zip_writer.start_file(&*cover_filename, options).unwrap();
+                        used_filenames.insert(cover_filename);
 
                         let mut zip_inner_file = File::open(
                             &build.cache_dir.join(&cover_assets.largest().filename)
@@ -422,7 +429,18 @@ impl Release {
                     }
 
                     for extra in &self.extras {
-                        zip_writer.start_file(&*extra.sanitized_filename, options).unwrap();
+                        let mut extra_filename = extra.sanitized_filename.clone();
+
+                        while used_filenames.contains(&extra_filename) {
+                            // TODO: At some point expand so it does a more elegant "foo.jpg" -> "foo(1).jpg" -> "foo(2).jpg" (or similar)
+                            extra_filename = match extra_filename.split_once('.') {
+                                Some((prefix, postfix)) => format!("{prefix}_duplicate.{postfix}"),
+                                None => format!("{extra_filename}_duplicate")
+                            };
+                        }
+
+                        zip_writer.start_file(&*extra_filename, options).unwrap();
+                        used_filenames.insert(extra_filename);
 
                         let mut zip_inner_file = File::open(
                             &build.catalog_dir.join(&extra.file_meta.path)
