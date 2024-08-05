@@ -133,10 +133,8 @@ fn compact_release_identifier(
     let cover = cover_image_tiny(release_prefix, release, release_link);
 
     format!(r#"
-        <div style="align-items: center; column-gap: .8rem; display: flex; margin: 2em 0;">
-            <div style="max-width: 4rem">
-                {cover}
-            </div>
+        <div class="release_compact">
+            {cover}
             <div>
                 <div style="font-size: 1.17rem;">{release_title_escaped}</div>
                 <div style="font-size: 1.14rem;">{artists}</div>

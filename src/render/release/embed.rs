@@ -95,9 +95,9 @@ pub fn embed_choices_html(
             let track_title_escaped = html_escape_outside_attribute(&track_title);
 
             formatdoc!(r#"
-                <div class="hcenter_wide embed_split mobile_hpadding" style="margin-top: 2rem; position: relative;">
-                    <div style="font-size: 1.14rem;">
-                        <span class="track_number">{track_number_formatted}</span>
+                <div class="embed_split" style="margin-top: 2rem; position: relative;">
+                    <div>
+                        <span style="color: var(--fg-3);">{track_number_formatted}</span>
                         <span>{track_title_escaped}</span>
                     </div>
                     {r_copy_button}
@@ -110,7 +110,7 @@ pub fn embed_choices_html(
 
     let release_link = format!("..{index_suffix}");
 
-    let compact_release_identifier_rendered = compact_release_identifier(
+    let r_compact_release_identifier = compact_release_identifier(
         build,
         catalog,
         index_suffix,
@@ -151,27 +151,27 @@ pub fn embed_choices_html(
 
     let t_embed = &build.locale.translations.embed;
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;
-    let body = formatdoc!(r##"
-        <div class="hcenter_wide margin_page_top mobile_hpadding">
-            <h1>{t_embed}</h1>
+    let body = formatdoc!(r#"
+        <div class="page">
+            <div class="page_center">
+                <div>
+                    <h1>{t_embed}</h1>
+                    {r_compact_release_identifier}
 
-            {compact_release_identifier_rendered}
-        </div>
+                    <div style="margin-top: 2rem;">
+                        <div class="embed_split">
+                            <span>{t_embed_entire_release}</span>
+                            {r_copy_button}
+                        </div>
+                        {embed_display_code}
+                    </div>
 
-        <div style="margin-top: 2rem;">
-            <div class="hcenter_wide embed_split mobile_hpadding">
-                <span style="font-size: 1.14rem;">{t_embed_entire_release}</span>
-                {r_copy_button}
+                    {track_choices_rendered}
+                </div>
             </div>
-            {embed_display_code}
         </div>
-
-        {track_choices_rendered}
-
-        <div class="margin_page_bottom"></div>
-
         {templates}
-    "##);
+    "#);
 
     layout(
         root_prefix,
