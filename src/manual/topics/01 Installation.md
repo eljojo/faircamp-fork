@@ -48,6 +48,10 @@ Non-natively via [Docker](https://github.com/n3wjack/faircamp-docker) or via
 [WSL](https://www.meljoann.com/posts/faircamp/), or to attempt a native build
 with the general build instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
 
+**YunoHost**
+
+Install the [faircamp](https://apps.yunohost.org/app/faircamp) package
+
 **Other platforms**
 
 See general build instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
