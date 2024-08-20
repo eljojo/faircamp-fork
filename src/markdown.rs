@@ -172,6 +172,9 @@ impl<'a> StrippedRenderer<'a> {
         match tag {
             Tag::BlockQuote(_) |
             Tag::CodeBlock(_) |
+            Tag::DefinitionList |
+            Tag::DefinitionListDefinition |
+            Tag::DefinitionListTitle |
             Tag::Heading { .. } |
             Tag::Paragraph => self.ensure_gap(),
             Tag::Emphasis => {}
@@ -207,8 +210,11 @@ impl<'a> StrippedRenderer<'a> {
 
     fn render_tag_end(&mut self, tag: TagEnd) {
         match tag {
-            TagEnd::BlockQuote |
+            TagEnd::BlockQuote(_) |
             TagEnd::CodeBlock |
+            TagEnd::DefinitionList |
+            TagEnd::DefinitionListDefinition |
+            TagEnd::DefinitionListTitle |
             TagEnd::Heading(_) |
             TagEnd::Item |
             TagEnd::Paragraph |
