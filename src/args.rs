@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use clap::Parser;
@@ -23,6 +23,10 @@ pub struct Args {
     /// Override catalog directory (default is the current working directory)
     #[clap(long = "catalog-dir")]
     pub catalog_dir: Option<PathBuf>,
+
+    /// Print debug information for the catalog (no build is performed)
+    #[clap(long = "debug")]
+    pub debug: bool,
 
     /// The site is rendered with every translatable interface string showing its key instead of its value (=translation)
     #[clap(long = "debug-translations")]

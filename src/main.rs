@@ -17,6 +17,7 @@ mod build;
 mod cache;
 mod catalog;
 mod cover_generator;
+mod debug;
 mod decode;
 mod deploy;
 mod download_format;
@@ -131,6 +132,11 @@ fn main() {
         Ok(catalog) => catalog,
         Err(()) => return
     };
+
+    if args.debug {
+        debug::debug_catalog(&catalog);
+        return;
+    }
 
     util::ensure_empty_dir(&build.build_dir);
 
