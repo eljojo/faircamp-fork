@@ -27,7 +27,7 @@ if (document.querySelector('.docked_player')) {
         time: container.querySelector('.time'),
         timeline: container.querySelector('.timeline'),
         timelineInput: container.querySelector('.timeline input'),
-        title: container.querySelector('.title'),
+        titleWrapper: container.querySelector('.title_wrapper'),
         volumeButton: container.querySelector('.volume button'),
         volumeInput: container.querySelector('.volume input')
     };
@@ -105,9 +105,10 @@ async function mountAndPlay(track, seekTo) {
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
 
-    dockedPlayer.title.textContent = track.title.textContent;
-    if (track.title.href) {
-        dockedPlayer.title.href = track.title.href;
+    if (track.artists) {
+        dockedPlayer.titleWrapper.replaceChildren(track.title.cloneNode(true), track.artists.cloneNode(true));
+    } else {
+        dockedPlayer.titleWrapper.replaceChildren(track.title.cloneNode(true));
     }
 
     // Not available on a track player
@@ -465,6 +466,7 @@ for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
 
 let previousTrack = null;
 for (const container of document.querySelectorAll('.track')) {
+    const artists = container.querySelector('.artists');
     const audio = container.querySelector('audio');
     const numberInner = container.querySelector('.number.inner');
     const playbackButton = container.querySelector('.track_playback');
@@ -474,6 +476,7 @@ for (const container of document.querySelectorAll('.track')) {
     const duration = parseFloat(container.dataset.duration);
 
     const track = {
+        artists,
         audio,
         container,
         duration,

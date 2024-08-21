@@ -5,6 +5,7 @@ use chrono::Datelike;
 use indoc::formatdoc;
 
 use crate::{
+    ArtistRc,
     Build,
     Catalog,
     CrawlerMeta,
@@ -17,6 +18,7 @@ use crate::render::{
     cover_image,
     layout,
     list_release_artists,
+    list_track_artists,
     player_icon_templates,
     unlisted_badge
 };
@@ -104,6 +106,20 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(t_play);
 
+    let mut varying_track_artists = false;
+    let mut track_iterator = release.tracks.iter().peekable();
+    while let Some(track) = track_iterator.next() {
+        if let Some(next_track) = track_iterator.peek() {
+            if track.artists
+                .iter()
+                .zip(next_track.artists.iter())
+                .any(|(track_artist, next_track_artist)| !ArtistRc::ptr_eq(track_artist, next_track_artist)) {
+                varying_track_artists = true;
+                break;
+            }
+        }
+    }
+
     let tracks_rendered = release.tracks
         .iter()
         .enumerate()
@@ -171,12 +187,23 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 r_waveform = String::new();
             };
 
+            let track_artists = match varying_track_artists {
+                true => {
+                    let artists_truncation = Some((80, format!("{track_number}/")));
+                    let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
+                    format!(r#"<span class="artists">{artists_truncated}</span> - "#)
+                }
+                false => String::new()
+            };
+
             formatdoc!(r#"
                 <div class="{compact} track" data-duration="{duration_seconds}">
                     <span class="number outer">{track_number_formatted}</span>
-                    <span class="track_header">
+                    <div class="track_header">
                         <span class="number inner">{track_number_formatted}</span>
-                        <a class="title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                        <span>
+                            {track_artists}<a class="title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                        </span>
                         <span class="time">{track_duration_formatted}</span>
                         <button class="more_button" tabindex="-1">
                             {more_icon}
@@ -189,7 +216,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                                 {copy_track_icon}
                             </button>
                         </div>
-                    </span>
+                    </div>
                     <audio controls preload="none">
                         {audio_sources}
                     </audio>
@@ -373,6 +400,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         None => String::new()
     };
 
+    let tall = if varying_track_artists { "tall" } else { "" };
+
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let scroll_icon = icons::scroll();
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
@@ -398,7 +427,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         </div>
         <a class="scroll_target" id="tracks"></a>
-        <div class="additional page" data-tracks><!-- TODO: Background-color shift (subtle) -->
+        <div class="page" data-tracks>
             <div class="page_center">
                 <div>
                     <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
@@ -407,7 +436,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         </div>
         <a class="scroll_target" id="description"></a>
-        <div class="page" data-description>
+        <div class="additional page" data-description>
             <div class="page_center">
                 <div style="max-width: 32rem;">
                     <div class="release_info">
@@ -433,7 +462,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <span>{scroll_icon}</span> {t_more}
             </a>
         </div>
-        <div class="docked_player">
+        <div class="docked_player {tall}">
             <div class="timeline">
                 <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
                 <div class="base"></div>
@@ -456,7 +485,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
                 <span class="track_info">
                     <span class="number"></span>
-                    <a class="title"></a>
+                    <span class="title_wrapper"></span>
                     <span class="time"></span>
                 </span>
                 <span class="volume_hint dimmed">{t_dimmed}</span>

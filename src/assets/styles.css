@@ -142,6 +142,12 @@ button svg { display: inline-block; }
 .docked_player:not(.active) {
     display: none;
 }
+.docked_player .artists {
+    font-size: .9rem;
+    margin-bottom: .2rem;
+}
+.docked_player .artists a { color: var(--fg-3); }
+.docked_player .artists a:hover { color: var(--fg-3-focus); }
 .docked_player button {
     color: var(--fg-1);
     padding: .8em .6em;
@@ -160,7 +166,7 @@ button svg { display: inline-block; }
     background: var(--bg-1-overlay);
     display: flex;
 }
-.docked_player .number { margin-right: .2rem; }
+.docked_player .number { margin-right: .5rem; }
 .docked_player .playback { margin-left: .4rem; }
 .docked_player .timeline {
     cursor: pointer;
@@ -194,8 +200,14 @@ button svg { display: inline-block; }
     width: 100%;
     z-index: 1;
 }
-.docked_player .title { margin-right: .6rem; }
+.docked_player .title_wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    margin-right: .6rem;
+}
 .docked_player .track_info {
+    align-items: center;
+    display: flex;
     margin-left: .2em;
     margin-right: .6em;
     overflow-x: hidden;
@@ -206,6 +218,13 @@ button svg { display: inline-block; }
     margin-left: .2em;
     margin-right: 1.2em;
 }
+.docked_player.tall .elements { height: 3.8rem; }
+.docked_player.tall .number { margin-right: .8rem; }
+.docked_player.tall .timeline .base,
+.docked_player.tall .timeline .progress {
+    height: .2rem;
+}
+.docked_player.tall .title_wrapper { margin-right: .9rem; }
 .download_entry { display: flex; }
 .download_formats {
     display: flex;
@@ -625,11 +644,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-left: .4rem;
     overflow: hidden;
 }
-.track .number {
-    color: var(--fg-3);
-    padding-right: .5rem;
-}
+.track .number { color: var(--fg-3); }
+.track .number.inner { padding-right: .3rem; }
 .track .number.outer {
+    padding-right: .5rem;
     pointer-events: none;
     position: absolute;
     right: calc(100%);
