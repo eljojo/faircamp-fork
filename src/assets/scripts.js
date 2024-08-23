@@ -259,6 +259,7 @@ function togglePlayback(track, seekTo = null) {
 function announcePlayhead(track) {
     if (track.waveform) {
         // TODO: Announce "current: xxxx, remaining: xxxxx"?
+        dockedPlayer.timelineInput.setAttribute('aria-valuetext', formatTime(track.waveform.input.value));
         track.waveform.input.setAttribute('aria-valuetext', formatTime(track.waveform.input.value));
     }
 }
@@ -361,6 +362,18 @@ function updateVolume(restoreLevel = null) {
 }
 
 if (dockedPlayer) {
+    dockedPlayer.container.addEventListener('keydown', event => {
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            const seekTo = Math.max(0, activeTrack.audio.currentTime - 5);
+            togglePlayback(activeTrack, seekTo);
+        } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            const seekTo = Math.min(activeTrack.duration - 1, activeTrack.audio.currentTime + 5);
+            togglePlayback(activeTrack, seekTo);
+        }
+    });
+
     dockedPlayer.playbackButton.addEventListener('click', () => {
         togglePlayback(activeTrack ?? firstTrack);
     });
@@ -384,6 +397,13 @@ if (dockedPlayer) {
 
     dockedPlayer.timelineInput.addEventListener('blur', () => {
         dockedPlayer.timelineInput.classList.remove('focus_from_click');
+    });
+
+    dockedPlayer.timelineInput.addEventListener('keydown', event => {
+        if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            togglePlayback(activeTrack);
+        }
     });
 
     volume.container.addEventListener('wheel', event => {
@@ -617,6 +637,7 @@ for (const container of document.querySelectorAll('.track')) {
 
         track.waveform.input.addEventListener('keydown', event => {
             if (event.key === ' ' || event.key === 'Enter') {
+                event.preventDefault();
                 togglePlayback(track);
             }
         });
