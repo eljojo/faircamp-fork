@@ -4,16 +4,16 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// In debug builds all untranslated strings return "UNTRANSLATED"
-#[cfg(debug_assertions)]
+/// In debug builds all untranslated strings return "UNTRANSLATED",
+#[cfg(all(debug_assertions, not(test)))]
 macro_rules! untranslated {
     ($_key:ident) => {
         String::from("UNTRANSLATED")
     };
 }
 
-// In release builds all untranslated strings return an english fallback translation
-#[cfg(not(debug_assertions))]
+// In release and test builds all untranslated strings return an english fallback translation
+#[cfg(any(not(debug_assertions), test))]
 macro_rules! untranslated {
     ($key:ident) => {
         super::en::translations().$key
