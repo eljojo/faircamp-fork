@@ -182,6 +182,7 @@ Faircamp currently ships with these languages:
 - Norwegian Bokmål `nb`
 - Polish `pl`
 - Spanish `es`
+- Swedish `sv`
 
 Translation corrections or improvements are very welcome, just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
 

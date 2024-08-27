@@ -1,5 +1,3 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
-// SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-FileCopyrightText: 2024 Miró Allard
 // SPDX-License-Identifier: AGPL-3.0-or-later
 

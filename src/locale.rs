@@ -27,6 +27,7 @@ mod fr;
 mod nb;
 mod nl;
 mod pl;
+mod sv;
 mod translations;
 
 use translations::Translations;

@@ -200,7 +200,8 @@ fn check_translations() {
         super::fr::translations(),
         super::nb::translations(),
         super::nl::translations(),
-        super::pl::translations()
+        super::pl::translations(),
+        super::sv::translations()
     ];
 
     for translations in &locales {
