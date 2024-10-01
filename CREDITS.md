@@ -15,6 +15,7 @@ Thanks everyone for your support.
 [ailepet](https://codeberg.org/ailepet)<br>
 [Alexander Cobleigh](https://cblgh.org)<br>
 [Andy Berdan](https://codeberg.org/berdandy)<br>
+[atomkarinca](https://fe.disroot.org/users/atomkarinca)<br>
 [AxWax](https://axwax.eu/)<br>
 [controlfreak](https://control.org/)<br>
 [DaforLynx](https://dafor.link/)<br>
@@ -28,6 +29,7 @@ Damian Szetela<br>
 [DURAD](https://durad.xyz)<br>
 [Emanuel Pesendorfer](https://emanuel-pesendorfer.at/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
+[Flavigula](https://flavigula.net/)<br>
 [Florian Antoine](http://oooooooooo.net/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
 [fREW Schmidt](https://blog.afoolishmanifesto.com/)<br>
@@ -49,6 +51,7 @@ Damian Szetela<br>
 [n3wjack](https://n3wjack.net/)<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
 [nOOq](https://codeberg.org/n00q)<br>
+[OniriCorpe](https://oniricorpe.eu)<br>
 [Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
 [rakoo](https://codeberg.org/rakoo)<br>
@@ -59,5 +62,6 @@ Damian Szetela<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
+[Wesley Sinks](https://linuxcreative.com)<br>
 [Wolfgang Dorninger](https://dorninger.servus.at)<br>
 [zzkt](https://fo.am/people/nik)
