@@ -183,6 +183,7 @@ Faircamp currently ships with these languages:
 - Polish `pl`
 - Spanish `es`
 - Swedish `sv`
+- Turkish `tr`
 
 Translation corrections or improvements are very welcome, just [open an issue](https://codeberg.org/simonrepp/faircamp/issues).
 
