@@ -50,7 +50,7 @@ with the general build instructions in [Building from source](https://codeberg.o
 
 **YunoHost**
 
-Install the [faircamp](https://apps.yunohost.org/app/faircamp) package
+Install the [faircamp](https://apps.yunohost.org/app/faircamp) app
 
 **Other platforms**
 
