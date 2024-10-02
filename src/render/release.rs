@@ -16,6 +16,7 @@ use crate::{
 use crate::render::{
     copy_button,
     cover_image,
+    cover_image_tiny,
     layout,
     list_release_artists,
     list_track_artists,
@@ -191,7 +192,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 true => {
                     let artists_truncation = Some((80, format!("{track_number}/")));
                     let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
-                    format!(r#"<span class="artists">{artists_truncated}</span> - "#)
+                    format!(r#"&nbsp;&nbsp;/&nbsp;&nbsp;<span class="artists">{artists_truncated}</span>"#)
                 }
                 false => String::new()
             };
@@ -202,7 +203,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="track_header">
                         <span class="number inner">{track_number_formatted}</span>
                         <span>
-                            {track_artists}<a class="title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                            <a class="title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>{track_artists}
                         </span>
                         <span class="time">{track_duration_formatted}</span>
                         <button class="more_button" tabindex="-1">
@@ -230,6 +231,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let release_title_escaped = html_escape_outside_attribute(&release.title);
 
     let mut primary_actions = Vec::new();
+    let mut secondary_actions = Vec::new();
 
     let t_listen = &build.locale.translations.listen;
     let listen_button = formatdoc!(r#"
@@ -250,11 +252,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         </a>
     "##);
 
-    primary_actions.push(tracks_link);
+    primary_actions.push(tracks_link.clone());
+    secondary_actions.push(tracks_link);
 
-    if !download_link.is_empty() {
-        primary_actions.push(download_link);
-    }
+    let more_link = formatdoc!(r##"
+        <a class="more" href="#description">
+            {more_icon}
+        </a>
+    "##);
+
+    primary_actions.push(more_link);
 
     let r_primary_actions = if primary_actions.is_empty() {
         String::new()
@@ -286,7 +293,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         </template>
     "#);
 
-    let mut secondary_actions = Vec::new();
+    if !download_link.is_empty() {
+        secondary_actions.push(download_link);
+    }
 
     if release.copy_link {
         let (content_key, content_value) = match &build.base_url {
@@ -383,7 +392,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let artists_truncated = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let cover = cover_image(build, index_suffix, "", root_prefix, release);
 
-    let release_duration = format_time(release.duration());
     let release_year = match release.date {
         Some(naive_date) => format!("({})", naive_date.year()),
         None => String::new()
@@ -402,12 +410,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let tall = if varying_track_artists { "tall" } else { "" };
 
+    let tiny_cover = cover_image_tiny("", release, ""); // TODO: Should not be linked
+
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let scroll_icon = icons::scroll();
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
     let t_more = &build.locale.translations.more;
-    let t_more_info = &build.locale.translations.more_info;
     let t_muted = &build.locale.translations.muted;
     let t_top = &build.locale.translations.top;
     let body = formatdoc!(r##"
@@ -419,15 +428,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}
-                    <a class="scroll_link" href="#description">
-                        {scroll_icon}
-                        {t_more_info}
-                    </a>
                 </div>
             </div>
         </div>
         <a class="scroll_target" id="tracks"></a>
-        <div class="page" data-tracks>
+        <div class="additional page" data-tracks>
             <div class="page_center">
                 <div>
                     <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
@@ -436,19 +441,21 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         </div>
         <a class="scroll_target" id="description"></a>
-        <div class="additional page" data-description>
+        <div class="page" data-description>
             <div class="page_center">
                 <div style="max-width: 32rem;">
                     <div class="release_info">
                         <div>
-                            <div>
+                            {tiny_cover}
+                        </div>
+                        <div>
+                            <div style="font-size: 1.4rem;">
                                 {release_title_escaped} {release_year}
                             </div>
-                            <div>{release_duration}</div>
                             <div class="release_artists">{artists}</div>
                         </div>
-                        {r_secondary_actions}
                     </div>
+                    {r_secondary_actions}
                     {release_text}
                     {r_links}
                 </div>

@@ -62,7 +62,6 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
         made_or_arranged_payment: String::from("Zrobiłem albo ustawiłem zapłatę"),
         missing_image_description_note: String::from("Brakujący opis obrazka<br>Kliknij by dowiedzieć się więcej"),
         more: untranslated!(more),
-        more_info: untranslated!(more_info),
         muted: untranslated!(muted),
         name_your_price: String::from("Ustal swoją cenę"),
         next_track: untranslated!(next_track),

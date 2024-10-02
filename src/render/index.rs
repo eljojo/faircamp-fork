@@ -11,7 +11,7 @@ use crate::render::{
     layout,
     releases
 };
-use crate::util::{format_time, html_escape_outside_attribute};
+use crate::util::{html_escape_outside_attribute};
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -136,18 +136,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         &public_releases
     );
 
-    let public_releases_count = public_releases.len();
-    let public_tracks_count: usize = public_releases.iter().map(|release| release.borrow().tracks.len()).sum();
-    let total_listening_duration = public_releases
-        .iter()
-        .map(|release|
-            release.borrow().tracks
-                .iter()
-                .map(|track| track.transcodes.borrow().source_meta.duration_seconds)
-                .sum::<f32>()
-        ).sum();
-    let total_listening_duration_formatted = format_time(total_listening_duration);
-
     let synopsis = match &catalog.synopsis {
         Some(synopsis) => {
             formatdoc!(r#"
@@ -173,12 +161,11 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     let grid_icon = icons::grid();
+    let more_icon = icons::more(&build.locale.translations.more);
     let scroll_icon = icons::scroll();
     let t_more = &build.locale.translations.more;
-    let t_more_info = &build.locale.translations.more_info;
     let t_top = &build.locale.translations.top;
     let t_releases = &build.locale.translations.releases;
-    let t_tracks = &build.locale.translations.tracks;
     let body = formatdoc!(r##"
         <div class="page" data-overview>
             <div class="page_split">
@@ -190,12 +177,11 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                             {grid_icon}
                             {t_releases}
                         </a>
+                        <a class="more" href="#description">
+                            {more_icon}
+                        </a>
                     </div>
                     {synopsis}
-                    <a class="scroll_link" href="#description">
-                        {scroll_icon}
-                        {t_more_info}
-                    </a>
                 </div>
             </div>
         </div>
@@ -211,10 +197,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         <div class="page" data-description>
             <div class="page_center">
                 <div style="max-width: 32rem;">
-                    <div>{title_escaped}</div>
-                    <div>{public_releases_count} {t_releases}</div>
-                    <div>{public_tracks_count} {t_tracks}</div>
-                    <div>{total_listening_duration_formatted}</div>
+                    <div style="font-size: 1.4rem;">{title_escaped}</div>
                     {r_actions}
                     {catalog_text}
                 </div>

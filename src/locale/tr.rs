@@ -1,5 +1,4 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
-// SPDX-FileCopyrightText: 2023 Deborah Pickett
+// SPDX-FileCopyrightText: 2024 atomkarinca
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use super::Translations;
@@ -63,7 +62,6 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         made_or_arranged_payment: String::from("Ödemeyi yaptım ya da ayarladım"),
         missing_image_description_note: String::from("Görüntü açıklaması eksik<br>Daha fazla öğrenmek için tıklayın"),
         more: String::from("Daha fazla"),
-        more_info: String::from("Daha fazla bilgi"),
         muted: String::from("Ses kısıldı"),
         name_your_price: String::from("Tutar girin"),
         next_track: String::from("Sonraki parça"),

@@ -1,5 +1,5 @@
 .undescribed_icon {
-    background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .5);
+    background-color: var(--bg-1-overlay);
     border-radius: .4rem;
     color: var(--fg-2);
     padding: .3em;
@@ -18,7 +18,7 @@ a.undescribed_icon:hover {
 }
 .undescribed_overlay {
     align-items: center;
-    background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
+    background-color: var(--bg-1-overlay);
     border-radius: var(--cover-border-radius);
     display: none;
     font-size: var(--clearly-smaller);

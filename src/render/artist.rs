@@ -135,9 +135,9 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     };
 
     let grid_icon = icons::grid();
+    let more_icon = icons::more(&build.locale.translations.more);
     let scroll_icon = icons::scroll();
     let t_more = &build.locale.translations.more;
-    let t_more_info = &build.locale.translations.more_info;
     let t_releases = &build.locale.translations.releases;
     let t_top = &build.locale.translations.top;
     let t_tracks = &build.locale.translations.tracks;
@@ -152,12 +152,11 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                             {grid_icon}
                             {t_releases}
                         </a>
+                        <a class="more" href="#description">
+                            {more_icon}
+                        </a>
                     </div>
                     {synopsis}
-                    <a class="scroll_link" href="#description">
-                        {scroll_icon}
-                        {t_more_info}
-                    </a>
                 </div>
             </div>
         </div>

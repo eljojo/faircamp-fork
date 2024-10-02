@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2024 Miró Allard
+// SPDX-FileCopyrightText: 2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use super::Translations;
@@ -60,7 +61,6 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
         made_or_arranged_payment: String::from("Jag har genomfört eller påbörjat betalningen"),
         missing_image_description_note: String::from("Bildbeskrivning saknas<br>Klicka för att lära dig mer"),
         more: String::from("Mer"),
-        more_info: String::from("Mer information"),
         muted: String::from("Tyst"),
         name_your_price: String::from("Ange eget pris"),
         next_track: String::from("Nästa spår"),

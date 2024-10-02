@@ -54,12 +54,6 @@ impl Artist {
         }
     }
 
-    pub fn public_releases(&self) -> impl Iterator<Item = &ReleaseRc> {
-        self.releases
-            .iter()
-            .filter(|release| !release.borrow().unlisted)
-    }
-
     pub fn read_manifest(
         build: &Build,
         cache: &mut Cache,

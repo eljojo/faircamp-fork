@@ -13,19 +13,6 @@ button.link:hover {
     color: var(--fg-1-focus);
 }
 a * { pointer-events: none; }
-a.scroll_link {
-    align-items: center;
-    color: var(--fg-3);
-    column-gap: .3rem;
-    display: flex;
-}
-a.scroll_link:hover { color: var(--fg-3-focus); }
-a.scroll_link svg {
-    font-size: 1.1rem;
-    margin-right: .1rem;
-    position: relative;
-    top: .05rem;
-}
 .actions {
     align-items: flex-start;
     display:flex;
@@ -39,7 +26,7 @@ a.scroll_link svg {
     background: var(--bg-2);
     border-radius: .3rem;
     color: var(--fg-1);
-    padding: .2em .75em .3em .65em;
+    padding: .2em .5em .3em .5em;
     text-align: center;
 }
 .actions a:focus-visible,
@@ -56,13 +43,15 @@ a.scroll_link svg {
     top: .15em;
 }
 .actions.primary { font-size: 1.2rem; }
-.actions.primary > .emphasized {
-    background: var(--fg-1);
-    color: var(--bg-1);
+.actions.primary > .more { padding: .2em .35em .3em .35em; }
+.actions > .emphasized {
     background: var(--bg-acc);
     color: var(--fg-acc);
 }
-.actions.primary > .emphasized:hover { background: var(--fg-2); }
+.actions > .emphasized:hover {
+    background: var(--fg-2);
+    color: var(--fg-acc);
+}
 .additional { background-color: var(--fg-1-veil); }
 .artist {
     align-items: center;
@@ -442,7 +431,7 @@ path.loading_right {
 }
 #overlay {
     align-items: center;
-    background-color: hsla(var(--background-h), var(--background-s), var(--background-l), .9);
+    background-color: var(--bg-1-overlay);
     bottom: 0;
     display: none;
     flex-direction: column;
@@ -529,7 +518,6 @@ pre { margin: 0; }
     column-gap: 1rem;
     display: flex;
     font-size: 1.14rem;
-    justify-content: space-between;
     margin-bottom: 3rem;
     margin-top: 3rem;
 }
@@ -676,7 +664,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 input[type="number"],
 input[type="text"] {
-    background-color: hsla(var(--link-h), var(--background-s), var(--header-l), .5); /* TODO: header-l not ideal here */
+    background-color: var(--bg-1-overlay);
     border: 1px solid var(--bg-mg);
     color: var(--fg-2);
 }

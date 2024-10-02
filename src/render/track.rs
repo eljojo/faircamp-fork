@@ -194,9 +194,13 @@ pub fn track_html(
 
     primary_actions.push(listen_button);
 
-    if let Some(download_link) = download_link {
-        primary_actions.push(download_link);
-    }
+    let more_link = formatdoc!(r##"
+        <a class="more" href="#description">
+            {more_icon}
+        </a>
+    "##);
+
+    primary_actions.push(more_link);
 
     let failed_icon = icons::failure(&build.locale.translations.failed);
     let scroll_icon = icons::scroll();
@@ -219,7 +223,7 @@ pub fn track_html(
     let r_primary_actions = if primary_actions.is_empty() {
         String::new()
     } else {
-        let joined = primary_actions.join(" &nbsp; ");
+        let joined = primary_actions.join("");
 
         formatdoc!(r#"
             <div class="actions primary">
@@ -229,6 +233,10 @@ pub fn track_html(
     };
 
     let mut secondary_actions = Vec::new();
+
+    if let Some(download_link) = download_link {
+        secondary_actions.push(download_link);
+    }
 
     if track.copy_link {
         let (content_key, content_value) = match &build.base_url {
@@ -266,7 +274,7 @@ pub fn track_html(
     let r_secondary_actions = if secondary_actions.is_empty() {
         String::new()
     } else {
-        let joined = secondary_actions.join(" &nbsp; ");
+        let joined = secondary_actions.join("");
 
         formatdoc!(r#"
             <div class="actions">
@@ -324,7 +332,6 @@ pub fn track_html(
         Some(naive_date) => format!("({})", naive_date.year()),
         None => String::new()
     };
-    let track_duration_formatted = format_time(track.transcodes.borrow().source_meta.duration_seconds);
 
     let track_synopsis: Option<String> = None; // TODO: Think through/unmock/implement
     let synopsis = match track_synopsis {
@@ -340,8 +347,9 @@ pub fn track_html(
 
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
-    let t_more_info = &build.locale.translations.more_info;
+    let t_more = &build.locale.translations.more;
     let t_muted = &build.locale.translations.muted;
+    let t_top = &build.locale.translations.top;
     let body = formatdoc!(r##"
         <div class="page" data-overview>
             <div class="page_split">
@@ -351,10 +359,6 @@ pub fn track_html(
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}
-                    <a class="scroll_link" href="#description">
-                        {scroll_icon}
-                        {t_more_info}
-                    </a>
                 </div>
             </div>
         </div>
@@ -373,18 +377,25 @@ pub fn track_html(
                 <div style="max-width: 32rem;">
                     <div class="release_info">
                         <div>
-                            <div>
+                            <div style="font-size: 1.4rem;">
                                 {track_title_escaped} {release_year}
                             </div>
-                            <div>{track_duration_formatted}</div>
                             <div class="release_artists">{artists}</div>
                         </div>
-                        {r_secondary_actions}
                     </div>
+                    {r_secondary_actions}
                     {track_text}
                     {r_links}
                 </div>
             </div>
+        </div>
+        <div class="scroll_hints">
+            <a class="up" href="#">
+                {scroll_icon} {t_top}
+            </a>
+            <a class="down" href="#description">
+                <span>{scroll_icon}</span> {t_more}
+            </a>
         </div>
         <div class="docked_player">
             <div class="timeline">
