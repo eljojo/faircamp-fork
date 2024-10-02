@@ -1008,6 +1008,13 @@ pub fn apply_options(
             overrides.theme.waveforms = false;
         }
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "dynamic_range") {
+            match value.parse::<u8>().ok().filter(|percentage| *percentage <= 100) {
+                Some(percentage) => overrides.theme.dynamic_range = percentage,
+                None => error!("Ignoring unsupported value '{}' for global 'theme.dynamic_range' (accepts a percentage in the range 0-100 - without the % sign) in {}:{}", value, path.display(), line)
+            }
+        }
+
         if let Ok(Some(field)) = section.optional_field("link_brightness") {
             error!(r##"From faircamp 0.16.0 onwards, theming works a little differently, and the link_brightness setting in {}:{} needs to be replaced, see https://simonrepp.com/faircamp/manual/theme.html for the updated instructions."##, path.display(), field.line_number);
         }

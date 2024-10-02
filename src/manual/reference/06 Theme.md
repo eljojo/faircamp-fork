@@ -27,6 +27,22 @@ base: light
 
 This sets the overall appearance, choose between `dark` (the default) and `light`.
 
+# Dynamic range
+
+```eno
+# theme
+
+dynamic_range: 24
+```
+
+At the highest dynamic range (100%) the theme appears the most "black" or "white"
+(depending on your theme `base`) and the least colorful (depending on your chroma
+settings, see below). The lower the dynamic range (0% being the default) the more it
+will have a differentiated gray feeling (again interacting with your theme `base`),
+and become over-all more colorfully tinted with rising base chroma levels. Tip: By
+trying different values with the --theming-widget option you can interactively get
+a good feeling of what this does and how you want to set it.
+
 ## Detail color adjustments
 
 ```eno
