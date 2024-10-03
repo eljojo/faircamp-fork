@@ -23,10 +23,13 @@ home_image:
 description = Me in my studio
 file = studio_3.png
 
--- text
+-- synopsis
 My self hosted faircamp site, presenting some of my music.
-
 Thanks for stopping by!
+-- synopsis
+
+-- text
+[Here be long form about/description text]
 -- text
 ```
 
@@ -100,12 +103,33 @@ The `label_mode` flag can be used if one wants to present multiple artists
 on a single faircamp site. This adds an additional layer of information to the
 page that differentiates the artists, gives them each their own page, etc.
 
+## `synopsis`
+
+```eno
+-- synopsis
+My self hosted faircamp site, presenting some of my music.
+Thanks for stopping by!
+-- synopsis
+```
+
+A short (256 characters max), plain-text introduction text for your catalog,
+this is the first thing visitors will see - make it count!
+
+## `text`
+
+```eno
+-- text
+[Here be long form about/description text]
+-- text
+```
+
+A [markdown](https://commonmark.org/help/)-enabled long-form text (think "About" text), in which you can write
+about your catalog in any length and detail you like.
+
 ## General settings
 
 To enable embeds and RSS feed generation you have to set `base_url`. The value
-of `title` appears in multiple places on the site, inside the RSS Feed, etc..
-The catalog `text` shows up prominently below the title on the homepage and
-it supports[Markdown](https://commonmark.org/help/). The `home_image` is an
+of `title` appears in multiple places on the site, inside the RSS Feed, etc.. The `home_image` is an
 image that will be displayed on the homepage, e.g. a logo for your label or a
 band photo or such. A custom `favicon` can be set, this currently only
 supports `.png` and `.ico` files. `favicon: none` can be used to build the
@@ -119,10 +143,6 @@ title: My awesome music
 home_image:
 description = Me in my studio
 file = studio_3.png
-
--- text
-Lorem ipsum dolor sit amet ...
--- text
 ```
 
 To disable RSS feed generation you can use the `disable_feed` option:

@@ -25,6 +25,10 @@ cover:
 description = An ink drawing of a barren tree with monkeys in its branches
 file = cover.jpg
 
+-- synopsis
+Nobody thought it possible, until somebody did it. The release that started it all!
+-- synopsis
+
 -- text
 Recorded in the summer of '94 at West Callaghan Ranch, XE.
 
@@ -61,6 +65,30 @@ artists:
 - Alice
 - Bob
 ```
+
+## `synopsis`
+
+```eno
+-- synopsis
+Nobody thought it possible, until somebody did it. The release that started it all!
+-- synopsis
+```
+
+A short (256 characters max), plain-text introduction text for your release,
+this is prominently featured atop your release page - make it count!
+
+## `text`
+
+```eno
+-- text
+Recorded in the summer of '94 at West Callaghan Ranch, XE.
+
+Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
+-- text
+```
+
+A [markdown](https://commonmark.org/help/)-enabled long-form text (think "About" text), in which you can write
+about your release in any length and detail you like.
 
 ## `track_numbering`
 
