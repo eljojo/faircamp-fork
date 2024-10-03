@@ -56,7 +56,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
 - Özet olmasına dikkat edin. Gerektiği kadar yazın, aynı zamanda olabildiğince kısa tutmaya çalışın.<br>\
 - Yorum yapmayın. Olanı ve olanın anlaşılması için gerekenleri tarif edin, bunun ötesinde analiz yapmayın.<br>\
 - Mantıklı olan yerlerde renk kullanabilirsiniz - çoğu insan görme yeteneğini sonradan kaybetmiştir ve renkleri anlayıp değerlendirebilir."),
-        image_descriptions_permalink: String::from("görüntü-açıklamaları"),
+        image_descriptions_permalink: String::from("goruntu-aciklamalari"),
         listen: String::from("Dinle"),
         loading: String::from("Yükleniyor"),
         made_or_arranged_payment: String::from("Ödemeyi yaptım ya da ayarladım"),
@@ -71,7 +71,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         payment_options: String::from("Ödeme seçenekleri:"),
         play: String::from("Oynat"),
         purchase_downloads: String::from("İndirmeleri satın al"),
-        purchase_permalink: String::from("satın al"),
+        purchase_permalink: String::from("satin-al"),
         recommended_format: String::from("Tavsiye edilen dosya türü"),
         releases: String::from("Albümler"),
         rss_feed: String::from("RSS Kaynağı"),
@@ -81,7 +81,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         unlisted: String::from("Yayınlanmamış"),
         unlock: String::from("Kilidi aç"),
         unlock_downloads: String::from("İndirmelerin kilidini aç"),
-        unlock_permalink: String::from("kilidi aç"),
+        unlock_permalink: String::from("kilidi-ac"),
         unlock_code_seems_incorrect: String::from("Kilit açma kodu yanlış görünüyor, lütfen yazım hatası olup olmadığını kontrol edin."),
         unlock_manual_instructions: String::from("\
 İndirmenin kilidini açmak için lütfen tarayıcınızın adres \
