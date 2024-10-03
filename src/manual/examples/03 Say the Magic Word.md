@@ -44,16 +44,15 @@ unlock code by [becoming a patron](https://tinyurl.com/say-support)!
 
 # theme
  
-base: white
+base: light
 
 custom_font: MagicSansV1.3-Book.woff2
 
-link_hue: 33
-link_saturation: 90
-link_lightness: 65
-tint_back: 20
-tint_front: 10
-text_hue: 49
+accent_brightening: 13
+accent_chroma: 20
+accent_hue: 163
+base_chroma: 14
+base_hue: 116
 ```
 
 Inside the file `saythemagicword/saythemagicword-ep/ep.eno`:
