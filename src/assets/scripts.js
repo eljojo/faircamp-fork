@@ -463,7 +463,7 @@ if (dockedPlayer) {
     dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
 
     listenButton.addEventListener('click', () => {
-        togglePlayback(firstTrack);
+        togglePlayback(activeTrack ?? firstTrack);
     });
 }
 
