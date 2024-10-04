@@ -416,7 +416,7 @@ pub fn track_html(
                     </span>
                 </div>
                 <span class="track_info">
-                    <span class="title"></span>
+                    <span class="title_wrapper"></span>
                     <span class="time"></span>
                 </span>
                 <span class="volume_hint dimmed">{t_dimmed}</span>
