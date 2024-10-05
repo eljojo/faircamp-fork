@@ -24,6 +24,7 @@ mod de;
 mod en;
 mod es;
 mod fr;
+mod it;
 mod nb;
 mod nl;
 mod pl;
@@ -61,6 +62,7 @@ impl Locale {
             "en" => Locale::new("en", en::translations(), TextDirection::Ltr),
             "es" => Locale::new("es", es::translations(), TextDirection::Ltr),
             "fr" => Locale::new("fr", fr::translations(), TextDirection::Ltr),
+            "it" => Locale::new("it", it::translations(), TextDirection::Ltr),
             "nb" => Locale::new("nb", nb::translations(), TextDirection::Ltr),
             "nl" => Locale::new("nl", nl::translations(), TextDirection::Ltr),
             "pl" => Locale::new("pl", pl::translations(), TextDirection::Ltr),

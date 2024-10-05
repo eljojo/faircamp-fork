@@ -59,6 +59,7 @@ Damian Szetela<br>
 [Samæ](https://samae.demer.se/)<br>
 [sknob](https://sknob.fr/)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
+[Tommaso Croce](https://mastodon.uno/@toctoc)<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
