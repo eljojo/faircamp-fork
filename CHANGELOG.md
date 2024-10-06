@@ -5,6 +5,12 @@
 
 # Changelog
 
+## 0.16.1
+
+- Add italian translations (9502586)
+- Fix title not being displayed in the docked player on track pages (2919dc4)
+- Fix listen button toggling playback only for the first track on release pages (2edf0f2)
+
 ## 0.16.0
 
 - Read dynamic_range option from manifests (64253fc)
