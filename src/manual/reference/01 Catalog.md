@@ -199,6 +199,7 @@ Faircamp currently ships with these languages:
 - English `en` (default)
 - French `fr`
 - German `de`
+- Italian `it`
 - Norwegian Bokmål `nb`
 - Polish `pl`
 - Spanish `es`
