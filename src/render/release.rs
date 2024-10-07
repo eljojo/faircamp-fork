@@ -203,7 +203,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div class="track_header">
                         <span class="number inner">{track_number_formatted}</span>
                         <span>
-                            <a class="title" href="{track_number}/" title="{track_title_attribute_escaped}">{track_title_escaped}</a>{track_artists}
+                            <a class="title" href="{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</a>{track_artists}
                         </span>
                         <span class="time">{track_duration_formatted}</span>
                         <button class="more_button" tabindex="-1">
