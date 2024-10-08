@@ -13,6 +13,7 @@ rather not be listed here, no problem, just say the word.
 Thanks everyone for your support.
 
 [ailepet](https://codeberg.org/ailepet)<br>
+[Amamanita Axaxaxanax Glass Seer](https://aags.screaming.beauty)<br>
 [Alexander Cobleigh](https://cblgh.org)<br>
 [Andy Berdan](https://codeberg.org/berdandy)<br>
 [atomkarinca](https://fe.disroot.org/users/atomkarinca)<br>
@@ -57,6 +58,7 @@ Damian Szetela<br>
 [rakoo](https://codeberg.org/rakoo)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Samæ](https://samae.demer.se/)<br>
+[session](https://codeberg.org/session)<br>
 [sknob](https://sknob.fr/)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
 [Tommaso Croce](https://mastodon.uno/@toctoc)<br>
