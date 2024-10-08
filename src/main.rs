@@ -75,7 +75,7 @@ use release::{DownloadGranularity, Extra, Release, ReleaseRc};
 use render::CrawlerMeta;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
-use tags::{TagAgenda, TagMapping};
+use tags::{ImageEmbed, TagAgenda, TagMapping};
 use theme::{Theme, ThemeBase, ThemeFont, ThemeVarsHsl, ThemeVarsOklch};
 use track::Track;
 use track_numbering::TrackNumbering;

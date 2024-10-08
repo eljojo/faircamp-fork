@@ -160,10 +160,10 @@ files) and `rewrite` (set it from whichever information you implicitly or
 explicitly gave faircamp that would override the original tag, or fall back
 to the original tag value if there is no override). There is also `remove`,
 but as any tag you don't explicitly provide in this form is implicitly set
-to be removed, this is redundant. Note that for `image`, presently only
-copying and removing is implemented, faircamp can not yet write a cover
-image that did not come embedded with the source audio file to any of the
-audio files it produces (although it might, soon).
+to be removed, this is redundant. Note that support for writing embedded
+cover images differs wildly between target formats, at this point pretty much
+only the `flac` and `mp3` formats can be expected to reliably contain them,
+no matter what you specify for `image`.
 
 ```eno
 # release
@@ -172,6 +172,7 @@ tags:
 album = rewrite
 album_artist = remove
 artist = copy
+image = rewrite
 title = rewrite
 track = rewrite
 ```

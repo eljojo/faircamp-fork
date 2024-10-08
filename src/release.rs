@@ -283,6 +283,10 @@ impl Release {
             let mut archives_mut = archives_unwrapped.borrow_mut();
             let has_cached_archive_asset = archives_mut.has(*download_format);
 
+            let cover_path = self.cover
+                .as_ref()
+                .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+
             let tag_mappings: Vec<TagMapping> = self.tracks
                 .iter()
                 .enumerate()
@@ -310,7 +314,8 @@ impl Release {
                         download_format.as_audio_format(),
                         build,
                         asset_intent,
-                        tag_mapping
+                        tag_mapping,
+                        &cover_path
                     );
 
                     track.transcodes.borrow().persist_to_cache(&build.cache_dir);

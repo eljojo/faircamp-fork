@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::path::PathBuf;
+
 use crate::{
     ArtistRc,
     Asset,
@@ -43,7 +45,8 @@ impl Track {
         target_format: AudioFormat,
         build: &Build,
         asset_intent: AssetIntent,
-        tag_mapping: &TagMapping
+        tag_mapping: &TagMapping,
+        cover_path: &Option<PathBuf>
     ) {
         let mut transcodes_mut = self.transcodes.borrow_mut();
 
@@ -56,6 +59,7 @@ impl Track {
 
             info_transcoding!("{:?} to {}", self.transcodes.file_meta.path, target_format);
             ffmpeg::transcode(
+                cover_path,
                 &build.catalog_dir.join(&self.transcodes.file_meta.path),
                 &build.cache_dir.join(&target_filename),
                 transcodes_mut.source_meta.format_family,

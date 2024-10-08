@@ -3,7 +3,21 @@
 
 use serde_derive::{Deserialize, Serialize};
 
-use crate::{ArtistRc, Release, Track};
+use crate::{
+    ArtistRc,
+    Release,
+    SourceHash,
+    Track
+};
+
+/// This is the final mapping of a cover image to be embedded into an output audio file.
+/// It only stores a source hash without any path information because faircamp anyway
+/// knows from where to get the cover image (= from the release struct).
+#[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
+pub enum ImageEmbed {
+    Copy,
+    Write(SourceHash)
+}
 
 /// Set behavior for a single tag:
 /// Copy - Copy 1:1 from source audio file
@@ -44,8 +58,7 @@ pub enum TagMapping {
         album: Option<String>,
         album_artist: Option<String>,
         artist: Option<String>,
-        // TODO: Conceptualize/implement
-        image: bool,
+        image: Option<ImageEmbed>,
         title: Option<String>,
         /// Track number
         track: Option<usize>
@@ -207,9 +220,12 @@ impl TagMapping {
                 };
 
                 let image_mapped = match image_custom {
-                    TagAction::Copy => true,
-                    TagAction::Remove => false,
-                    TagAction::Rewrite => true
+                    TagAction::Copy => Some(ImageEmbed::Copy),
+                    TagAction::Remove => None,
+                    TagAction::Rewrite => match &release.cover {
+                        Some(described_image) => Some(ImageEmbed::Write(described_image.image.borrow().hash.clone())),
+                        None => None
+                    }
                 };
 
                 let title_mapped = match title_custom {

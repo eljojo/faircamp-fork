@@ -9,7 +9,13 @@ This is an attempt to document which tags (in terms of low-level technical speci
 faircamp supports/uses for its own fields, which ones it writes, etc. Note that this
 documentation might not necessarily be 100% complete or accurate (yet).
 
+## AAC
+
+Embedded cover images: Not supported
+
 ## AIFF
+
+Embedded cover images: Not supported
 
 Same tags as MP3 and WAV - see ID3.
 
@@ -17,6 +23,7 @@ Same tags as MP3 and WAV - see ID3.
 
 Tag decoding for ALAC uses the [mp4parse](https://github.com/mozilla/mp4parse-rust) crate.
 
+Embedded cover images: Not supported
 License: cprt (tbd)
 Release title: ©alb
 Release artist: aART
@@ -27,6 +34,8 @@ Track title: ©nam
 # Flac
 
 Tag decoding for Flac uses the [metaflac](https://crates.io/crates/metaflac) crate.
+
+Embedded cover images: Supported
 
 Same tags as Ogg Vorbis and Opus - see Ogg Vorbis.
 
@@ -43,12 +52,15 @@ Track title: TIT2 (Title)
 
 ## MP3
 
+Embedded cover images: Supported
+
 Same tags as AIFF and WAV - see ID3.
 
 ## Ogg Vorbis
 
 Tag decoding for Ogg Vorbis uses the [lewton](https://github.com/RustAudio/lewton) crate.
 
+Embedded cover images: Not supported
 License: "copyright" (tbd)
 Release title: "album"
 Release artist: "albumartist", "album artist"
@@ -60,9 +72,13 @@ Track title: "title"
 
 Tag decoding for Opus uses the [opus_headers](https://crates.io/crates/opus_headers) crate.
 
+Embedded cover images: Not supported
+
 Same tags as Flac and Ogg Vorbis - see Ogg Vorbis.
 
 ## WAV
+
+Embedded cover images: Not supported
 
 Known limitiations:
 - Album artist tags can not be written to WAV files (at least not by FFmpeg,

@@ -1032,6 +1032,10 @@ impl Catalog {
 
                 let release_slug = release_mut.permalink.slug.clone();
 
+                let cover_path = release_mut.cover
+                    .as_ref()
+                    .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+
                 let tag_mappings: Vec<TagMapping> = release_mut.tracks
                     .iter()
                     .enumerate()
@@ -1043,7 +1047,8 @@ impl Catalog {
                         streaming_format,
                         build,
                         AssetIntent::Deliverable,
-                        tag_mapping
+                        tag_mapping,
+                        &cover_path
                     );
 
                     let track_filename = format!(

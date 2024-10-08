@@ -2,10 +2,15 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::{AudioFormat, AudioFormatFamily, TagMapping};
+use crate::{
+    AudioFormat,
+    AudioFormatFamily,
+    ImageEmbed,
+    TagMapping
+};
 
 #[cfg(not(target_os = "windows"))]
 pub const FFMPEG_BINARY: &str = "ffmpeg";
@@ -87,6 +92,7 @@ fn apply_tag_write_flags(
 }
 
 pub fn transcode(
+    cover_path: &Option<PathBuf>,
     input_file: &Path,
     output_file: &Path,
     source_format_family: AudioFormatFamily,
@@ -106,6 +112,10 @@ pub fn transcode(
             apply_tag_write_flags(&mut command, target_format_family);
         }
         TagMapping::Custom { album, album_artist, artist, image, title, track } => {
+            if let Some(ImageEmbed::Write(_))  = image {
+                command.arg("-i").arg(cover_path.as_ref().unwrap());
+            }
+
             command.arg("-map_metadata").arg("-1");
 
             if let Some(album) = album {
@@ -120,11 +130,61 @@ pub fn transcode(
                 command.arg("-metadata").arg(format!("artist={}", artist));
             }
 
-            if *image {
-                // TODO: If we have a cover image (from folder) map it here with -i xxx and -map xxx
-                // TODO: For this one we might need to differentiate between copy and rewrite up until here
-            } else {
-                command.arg("-vn");
+            match image {
+                Some(ImageEmbed::Copy) => {
+                    command.arg("-c:v").arg("copy");
+                    command.arg("-disposition:v:0").arg("attached_pic");
+                }
+                Some(ImageEmbed::Write(_)) => {
+                    match target_format.family() {
+                        AudioFormatFamily::Aac => {
+                            // Found no working example for adding cover art to AAC with ffmpeg so far.
+                            command.arg("-vn");
+                        }
+                        AudioFormatFamily::Aiff => {
+                            // Found no working example for adding cover art to AIFF with ffmpeg so far.
+                            command.arg("-vn");
+                        }
+                        AudioFormatFamily::Alac => {
+                            // Found no working example for adding cover art to ALAC with ffmpeg so far.
+                            command.arg("-vn");
+                        }
+                        AudioFormatFamily::Flac => {
+                            command.arg("-map").arg("0:a");
+                            command.arg("-map").arg("1");
+                            // TODO: Can/should we put the image description in here or is this a "special" string to help players/converters classify the payload?
+                            command.arg("-metadata:s:v").arg("title=\"Album cover\"");
+                            command.arg("-metadata:s:v").arg("comment=\"Cover (Front)\"");
+                            command.arg("-disposition:v").arg("attached_pic");
+                        }
+                        AudioFormatFamily::Mp3 => {
+                            // See https://ffmpeg.org//ffmpeg-formats.html#mp3
+                            command.arg("-map").arg("0:a");
+                            command.arg("-map").arg("1");
+                            // TODO: Can/should we put the image description in here or is this a "special" string to help players/converters classify the payload?
+                            command.arg("-metadata:s:v").arg("title=\"Album cover\"");
+                            command.arg("-metadata:s:v").arg("comment=\"Cover (Front)\"");
+                        }
+                        AudioFormatFamily::OggVorbis => {
+                            // This does not seem (trivially) possible.
+                            // (see https://superuser.com/questions/1708793/add-art-cover-in-ogg-audio-file)
+                            command.arg("-vn");
+                        }
+                        AudioFormatFamily::Opus => {
+                            // ffmpeg does not yet support muxing album cover art in Opus
+                            // (see https://stackoverflow.com/questions/67614467/ffmpeg-preserve-album-cover-when-converting-from-mp3-to-opus-ogg)
+                            // (see https://trac.ffmpeg.org/ticket/4448)
+                            command.arg("-vn");
+                        }
+                        AudioFormatFamily::Wav => {
+                            // Found no working example for adding cover art to WAV with ffmpeg so far.
+                            command.arg("-vn");
+                        }
+                    }
+                }
+                None => {
+                    command.arg("-vn");
+                }
             }
 
             if let Some(title) = title {
