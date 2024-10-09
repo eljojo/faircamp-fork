@@ -178,7 +178,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                             {t_releases}
                         </a>
                         <a class="more" href="#description">
-                            {more_icon}
+                            {more_icon} {t_more}
                         </a>
                     </div>
                     {synopsis}

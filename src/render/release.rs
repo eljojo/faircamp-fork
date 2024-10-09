@@ -255,9 +255,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     primary_actions.push(tracks_link.clone());
     secondary_actions.push(tracks_link);
 
+    let t_more = &build.locale.translations.more;
     let more_link = formatdoc!(r##"
         <a class="more" href="#description">
-            {more_icon}
+            {more_icon} {t_more}
         </a>
     "##);
 
@@ -416,7 +417,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let scroll_icon = icons::scroll();
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
-    let t_more = &build.locale.translations.more;
     let t_muted = &build.locale.translations.muted;
     let t_top = &build.locale.translations.top;
     let body = formatdoc!(r##"
