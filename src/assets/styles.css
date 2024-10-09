@@ -458,7 +458,7 @@ path.loading_right {
     align-items: center;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 66.666vh;
 }
 .page_center > *,
 .page_grid > *,
@@ -470,7 +470,7 @@ path.loading_right {
     align-items: center;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 66.666vh;
 }
 .page_grid > div {
     display: grid;
@@ -481,7 +481,7 @@ path.loading_right {
     align-items: center;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 66.666vh;
 }
 pre { margin: 0; }
 .release { width: 14rem; }
@@ -683,20 +683,6 @@ input[type="text"].disabled,
     margin-bottom: 2rem;
 }
 .unlock_code { margin-right: .3rem; }
-.vcenter_page {
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    justify-content: center;
-    min-height: 100vh;
-}
-.vcenter_page_outer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 100vh;
-}
 .volume {
     align-items: center;
     display: flex;
@@ -802,7 +788,6 @@ input[type="text"].disabled,
         padding-right: 0;
     }
     .track .number.inner { display: none; }
-    .vcenter_page_outer { min-height: calc(100vh - 3.2rem); }
 }
 @media (min-width: 40rem) {
     .page_grid > div { grid-template-columns: 1fr 1fr; }
