@@ -5,6 +5,17 @@
 
 # Changelog
 
+## 0.17.0
+
+- Introduce support for writing embedded cover images for flac and mp3 (45f6881)
+- Reduce layout spacing, making consecutive sections come out above the fold again (3fbbab8)
+- Augment three-dot button with a textual "More" label (4ce85b0)
+- Bring back a simplified breadcrumb navigation for release sub-pages (d7f53a8)
+- Resolve usability friction between docked player and overlaid iOS OS interface elements (e299fc1)
+- Fix stand-alone track page links not following --no-clean-urls setting (598a05a)
+- Prevent payment confirmation toggle being filled out by autocomplete (1c1de89)
+- Restore occasionally missing button styles after theme redesign (f5865f0)
+
 ## 0.16.1
 
 - Add italian translations (9502586)

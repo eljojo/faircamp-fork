@@ -6,7 +6,7 @@ authors = ["Simon Repp"]
 edition = "2021"
 name = "faircamp"
 publish = false
-version = "0.16.1"
+version = "0.17.0"
 
 [dependencies]
 actix-files = "0.6.6"
