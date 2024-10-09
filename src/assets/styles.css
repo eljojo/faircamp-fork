@@ -154,6 +154,7 @@ button svg { display: inline-block; }
     align-items: center;
     background: var(--bg-1-overlay);
     display: flex;
+    padding-bottom: env(safe-area-inset-bottom, 0);
 }
 .docked_player .number { margin-right: .5rem; }
 .docked_player .playback { margin-left: .4rem; }
