@@ -321,7 +321,8 @@ fn layout(
     catalog: &Catalog,
     theme: &Theme,
     title: &str,
-    crawler_meta: CrawlerMeta
+    crawler_meta: CrawlerMeta,
+    breadcrumb_option: Option<String>
 ) -> String {
     let r_browser = browser(catalog);
 
@@ -373,9 +374,15 @@ fn layout(
         String::new()
     };
 
+    let breadcrumb = match breadcrumb_option {
+        Some(link) => format!(" <span>›</span> {link}"),
+        None => String::from("")
+    };
+
     format!(
         include_str!("templates/layout.html"),
         body = body,
+        breadcrumb = breadcrumb,
         browser = r_browser,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         crawler_meta = crawler_meta.tag(),

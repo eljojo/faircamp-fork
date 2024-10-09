@@ -201,6 +201,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         catalog,
         &artist.theme,
         &artist.name,
-        crawler_meta
+        crawler_meta,
+        None
     )
 }

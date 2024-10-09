@@ -15,10 +15,13 @@
     <body>
         <script>document.body.classList.add('js_enabled');</script>
         <header>
-            <a id="logo" href="{root_prefix}.{index_suffix}">
-                {faircamp_icon}
-                <span>{catalog_title}</span>
-            </a>
+            <div>
+                <a id="logo" href="{root_prefix}.{index_suffix}">
+                    {faircamp_icon}
+                    <span>{catalog_title}</span>
+                </a>
+                {breadcrumb}
+            </div>
             <button id="browse">
                 Browse
                 {grid_icon}

@@ -426,8 +426,8 @@ pub fn track_html(
         {templates}
     "##);
 
-    // TODO: Should probably feature on the track page somewhere!
-    // let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let breadcrumb = Some(format!(r#"<a href="..{index_suffix}">{release_title_escaped}</a>"#));
 
     // TODO: Track-level unlisted properties?
     let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
@@ -439,6 +439,7 @@ pub fn track_html(
         catalog,
         &track.theme,
         &track_title,
-        crawler_meta
+        crawler_meta,
+        breadcrumb
     )
 }

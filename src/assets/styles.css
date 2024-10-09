@@ -313,8 +313,15 @@ header {
     width: 100%;
     z-index: 1;
 }
-header > a,
-header > button {
+header > div {
+    align-items: center;
+    display: flex;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+header > button,
+header > div a {
     align-items: center;
     column-gap: .3rem;
     display: flex;

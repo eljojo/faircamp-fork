@@ -14,6 +14,7 @@ use crate::{
     Release
 };
 use crate::render::{compact_release_identifier, layout};
+use crate::util::html_escape_outside_attribute;
 
 pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
@@ -270,6 +271,9 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         </div>
     "#);
 
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
     layout(
         root_prefix,
         &body,
@@ -277,6 +281,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         catalog,
         &release.theme,
         &release.title,
-        CrawlerMeta::NoIndexNoFollow
+        CrawlerMeta::NoIndexNoFollow,
+        breadcrumb
     )
 }

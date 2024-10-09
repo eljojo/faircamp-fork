@@ -255,6 +255,9 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         "##
     );
 
+    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
     layout(
         root_prefix,
         &body,
@@ -262,6 +265,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         catalog,
         &release.theme,
         &release.title,
-        CrawlerMeta::NoIndexNoFollow
+        CrawlerMeta::NoIndexNoFollow,
+        breadcrumb
     )
 }

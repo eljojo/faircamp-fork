@@ -511,7 +511,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         catalog,
         &release.theme,
         &release.title,
-        crawler_meta
+        crawler_meta,
+        None
     )
 }
 

@@ -222,6 +222,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         catalog,
         &catalog.theme,
         &catalog_title,
-        CrawlerMeta::None
+        CrawlerMeta::None,
+        None
     )
 }
