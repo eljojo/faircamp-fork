@@ -180,7 +180,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
                 <br><br>
 
-                <input id="confirm_payment" onchange="document.querySelector('#continue').classList.toggle('disabled', !this.checked)" type="checkbox"> <label for="confirm_payment">{t_made_or_arranged_payment}</label>
+                <input autocomplete="off" id="confirm_payment" onchange="document.querySelector('#continue').classList.toggle('disabled', !this.checked)" type="checkbox"> <label for="confirm_payment">{t_made_or_arranged_payment}</label>
 
                 <br><br>
 
