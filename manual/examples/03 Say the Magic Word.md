@@ -9,7 +9,7 @@ This example catalog demonstrates further concepts using the fictional
 solo artist *Say the Magic Word* which thus far has only released a single EP,
 and who on their faircamp site offers downloads behind an unlock code,
 which can be obtained by listeners on another site which the artist
-just uses to receive and manage financial support from his audience. 
+just uses to receive and manage financial support from his audience.
 
 This is how their catalog directory looks like:
 
@@ -43,7 +43,7 @@ unlock code by [becoming a patron](https://tinyurl.com/say-support)!
 -- text
 
 # theme
- 
+
 base: light
 
 custom_font: MagicSansV1.3-Book.woff2

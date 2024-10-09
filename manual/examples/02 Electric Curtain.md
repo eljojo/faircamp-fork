@@ -83,7 +83,7 @@ Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 # download
 
 > These settings apply to all releases, here we just set
-> the download format for all of them. As each of them 
+> the download format for all of them. As each of them
 > has a different price, that setting is individually set
 > in each of the .eno files alongside the releases.
 format: flac

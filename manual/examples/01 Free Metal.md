@@ -20,13 +20,13 @@ Free Metal/                   <--- Catalog
 │  ├─ cover.jpg                   <--- Release cover
 │  ├─ 01 Tatatatatata.wav         <--- Track
 │  ├─ 02 Badababadaba.wav
-│  └─ ... 
+│  └─ ...
 └─ Very Tapping/                <--- Release
    ├─ very-tapping.eno            <--- Manifest (only for this release)
    ├─ album.jpg                   <--- Release cover
    ├─ 01 Didididididi.aiff        <--- Track
    ├─ 02 Dabadidabadi.aiff
-   └─ ... 
+   └─ ...
 ```
 
 In the file `Free Metal/free-metal.eno` we find the following content:

@@ -36,7 +36,7 @@ are needed:
   for now not covered here.
 
 - A means to upload your files (e.g. FTP or SSH)
-  
+
   Conventionally, your webhosting provider allows you to set up an FTP
   account, that is, practically, an address, username and password that you
   enter in an *FTP client* in order to get access to the file system of your

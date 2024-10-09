@@ -1,6 +1,12 @@
 // SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#[cfg(not(any(feature = "image", feature = "libvips")))]
+compile_error!(r#"An image processing feature needs to be enabled, re-run your last command with either "--features image" added (pick this if you're unsure which to pick) or "--features libvips" (pick this if you know exactly what you're doing)"#);
+
+#[cfg(all(feature = "image", feature = "libvips"))]
+compile_error!(r#"Only one image processing feature can be enabled, remove either "--features image" or "--features libvips" from your last command"#);
+
 #[cfg_attr(feature = "image", path = "image_processor/image.rs")]
 #[cfg_attr(feature = "libvips", path = "image_processor/libvips.rs")]
 mod implementation;

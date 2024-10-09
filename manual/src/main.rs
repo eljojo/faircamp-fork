@@ -8,13 +8,7 @@ use slug::slugify;
 use std::env;
 use std::fs::{self, DirEntry};
 use std::ops::Deref;
-use std::path::Path;
-
-#[cfg(not(any(feature = "image", feature = "libvips")))]
-compile_error!(r#"An image processing feature needs to be enabled, re-run your last command with either "--features image" added (pick this if you're unsure which to pick) or "--features libvips" (pick this if you know exactly what you're doing)"#);
-
-#[cfg(all(feature = "image", feature = "libvips"))]
-compile_error!(r#"Only one image processing feature can be enabled, remove either "--features image" or "--features libvips" from your last command"#);
+use std::path::{Path, PathBuf};
 
 struct Docs {
     examples: Vec<Page>,
@@ -30,12 +24,10 @@ struct Page {
     title: String
 }
 
-const MANUAL_DIR: &str = "src/manual";
-
 pub fn markdown_to_html(markdown: &str) -> String {
     let mut html_output = String::new();
     let parser = Parser::new(markdown);
-    
+
     let mut inside_eno_codeblock = false;
 
     let parser = parser.map(|event| {
@@ -62,17 +54,22 @@ pub fn markdown_to_html(markdown: &str) -> String {
     });
 
     html::push_html(&mut html_output, parser);
-    
+
     html_output
 }
 
 pub fn main() {
-    println!("cargo:rerun-if-changed={MANUAL_DIR}");
+    let mut args = env::args();
+
+    let manual_out_dir = match args.nth(1) {
+        Some(path) => PathBuf::from(&path),
+        None => {
+            eprintln!("A single argument is required (directory path to which to write the manual), aborting.");
+            return;
+        }
+    };
 
     let docs = read_docs();
-
-    let out_dir = env::var_os("OUT_DIR").unwrap();
-    let manual_out_dir = Path::new(&out_dir).join("manual");
 
     if manual_out_dir.exists() {
         let _ = fs::remove_dir_all(&manual_out_dir);
@@ -119,36 +116,36 @@ pub fn main() {
 
     fs::write(
         manual_out_dir.join("favicon.svg"),
-        include_bytes!("src/assets/favicon.svg")
+        include_bytes!("../../src/assets/favicon.svg")
     ).unwrap();
 
     fs::write(
         manual_out_dir.join("favicon_dark.png"),
-        include_bytes!("src/assets/favicon_dark.png")
+        include_bytes!("../../src/assets/favicon_dark.png")
     ).unwrap();
 
     fs::write(
         manual_out_dir.join("favicon_light.png"),
-        include_bytes!("src/assets/favicon_light.png")
+        include_bytes!("../../src/assets/favicon_light.png")
     ).unwrap();
 
     fs::copy(
-        Path::new(MANUAL_DIR).join("fira-mono-v14-latin_latin-ext-regular.woff2"),
+        "assets/fira-mono-v14-latin_latin-ext-regular.woff2",
         manual_out_dir.join("fira-mono-v14-latin_latin-ext-regular.woff2")
     ).unwrap();
 
     fs::copy(
-        Path::new(MANUAL_DIR).join("titillium-web-v15-latin_latin-ext-regular.woff2"),
+        "assets/titillium-web-v15-latin_latin-ext-regular.woff2",
         manual_out_dir.join("titillium-web-v15-latin_latin-ext-regular.woff2")
     ).unwrap();
 
     fs::copy(
-        Path::new(MANUAL_DIR).join("titillium-web-v15-latin_latin-ext-italic.woff2"),
+        "assets/titillium-web-v15-latin_latin-ext-italic.woff2",
         manual_out_dir.join("titillium-web-v15-latin_latin-ext-italic.woff2")
     ).unwrap();
 
     fs::copy(
-        Path::new(MANUAL_DIR).join("styles.css"),
+        "assets/styles.css",
         manual_out_dir.join("styles.css")
     ).unwrap();
 }
@@ -225,9 +222,7 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
 }
 
 fn read_docs() -> Docs {
-    let index_path = Path::new(MANUAL_DIR).join("index.md");
-    let index_markdown = fs::read_to_string(index_path).unwrap();
-    let index_content = markdown_to_html(&index_markdown);
+    let index_content = markdown_to_html(include_str!("../index.md"));
 
     let index = Page {
         content: index_content,
@@ -235,9 +230,9 @@ fn read_docs() -> Docs {
         title: String::from("Faircamp Manual")
     };
 
-    let examples = read_pages(&Path::new(MANUAL_DIR).join("examples"));
-    let reference = read_pages(&Path::new(MANUAL_DIR).join("reference"));
-    let topics = read_pages(&Path::new(MANUAL_DIR).join("topics"));
+    let examples = read_pages(&Path::new("examples"));
+    let reference = read_pages(&Path::new("reference"));
+    let topics = read_pages(&Path::new("topics"));
 
     Docs {
         examples,

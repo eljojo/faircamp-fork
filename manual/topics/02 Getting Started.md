@@ -10,7 +10,7 @@ First let's quickly look at the input faircamp needs:
 ```
 The Artist/               <--- Top directory ("Catalog")
 ├─ Greatest Hits/           <--- Nested Directory ("Release")
-│  ├─ One Hit Wonder.mp3      <--- Audio File ("Track") 
+│  ├─ One Hit Wonder.mp3      <--- Audio File ("Track")
 │  ├─ Summer Hit.mp3
 │  └─ Underrated Cult Song.mp3
 └─ Bootlegs/                <-- Extra nesting (optional)
