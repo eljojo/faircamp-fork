@@ -22,7 +22,10 @@ a * { pointer-events: none; }
     margin-top: 1rem;
 }
 .actions a,
-.actions button {
+.actions button,
+a.button,
+button.button,
+form button {
     background: var(--bg-2);
     border-radius: .3rem;
     color: var(--fg-1);
@@ -32,7 +35,13 @@ a * { pointer-events: none; }
 .actions a:focus-visible,
 .actions a:hover,
 .actions button:focus-visible,
-.actions button:hover {
+.actions button:hover,
+a.button:focus-visible,
+a.button:hover,
+button.button:focus-visible,
+button.button:hover,
+form button:focus-visible,
+form button:hover {
     background: var(--bg-3);
     color: var(--fg-1);
 }
@@ -92,7 +101,7 @@ input[type="number"],
 input[type="text"],
 .button {
     border-radius: .3rem;
-    padding: .25rem .5rem .4rem .5rem;
+    padding: .2em .5em .3em .5em;
 }
 button.link {
     background: none;
@@ -680,8 +689,9 @@ button:not(.link).disabled,
 input[type="number"].disabled,
 input[type="text"].disabled,
 .button.disabled {
+    background: var(--bg-2);
+    color: var(--bg-3);
     cursor: default;
-    opacity: .2; /* TODO: Make-shift way to indicate disabledness, implement properly */
 }
 .unlock_scripted { display: none; }
 #unlock {
