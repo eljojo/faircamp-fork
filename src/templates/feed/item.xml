@@ -1,6 +1,6 @@
 <item>
     {description}
-    <guid>{permalink}</guid>
-    <link>{permalink}</link>
+    <guid>{link}</guid>
+    <link>{link}</link>
     <title>{title}</title>
 </item>

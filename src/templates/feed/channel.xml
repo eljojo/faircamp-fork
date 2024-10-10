@@ -5,8 +5,8 @@
         <description>{description}</description>
         {image}
         <language>{language}</language>
-        <lastBuildDate>{build_date}</lastBuildDate>
-        <link>{base_url}</link>
+        <lastBuildDate>{last_build_date}</lastBuildDate>
+        <link>{link}</link>
         <title>{title}</title>
         
         {items}

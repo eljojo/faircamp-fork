@@ -1,5 +1,5 @@
 <image>
-    <link>{base_url}</link>
+    <link>{link}</link>
     <title>{title}</title>
     <url>{image_url}</url>
 </image>

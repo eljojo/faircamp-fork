@@ -50,10 +50,13 @@ pub fn generate(build: &Build, catalog: &Catalog) {
 
                 let item_title = format!("{artists_list} – {}", release_ref.title);
 
+                let index_suffix = build.index_suffix();
+                let link = base_url.join(&format!("{}{index_suffix}", release_ref.permalink.slug)).unwrap();
+
                 format!(
                     include_str!("templates/feed/item.xml"),
                     description = item_description,
-                    permalink = base_url.join(&release_ref.permalink.slug).unwrap(),
+                    link = link,
                     title = html_escape_outside_attribute(&item_title)
                 )
             })
@@ -69,11 +72,16 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         
         let channel_title = catalog.title();
         
+        let link = match build.clean_urls {
+            true => base_url.clone(),
+            false => base_url.join("index.html").unwrap()
+        };
+
         let channel_image = if catalog.home_image.is_some() {
             format!(
                 include_str!("templates/feed/image.xml"),
-                base_url = base_url,
                 image_url = base_url.join("feed.jpg").unwrap(),
+                link = link,
                 title = html_escape_outside_attribute(&channel_title)
             )
         } else {
@@ -82,12 +90,12 @@ pub fn generate(build: &Build, catalog: &Catalog) {
         
         let xml = format!(
             include_str!("templates/feed/channel.xml"),
-            base_url = base_url,
-            build_date = build.build_begin.to_rfc2822(),
             description = channel_description,
             feed_url = base_url.join("feed.rss").unwrap(),
             image = channel_image,
             items = channel_items,
+            last_build_date = build.build_begin.to_rfc2822(),
+            link = link,
             language = build.locale.language,
             title = html_escape_outside_attribute(&channel_title)
         );
