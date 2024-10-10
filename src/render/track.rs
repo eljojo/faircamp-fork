@@ -47,7 +47,7 @@ pub fn track_html(
             let unlock_icon = icons::unlock(&build.locale.translations.unlock);
             let t_downloads = &build.locale.translations.downloads;
             Some(formatdoc!(r#"
-                <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
+                <a href="../{t_unlock_permalink}/{page_hash}{index_suffix}">
                     {unlock_icon}
                     <span>{t_downloads}</span>
                 </a>
@@ -61,7 +61,7 @@ pub fn track_html(
             let download_icon = icons::download();
             let t_downloads = &build.locale.translations.downloads;
             Some(formatdoc!(r#"
-                <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
+                <a href="../{t_downloads_permalink}/{page_hash}{index_suffix}">
                     {download_icon}
                     <span>{t_downloads}</span>
                 </a>
@@ -77,7 +77,7 @@ pub fn track_html(
                 let buy_icon = icons::buy(&build.locale.translations.buy);
                 let t_downloads = &build.locale.translations.downloads;
                 Some(formatdoc!(r#"
-                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
+                    <a href="../{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
                         <span>{t_downloads}</span>
                     </a>
@@ -263,6 +263,7 @@ pub fn track_html(
     if release.embedding && build.base_url.is_some() {
         let embed_icon = icons::embed(&build.locale.translations.embed);
         let t_embed = &build.locale.translations.embed;
+        // TODO: /embed/ uses no embed_permalink translation? Should(n't) it?
         let embed_link = formatdoc!(r#"
             <a href="../embed{index_suffix}">
                 {embed_icon}
