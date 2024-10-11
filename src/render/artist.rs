@@ -12,7 +12,7 @@ use crate::render::{
     releases,
     unlisted_badge
 };
-use crate::util::{format_time, html_escape_outside_attribute};
+use crate::util::html_escape_outside_attribute;
 
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -110,18 +110,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         &public_releases
     );
 
-    let public_releases_count = public_releases.len();
-    let public_tracks_count: usize = public_releases.iter().map(|release| release.borrow().tracks.len()).sum();
-    let total_listening_duration = public_releases
-        .iter()
-        .map(|release|
-            release.borrow().tracks
-                .iter()
-                .map(|track| track.transcodes.borrow().source_meta.duration_seconds)
-                .sum::<f32>()
-        ).sum();
-    let total_listening_duration_formatted = format_time(total_listening_duration);
-
     let artist_synopsis: Option<String> = None; // TODO: Think through/unmock/implement
     let synopsis = match artist_synopsis {
         Some(synopsis) => {
@@ -140,7 +128,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let t_more = &build.locale.translations.more;
     let t_releases = &build.locale.translations.releases;
     let t_top = &build.locale.translations.top;
-    let t_tracks = &build.locale.translations.tracks;
     let body = formatdoc!(r##"
         <div class="page" data-overview>
             <div class="page_split">
@@ -169,13 +156,10 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             </div>
         </div>
         <a class="scroll_target" id="description"></a>
-        <div class="additional page" data-description>
+        <div class="page" data-description>
             <div class="page_center">
-                <div>
-                    <div>{artist_name_escaped}</div>
-                    <div>{public_releases_count} {t_releases}</div>
-                    <div>{public_tracks_count} {t_tracks}</div>
-                    <div>{total_listening_duration_formatted}</div>
+                <div style="max-width: 32rem;">
+                    <div style="font-size: 1.4rem;">{artist_name_escaped}</div>
                     {r_secondary_actions}
                     {artist_text}
                 </div>
