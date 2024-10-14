@@ -10,6 +10,15 @@ to arrive at, so they don't have to be thought through over and over again.
 Also if changes becomes necessary the thinking process can start from an
 already documented thought process, instead of starting at zero.
 
+## Client-side scripting does not use ESM
+
+None of the client-side JavaScript in faircamp uses `<script ... type="module">` in its inclusion.
+The reason for this is that scripts included with `type="module"` are subject to CORS browser
+security, and therefore cannot be included directly from disk through the `file://` protocol.
+A build generated with `--no-clean-urls` primarily makes sense for local, disk-only consumption,
+but this only works if scripts can still run, and that necessitates working without `type="module"`
+(otherwise everyone would need to browse their local faircamp build with a server, always).
+
 ## Heuristic to pick a cover image when there are multiple images
 
 The file name without extension is taken and made lowercase. If
@@ -110,5 +119,3 @@ using.
 - A visitor that views an unlisted thing (release or artist) is made aware
   of it through an "Unlisted" badge next to the title or name, hinting at
   the fact that it is unwanted for the thing to be publicly shared
-
-
