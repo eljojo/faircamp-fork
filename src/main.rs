@@ -41,6 +41,7 @@ mod rsync;
 mod server;
 mod source_file_signature;
 mod streaming_quality;
+mod scripts;
 mod styles;
 mod tags;
 mod theme;
@@ -183,9 +184,8 @@ fn main() {
         fs::create_dir(&image_descriptions_dir).unwrap();
         fs::write(image_descriptions_dir.join("index.html"), image_descriptions_html).unwrap();
     }
-
-    fs::write(build.build_dir.join("scripts.js"), include_bytes!("assets/scripts.js")).unwrap();
     
+    scripts::generate(&build);
     styles::generate(&build, &catalog);
 
     if catalog.feed_enabled {

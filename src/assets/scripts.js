@@ -128,7 +128,7 @@ async function mountAndPlay(track, seekTo) {
     track.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
     dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
     listenButton.querySelector('.icon').replaceChildren(loadingIcon.content.cloneNode(true));
-    listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
+    listenButton.querySelector('.label').textContent = T.pause;
 
     if (track.audio.preload !== 'auto') {
         track.audio.preload = 'auto';
@@ -186,7 +186,7 @@ async function mountAndPlay(track, seekTo) {
             track.container.classList.remove('active');
             track.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
             listenButton.querySelector('.icon').replaceChildren(playIcon.content.cloneNode(true));
-            listenButton.querySelector('.label').textContent = 'Listen'; // TODO: Translate
+            listenButton.querySelector('.label').textContent = T.listen;
         };
 
         // We expose both `abortSeeking` and `seek` on this seeking object,
@@ -547,7 +547,7 @@ for (const container of document.querySelectorAll('.track')) {
         dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
         playbackButton.replaceChildren(playIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(playIcon.content.cloneNode(true));
-        listenButton.querySelector('.label').textContent = 'Listen'; // TODO: Translate
+        listenButton.querySelector('.label').textContent = T.listen;
 
         if (track.onPause) {
             track.onPause();
@@ -563,7 +563,7 @@ for (const container of document.querySelectorAll('.track')) {
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(pauseIcon.content.cloneNode(true));
-        listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
+        listenButton.querySelector('.label').textContent = T.pause;
 
         globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
         updatePlayhead(track);
@@ -574,7 +574,7 @@ for (const container of document.querySelectorAll('.track')) {
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(pauseIcon.content.cloneNode(true));
-        listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
+        listenButton.querySelector('.label').textContent = T.pause;
     });
 
     audio.addEventListener('waiting', event => {
@@ -583,7 +583,7 @@ for (const container of document.querySelectorAll('.track')) {
         dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(loadingIcon.content.cloneNode(true));
-        listenButton.querySelector('.label').textContent = 'Pause'; // TODO: Translate
+        listenButton.querySelector('.label').textContent = T.pause;
     });
 
     playbackButton.addEventListener('click', event => {
