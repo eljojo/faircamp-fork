@@ -13,6 +13,7 @@ const copyFeedbackTimeouts = {};
 
 let activeTrack = null;
 let firstTrack = null;
+let initialTrackOverride = null;
 
 let dockedPlayer;
 if (document.querySelector('.docked_player')) {
@@ -375,7 +376,7 @@ if (dockedPlayer) {
     });
 
     dockedPlayer.playbackButton.addEventListener('click', () => {
-        togglePlayback(activeTrack ?? firstTrack);
+        togglePlayback(activeTrack ?? initialTrackOverride ?? firstTrack);
     });
 
     // Not available on a track player
@@ -463,7 +464,7 @@ if (dockedPlayer) {
     dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
 
     listenButton.addEventListener('click', () => {
-        togglePlayback(activeTrack ?? firstTrack);
+        togglePlayback(activeTrack ?? initialTrackOverride ?? firstTrack);
     });
 }
 
@@ -482,6 +483,12 @@ for (const copyTrackButton of document.querySelectorAll('[data-copy-track]')) {
     copyTrackButton.addEventListener('click', () => {
         copyTrackToClipboard(copyTrackButton);
     });
+}
+
+let initialTrackOverrideOffset = null;
+const searchParams = new URLSearchParams();
+if (location.search.match(/^\?[0-9]+$/)) {
+    initialTrackOverrideOffset = parseInt(location.search.substring(1)) - 1;
 }
 
 let previousTrack = null;
@@ -522,6 +529,15 @@ for (const container of document.querySelectorAll('.track')) {
         firstTrack = track;
     }
 
+    if (initialTrackOverrideOffset !== null) {
+        if (initialTrackOverrideOffset > 0) {
+            initialTrackOverrideOffset -= 1;
+        } else {
+            initialTrackOverride = track;
+            initialTrackOverrideOffset = null;
+        }
+    }
+
     if (previousTrack !== null) {
         previousTrack.nextTrack = track;
     }
@@ -536,6 +552,7 @@ for (const container of document.querySelectorAll('.track')) {
             togglePlayback(track.nextTrack);
         } else {
             activeTrack = null;
+            initialTrackOverride = null;
             dockedPlayer.container.classList.remove('active');
         }
     });
