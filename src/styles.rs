@@ -47,7 +47,7 @@ fn generate_embeds_css(build: &Build) {
 }
 
 fn generate_site_css(build: &Build) {
-    let mut css = String::from(include_str!("assets/styles.css")); // TODO: Rename source to site.css
+    let mut css = String::from(include_str!("assets/site.css"));
 
     if build.missing_image_descriptions {
         css.push_str(include_str!("assets/missing_image_descriptions.css"));

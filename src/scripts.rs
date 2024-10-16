@@ -30,7 +30,7 @@ pub fn generate_site_js(build: &Build) {
         }};
     ");
 
-    js.push_str(include_str!("assets/scripts.js")); // TODO: Rename source to site.css
+    js.push_str(include_str!("assets/site.js"));
 
     fs::write(build.build_dir.join("site.js"), js).unwrap();
 }
