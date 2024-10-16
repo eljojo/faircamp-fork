@@ -2,7 +2,6 @@ const failedIcon = document.querySelector('#failed_icon');
 const loadingIcon = document.querySelector('#loading_icon');
 const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
-const scrollIcon = document.querySelector('#scroll_icon');
 const successIcon = document.querySelector('#success_icon');
 
 const browseButton = document.querySelector('button#browse');
@@ -562,9 +561,9 @@ for (const container of document.querySelectorAll('.track')) {
 
         container.classList.remove('playing');
         dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-        playbackButton.replaceChildren(playIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(playIcon.content.cloneNode(true));
         listenButton.querySelector('.label').textContent = T.listen;
+        track.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
 
         if (track.onPause) {
             track.onPause();
@@ -578,9 +577,9 @@ for (const container of document.querySelectorAll('.track')) {
     audio.addEventListener('play', event => {
         container.classList.add('active', 'playing');
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-        playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(pauseIcon.content.cloneNode(true));
         listenButton.querySelector('.label').textContent = T.pause;
+        track.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
 
         globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 200);
         updatePlayhead(track);
@@ -589,21 +588,21 @@ for (const container of document.querySelectorAll('.track')) {
 
     audio.addEventListener('playing', event => {
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-        playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(pauseIcon.content.cloneNode(true));
         listenButton.querySelector('.label').textContent = T.pause;
+        track.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
     });
 
     audio.addEventListener('waiting', event => {
         // TODO: Eventually we could augment various screenreader labels here to
         //       indicate the loading state too
         dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
-        playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         listenButton.querySelector('.icon').replaceChildren(loadingIcon.content.cloneNode(true));
         listenButton.querySelector('.label').textContent = T.pause;
+        track.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
     });
 
-    playbackButton.addEventListener('click', event => {
+    track.playbackButton.addEventListener('click', event => {
         event.preventDefault();
         togglePlayback(track);
     });

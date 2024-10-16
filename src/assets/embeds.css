@@ -1,0 +1,312 @@
+a, button { cursor: pointer; }
+a,
+button.link {
+    color: var(--fg-1);
+    text-decoration: none;
+}
+a.scroll_target {
+    display: block;
+    height: 0;
+}
+a:hover,
+button.link:hover {
+    color: var(--fg-1-focus);
+}
+a * { pointer-events: none; }
+a.button,
+button.button,
+form button {
+    background: var(--bg-2);
+    border-radius: .3rem;
+    color: var(--fg-1);
+    padding: .2em .5em .3em .5em;
+    text-align: center;
+}
+a.button:focus-visible,
+a.button:hover,
+button.button:focus-visible,
+button.button:hover,
+form button:focus-visible,
+form button:hover {
+    background: var(--bg-3);
+    color: var(--fg-1);
+}
+.artist {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+.artist:not(:first-child) { margin-top: 1rem; }
+.artist > :first-child { font-size: 1.2rem; }
+.artist > :not(:first-child) {
+    aspect-ratio: 1;
+    width: 4rem;
+}
+body {
+    color: var(--fg-2);
+    margin: 0;
+}
+button {
+    background: none;
+    border: none;
+    color: var(--fg-1);
+}
+button, input { font-size: 1em; }
+button,
+input[type="number"],
+input[type="text"],
+.button {
+    border-radius: .3rem;
+    padding: .2em .5em .3em .5em;
+}
+button.link {
+    background: none;
+    padding: 0;
+}
+button svg { display: inline-block; }
+.cover { display: block; }
+.cover img,
+.image img {
+    border-radius: var(--cover-border-radius);
+}
+.player .artists {
+    font-size: .9rem;
+    margin-bottom: .2rem;
+}
+.player .artists a { color: var(--fg-3); }
+.player .artists a:hover { color: var(--fg-3-focus); }
+.player button {
+    color: var(--fg-1);
+    padding: .8em .6em;
+}
+.player button:focus-visible,
+.player button:hover {
+    color: var(--fg-2);
+}
+.player button[disabled] { color: var(--bg-3); }
+.player button svg {
+    position: relative;
+    top: .1em;
+}
+.player .elements {
+    align-items: center;
+    background: var(--bg-1-overlay);
+    border-bottom-left-radius: .3rem;
+    border-bottom-right-radius: .3rem;
+    display: flex;
+}
+.player .number { margin-right: .5rem; }
+.player .playback { margin-left: .4rem; }
+.player .timeline {
+    cursor: pointer;
+    height: .8rem;
+    margin-bottom: -.3rem;
+    position: relative;
+}
+.player .timeline .base,
+.player .timeline .progress {
+    bottom: .3rem;
+    height: .15rem;
+    position: absolute;
+}
+.player .timeline .base {
+    background: var(--bg-2);
+    width: 100%;
+}
+.player .timeline .progress { background: var(--mg-acc); }
+.player .timeline:hover .base,
+.player .timeline:hover .progress {
+    height: .25rem;
+}
+.player .timeline input {
+    height: 100%;
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+}
+.player .title_wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    margin-right: .6rem;
+}
+.player .track_info {
+    align-items: center;
+    display: flex;
+    margin-left: .2em;
+    margin-right: .6em;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.player .volume_hint {
+    margin-left: .2em;
+    margin-right: 1.2em;
+}
+.player.tall .elements { height: 3.8rem; }
+.player.tall .number { margin-right: .8rem; }
+.player.tall .timeline .base,
+.player.tall .timeline .progress {
+    height: .2rem;
+}
+.player.tall .title_wrapper { margin-right: .9rem; }
+.hcenter_unconstrained { margin: 0 auto; }
+.hcenter_wide {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 33rem;
+}
+img {
+    display: block;
+    max-width: 100%;
+}
+.image {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+.image img,
+.image svg {
+    aspect-ratio: 1;
+    width: 100%;
+}
+.image svg { height: 100%; }
+.large_type { font-size: 1.4rem; }
+#logo { flex-shrink: 0; }
+#logo svg {
+    height: 1.4em;
+    width: 1.4em;
+}
+main { box-sizing: border-box; }
+.mobile_hpadding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+path.loading_left {
+    /* The loading icon is at first the pause icon, but after about 500ms
+       (400ms delay + ~100ms until first tweening occurs) the loading
+       animation (loading-left-shrink) sets in, then . */
+    animation:
+        loading-left-shrink 1600ms cubic-bezier(.65, .05, .36, 1) 400ms 1,
+        loading-left-shuffle 1600ms cubic-bezier(.65, .05, .36, 1) 2000ms infinite;
+    transform-origin: 50% 50%;
+}
+@keyframes loading-left-shrink {
+    0% { transform: translateX(0) scaleY(1); }
+    25% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(40%) scaleY(.35); }
+    75% { transform: translateX(40%) scaleY(.35); }
+    100% { transform: translateX(0%) scaleY(.35); }
+}
+@keyframes loading-left-shuffle {
+    0% { transform: translateX(0) scaleY(.35); }
+    25% {
+        opacity: 1;
+        transform: translateX(0) scaleY(.35);
+    }
+    37.25% { opacity: .5; }
+    50% {
+        opacity: 1;
+        transform: translateX(40%) scaleY(.35);
+    }
+    75% { transform: translateX(40%) scaleY(.35); }
+    100% { transform: translateX(0%) scaleY(.35); }
+}
+path.loading_right {
+    animation:
+        loading-right-shrink 1600ms cubic-bezier(.65, .05, .36, 1) 400ms 1,
+        loading-right-shuffle 1600ms cubic-bezier(.65, .05, .36, 1) 2000ms infinite;
+    transform-origin: 50% 50%;
+}
+@keyframes loading-right-shrink {
+    0% { transform: translateX(0) scaleY(1); }
+    25% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(-40%) scaleY(.35); }
+    75% { transform: translateX(-40%) scaleY(.35); }
+    100% { transform: translateX(0%) scaleY(.35); }
+}
+@keyframes loading-right-shuffle {
+    0% { transform: translateX(0) scaleY(.35); }
+    25% { transform: translateX(0) scaleY(.35); }
+    50% { transform: translateX(-40%) scaleY(.35); }
+    75% {
+        opacity: 1;
+        transform: translateX(-40%) scaleY(.35);
+    }
+    87.25% { opacity: .5; }
+    100% {
+        opacity: 1;
+        transform: translateX(0%) scaleY(.35);
+    }
+}
+.release_artists { font-size: 1.1rem; }
+.release_artists a { color: var(--fg-3); }
+.release_artists a:hover { color: var(--fg-3-focus); }
+svg {
+    display: block;
+    fill: currentColor;
+}
+svg * { pointer-events: none; }
+.track { display: none; }
+.player .number,
+.player .time {
+    color: var(--fg-3);
+    user-select: none;
+    white-space: nowrap;
+}
+.track .title {
+    color: var(--fg-1);
+    flex-shrink: 1;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.track .title:focus-visible,
+.track .title:hover {
+    color: var(--fg-1-focus);
+}
+button:not(.link).disabled,
+.button.disabled {
+    background: var(--bg-2);
+    color: var(--bg-3);
+    cursor: default;
+}
+.volume {
+    align-items: center;
+    display: flex;
+}
+.volume input {
+    opacity: 0;
+    margin-right: 0;
+    transition: opacity 200ms ease, margin-right 200ms ease, width 200ms ease;
+    width: 0;
+}
+.volume button { color: var(--fg-1); }
+.volume button path.inactive_range { color: var(--bg-2); }
+.volume_hint {
+    background: var(--fg-1);
+    border-radius: .2rem;
+    color: var(--bg-1);
+    font-size: .8rem;
+    font-weight: 600;
+    padding: .3rem .4rem;
+}
+.volume_hint:not(.active) { display: none; }
+.volume:hover input,
+.volume input:focus-visible,
+.volume button:focus-visible + .slider input {
+    opacity: 1;
+    margin-right: .6rem;
+    width: 6rem;
+}
+@media (min-width: 30rem) {
+    .player { font-size: 1.14rem;  }
+}
+@media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+}

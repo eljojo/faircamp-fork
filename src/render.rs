@@ -23,6 +23,8 @@ pub mod artist;
 pub mod image_descriptions;
 pub mod index;
 pub mod release;
+pub mod embed_release;
+pub mod embed_track;
 pub mod track;
 
 pub enum CrawlerMeta {
@@ -310,6 +312,27 @@ fn cover_image_tiny(
             "#)
         }
     }
+}
+
+fn embed_layout(
+    root_prefix: &str,
+    body: &str,
+    build: &Build,
+    theme: &Theme,
+    title: &str
+) -> String {
+    let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
+
+    format!(
+        include_str!("templates/embed.html"),
+        body = body,
+        crawler_meta = CrawlerMeta::NoIndexNoFollow.tag(),
+        dir_attribute = dir_attribute,
+        lang = &build.locale.language,
+        root_prefix = root_prefix,
+        theme_stylesheet_filename = theme.stylesheet_filename(),
+        title = html_escape_outside_attribute(title)
+    )
 }
 
 /// For pages that should not be indexed by crawlers (search engines etc.),
@@ -667,6 +690,54 @@ fn truncate_artist_list(
 pub fn unlisted_badge(build: &Build) -> String {
     let t_unlisted = &build.locale.translations.unlisted;
     format!(r#"<span class="unlisted">{t_unlisted}</span>"#)
+}
+
+fn waveform(track: &Track) -> String {
+    let peaks_base64 = track.transcodes.borrow().source_meta.peaks
+        .iter()
+        .map(|peak| {
+            // In https://codeberg.org/simonrepp/faircamp/issues/11#issuecomment-858690
+            // the "_ => unreachable!()" branch below was hit, probably due to a slight
+            // peak overshoot > 1.0 (1.016 already leads to peak64 being assigned 64).
+            // We know that some decoders can produce this kind of overshoot, ideally
+            // we should be normalizing (=limiting) these peaks to within 0.0-1.0
+            // already when we compute/store/cache them. For now we prevent the panic
+            // locally here as a patch.
+            // TODO:
+            // - Implement normalizing/limiting at the point of decoding/caching
+            // - Implement an integrity check of all peaks at cache retrieval time (?),
+            //   triggering a correction and cache update/removal if found - this is
+            //   only meant as a temporary measure, to be phased out in some months/
+            //   years.
+            //   OR: Better yet use the cache layout versioning
+            //   flag to trigger a cache update for all updated faircamp
+            //   versions, so all peaks are correctly recalculated for everyone then.
+            // - Then also remove this peak_limited correction and rely on the raw
+            //   value again.
+            let peak_limited = if *peak > 1.0 { 1.0 } else { *peak };
+
+            // Limit range to 0-63
+            let peak64 = ((peak_limited / 1.0) * 63.0) as u8;
+            let base64 = match peak64 {
+                0..=25 => (peak64 + 65) as char, // shift to 65-90 (A-Z)
+                26..=51 => (peak64 + 71) as char, // shift to 97-122 (a-z)
+                52..=61 => (peak64 - 4) as char, // shift to 48-57 (0-9)
+                62 => '+', // map to 43 (+)
+                63 => '/', // map to 48 (/)
+                _ => unreachable!()
+            };
+            base64.to_string()
+        })
+        .collect::<Vec<String>>()
+        .join("");
+
+    formatdoc!(r#"
+        <svg data-peaks="{peaks_base64}">
+            <path class="seek"/>
+            <path class="playback"/>
+            <path class="base"/>
+        </svg>
+    "#)
 }
 
 fn wrap_undescribed_image(

@@ -18,9 +18,9 @@ use crate::render::{
     cover_image,
     layout,
     list_track_artists,
-    player_icon_templates
+    player_icon_templates,
+    waveform
 };
-use crate::render::release::waveform;
 use crate::util::{
     format_time,
     html_escape_inside_attribute,
@@ -125,7 +125,6 @@ pub fn track_html(
     let track_title = track.title();
 
     let track_duration_formatted = format_time(duration_seconds);
-    let track_number_formatted = release.track_numbering.format(track_number);
     let track_title_escaped = html_escape_outside_attribute(&track_title);
     let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
 
@@ -204,7 +203,6 @@ pub fn track_html(
     primary_actions.push(more_link);
 
     let failed_icon = icons::failure(&build.locale.translations.failed);
-    let scroll_icon = icons::scroll();
     let success_icon = icons::success(&build.locale.translations.copied);
     let mut templates = format!(r#"
         <template id="copy_track_icon">
@@ -212,10 +210,7 @@ pub fn track_html(
         </template>
         <template id="failed_icon">
             {failed_icon}
-        </template>
-        <template id="scroll_icon">
-            {scroll_icon}
-        </template>
+        </template>>
         <template id="success_icon">
             {success_icon}
         </template>
@@ -347,6 +342,7 @@ pub fn track_html(
         None => String::new()
     };
 
+    let scroll_icon = icons::scroll();
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;

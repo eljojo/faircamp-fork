@@ -263,6 +263,24 @@ impl Release {
         shortest_track_duration
     }
 
+    /// Returns true if there is at least one track on this release on
+    /// which the artist(s) differ from the other tracks.
+    pub fn varying_track_artists(&self) -> bool {
+        let mut track_iterator = self.tracks.iter().peekable();
+        while let Some(track) = track_iterator.next() {
+            if let Some(next_track) = track_iterator.peek() {
+                if track.artists
+                    .iter()
+                    .zip(next_track.artists.iter())
+                    .any(|(track_artist, next_track_artist)| !ArtistRc::ptr_eq(track_artist, next_track_artist)) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
     pub fn write_downloadable_files(&mut self, build: &mut Build) {
         let release_dir = build.build_dir.join(&self.permalink.slug);
 
@@ -611,13 +629,13 @@ impl Release {
                 util::ensure_dir_and_write_index(&embed_choices_dir, &embed_choices_html);
 
                 let embed_release_dir = embed_choices_dir.join("all");
-                let embed_release_html = render::release::embed::embed_release_html(build, catalog, self, base_url);
+                let embed_release_html = render::embed_release::embed_release_html(build, catalog, self, base_url);
                 util::ensure_dir_and_write_index(&embed_release_dir, &embed_release_html);
 
                 for (index, track) in self.tracks.iter().enumerate() {
                     let track_number = index + 1;
                     let embed_track_dir = embed_choices_dir.join(track_number.to_string());
-                    let embed_track_html = render::release::embed::embed_track_html(build, catalog, self, track, track_number, base_url);
+                    let embed_track_html = render::embed_track::embed_track_html(build, catalog, self, track, base_url);
                     util::ensure_dir_and_write_index(&embed_track_dir, &embed_track_html);
                 }
             }

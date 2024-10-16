@@ -7,6 +7,20 @@ use std::fs;
 use crate::Build;
 
 pub fn generate(build: &Build) {
+    generate_site_js(build);
+
+    if build.embeds_requested {
+        generate_embeds_js(build);
+    }
+}
+
+pub fn generate_embeds_js(build: &Build) {
+    let js = include_str!("assets/embeds.js");
+
+    fs::write(build.build_dir.join("embeds.js"), js).unwrap();
+}
+
+pub fn generate_site_js(build: &Build) {
     let t_listen = &build.locale.translations.listen;
     let t_pause = &build.locale.translations.pause;
     let mut js = formatdoc!("
@@ -16,7 +30,7 @@ pub fn generate(build: &Build) {
         }};
     ");
 
-    js.push_str(include_str!("assets/scripts.js"));
+    js.push_str(include_str!("assets/scripts.js")); // TODO: Rename source to site.css
 
-    fs::write(build.build_dir.join("scripts.js"), js).unwrap();
+    fs::write(build.build_dir.join("site.js"), js).unwrap();
 }

@@ -4,16 +4,15 @@
         <title>{title}</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="{root_prefix}styles.css" rel="stylesheet">
-        <script defer src="{root_prefix}scripts.js"></script>
+        {crawler_meta}
+        <link href="{root_prefix}{theme_stylesheet_filename}" rel="stylesheet">
+        <link href="{root_prefix}embeds.css" rel="stylesheet">
+        <script defer src="{root_prefix}embeds.js"></script>
     </head>
     <body>
         <script>document.body.classList.add('js_enabled');</script>
-        <div class="layout">
-            <main>
-                {body}
-            </main>
-            {catalog_title}
-        </div>
+        <main>
+            {body}
+        </main>
     </body>
 </html>

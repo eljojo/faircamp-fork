@@ -15,32 +15,39 @@ use crate::{
 use crate::util::url_safe_hash_base64;
 
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
-
-/// Might need adjustment at a later point in development, if we don't use
-/// button/input anymore we can drop that again.
 const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
 
 pub fn generate(build: &Build, catalog: &Catalog) {
-    generate_common(build);
-    generate_theme(build, &catalog.theme);
+    if build.embeds_requested {
+        generate_embeds_css(build);
+    }
+
+    generate_site_css(build);
+
+    generate_theme_css(build, &catalog.theme);
 
     for artist in &catalog.featured_artists {
-        generate_theme(build, &artist.borrow().theme);
+        generate_theme_css(build, &artist.borrow().theme);
     }
 
     for release in &catalog.releases {
         let release_ref = release.borrow();
 
-        generate_theme(build, &release_ref.theme);
+        generate_theme_css(build, &release_ref.theme);
 
         for track in &release_ref.tracks {
-            generate_theme(build, &track.theme);
+            generate_theme_css(build, &track.theme);
         }
     }
 }
 
-fn generate_common(build: &Build) {
-    let mut css = String::from(include_str!("assets/styles.css"));
+fn generate_embeds_css(build: &Build) {
+    let css = include_str!("assets/embeds.css");
+    fs::write(build.build_dir.join("embeds.css"), css).unwrap();
+}
+
+fn generate_site_css(build: &Build) {
+    let mut css = String::from(include_str!("assets/styles.css")); // TODO: Rename source to site.css
 
     if build.missing_image_descriptions {
         css.push_str(include_str!("assets/missing_image_descriptions.css"));
@@ -57,10 +64,10 @@ fn generate_common(build: &Build) {
         fs::write(build.build_dir.join("light.js"), light_js).unwrap();
     }
 
-    fs::write(build.build_dir.join("styles.css"), css).unwrap();
+    fs::write(build.build_dir.join("site.css"), css).unwrap();
 }
 
-pub fn generate_theme(build: &Build, theme: &Theme) {
+fn generate_theme_css(build: &Build, theme: &Theme) {
     let stylesheet_filename = theme.stylesheet_filename();
     let stylesheet_path = build.build_dir.join(stylesheet_filename);
 
