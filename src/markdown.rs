@@ -2,7 +2,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
-use pulldown_cmark::{Event, html, Parser, Tag, TagEnd};
+use pulldown_cmark::{
+    Event,
+    LinkType,
+    Parser,
+    Tag,
+    TagEnd
+};
+use pulldown_cmark::html;
+use url::Url;
 
 /// We render some incoming markdown (such as artist/catalog text)
 /// both to html as well as to plaintext stripped of any and all
@@ -15,12 +23,12 @@ pub struct HtmlAndStripped {
     pub stripped: String
 }
 
-pub fn to_html(markdown_text: &str) -> String {
+pub fn to_html(base_url: &Option<Url>, markdown_text: &str) -> String {
     let parser = Parser::new(markdown_text);
     
-    let parser = parser.map(|event| match event {
+    let parser = parser.map(|event| match &event {
         Event::Rule => {
-            let logo = formatdoc!(r#"
+            let divider = formatdoc!(r#"
                 <div class="divider">
                     <span></span>
                     <span></span>
@@ -28,7 +36,21 @@ pub fn to_html(markdown_text: &str) -> String {
                 </div>
             "#);
 
-            Event::Html(logo.into())
+            Event::Html(divider.into())
+        }
+        Event::Start(Tag::Link { dest_url, link_type, title, .. }) => {
+            'transformation: {
+                if *link_type == LinkType::Autolink || *link_type == LinkType::Inline {
+                    if let Some(base_url) = base_url {
+                        if !dest_url.starts_with(base_url.as_str()) {
+                            let html = format!(r#"<a href="{dest_url}" target="_blank">{title}"#);
+                            break 'transformation Event::InlineHtml(html.into());
+                        }
+                    }
+                }
+
+                event
+            }
         }
         _ => event
     });
@@ -39,9 +61,9 @@ pub fn to_html(markdown_text: &str) -> String {
     html_output
 }
 
-pub fn to_html_and_stripped(markdown_text: &str) -> HtmlAndStripped {
+pub fn to_html_and_stripped(base_url: &Option<Url>, markdown_text: &str) -> HtmlAndStripped {
     HtmlAndStripped {
-        html: to_html(markdown_text),
+        html: to_html(base_url, markdown_text),
         stripped: to_stripped(markdown_text)
     }
 }

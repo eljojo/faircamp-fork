@@ -163,7 +163,7 @@ impl Artist {
         match document.optional_embed("text") {
             Ok(Some(embed)) => match embed.optional_value::<String>() {
                 Some(Ok(text_markdown)) => {
-                    artist_mut.text = Some(markdown::to_html_and_stripped(&text_markdown));
+                    artist_mut.text = Some(markdown::to_html_and_stripped(&build.base_url, &text_markdown));
                 }
                 _ => ()
             }

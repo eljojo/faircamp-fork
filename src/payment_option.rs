@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::markdown;
+use url::Url;
 
 #[derive(Clone, Debug)]
 pub enum PaymentOption {
@@ -10,8 +11,8 @@ pub enum PaymentOption {
 }
 
 impl PaymentOption {
-    pub fn init_custom(markdown_text: &str) -> PaymentOption {
-        PaymentOption::Custom(markdown::to_html(markdown_text))
+    pub fn init_custom(base_url: &Option<Url>, markdown_text: &str) -> PaymentOption {
+        PaymentOption::Custom(markdown::to_html(base_url, markdown_text))
     }
     
     pub fn init_liberapay(account_name: &str) -> PaymentOption {

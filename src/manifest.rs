@@ -329,7 +329,7 @@ pub fn apply_options(
                 }
                 
                 if let Some(text_markdown) = optional_embed_value(section, "text") {
-                    artist_mut.text = Some(markdown::to_html_and_stripped(&text_markdown));
+                    artist_mut.text = Some(markdown::to_html_and_stripped(&build.base_url, &text_markdown));
                 }
             }
             Err(err) => error!("An artist was specified without a name, and therefore discarded, in {}", err_line!(path, err))
@@ -529,7 +529,7 @@ pub fn apply_options(
             }
 
             if let Some(text_markdown) = optional_embed_value(section, "text") {
-                let new_text = markdown::to_html_and_stripped(&text_markdown);
+                let new_text = markdown::to_html_and_stripped(&build.base_url, &text_markdown);
 
                 if let Some(previous_text) = &catalog.text {
                     warn_global_set_repeatedly!("catalog.text", previous_text.stripped, new_text.stripped);
@@ -638,7 +638,7 @@ pub fn apply_options(
         }
 
         if let Some(text_markdown) = optional_embed_value(section, "unlock_text") {
-            overrides.unlock_text = Some(markdown::to_html(&text_markdown));
+            overrides.unlock_text = Some(markdown::to_html(&build.base_url, &text_markdown));
         }
     }
 
@@ -703,12 +703,12 @@ pub fn apply_options(
                     "custom" => if let Some(embed) = element.as_embed() {
                         embed
                             .optional_value::<String>()
-                            .and_then(|result| result.ok().map(|value| PaymentOption::init_custom(&value)))
+                            .and_then(|result| result.ok().map(|value| PaymentOption::init_custom(&build.base_url, &value)))
                     } else if let Some(field) = element.as_field() {
                         field
                             .optional_value()
                             .ok()
-                            .and_then(|result| result.map(|value| PaymentOption::init_custom(&value)))
+                            .and_then(|result| result.map(|value| PaymentOption::init_custom(&build.base_url, &value)))
                     } else {
                         error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}:{}", path.display(), element.line_number());
                         None
@@ -892,7 +892,7 @@ pub fn apply_options(
         }
 
         if let Some(text_markdown) = optional_embed_value(section, "text") {
-            overrides.release_text = Some(markdown::to_html_and_stripped(&text_markdown));
+            overrides.release_text = Some(markdown::to_html_and_stripped(&build.base_url, &text_markdown));
         }
 
         if let Some(value) = optional_field_value(section, "title") {
