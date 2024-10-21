@@ -120,7 +120,7 @@ pub fn embed_release_html(
                 <div class="progress" style="width: 0%;"></div>
             </div>
             <div class="elements">
-                <button class="previous_track">
+                <button class="previous_track" disabled>
                     {previous_track_icon}
                 </button>
                 <button class="playback">

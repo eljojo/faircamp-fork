@@ -59,11 +59,29 @@ function formatTime(seconds) {
     }
 }
 
+function mount(track) {
+    activeTrack = track;
+
+    player.container.classList.add('active');
+    player.time.textContent = `0:00 / ${formatTime(track.duration)}`;
+    player.timelineInput.max = track.container.dataset.duration;
+
+    if (track.artists) {
+        player.titleWrapper.replaceChildren(track.title.cloneNode(true), track.artists.cloneNode(true));
+    } else {
+        player.titleWrapper.replaceChildren(track.title.cloneNode(true));
+    }
+
+    if (player.number) {
+        player.number.textContent = track.number.textContent;
+    }
+}
+
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
     player.container.classList.add('active');
-    player.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
+    player.time.textContent = `0:00 / ${formatTime(track.duration)}`;
     player.timelineInput.max = track.container.dataset.duration;
 
     if (track.artists) {
@@ -493,3 +511,5 @@ for (const container of document.querySelectorAll('.track')) {
         }
     });
 }
+
+mount(firstTrack);
