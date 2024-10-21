@@ -2,29 +2,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
-use url::Url;
 
-use crate::{Build, Catalog, Release, Track};
+use crate::{Build, Release, Track};
 use crate::icons;
-use crate::render::{
-    cover_image,
-    embed_layout,
-    list_release_artists,
-    player_icon_templates
-};
+use crate::render::{embed_layout, player_icon_templates};
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 pub fn embed_track_html(
     build: &Build,
-    catalog: &Catalog,
     release: &Release,
-    track: &Track,
-    base_url: &Url
+    track: &Track
 ) -> String {
-    let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
-
 
     let audio_sources = release.streaming_quality
         .formats()
@@ -53,10 +43,6 @@ pub fn embed_track_html(
         .join("\n");
 
     let track_title = track.title();
-    let artists_truncation = Some((40, format!("{release_prefix}#description")));
-    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
-    let cover = cover_image(build, index_suffix, release_prefix, root_prefix, release);
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
     let track_duration_seconds = track.transcodes.borrow().source_meta.duration_seconds;
     let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
     let track_title_escaped = html_escape_outside_attribute(&track_title);

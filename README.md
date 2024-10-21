@@ -72,23 +72,14 @@ Also see the [project grant website](https://nlnet.nl/project/Faircamp/) for mor
 
 Install one of the available [packages](https://simonrepp.com/faircamp/manual/installation.html)
 or build faircamp yourself from the latest tag for the most stable experience. Faircamp can
-also be built and run from the main branch directly, this opts you in to the
-occasional design experiment and temporary development glitches though.
-Throughout summer and fall 2024 expect lots of movement in the course of the
-[Faircamp 1.0 NGI0 grant](https://nlnet.nl/project/Faircamp/) to happen. Some
-more advanced features are only half-way implemented (see below). Technically
+also be built directly from the main branch, this opts you in to occasional design experiments
+and temporary development glitches. Throughout late 2024 expect plenty of flux in the course of the
+[Faircamp 1.0 NGI0 grant](https://nlnet.nl/project/Faircamp/). Technically
 nothing about the catalog format is set in stone, but practically speaking
-actual changes have been few and far between and are only made for significant
-reasons. Note that although faircamp is still pre-1.0, it already runs over
-a hundred artist and label websites, i.e. it is not so much beta in the sense of
-lacking stability, but rather because one or two key features are still in
-development.
-
-These features are knowingly incomplete right now:
-
-- Embeds (available but incomplete implementation)
-- Buy page (functionally there but rather bare in usability still)
-- No-javascript mode (faircamp sites work without javascript too, some things still need to be wrapped up though)
+actual changes are rare and only made for significant
+reasons. Note that faircamp already powers over
+a hundred artist and label websites, i.e. it is not beta in the sense of
+lacking stability, but rather to denote it is not yet at 1.0 (but will be in a few weeks).
 
 ## Documentation
 

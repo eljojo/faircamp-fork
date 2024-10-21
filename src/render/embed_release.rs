@@ -2,14 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
-use url::Url;
 
 use crate::{Build, Catalog, Release};
 use crate::icons;
 use crate::render::{
-    cover_image,
     embed_layout,
-    list_release_artists,
     list_track_artists,
     player_icon_templates
 };
@@ -18,8 +15,7 @@ use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 pub fn embed_release_html(
     build: &Build,
     catalog: &Catalog,
-    release: &Release,
-    base_url: &Url
+    release: &Release
 ) -> String {
     let index_suffix = build.index_suffix();
     let release_prefix = "../../";
@@ -93,13 +89,6 @@ pub fn embed_release_html(
         })
         .collect::<Vec<String>>()
         .join("\n");
-
-    let release_prefix = "../../";
-
-    let artists_truncation = Some((40, format!("{release_prefix}#description")));
-    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
-    let cover = cover_image(build, index_suffix, release_prefix, root_prefix, release);
-    let release_title = html_escape_outside_attribute(&release.title);
 
     let tall = if release.varying_track_artists() { "tall" } else { "" };
 

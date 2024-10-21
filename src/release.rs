@@ -629,13 +629,13 @@ impl Release {
                 util::ensure_dir_and_write_index(&embed_choices_dir, &embed_choices_html);
 
                 let embed_release_dir = embed_choices_dir.join("all");
-                let embed_release_html = render::embed_release::embed_release_html(build, catalog, self, base_url);
+                let embed_release_html = render::embed_release::embed_release_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&embed_release_dir, &embed_release_html);
 
                 for (index, track) in self.tracks.iter().enumerate() {
                     let track_number = index + 1;
                     let embed_track_dir = embed_choices_dir.join(track_number.to_string());
-                    let embed_track_html = render::embed_track::embed_track_html(build, catalog, self, track, base_url);
+                    let embed_track_html = render::embed_track::embed_track_html(build, self, track);
                     util::ensure_dir_and_write_index(&embed_track_dir, &embed_track_html);
                 }
             }
