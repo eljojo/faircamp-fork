@@ -70,6 +70,7 @@ Here are some tips for writing good image descriptions:<br>\
         pay_on_liberapay: String::from("Pay on liberapay:"),
         payment_options: String::from("Payment options:"),
         play: String::from("Play"),
+        previous_track: String::from("Previous Track"),
         purchase_downloads: String::from("Purchase downloads"),
         purchase_permalink: String::from("purchase"),
         recommended_format: String::from("Recommended Format"),

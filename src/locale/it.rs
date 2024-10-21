@@ -68,6 +68,7 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
         pay_on_liberapay: String::from("Paga su Liberapay:"),
         payment_options: String::from("Opzioni di pagamento:"),
         play: String::from("Riproduci"),
+        previous_track: untranslated!(previous_track),
         purchase_downloads: String::from("Acquista download"),
         purchase_permalink: String::from("acquista"),
         recommended_format: String::from("Formato consigliato"),

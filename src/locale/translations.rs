@@ -59,6 +59,7 @@ pub struct Translations {
     pub pay_on_liberapay: String,
     pub payment_options: String,
     pub play: String,
+    pub previous_track: String,
     pub purchase_downloads: String,
     /// Must be unique and only contain url-safe characters
     pub purchase_permalink: String,
@@ -141,6 +142,7 @@ impl Translations {
             pay_on_liberapay: String::from("pay_on_liberapay"),
             payment_options: String::from("payment_options"),
             play: String::from("play"),
+            previous_track: String::from("previous_track"),
             purchase_downloads: String::from("purchase_downloads"),
             purchase_permalink: String::from("purchase_permalink"),
             recommended_format: String::from("recommended_format"),

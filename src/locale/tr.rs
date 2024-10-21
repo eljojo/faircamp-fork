@@ -70,6 +70,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         pay_on_liberapay: String::from("Liberapay üzerinden öde:"),
         payment_options: String::from("Ödeme seçenekleri:"),
         play: String::from("Oynat"),
+        previous_track: untranslated!(previous_track),
         purchase_downloads: String::from("İndirmeleri satın al"),
         purchase_permalink: String::from("satin-al"),
         recommended_format: String::from("Tavsiye edilen dosya türü"),

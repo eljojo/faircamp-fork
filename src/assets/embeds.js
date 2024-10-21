@@ -8,10 +8,11 @@ let firstTrack = null;
 const container = document.querySelector('.player');
 const player = {
     container,
-    playbackButton: container.querySelector('button.playback'),
-    progress: container.querySelector('.progress'),
     nextTrackButton: container.querySelector('button.next_track'),
     number: container.querySelector('.number'),
+    playbackButton: container.querySelector('button.playback'),
+    previousTrackButton: container.querySelector('button.previous_track'),
+    progress: container.querySelector('.progress'),
     time: container.querySelector('.time'),
     timeline: container.querySelector('.timeline'),
     timelineInput: container.querySelector('.timeline input'),
@@ -75,6 +76,7 @@ async function mountAndPlay(track, seekTo) {
     if (player.number) {
         player.nextTrackButton.toggleAttribute('disabled', !track.nextTrack);
         player.number.textContent = track.number.textContent;
+        player.previousTrackButton.toggleAttribute('disabled', !track.previousTrack);
     }
 
     updateVolume();
@@ -318,6 +320,15 @@ if (player.nextTrackButton) {
     });
 }
 
+// Not available on a track player
+if (player.previousTrackButton) {
+    player.previousTrackButton.addEventListener('click', () => {
+        if (activeTrack?.previousTrack) {
+            togglePlayback(activeTrack.previousTrack);
+        }
+    });
+}
+
 player.timeline.addEventListener('click', () => {
     const factor = (event.clientX - player.timeline.getBoundingClientRect().x) / player.timeline.getBoundingClientRect().width;
     const seekTo = factor * player.timelineInput.max;
@@ -419,6 +430,7 @@ for (const container of document.querySelectorAll('.track')) {
 
     if (previousTrack !== null) {
         previousTrack.nextTrack = track;
+        track.previousTrack = previousTrack;
     }
 
     previousTrack = track;

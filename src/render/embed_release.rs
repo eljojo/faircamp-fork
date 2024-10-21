@@ -107,6 +107,7 @@ pub fn embed_release_html(
 
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let play_icon = icons::play(&build.locale.translations.play);
+    let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
     let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
@@ -119,6 +120,9 @@ pub fn embed_release_html(
                 <div class="progress" style="width: 0%;"></div>
             </div>
             <div class="elements">
+                <button class="previous_track">
+                    {previous_track_icon}
+                </button>
                 <button class="playback">
                     {play_icon}
                 </button>

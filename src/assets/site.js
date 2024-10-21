@@ -20,10 +20,10 @@ if (document.querySelector('.docked_player')) {
 
     dockedPlayer = {
         container,
-        playbackButton: container.querySelector('button.playback'),
-        progress: container.querySelector('.progress'),
         nextTrackButton: container.querySelector('button.next_track'),
         number: container.querySelector('.number'),
+        playbackButton: container.querySelector('button.playback'),
+        progress: container.querySelector('.progress'),
         time: container.querySelector('.time'),
         timeline: container.querySelector('.timeline'),
         timelineInput: container.querySelector('.timeline input'),

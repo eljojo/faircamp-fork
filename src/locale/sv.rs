@@ -69,6 +69,7 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
         pay_on_liberapay: String::from("Betala med liberapay:"),
         payment_options: String::from("Betalningsalternativ:"),
         play: String::from("Spela"),
+        previous_track: untranslated!(previous_track),
         purchase_downloads: String::from("Köp nedladdningar"),
         purchase_permalink: String::from("betala"),
         recommended_format: String::from("Rekommenderat format"),

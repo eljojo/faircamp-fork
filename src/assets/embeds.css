@@ -97,7 +97,7 @@ button svg { display: inline-block; }
     display: flex;
 }
 .player .number { margin-right: .5rem; }
-.player .playback { margin-left: .4rem; }
+.player .previous_track { margin-left: .4rem; }
 .player .timeline {
     cursor: pointer;
     height: .8rem;

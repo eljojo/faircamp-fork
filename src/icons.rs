@@ -156,6 +156,15 @@ pub fn play(label: &str) -> String {
     "#)
 }
 
+pub fn previous_track(label: &str) -> String {
+    formatdoc!(r#"
+        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <title>{label}</title>
+            <path d="m14.829 6.7876h-7.5973v50.229h7.5973zm41.877 50.229-41.877-24.359 41.939-25.87z"/>
+        </svg>
+    "#)
+}
+
 /// The shape of a mouse from above, with an arrow inside
 pub fn scroll() -> String {
     formatdoc!(r#"

@@ -70,6 +70,7 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
         pay_on_liberapay: String::from("Zapłać przez liberapay:"),
         payment_options: String::from("Opcje płatności:"),
         play: untranslated!(play),
+        previous_track: untranslated!(previous_track),
         purchase_downloads: String::from("Kup pobranie"),
         purchase_permalink: String::from("zakup"),
         recommended_format: String::from("Polecany Format"),
