@@ -28,7 +28,7 @@ const volume = {
     level: 1,
 };
 
-const persistedVolume = localStorage.getItem('faircampVolume');
+const persistedVolume = localStorage.getItem('faircampEmbedVolume');
 if (persistedVolume !== null) {
     const level = parseFloat(persistedVolume);
     if (level >= 0 && level <= 1) {
@@ -237,7 +237,7 @@ function updateVolume(restoreLevel = null) {
         activeTrack.audio.volume = volume.level;
     }
 
-    localStorage.setItem('faircampVolume', volume.level.toString());
+    localStorage.setItem('faircampEmbedVolume', volume.level.toString());
 
     const RADIUS = 32;
     const degToRad = deg => (deg * Math.PI) / 180;
