@@ -198,6 +198,7 @@ fn check_translations() {
         super::en::translations(),
         super::es::translations(),
         super::fr::translations(),
+        super::he::translations(),
         super::it::translations(),
         super::nb::translations(),
         super::nl::translations(),
