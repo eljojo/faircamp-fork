@@ -18,6 +18,7 @@ Thanks everyone for your support.
 [Andy Berdan](https://codeberg.org/berdandy)<br>
 [atomkarinca](https://fe.disroot.org/users/atomkarinca)<br>
 [AxWax](https://axwax.eu/)<br>
+[Christian Pacaud](https://www.christianpacaud.com/)<br>
 [controlfreak](https://control.org/)<br>
 [DaforLynx](https://dafor.link/)<br>
 Damian Szetela<br>

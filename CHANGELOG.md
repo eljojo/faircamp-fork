@@ -5,6 +5,18 @@
 
 # Changelog
 
+## 0.18.0
+
+- Rewrite and complete embed implementation (d856595, 6979d4a, 63c74b3, ac74250)
+- Transform external inline/auto links in markdown texts to open in new tabs (96a569d)
+- Implement experimental initial track override parameter for release player (7a1e6ff)
+- Revert inclusion of scripts as ESM to restore direct viewing from disk (df415b0)
+- Dynamically translate listen/pause button label at runtime (3f67db8)
+- Fix accidental linking to non-existent download/purchase/unlock track sub-pages (c1d9e18)
+- Enforce paragraph width and remove experimental stats rendering on artist pages (b5b103b)
+- Fix links in the RSS feed not following --no-clean-urls setting (94b873f)
+- Refine italian translations (Tommaso Croce, 548b03c)
+
 ## 0.17.0
 
 - Introduce support for writing embedded cover images for flac and mp3 (45f6881)
@@ -18,7 +30,7 @@
 
 ## 0.16.1
 
-- Add italian translations (9502586)
+- Add italian translations (Tommaso Croce, 9502586)
 - Fix title not being displayed in the docked player on track pages (2919dc4)
 - Fix listen button toggling playback only for the first track on release pages (2edf0f2)
 
