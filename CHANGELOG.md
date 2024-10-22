@@ -5,6 +5,11 @@
 
 # Changelog
 
+## 0.18.1
+
+- Unbreak theming widget scripting after ESM import changes (52f3e24)
+- Fix missing alpha in overlay colors during interactive theming (81c4fda)
+
 ## 0.18.0
 
 - Rewrite and complete embed implementation (d856595, 6979d4a, 63c74b3, ac74250)
