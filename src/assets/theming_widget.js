@@ -202,9 +202,9 @@ function updateCssVariables() {
 
     set('--bg-overlay', oklch(background1Lightness, baseChroma * chromaAttenuator(background1Lightness), baseHue, 100 - backgroundAlpha));
     set('--bg-1', oklch(background1Lightness, baseChroma * chromaAttenuator(background1Lightness), baseHue));
-    set('--bg-1-overlay', oklch(background1Lightness, baseChroma * chromaAttenuator(background1Lightness), baseHue), 80);
+    set('--bg-1-overlay', oklch(background1Lightness, baseChroma * chromaAttenuator(background1Lightness), baseHue, 80));
     set('--bg-2', oklch(background2Lightness, baseChroma * chromaAttenuator(background2Lightness), baseHue));
-    set('--bg-2-overlay', oklch(background2Lightness, baseChroma * chromaAttenuator(background2Lightness), baseHue), 80);
+    set('--bg-2-overlay', oklch(background2Lightness, baseChroma * chromaAttenuator(background2Lightness), baseHue, 80));
     set('--bg-3', oklch(background3Lightness, baseChroma * chromaAttenuator(background3Lightness), baseHue));
     set('--bg-acc', oklch(backgroundAccentLightness, accentChroma !== null ? accentChroma : baseChroma * chromaAttenuator(backgroundAccentLightness), accentHue ?? baseHue));
     set('--bg-mg', oklch(backgroundMiddlegroundLightness, baseChroma * chromaAttenuator(backgroundMiddlegroundLightness), baseHue));
