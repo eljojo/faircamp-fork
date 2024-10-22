@@ -55,13 +55,6 @@ fn generate_site_css(build: &Build) {
 
     if build.theming_widget {
         css.push_str(include_str!("assets/theming_widget.css"));
-
-        // TODO: Refactor to put these to a different location in code
-        let dark_js = crate::theme::DARK.print_js();
-        fs::write(build.build_dir.join("dark.js"), dark_js).unwrap();
-
-        let light_js = crate::theme::LIGHT.print_js();
-        fs::write(build.build_dir.join("light.js"), light_js).unwrap();
     }
 
     fs::write(build.build_dir.join("site.css"), css).unwrap();

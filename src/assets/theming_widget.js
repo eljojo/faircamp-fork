@@ -1,6 +1,3 @@
-import DARK_THEME from '/dark.js';
-import LIGHT_THEME from '/light.js';
-
 const OPTIONS_MAP = {
     accentBrightening: {
         defaultValue: 50,

@@ -304,7 +304,7 @@ impl ThemeVarsOklch {
         }
     }
 
-    pub fn print_js(&self) -> String {
+    pub fn print_js(&self, constant_name: &str) -> String {
         let background_1_lightness_end = &self.background_1_lightness_range.end;
         let background_1_lightness_start = &self.background_1_lightness_range.start;
         let background_2_lightness_end = &self.background_2_lightness_range.end;
@@ -329,7 +329,7 @@ impl ThemeVarsOklch {
         let veil_alpha_range_start = &self.veil_alpha_range.start;
 
         formatdoc!(r#"
-            export default {{
+            const {constant_name} = {{
                 background1LightnessRange: [{background_1_lightness_start}, {background_1_lightness_end}],
                 background2LightnessRange: [{background_2_lightness_start}, {background_2_lightness_end}],
                 background3LightnessRange: [{background_3_lightness_start}, {background_3_lightness_end}],

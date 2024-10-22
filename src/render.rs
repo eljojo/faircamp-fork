@@ -390,6 +390,11 @@ fn layout(
             }};
         "#);
 
+        let dark_js = crate::theme::DARK.print_js("DARK_THEME");
+        let light_js = crate::theme::LIGHT.print_js("LIGHT_THEME");
+
+        script.push_str(&dark_js);
+        script.push_str(&light_js);
         script.push_str(include_str!("assets/theming_widget.js"));
 
         format!(include_str!("templates/theming_widget.html"), script = script)
