@@ -32,6 +32,7 @@ mod pl;
 mod sv;
 mod tr;
 mod translations;
+mod uk;
 
 use translations::Translations;
 
@@ -70,6 +71,7 @@ impl Locale {
             "pl" => Locale::new("pl", pl::translations(), TextDirection::Ltr),
             "sv" => Locale::new("sv", sv::translations(), TextDirection::Ltr),
             "tr" => Locale::new("tr", tr::translations(), TextDirection::Ltr),
+            "uk" => Locale::new("uk", uk::translations(), TextDirection::Ltr),
             _ => Locale::new(language, en::translations(), TextDirection::from_code(language))
         }
     }
