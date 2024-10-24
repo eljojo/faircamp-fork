@@ -162,7 +162,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let grid_icon = icons::grid();
     let more_icon = icons::more(&build.locale.translations.more);
-    let t_more = &build.locale.translations.more;
+    let more_label = match &catalog.more_label {
+        Some(label) => label,
+        None => &build.locale.translations.more
+    };
     let t_releases = &build.locale.translations.releases;
     let body = formatdoc!(r##"
         <div class="page" data-overview>
@@ -176,7 +179,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                             {t_releases}
                         </a>
                         <a class="more" href="#description">
-                            {more_icon} {t_more}
+                            {more_icon} {more_label}
                         </a>
                     </div>
                     {synopsis}

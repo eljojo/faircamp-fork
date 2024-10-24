@@ -59,6 +59,9 @@ pub struct Catalog {
     pub label_mode: bool,
     pub links: Vec<Link>,
     pub main_artists: Vec<ArtistRc>,
+    /// Optional override label for the button that (by default) says "More" on the
+    /// catalog homepage and points to the long-form catalog text on the homepage.
+    pub more_label: Option<String>,
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
     pub support_artists: Vec<ArtistRc>,
@@ -310,6 +313,7 @@ impl Catalog {
             label_mode: false,
             links: Vec::new(),
             main_artists: Vec::new(),
+            more_label: None,
             releases: Vec::new(),
             show_support_artists: false,
             support_artists: Vec::new(),
@@ -716,6 +720,7 @@ impl Catalog {
                     merged_overrides.include_extras,
                     mem::take(&mut local_options.links),
                     main_artists_to_map,
+                    merged_overrides.more_label.clone(),
                     merged_overrides.payment_options.clone(),
                     local_options.release_permalink.take(),
                     release_dir_relative_to_catalog,

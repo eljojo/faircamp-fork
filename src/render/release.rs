@@ -242,10 +242,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     primary_actions.push(tracks_link.clone());
     secondary_actions.push(tracks_link);
 
-    let t_more = &build.locale.translations.more;
+    let more_label = match &release.more_label {
+        Some(label) => label,
+        None => &build.locale.translations.more
+    };
     let more_link = formatdoc!(r##"
         <a class="more" href="#description">
-            {more_icon} {t_more}
+            {more_icon} {more_label}
         </a>
     "##);
 

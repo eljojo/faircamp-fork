@@ -72,6 +72,7 @@ pub struct Overrides {
     pub download_option: DownloadOption,
     pub embedding: bool,
     pub include_extras: bool,
+    pub more_label: Option<String>,
     pub payment_options: Vec<PaymentOption>,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<DescribedImage>,
@@ -106,6 +107,7 @@ impl Overrides {
             download_option: DownloadOption::Disabled,
             embedding: false,
             include_extras: true,
+            more_label: None,
             payment_options: Vec::new(),
             release_artists: None,
             release_cover: None,
@@ -464,6 +466,10 @@ pub fn apply_options(
                 build.locale = Locale::from_code(&value);
             }
 
+            if let Some(value) = optional_field_value(section, "more_label") {
+                catalog.more_label = Some(value);
+            }
+
             // TODO: Would make sense to report if both rotate_download_urls and
             // freeze_download_urls are set (or the latter twice e.g.), as this
             // could lead to unexpected, frustrating behavior for users (and it
@@ -805,6 +811,10 @@ pub fn apply_options(
                 "no" => overrides.include_extras = false,
                 other => error!("Ignoring invalid release.include_extras value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
             }
+        }
+
+        if let Some(value) = optional_field_value(section, "more_label") {
+            overrides.more_label = Some(value);
         }
 
         if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {

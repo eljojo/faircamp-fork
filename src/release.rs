@@ -91,6 +91,9 @@ pub struct Release {
     /// we store until the entire catalog is read. After that point, we
     /// use it to build the final mapping in `main_artists`, then dispose of it.
     pub main_artists_to_map: Vec<String>,
+    /// Optional override label for the button that (by default) says "More" on the
+    /// release page and points to the long-form text on the release page.
+    pub more_label: Option<String>,
     pub payment_options: Vec<PaymentOption>,
     pub permalink: Permalink,
     /// Lazily generated when there is no regular cover
@@ -203,6 +206,7 @@ impl Release {
         include_extras: bool,
         links: Vec<Link>,
         main_artists_to_map: Vec<String>,
+        more_label: Option<String>,
         payment_options: Vec<PaymentOption>,
         permalink: Option<Permalink>,
         source_dir: PathBuf,
@@ -234,6 +238,7 @@ impl Release {
             links,
             main_artists: Vec::new(),
             main_artists_to_map,
+            more_label,
             payment_options,
             permalink,
             procedural_cover: None,
