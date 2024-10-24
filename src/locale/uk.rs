@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-FileCopyrightText: 2024 Denys Nykula
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -96,6 +95,7 @@ pub fn translations() -> Translations {
 на /{downloads_permalink}/[your-unlock-code]{index_suffix} і тоді натисніть Enter."),
         up_to_xxx: String::from("До {xxx}"),
         visual_impairment: String::from("Вади зору"),
+        volume: String::from("Гучність"),
         xxx_and_others: String::from(r#"{xxx} та <a href="{others_link}">інші</a>"#),
         xxx_or_more: String::from("{xxx} чи більше")
     }

@@ -27,6 +27,7 @@ Damian Szetela<br>
 [Deborah Pickett](https://icemoonprison.com)<br>
 [Dec](https://spacehey.com/dec23k/)<br>
 [Default Media Transmitter](https://defaultmediatransmitter.com/)<br>
+[Denys Nykula](https://libre.net.ua/)<br>
 [Devin Canterberry](https://canterberry.cc/)<br>
 [DURAD](https://durad.xyz)<br>
 [Emanuel Pesendorfer](https://emanuel-pesendorfer.at/)<br>

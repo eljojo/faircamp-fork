@@ -95,6 +95,7 @@ Ersätt den sista delen av adressen - /{unlock_permalink}/{page_hash}{index_suff
 med /{downloads_permalink}/[din-upplåsningskod]{index_suffix} och tryck sedan på Retur-tangenten."),
         up_to_xxx: String::from("Upp till {xxx}"),
         visual_impairment: String::from("Synnedsättning"),
+        volume: untranslated!(volume),
         xxx_and_others: String::from(r#"{xxx} med <a href="{others_link}">flera</a>"#),
         xxx_or_more: String::from("{xxx} eller mer")
     }

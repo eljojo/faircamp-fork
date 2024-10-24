@@ -97,7 +97,7 @@ pub fn embed_release_html(
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let play_icon = icons::play(&build.locale.translations.play);
     let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
-    let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
+    let volume_icon = icons::volume(&build.locale.translations.volume); // TODO: Dynamically alternate between "Mute" / "Unmute" (?)
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"

@@ -94,6 +94,7 @@ Sostituisci la parte finale dell'indirizzo - /{unlock_permalink}/{page_hash}{ind
 con /{downloads_permalink}/[il-tuo-codice-di-sblocco]{index_suffix} e poi premi Invio."),
         up_to_xxx: String::from("Fino a {xxx}"),
         visual_impairment: String::from("Disabilità visiva"),
+        volume: untranslated!(volume),
         xxx_and_others: String::from(r#"{xxx} e <a href="{others_link}">altri</a>"#),
         xxx_or_more: String::from("{xxx} o più")
     }

@@ -98,6 +98,7 @@ ibaresini  /{downloads_permalink}/[your-unlock-code]{index_suffix} ile değişti
 Enter tuşuna basın."),
         up_to_xxx: String::from("{xxx} öğesine kadar"),
         visual_impairment: String::from("Görme Bozukluğu"),
+        volume: untranslated!(volume),
         xxx_and_others: String::from(r#"{xxx} ve <a href="{others_link}">diğerleri</a>"#),
         xxx_or_more: String::from("{xxx} ya da daha fazlası")
     }

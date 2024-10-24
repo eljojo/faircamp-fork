@@ -78,6 +78,7 @@ pub struct Translations {
     pub unlock_manual_instructions: String,
     pub up_to_xxx: String,
     pub visual_impairment: String,
+    pub volume: String,
     pub xxx_and_others: String,
     pub xxx_or_more: String
 }
@@ -159,6 +160,7 @@ impl Translations {
             unlock_manual_instructions: String::from("unlock_manual_instructions"),
             up_to_xxx: String::from("up_to_xxx"),
             visual_impairment: String::from("visual_impairment"),
+            volume: String::from("volume"),
             xxx_and_others: String::from("xxx_and_others"),
             xxx_or_more: String::from("xxx_or_more")
         }

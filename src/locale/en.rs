@@ -96,6 +96,7 @@ Replace the final part of the address - /{unlock_permalink}/{page_hash}{index_su
 with /{downloads_permalink}/[your-unlock-code]{index_suffix} and then press Enter."),
         up_to_xxx: String::from("Up to {xxx}"),
         visual_impairment: String::from("Visual Impairment"),
+        volume: String::from("Volume"),
         xxx_and_others: String::from(r#"{xxx} and <a href="{others_link}">others</a>"#),
         xxx_or_more: String::from("{xxx} or more")
     }

@@ -98,6 +98,7 @@ Ersetze den letzten Abschnitt der Adresse - \
 mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
         up_to_xxx: String::from("Bis zu {xxx}"),
         visual_impairment: String::from("Visuelle Beeinträchtigung"),
+        volume: String::from("Lautstärke"),
         xxx_and_others: String::from(r#"{xxx} und <a href="{others_link}">Weitere</a>"#),
         xxx_or_more: String::from("{xxx} oder mehr")
     }

@@ -96,6 +96,7 @@ Erstatt den siste delen av addressen - /{unlock_permalink}/{page_hash}{index_suf
 med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
         up_to_xxx: String::from("Opp til {xxx}"),
         visual_impairment: untranslated!(visual_impairment),
+        volume: untranslated!(volume),
         xxx_and_others: String::from(r#"{xxx} og <a href="{others_link}">mer</a>"#),
         xxx_or_more: String::from("{xxx} eller mer")
     }

@@ -343,7 +343,7 @@ pub fn track_html(
     };
 
     let scroll_icon = icons::scroll();
-    let volume_icon = icons::volume("Volume"); // TODO: Translated label, dynamically alternates between "Mute" / "Unmute" probably
+    let volume_icon = icons::volume(&build.locale.translations.volume); // TODO: Dynamically alternate between "Mute" / "Unmute" (?)
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
     let t_top = &build.locale.translations.top;

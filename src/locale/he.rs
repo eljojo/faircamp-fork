@@ -71,6 +71,7 @@ pub fn translations() -> Translations {
         unlock_manual_instructions: untranslated!(unlock_manual_instructions),
         up_to_xxx: untranslated!(up_to_xxx),
         visual_impairment: untranslated!(visual_impairment),
+        volume: untranslated!(volume),
         xxx_and_others: untranslated!(xxx_and_others),
         xxx_or_more: untranslated!(xxx_or_more)
     }

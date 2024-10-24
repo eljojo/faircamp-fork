@@ -97,6 +97,7 @@ Remplacez la dernière partie de l'adresse - /{unlock_permalink}/{page_hash}{ind
 avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
         up_to_xxx: String::from("Jusqu'à {xxx}"),
         visual_impairment: untranslated!(visual_impairment),
+        volume: untranslated!(volume),
         xxx_and_others: String::from(r#"{xxx} et <a href="{others_link}">plus</a>"#),
         xxx_or_more: String::from("{xxx} ou plus")
     }
