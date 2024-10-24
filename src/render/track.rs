@@ -193,6 +193,10 @@ pub fn track_html(
 
     primary_actions.push(listen_button);
 
+    if let Some(download_link) = download_link {
+        primary_actions.push(download_link);
+    }
+
     let t_more = &build.locale.translations.more;
     let more_link = formatdoc!(r##"
         <a class="more" href="#description">
@@ -229,10 +233,6 @@ pub fn track_html(
     };
 
     let mut secondary_actions = Vec::new();
-
-    if let Some(download_link) = download_link {
-        secondary_actions.push(download_link);
-    }
 
     if track.copy_link {
         let (content_key, content_value) = match &build.base_url {
@@ -346,29 +346,28 @@ pub fn track_html(
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"
-        <div class="page" data-overview>
-            <div class="page_split">
+        <div class="page">
+            <div class="page_split page_66vh">
                 <div class="cover">{cover}</div>
                 <div style="max-width: 26rem;">
                     <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}
+                    {r_secondary_actions}
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="tracks"></a>
-        <div class="additional page" data-tracks><!-- TODO: Background-color shift (subtle) -->
+        <div class="additional page">
             <div class="page_center">
-                <div>
-                    <div {relative_waveforms}data-longest-duration="{track_duration}"></div>
+                <div {relative_waveforms} data-longest-duration="{track_duration}">
                     {track_rendered}
                 </div>
             </div>
         </div>
         <a class="scroll_target" id="description"></a>
-        <div class="page" data-description>
-            <div class="page_center">
+        <div class="page">
+            <div class="page_center page_50vh">
                 <div style="max-width: 32rem;">
                     <div class="release_info">
                         <div>
@@ -378,7 +377,6 @@ pub fn track_html(
                             <div class="release_artists">{artists}</div>
                         </div>
                     </div>
-                    {r_secondary_actions}
                     {track_text}
                     {r_links}
                 </div>

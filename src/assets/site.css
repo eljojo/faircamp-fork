@@ -17,12 +17,25 @@ a * { pointer-events: none; }
     align-items: flex-start;
     display:flex;
     flex-wrap: wrap;
-    gap: .5rem;
+    column-gap: .75rem;
     margin-bottom: 1rem;
     margin-top: 1rem;
+    row-gap: .5rem;
 }
-.actions a,
-.actions button,
+.actions.primary { gap: .5rem; }
+.actions:not(.primary) a,
+.actions:not(.primary) button {
+    color: var(--fg-3);
+}
+.actions:not(.primary) a:focus-visible,
+.actions:not(.primary) a:hover,
+.actions:not(.primary) button:focus-visible,
+.actions:not(.primary) button:hover {
+    color: var(--fg-3-focus);
+}
+.actions:not(.primary) button { padding: 0; }
+.actions.primary a,
+.actions.primary button,
 a.button,
 button.button,
 form button {
@@ -32,10 +45,10 @@ form button {
     padding: .2em .5em .3em .5em;
     text-align: center;
 }
-.actions a:focus-visible,
-.actions a:hover,
-.actions button:focus-visible,
-.actions button:hover,
+.actions.primary a:focus-visible,
+.actions.primary a:hover,
+.actions.primary button:focus-visible,
+.actions.primary button:hover,
 a.button:focus-visible,
 a.button:hover,
 button.button:focus-visible,
@@ -53,11 +66,11 @@ form button:hover {
 }
 .actions.primary { font-size: 1.2rem; }
 .actions.primary > .more { padding: .2em .35em .3em .35em; }
-.actions > .emphasized {
+.actions.primary > .emphasized {
     background: var(--bg-acc);
     color: var(--fg-acc);
 }
-.actions > .emphasized:hover {
+.actions.primary > .emphasized:hover {
     background: var(--fg-2);
     color: var(--fg-acc);
 }
@@ -366,19 +379,6 @@ img {
 }
 .image svg { height: 100%; }
 .large_type { font-size: 1.4rem; }
-.links {
-    display:flex;
-    flex-direction: column;
-    margin-bottom: 3rem;
-    margin-top: 3rem;
-    row-gap: 1rem;
-}
-.links svg {
-    display: inline-block;
-    margin-right: .1rem;
-    position: relative;
-    top: .2rem;
-}
 #logo { flex-shrink: 0; }
 #logo svg {
     height: 1.4em;
@@ -470,11 +470,13 @@ path.loading_right {
     --page-margin-h: 1rem;
     position: relative;
 }
+.page_100vh { min-height: 100vh; }
+.page_50vh { min-height: 50vh; }
+.page_66vh { min-height: 66.666vh; }
 .page_center {
     align-items: center;
     display: flex;
     justify-content: center;
-    min-height: 66.666vh;
 }
 .page_center > *,
 .page_grid > *,
@@ -486,7 +488,7 @@ path.loading_right {
     align-items: center;
     display: flex;
     justify-content: center;
-    min-height: 66.666vh;
+    min-height: 50vh;
 }
 .page_grid > div {
     display: grid;
@@ -497,7 +499,6 @@ path.loading_right {
     align-items: center;
     display: flex;
     justify-content: center;
-    min-height: 66.666vh;
 }
 pre { margin: 0; }
 .release { width: 14rem; }

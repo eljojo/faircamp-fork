@@ -4,10 +4,6 @@ button.link {
     color: var(--fg-1);
     text-decoration: none;
 }
-a.scroll_target {
-    display: block;
-    height: 0;
-}
 a:hover,
 button.link:hover {
     color: var(--fg-1-focus);

@@ -41,22 +41,21 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     let mut actions = Vec::new();
+    let mut templates = String::new();
 
-    if build.base_url.is_some() && catalog.feed_enabled {
-        let t_feed = &build.locale.translations.feed;
-        let feed_icon = icons::feed(&build.locale.translations.rss_feed);
-
-        let feed_link = format!(r#"
-            <a href="{root_prefix}feed.rss">
-                {feed_icon}
-                <span>{t_feed}</span>
-            </a>
-        "#);
-
-        actions.push(feed_link);
+    let more_icon = icons::more(&build.locale.translations.more);
+    let more_label = match &catalog.more_label {
+        Some(label) => label,
+        None => &build.locale.translations.more
     };
 
-    let mut templates = String::new();
+    let more_link = format!(r##"
+        <a class="more" href="#description">
+            {more_icon} {more_label}
+        </a>
+    "##);
+
+    actions.push(more_link);
 
     if catalog.copy_link {
         let (content_key, content_value) = match &build.base_url {
@@ -85,6 +84,20 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 {success_icon}
             </template>
         "#));
+    };
+
+    if build.base_url.is_some() && catalog.feed_enabled {
+        let t_feed = &build.locale.translations.feed;
+        let feed_icon = icons::feed(&build.locale.translations.rss_feed);
+
+        let feed_link = format!(r#"
+            <a href="{root_prefix}feed.rss">
+                {feed_icon}
+                <span>{t_feed}</span>
+            </a>
+        "#);
+
+        actions.push(feed_link);
     };
 
     for link in &catalog.links {
@@ -160,46 +173,29 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         String::new()
     };
 
-    let grid_icon = icons::grid();
-    let more_icon = icons::more(&build.locale.translations.more);
-    let more_label = match &catalog.more_label {
-        Some(label) => label,
-        None => &build.locale.translations.more
-    };
-    let t_releases = &build.locale.translations.releases;
     let body = formatdoc!(r##"
-        <div class="page" data-overview>
-            <div class="page_split">
+        <div class="page">
+            <div class="page_split page_66vh">
                 {home_image}
                 <div style="max-width: 26rem;">
                     <h1>{title_escaped}</h1>
-                    <div class="actions primary">
-                        <a class="emphasized" href="#releases">
-                            {grid_icon}
-                            {t_releases}
-                        </a>
-                        <a class="more" href="#description">
-                            {more_icon} {more_label}
-                        </a>
-                    </div>
                     {synopsis}
+                    {r_actions}
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="releases"></a>
         <div class="additional page">
-            <div class="page_grid">
+            <div class="page_grid page_50vh">
                 <div>
                     {r_releases}
                 </div>
             </div>
         </div>
         <a class="scroll_target" id="description"></a>
-        <div class="page" data-description>
-            <div class="page_center">
+        <div class="page">
+            <div class="page_center page_50vh">
                 <div style="max-width: 32rem;">
                     <div style="font-size: 1.4rem;">{title_escaped}</div>
-                    {r_actions}
                     {catalog_text}
                 </div>
             </div>

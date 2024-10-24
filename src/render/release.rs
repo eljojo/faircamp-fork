@@ -230,17 +230,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     primary_actions.push(listen_button);
 
-    let list_icon = icons::list();
-    let t_tracks = &build.locale.translations.tracks;
-    let tracks_link = formatdoc!(r##"
-        <a href="#tracks">
-            {list_icon}
-            {t_tracks}
-        </a>
-    "##);
-
-    primary_actions.push(tracks_link.clone());
-    secondary_actions.push(tracks_link);
+    if !download_link.is_empty() {
+        primary_actions.push(download_link);
+    }
 
     let more_label = match &release.more_label {
         Some(label) => label,
@@ -280,10 +272,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         </template>
     "#);
 
-    if !download_link.is_empty() {
-        secondary_actions.push(download_link);
-    }
-
     if release.copy_link {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
@@ -319,20 +307,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         secondary_actions.push(embed_link);
     };
 
-    let r_secondary_actions = if secondary_actions.is_empty() {
-        String::new()
-    } else {
-        let joined = secondary_actions.join("");
-
-        formatdoc!(r#"
-            <div class="actions">
-                {joined}
-            </div>
-        "#)
-    };
-
-    let mut links = Vec::new();
-
     for link in &release.links {
         let external_icon = icons::external(&build.locale.translations.external_link);
 
@@ -349,16 +323,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             "#)
         };
 
-        links.push(r_link);
+        secondary_actions.push(r_link);
     }
 
-    let r_links = if links.is_empty() {
+    let r_secondary_actions = if secondary_actions.is_empty() {
         String::new()
     } else {
-        let joined = links.join("");
+        let joined = secondary_actions.join("");
 
         formatdoc!(r#"
-            <div class="links">
+            <div class="actions">
                 {joined}
             </div>
         "#)
@@ -378,11 +352,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let artists_truncation = Some((80, "#description".to_string()));
     let artists_truncated = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let cover = cover_image(build, index_suffix, "", root_prefix, release);
-
-    let release_year = match release.date {
-        Some(naive_date) => format!("({})", naive_date.year()),
-        None => String::new()
-    };
 
     let synopsis = match &release.synopsis {
         Some(synopsis) => {
@@ -404,19 +373,19 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"
-        <div class="page" data-overview>
-            <div class="page_split">
+        <div class="page">
+            <div class="page_split page_66vh">
                 <div class="cover">{cover}</div>
                 <div style="max-width: 26rem;">
                     <h1>{release_title_with_unlisted_badge}</h1>
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}
+                    {r_secondary_actions}
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="tracks"></a>
-        <div class="additional page" data-tracks>
+        <div class="page">
             <div class="page_center">
                 <div>
                     <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
@@ -425,8 +394,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         </div>
         <a class="scroll_target" id="description"></a>
-        <div class="page" data-description>
-            <div class="page_center">
+        <div class="page">
+            <div class="page_center page_50vh">
                 <div style="max-width: 32rem;">
                     <div class="release_info">
                         <div>
@@ -434,14 +403,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         </div>
                         <div>
                             <div style="font-size: 1.4rem;">
-                                {release_title_escaped} {release_year}
+                                {release_title_escaped}
                             </div>
                             <div class="release_artists">{artists}</div>
                         </div>
                     </div>
-                    {r_secondary_actions}
                     {release_text}
-                    {r_links}
                 </div>
             </div>
         </div>
