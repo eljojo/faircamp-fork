@@ -124,10 +124,8 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let grid_icon = icons::grid();
     let more_icon = icons::more(&build.locale.translations.more);
-    let scroll_icon = icons::scroll();
     let t_more = &build.locale.translations.more;
     let t_releases = &build.locale.translations.releases;
-    let t_top = &build.locale.translations.top;
     let body = formatdoc!(r##"
         <div class="page" data-overview>
             <div class="page_split">
@@ -164,14 +162,6 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                     {artist_text}
                 </div>
             </div>
-        </div>
-        <div class="scroll_hints">
-            <a class="up" href="#">
-                {scroll_icon} {t_top}
-            </a>
-            <a class="down" href="#description">
-                <span>{scroll_icon}</span> {t_more}
-            </a>
         </div>
         {templates}
     "##);

@@ -342,11 +342,9 @@ pub fn track_html(
         None => String::new()
     };
 
-    let scroll_icon = icons::scroll();
     let volume_icon = icons::volume(&build.locale.translations.volume); // TODO: Dynamically alternate between "Mute" / "Unmute" (?)
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
-    let t_top = &build.locale.translations.top;
     let body = formatdoc!(r##"
         <div class="page" data-overview>
             <div class="page_split">
@@ -385,14 +383,6 @@ pub fn track_html(
                     {r_links}
                 </div>
             </div>
-        </div>
-        <div class="scroll_hints">
-            <a class="up" href="#">
-                {scroll_icon} {t_top}
-            </a>
-            <a class="down" href="#description">
-                <span>{scroll_icon}</span> {t_more}
-            </a>
         </div>
         <div class="docked_player">
             <div class="timeline">

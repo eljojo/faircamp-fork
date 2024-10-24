@@ -77,7 +77,6 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
         releases: untranslated!(releases),
         rss_feed: String::from("RSS Feed"),
         this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
-        top: untranslated!(top),
         tracks: untranslated!(tracks),
         unlisted: untranslated!(unlisted),
         unlock: String::from("Ontsluiten"),

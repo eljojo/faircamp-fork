@@ -76,7 +76,6 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
         releases: String::from("Musiksläpp"),
         rss_feed: String::from("RSS-flöde"),
         this_site_was_created_with_faircamp: String::from("Denna hemsida skapades med {faircamp_link}"),
-        top: String::from("Topp"),
         tracks: String::from("Spår"),
         unlisted: String::from("Olistade"),
         unlock: String::from("Lås upp"),

@@ -76,7 +76,6 @@ pub fn translations() -> Translations {
         releases: String::from("Випуски"),
         rss_feed: String::from("RSS-стрічка"),
         this_site_was_created_with_faircamp: String::from("Сайт створено за допомогою {faircamp_link}"),
-        top: String::from("Угору"),
         tracks: String::from("Доріжки"),
         unlisted: String::from("Поза списком"),
         unlock: String::from("Розблокувати"),

@@ -61,7 +61,6 @@ pub fn translations() -> Translations {
         releases: String::from("משחרר"),
         rss_feed: String::from("הזנת RSS"),
         this_site_was_created_with_faircamp: String::from("אתר זה נוצר עם {faircamp_link}"),
-        top: String::from("רֹאשׁ"),
         tracks: String::from("מסלולים"),
         unlisted: String::from("לא רשום"),
         unlock: String::from("לִפְתוֹחַ"),

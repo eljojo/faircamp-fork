@@ -75,7 +75,6 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
         releases: String::from("Uscite"),
         rss_feed: String::from("Feed RSS"),
         this_site_was_created_with_faircamp: String::from("Questo sito è stato creato con {faircamp_link}"),
-        top: String::from("Torna in alto"),
         tracks: String::from("Tracce"),
         unlisted: String::from("Non elencato"),
         unlock: String::from("Sblocca"),

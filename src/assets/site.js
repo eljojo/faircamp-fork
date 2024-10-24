@@ -853,45 +853,4 @@ window.addEventListener('DOMContentLoaded', event => {
             button.remove();
         }
     }
-
-    const intersections = {};
-    const descriptionHint = document.querySelector('.scroll_hints a[href="#description"]');
-    const overviewHint = document.querySelector('.scroll_hints a[href="#"]');
-
-    const updateScrollHints = () => {
-        if (descriptionHint) {
-            descriptionHint.classList.toggle('active', !intersections.overview && !intersections.description);
-        }
-        if (overviewHint) {
-            overviewHint.classList.toggle('active', !intersections.overview);
-        }
-    };
-
-    if (descriptionHint) {
-        const description = document.querySelector('.page[data-description]');
-        const observer = new IntersectionObserver(entries => {
-            for (const entry of entries) {
-                if (entry.target === description) {
-                    intersections.description = entry.intersectionRatio >= 0.3;
-                    updateScrollHints();
-                }
-            }
-        }, { threshold: 0.3 });
-
-        observer.observe(description);
-    }
-
-    if (overviewHint) {
-        const overview = document.querySelector('.page[data-overview]');
-        const observer = new IntersectionObserver(entries => {
-            for (const entry of entries) {
-                if (entry.target === overview) {
-                    intersections.overview = entry.intersectionRatio >= 0.7;
-                    updateScrollHints();
-                }
-            }
-        }, { threshold: 0.7 });
-
-        observer.observe(overview);
-    }
 });

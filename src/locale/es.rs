@@ -76,7 +76,6 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
         releases: untranslated!(releases),
         rss_feed: String::from("Feed RSS"),
         this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
-        top: untranslated!(top),
         tracks: untranslated!(tracks),
         unlisted: untranslated!(unlisted),
         unlock: String::from("Desbloquear"),

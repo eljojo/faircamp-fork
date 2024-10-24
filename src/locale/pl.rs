@@ -77,7 +77,6 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
         releases: untranslated!(releases),
         rss_feed: String::from("Źródło RSS"),
         this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
-        top: untranslated!(top),
         tracks: untranslated!(tracks),
         unlisted: untranslated!(unlisted),
         unlock: String::from("Odblokuj"),

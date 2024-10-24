@@ -77,7 +77,6 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         releases: String::from("Albümler"),
         rss_feed: String::from("RSS Kaynağı"),
         this_site_was_created_with_faircamp: String::from("Bu sayfa {faircamp_link} ile oluşturulmuştur"),
-        top: String::from("En Üst"),
         tracks: String::from("Şarkılar"),
         unlisted: String::from("Yayınlanmamış"),
         unlock: String::from("Kilidi aç"),

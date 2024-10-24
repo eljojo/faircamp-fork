@@ -538,27 +538,6 @@ pre { margin: 0; }
     margin-bottom: 3rem;
     margin-top: 3rem;
 }
-.scroll_hints {
-    bottom: 5rem;
-    position: fixed;
-    right: 2rem;
-}
-.scroll_hints > :first-child { margin-bottom: .5rem; }
-.scroll_hints > a {
-    align-items: center;
-    color: var(--bg-mg);
-    column-gap: .3rem;
-    display: flex;
-    padding: .5rem;
-    transition: opacity 200ms ease;
-}
-.scroll_hints > a:not(.active) {
-    opacity: 0;
-    pointer-events: none;
-}
-.scroll_hints > a:hover { color: var(--fg-mg); }
-.scroll_hints svg { font-size: 1.2rem; }
-.scroll_hints > a.up svg { transform: rotate(180deg); }
 svg {
     display: block;
     fill: currentColor;
@@ -816,7 +795,6 @@ input[type="text"].disabled,
 @media (max-width: 49.999rem) {
     .page_split { flex-direction: column; }
     .page_split > :last-child:not(:first-child) { margin-top: 0; }
-    .scroll_hints { display: none; }
 }
 @media (min-width: 50rem) {
     .page { --page-margin-h: calc(1rem + (100vw - 50rem) * 0.4); } /* Between 50-55rem viewport width, --page-margin-h goes from 1-3rem */
