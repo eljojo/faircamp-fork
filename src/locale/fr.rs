@@ -60,6 +60,7 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
         image_descriptions_permalink: String::from("descriptions-des-images"),
         listen: untranslated!(listen),
         loading: untranslated!(loading),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("J'ai effectué ou organisé le paiement"),
         missing_image_description_note: String::from("Description de l'image manquante<br>Cliquez pour en savoir plus"),
         more: String::from("Plus"),

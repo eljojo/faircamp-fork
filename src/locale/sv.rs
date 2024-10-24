@@ -58,6 +58,7 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
         image_descriptions_permalink: String::from("bildbeskrivningar"),
         listen: String::from("Lyssna"),
         loading: String::from("Laddar"),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("Jag har genomfört eller påbörjat betalningen"),
         missing_image_description_note: String::from("Bildbeskrivning saknas<br>Klicka för att lära dig mer"),
         more: String::from("Mer"),

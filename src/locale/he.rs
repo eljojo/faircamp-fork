@@ -43,6 +43,7 @@ pub fn translations() -> Translations {
         image_descriptions_permalink: untranslated!(image_descriptions_permalink),
         listen: String::from("לְהַקְשִׁיב"),
         loading: untranslated!(loading),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: untranslated!(made_or_arranged_payment),
         missing_image_description_note: untranslated!(missing_image_description_note),
         more: String::from("יוֹתֵר"),

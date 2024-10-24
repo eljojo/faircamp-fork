@@ -59,6 +59,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
         image_descriptions_permalink: String::from("bildbeschreibungen"),
         listen: String::from("Anhören"),
         loading: String::from("Lädt"),
+        m3u_playlist: String::from("M3U Playlist"),
         made_or_arranged_payment: String::from("Ich habe die Bezahlung durchgeführt oder arrangiert"),
         missing_image_description_note: String::from("Fehlende Bildbeschreibung<br>Klick für mehr Info"),
         more: String::from("Mehr"),

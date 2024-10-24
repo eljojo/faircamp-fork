@@ -59,6 +59,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         image_descriptions_permalink: String::from("goruntu-aciklamalari"),
         listen: String::from("Dinle"),
         loading: String::from("Yükleniyor"),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("Ödemeyi yaptım ya da ayarladım"),
         missing_image_description_note: String::from("Görüntü açıklaması eksik<br>Daha fazla öğrenmek için tıklayın"),
         more: String::from("Daha fazla"),

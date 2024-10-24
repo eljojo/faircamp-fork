@@ -214,6 +214,10 @@ impl CoverAssets {
         ImgAttributes::new_for_cover(assets, prefix)
     }
 
+    pub fn is_stale(&self) -> bool {
+        self.marked_stale.is_some()
+    }
+
     pub fn largest(&self) -> &CoverAsset {
         if let Some(max_1280) = &self.max_1280 {
             max_1280
@@ -234,8 +238,17 @@ impl CoverAssets {
         }
     }
 
-    pub fn is_stale(&self) -> bool {
-        self.marked_stale.is_some()
+    pub fn playlist_image(&self) -> String {
+        let cover_asset = match &self.max_480 {
+            Some(max_480) => max_480,
+            None => match &self.max_320 {
+                Some(max_320) => max_320,
+                None => &self.max_160
+            }
+        };
+        let edge_size = cover_asset.edge_size;
+
+        format!("cover_{edge_size}.jpg")
     }
 
     pub fn unmark_stale(&mut self) {

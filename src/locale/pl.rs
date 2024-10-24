@@ -59,6 +59,7 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
         image_descriptions_permalink: String::from("opisy-obrazkow"),
         listen: untranslated!(listen),
         loading: untranslated!(loading),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("Zrobiłem albo ustawiłem zapłatę"),
         missing_image_description_note: String::from("Brakujący opis obrazka<br>Kliknij by dowiedzieć się więcej"),
         more: untranslated!(more),

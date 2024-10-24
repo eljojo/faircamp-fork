@@ -59,6 +59,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         image_descriptions_permalink: String::from("image-descriptions"),
         listen: untranslated!(listen),
         loading: untranslated!(loading),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("Jeg har utført eller ordnet med betaling"),
         missing_image_description_note: String::from("Manglende bildebeskrivelse<br>Klikk for å lære mer"),
         more: String::from("Mer"),

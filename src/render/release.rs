@@ -293,6 +293,20 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         "#));
     }
 
+    if build.base_url.is_some() {
+        let t_m3u_playlist = &build.locale.translations.m3u_playlist;
+        let stream_icon = icons::stream();
+
+        let m3u_playlist_link = formatdoc!(r#"
+            <a href="playlist.m3u">
+                {stream_icon}
+                <span>{t_m3u_playlist}</span>
+            </a>
+        "#);
+
+        secondary_actions.push(m3u_playlist_link);
+    }
+
     if release.embedding && build.base_url.is_some() {
         let t_embed = &build.locale.translations.embed;
         let embed_icon = icons::embed(t_embed);

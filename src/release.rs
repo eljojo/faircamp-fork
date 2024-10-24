@@ -4,6 +4,7 @@
 
 use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashSet;
+use std::fs;
 use std::fs::File;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::prelude::*;
@@ -31,6 +32,7 @@ use crate::{
     FileMeta,
     HtmlAndStripped,
     Link,
+    m3u,
     PaymentOption,
     Permalink,
     render,
@@ -627,8 +629,13 @@ impl Release {
         let release_html = render::release::release_html(build, catalog, self);
         util::ensure_dir_and_write_index(&release_dir, &release_html);
 
-        if self.embedding  {
-            if let Some(base_url) = &build.base_url {
+        if let Some(base_url) = &build.base_url {
+            // Render m3u playlist
+            let r_m3u = m3u::generate(base_url, build, self);
+            fs::write(release_dir.join("playlist.m3u"), r_m3u).unwrap();
+
+            // Render embed pages
+            if self.embedding  {
                 let embed_choices_dir = release_dir.join("embed");
                 let embed_choices_html = render::release::embed::embed_choices_html(build, catalog, self, base_url);
                 util::ensure_dir_and_write_index(&embed_choices_dir, &embed_choices_html);

@@ -31,6 +31,7 @@ mod image;
 mod image_processor;
 mod link;
 mod locale;
+mod m3u;
 mod manifest;
 mod markdown;
 mod payment_option;

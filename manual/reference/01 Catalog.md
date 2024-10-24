@@ -126,7 +126,7 @@ about your catalog in any length and detail you like.
 
 ## General settings
 
-To enable embeds and RSS feed generation you have to set `base_url`. The value
+To enable embeds, M3U playlists and RSS feed generation you have to set `base_url`. The value
 of `title` appears in multiple places on the site, inside the RSS Feed, etc.. The `home_image` is an
 image that will be displayed on the homepage, e.g. a logo for your label or a
 band photo or such. A custom `favicon` can be set, this currently only

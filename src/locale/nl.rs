@@ -59,6 +59,7 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
         image_descriptions_permalink: String::from("afbeeldingsomschrijvingen"),
         listen: untranslated!(listen),
         loading: untranslated!(loading),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("Ik heb de betaling gedaan of geregeld"),
         missing_image_description_note: String::from("Ontbrekende afbeeldingsomschrijving<br>Klik om meer te leren"),
         more: String::from("Meer"),

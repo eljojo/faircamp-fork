@@ -59,6 +59,7 @@ Here are some tips for writing good image descriptions:<br>\
         image_descriptions_permalink: String::from("image-descriptions"),
         listen: String::from("Listen"),
         loading: String::from("Loading"),
+        m3u_playlist: String::from("M3U Playlist"),
         made_or_arranged_payment: String::from("I have made or arranged the payment"),
         missing_image_description_note: String::from("Missing image description<br>Click to learn more"),
         more: String::from("More"),

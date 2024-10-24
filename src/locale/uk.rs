@@ -58,6 +58,7 @@ pub fn translations() -> Translations {
         image_descriptions_permalink: String::from("image-descriptions"),
         listen: String::from("Прослухати"),
         loading: String::from("Завантаження"),
+        m3u_playlist: untranslated!(m3u_playlist),
         made_or_arranged_payment: String::from("Платіж здійснено"),
         missing_image_description_note: String::from("Бракує опису картинки<br>Натисніть, щоб дізнатися більше"),
         more: String::from("Більше"),
