@@ -16,6 +16,7 @@ use crate::icons;
 use crate::render::{
     copy_button,
     cover_image,
+    cover_image_micro,
     layout,
     list_track_artists,
     player_icon_templates,
@@ -128,14 +129,6 @@ pub fn track_html(
     let track_title_escaped = html_escape_outside_attribute(&track_title);
     let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
 
-    let (copy_track_key, copy_track_value) = match &build.base_url {
-        Some(base_url) => {
-            let url = base_url.join(&format!("{}/{track_number}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
-            ("content", url)
-        }
-        None => ("dynamic-url", format!("{track_number}{index_suffix}"))
-    };
-
     let compact;
     let r_waveform;
     if release.theme.waveforms {
@@ -154,30 +147,36 @@ pub fn track_html(
         r_waveform = String::new();
     };
 
-    let copy_track_icon = icons::copy(Some(&build.locale.translations.copy_link_to_track));
+    let r_cover_micro = cover_image_micro("../", release);
+    let r_more = if track.text.is_some() {
+        format!(r#"<a href="">More</a>&nbsp;&nbsp;"#)
+    } else {
+        String::new()
+    };
+
     let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(&build.locale.translations.play);
-    let track_rendered = formatdoc!(r#"
-        <div class="{compact} track" data-duration="{duration_seconds}">
-            <span class="track_header">
-                <span class="title" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
-                <span class="time">{track_duration_formatted}</span>
-                <button class="more_button" tabindex="-1">
-                    {more_icon}
-                </button>
-                <div class="more">
-                    <button class="track_playback">
-                        {play_icon}
-                    </button>
-                    <button data-{copy_track_key}="{copy_track_value}" data-copy-track>
-                        {copy_track_icon}
-                    </button>
+    let r_track = formatdoc!(r#"
+        <div class="track" data-duration="{duration_seconds}">
+            <button class="track_playback">
+                <span class="icon">
+                    {play_icon}
+                </span>
+                {r_cover_micro}
+            </button>
+            <div>
+                <div>
+                    <span class="title" href="{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
                 </div>
+                {r_waveform}
+            </div>
             </span>
+            <div>
+                {r_more} <span class="time">{track_duration_formatted}</span>
+            </div>
             <audio controls preload="none">
                 {audio_sources}
             </audio>
-            {r_waveform}
         </div>
     "#);
 
@@ -209,9 +208,6 @@ pub fn track_html(
     let failed_icon = icons::failure(&build.locale.translations.failed);
     let success_icon = icons::success(&build.locale.translations.copied);
     let mut templates = format!(r#"
-        <template id="copy_track_icon">
-            {copy_track_icon}
-        </template>
         <template id="failed_icon">
             {failed_icon}
         </template>>
@@ -268,20 +264,6 @@ pub fn track_html(
         secondary_actions.push(embed_link);
     }
 
-    let r_secondary_actions = if secondary_actions.is_empty() {
-        String::new()
-    } else {
-        let joined = secondary_actions.join("");
-
-        formatdoc!(r#"
-            <div class="actions">
-                {joined}
-            </div>
-        "#)
-    };
-
-    let mut links = Vec::new();
-
     // TODO: Get these from track (respectively think through if/how we want that implemented)
     for link in &release.links {
         let external_icon = icons::external(&build.locale.translations.external_link);
@@ -299,16 +281,16 @@ pub fn track_html(
             "#)
         };
 
-        links.push(r_link);
+        secondary_actions.push(r_link);
     }
 
-    let r_links = if links.is_empty() {
+    let r_secondary_actions = if secondary_actions.is_empty() {
         String::new()
     } else {
-        let joined = links.join("");
+        let joined = secondary_actions.join("");
 
         formatdoc!(r#"
-            <div class="links">
+            <div class="actions">
                 {joined}
             </div>
         "#)
@@ -347,7 +329,7 @@ pub fn track_html(
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_66vh">
+            <div class="page_split page_60vh">
                 <div class="cover">{cover}</div>
                 <div style="max-width: 26rem;">
                     <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->
@@ -358,10 +340,10 @@ pub fn track_html(
                 </div>
             </div>
         </div>
-        <div class="additional page">
+        <div class="page">
             <div class="page_center">
-                <div {relative_waveforms} data-longest-duration="{track_duration}">
-                    {track_rendered}
+                <div class="{compact} tracks" data-longest-duration="{track_duration}" {relative_waveforms}>
+                    {r_track}
                 </div>
             </div>
         </div>
@@ -378,7 +360,6 @@ pub fn track_html(
                         </div>
                     </div>
                     {track_text}
-                    {r_links}
                 </div>
             </div>
         </div>

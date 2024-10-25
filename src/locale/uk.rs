@@ -21,7 +21,6 @@ pub fn translations() -> Translations {
         copied: String::from("Скопійовано"),
         copy: String::from("Копіювати"),
         copy_link: String::from("Копіювати посилання"),
-        copy_link_to_track: String::from("Копіювати посилання на доріжку"),
         confirm: String::from("Підтвердити"),
         r#continue: String::from("Далі"),
         cover_image: String::from("Зображення обкладинки"),

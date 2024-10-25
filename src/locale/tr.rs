@@ -21,7 +21,6 @@ pub fn translations() -> Translations {
         copied: String::from("Kopyalandı"),
         copy: String::from("Kopyala"),
         copy_link: String::from("Bağlantıyı kopyala"),
-        copy_link_to_track: String::from("Şarkı bağlantısını kopyala"),
         confirm: String::from("Onayla"),
         r#continue: String::from("Devam et"),
         cover_image: String::from("Albüm Kapağı"),

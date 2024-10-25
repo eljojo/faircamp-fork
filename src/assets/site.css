@@ -472,7 +472,7 @@ path.loading_right {
 }
 .page_100vh { min-height: 100vh; }
 .page_50vh { min-height: 50vh; }
-.page_66vh { min-height: 66.666vh; }
+.page_60vh { min-height: 60vh; }
 .page_center {
     align-items: center;
     display: flex;
@@ -567,80 +567,63 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .text ul { list-style: circle; }
 .track {
-    height: 3.5rem;
-    padding-top: .4rem;
-    position: relative;
-}
-.track.compact { height: 1.5rem; }
-.track:focus-within .more,
-.track:hover .more,
-.track.active .more {
+    align-items: center;
+    column-gap: 1rem;
     display: flex;
 }
-.track:focus-within .more_button,
-.track.active .more_button {
-    height: 0;
-    margin-left: 0;
-    width: 0;
+.track:not(:first-child) { margin-top: 1rem; }
+.track .artists a { color: var(--fg-3); }
+.track .artists a:hover { color: var(--fg-3-focus); }
+.track button { padding: 0; }
+.track > :nth-child(2) {
+    flex-grow: 1;
+    overflow-x: hidden;
 }
-@media (any-hover: none) {
-    /* In chromium based browsers, on a pointer-less device, when doing a touch on the
-       .more_button element, any focus or click states are preceded by a hover state
-       on the .more_button, which displaces/hides the .more_button if we just
-       use ".track:hover .more_button" before any focus or click state could occur.
-       This then leads to the focus/click happening on the element that "replaces"
-       it spatially - e.g. the playback button. Hence we patch this with an exception. */
-    .track:hover .more_button:not(:hover) {
-        height: 0;
-        margin-left: 0;
-        width: 0;
-    }
+.track .number {
+    color: var(--fg-3);
+    margin-right: .2rem;
 }
-@media (any-hover: hover) {
-    .track:hover .more_button {
-        height: 0;
-        margin-left: 0;
-        width: 0;
-    }
-}
-.track.active .duration,
-.track.active .number.outer {
-    color: var(--fg-1);
-}
-.track button {
-    color: var(--fg-1);
-    padding: 0;
-}
-.track button:focus-visible,
-.track button:hover {
-    color: var(--fg-1-focus);
-}
-.track .more {
+.track .time { margin-left: .2rem; }
+.track .track_playback {
     align-items: center;
-    column-gap: .4rem;
-    display: none;
-    margin-left: .4rem;
-}
-.track .more svg {
+    background: var(--bg-1-overlay);
+    border-radius: .3rem;
+    color: var(--bg-2);
+    display: flex;
+    flex-shrink: 0;
+    font-size: 1.3rem;
+    height: 3rem;
+    justify-content: center;
     position: relative;
-    top: .15rem;
+    width: 3rem;
 }
-.track .more_button {
-    margin-left: .4rem;
-    overflow: hidden;
+.track .track_playback:focus-visible,
+.track .track_playback:hover {
+    background: var(--bg-2-overlay);
+    color: var(--fg-1);
 }
-.track .number { color: var(--fg-3); }
-.track .number.inner { padding-right: .3rem; }
-.track .number.outer {
-    padding-right: .5rem;
-    pointer-events: none;
+.track.active .track_playback {
+    background: var(--bg-acc-overlay);
+    color: var(--fg-acc);
+}
+.track.active .track_playback:focus-visible,
+.track.active .track_playback:hover {
+    background: var(--mg-acc-overlay);
+}
+.track .track_playback .cover_placeholder { background: var(--mg); }
+.track .track_playback .cover_placeholder,
+.track .track_playback img {
+    border-radius: .3rem;
+    bottom: 0;
+    left: 0;
+    opacity: .5;
     position: absolute;
-    right: calc(100%);
-    text-align: right;
+    right: 0;
+    top: 0;
+    z-index: -1;
 }
-.track .time { margin-left: .4rem; }
+.track .track_playback svg { display: block; }
 .track_download_option { position: relative; }
-.track_header { display: flex; }
 .docked_player .number,
 .docked_player .time,
 .track .time {
@@ -651,13 +634,23 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track .title {
     color: var(--fg-1);
     flex-shrink: 1;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 .track .title:focus-visible,
 .track .title:hover {
     color: var(--fg-1-focus);
+}
+.tracks { flex-grow: 1; }
+.tracks.compact .track { column-gap: .5rem; }
+.tracks.compact .track:not(:first-child) { margin-top: .5rem; }
+.tracks.compact .track_playback {
+    border-radius: .15rem;
+    font-size: .9rem;
+    height: 1.8rem;
+    width: 1.8rem;
+}
+.tracks.tall .track_playback {
+    height: 3.6rem;
+    width: 3.6rem;
 }
 input[type="number"],
 input[type="text"] {
@@ -714,7 +707,7 @@ input[type="text"].disabled,
 }
 .waveform {
     cursor: pointer;
-    margin-top: .5rem;
+    margin-top: .3rem;
     position: relative;
     width: max-content;
 }
@@ -770,9 +763,6 @@ input[type="text"].disabled,
 .js_enabled .unlock_manual { display: none; }
 .js_enabled .unlock_scripted { display: unset; }
 .js_enabled .payment.active { display: unset; }
-@media (max-width: 29.999rem) {
-    .track .number.outer { display: none; }
-}
 @media (min-width: 30rem) {
     .docked_player { font-size: 1.14rem;  }
     header {
@@ -784,7 +774,6 @@ input[type="text"].disabled,
         padding-left: 0;
         padding-right: 0;
     }
-    .track .number.inner { display: none; }
 }
 @media (min-width: 40rem) {
     .page_grid > div { grid-template-columns: 1fr 1fr; }
@@ -800,6 +789,7 @@ input[type="text"].disabled,
 @media (min-width: 50rem) {
     .page { --page-margin-h: calc(1rem + (100vw - 50rem) * 0.4); } /* Between 50-55rem viewport width, --page-margin-h goes from 1-3rem */
     .page_split > :last-child:not(:first-child) { margin-left: 0; }
+    .tracks { max-width: 49rem; }
 }
 @media (min-width: 55rem) {
     .page { --page-margin-h: 3rem; }

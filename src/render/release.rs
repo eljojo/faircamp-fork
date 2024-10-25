@@ -14,6 +14,7 @@ use crate::{
 use crate::render::{
     copy_button,
     cover_image,
+    cover_image_micro,
     cover_image_tiny,
     layout,
     list_release_artists,
@@ -102,13 +103,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let t_play = &build.locale.translations.play;
 
-    let copy_track_icon = icons::copy(Some(&build.locale.translations.copy_link_to_track));
     let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(t_play);
 
     let varying_track_artists = release.varying_track_artists();
 
-    let tracks_rendered = release.tracks
+    let r_tracks = release.tracks
         .iter()
         .enumerate()
         .map(|(index, track)| {
@@ -149,66 +149,58 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let track_title_escaped = html_escape_outside_attribute(&track_title);
             let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
 
-            let (copy_track_key, copy_track_value) = match &build.base_url {
-                Some(base_url) => {
-                    let url = base_url.join(&format!("{}/{track_number}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
-                    ("content", url)
-                }
-                None => ("dynamic-url", format!("{track_number}{index_suffix}"))
-            };
-
-            let compact;
-            let r_waveform;
-            if release.theme.waveforms {
+            let r_waveform = if release.theme.waveforms {
                 let waveform_svg = waveform(track);
 
-                compact = "";
-                r_waveform = formatdoc!(r#"
+                formatdoc!(r#"
                     <div class="waveform">
                         {waveform_svg}
                         <input aria-valuetext="" autocomplete="off" max="{duration_seconds}" min="0" step="any" type="range" value="0">
                         <div class="decoration"></div>
                     </div>
-                "#);
+                "#)
             } else {
-                compact = "compact";
-                r_waveform = String::new();
+                String::new()
             };
 
             let track_artists = match varying_track_artists {
                 true => {
                     let artists_truncation = Some((80, format!("{track_number}/")));
                     let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
-                    format!(r#"&nbsp;&nbsp;/&nbsp;&nbsp;<span class="artists">{artists_truncated}</span>"#)
+                    format!(r#"<div class="artists">{artists_truncated}</div>"#)
                 }
                 false => String::new()
             };
 
+            let r_cover_micro = cover_image_micro("", release);
+            let r_more = if track.text.is_some() {
+                format!(r#"<a href="">More</a>&nbsp;&nbsp;"#)
+            } else {
+                String::new()
+            };
+
             formatdoc!(r#"
-                <div class="{compact} track" data-duration="{duration_seconds}">
-                    <span class="number outer">{track_number_formatted}</span>
-                    <div class="track_header">
-                        <span class="number inner">{track_number_formatted}</span>
-                        <span>
-                            <a class="title" href="{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</a>{track_artists}
+                <div class="track" data-duration="{duration_seconds}">
+                    <button class="track_playback">
+                        <span class="icon">
+                            {play_icon}
                         </span>
-                        <span class="time">{track_duration_formatted}</span>
-                        <button class="more_button" tabindex="-1">
-                            {more_icon}
-                        </button>
-                        <div class="more">
-                            <button class="track_playback">
-                                {play_icon}
-                            </button>
-                            <button data-{copy_track_key}="{copy_track_value}" data-copy-track>
-                                {copy_track_icon}
-                            </button>
+                        {r_cover_micro}
+                    </button>
+                    <div>
+                        <div>
+                            <span class="number">{track_number_formatted}</span>
+                            <a class="title" href="{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
                         </div>
+                        {track_artists}
+                        {r_waveform}
+                    </div>
+                    <div>
+                        {r_more} <span class="time">{track_duration_formatted}</span>
                     </div>
                     <audio controls preload="none">
                         {audio_sources}
                     </audio>
-                    {r_waveform}
                 </div>
             "#)
         })
@@ -261,9 +253,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let failed_icon = icons::failure(&build.locale.translations.failed);
     let success_icon = icons::success(&build.locale.translations.copied);
     let mut templates = format!(r#"
-        <template id="copy_track_icon">
-            {copy_track_icon}
-        </template>
         <template id="failed_icon">
             {failed_icon}
         </template>
@@ -382,13 +371,19 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let tiny_cover = cover_image_tiny("", release, ""); // TODO: Should not be linked
 
+    let compact_tall = match (release.theme.waveforms, varying_track_artists) {
+        (true, true) => "tall",
+        (true, false) | (false, true) => "",
+        (false, false) => "compact"
+    };
+
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let volume_icon = icons::volume(&build.locale.translations.volume); // TODO: Dynamically alternate between "Mute" / "Unmute" (?)
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_66vh">
+            <div class="page_split page_60vh">
                 <div class="cover">{cover}</div>
                 <div style="max-width: 26rem;">
                     <h1>{release_title_with_unlisted_badge}</h1>
@@ -401,9 +396,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         </div>
         <div class="page">
             <div class="page_center">
-                <div>
-                    <div {relative_waveforms}data-longest-duration="{longest_track_duration}"></div>
-                    {tracks_rendered}
+                <div class="{compact_tall} tracks" data-longest-duration="{longest_track_duration}" {relative_waveforms}>
+                    {r_tracks}
                 </div>
             </div>
         </div>

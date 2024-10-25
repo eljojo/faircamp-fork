@@ -22,7 +22,6 @@ pub fn translations() -> Translations {
         copied: String::from("Kopierad"),
         copy: String::from("Kopiera"),
         copy_link: String::from("Kopiera länk"),
-        copy_link_to_track: String::from("Kopiera länk till spår"),
         confirm: String::from("Bekräfta"),
         r#continue: String::from("Fortsätt"),
         cover_image: String::from("Omslagsbild"),

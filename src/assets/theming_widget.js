@@ -207,6 +207,7 @@ function updateCssVariables() {
     set('--bg-2-overlay', oklch(background2Lightness, baseChroma * chromaAttenuator(background2Lightness), baseHue, 80));
     set('--bg-3', oklch(background3Lightness, baseChroma * chromaAttenuator(background3Lightness), baseHue));
     set('--bg-acc', oklch(backgroundAccentLightness, accentChroma !== null ? accentChroma : baseChroma * chromaAttenuator(backgroundAccentLightness), accentHue ?? baseHue));
+    set('--bg-acc-overlay', oklch(backgroundAccentLightness, accentChroma !== null ? accentChroma : baseChroma * chromaAttenuator(backgroundAccentLightness), accentHue ?? baseHue, 80));
     set('--bg-mg', oklch(backgroundMiddlegroundLightness, baseChroma * chromaAttenuator(backgroundMiddlegroundLightness), baseHue));
     set('--fg-1', oklch(foreground1Lightness, baseChroma * chromaAttenuator(foreground1Lightness), baseHue));
     set('--fg-1-focus', `var(${foreground1FocusVariable})`);
@@ -218,6 +219,7 @@ function updateCssVariables() {
     set('--fg-mg', oklch(foregroundMiddlegroundLightness, baseChroma * chromaAttenuator(foregroundMiddlegroundLightness), baseHue));
     set('--mg', oklch(middlegroundLightness, baseChroma * chromaAttenuator(middlegroundLightness), baseHue));
     set('--mg-acc', oklch(middlegroundAccentLightness, accentChroma !== null ? accentChroma : baseChroma * chromaAttenuator(middlegroundAccentLightness), accentHue ?? baseHue));
+    set('--mg-acc-overlay', oklch(middlegroundAccentLightness, accentChroma !== null ? accentChroma : baseChroma * chromaAttenuator(middlegroundAccentLightness), accentHue ?? baseHue, 80));
 
     set('--fg-1-theming-widget', oklch(foreground1Lightness, 0, 0));
     set('--fg-2-theming-widget', oklch(foreground2Lightness, 0, 0));

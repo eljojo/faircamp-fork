@@ -224,6 +224,19 @@ fn cover_image(
     }
 }
 
+fn cover_image_micro(release_prefix: &str, release: &Release) -> String {
+    match &release.cover {
+        Some(described_image) => {
+            let image_ref = described_image.image.borrow();
+            let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+            let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
+
+            format!(r#"<img src="{src}">"#)
+        }
+        None => String::from(r#"<span class="cover_placeholder"></span>"#)
+    }
+}
+
 fn cover_tile_image(
     build: &Build,
     index_suffix: &str,

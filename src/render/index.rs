@@ -175,7 +175,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_66vh">
+            <div class="page_split page_60vh">
                 {home_image}
                 <div style="max-width: 26rem;">
                     <h1>{title_escaped}</h1>

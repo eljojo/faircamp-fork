@@ -21,7 +21,6 @@ pub fn translations() -> Translations {
         copied: untranslated!(copied),
         copy: String::from("לְהַעְתִיק"),
         copy_link: String::from("העתק קישור"),
-        copy_link_to_track: untranslated!(copy_link_to_track),
         confirm: untranslated!(confirm),
         r#continue: untranslated!(r#continue),
         cover_image: untranslated!(cover_image),

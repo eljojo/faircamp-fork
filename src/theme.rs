@@ -151,6 +151,7 @@ impl Theme {
         let bg_2_overlay = oklcha(background_2_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_2_lightness), self.base_hue, 80.0);
         let bg_3 = oklch(background_3_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_3_lightness), self.base_hue);
         let bg_acc = oklch(background_accent_lightness, self.accent_chroma.map(|chroma| chroma as f32).unwrap_or(self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_accent_lightness)), self.accent_hue.unwrap_or(self.base_hue));
+        let bg_acc_overlay = oklcha(background_accent_lightness, self.accent_chroma.map(|chroma| chroma as f32).unwrap_or(self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_accent_lightness)), self.accent_hue.unwrap_or(self.base_hue), 80.0);
         let bg_mg = oklch(background_middleground_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_middleground_lightness), self.base_hue);
         let fg_1 = oklch(foreground_1_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(foreground_1_lightness), self.base_hue);
         let fg_1_focus = format!("var({})", self.base.vars().foreground_1_focus_variable);
@@ -162,6 +163,7 @@ impl Theme {
         let fg_mg = oklch(foreground_middleground_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(foreground_middleground_lightness), self.base_hue);
         let mg = oklch(middleground_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(middleground_lightness), self.base_hue);
         let mg_acc = oklch(middleground_accent_lightness, self.accent_chroma.map(|chroma| chroma as f32).unwrap_or(self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(middleground_accent_lightness)), self.accent_hue.unwrap_or(self.base_hue));
+        let mg_acc_overlay = oklcha(middleground_accent_lightness, self.accent_chroma.map(|chroma| chroma as f32).unwrap_or(self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(middleground_accent_lightness)), self.accent_hue.unwrap_or(self.base_hue), 80.0);
 
         formatdoc!(r#"
             :root {{
@@ -172,6 +174,7 @@ impl Theme {
                 --bg-2-overlay: {bg_2_overlay};
                 --bg-3: {bg_3};
                 --bg-acc: {bg_acc};
+                --bg-acc-overlay: {bg_acc_overlay};
                 --bg-mg: {bg_mg};
                 --fg-1: {fg_1};
                 --fg-1-focus: {fg_1_focus};
@@ -183,6 +186,7 @@ impl Theme {
                 --fg-mg: {fg_mg};
                 --mg: {mg};
                 --mg-acc: {mg_acc};
+                --mg-acc-overlay: {mg_acc_overlay};
             }}
         "#)
     }
@@ -264,6 +268,7 @@ impl ThemeVarsHsl {
                 --bg-2-overlay: hsl(0 0% {background_2_lightness}% / 80%);
                 --bg-3: hsl(0 0% {background_3_lightness}%);
                 --bg-acc: hsl(0 0% {background_accent_lightness}%);
+                --bg-acc-overlay: hsl(0 0% {background_accent_lightness}% / 80%);
                 --bg-mg: hsl(0 0% {background_middleground_lightness}%);
                 --fg-1: hsl(0 0% {foreground_1_lightness}%);
                 --fg-1-focus: var({foreground_1_focus_variable});
@@ -275,6 +280,7 @@ impl ThemeVarsHsl {
                 --fg-mg: hsl(0 0% {foreground_middleground_lightness}%);
                 --mg: hsl(0 0% {middleground_lightness}%);
                 --mg-acc: hsl(0 0% {middleground_accent_lightness}%);
+                --mg-acc-overlay: hsl(0 0% {middleground_accent_lightness}% / 80%);
             }}
         "#)
     }
