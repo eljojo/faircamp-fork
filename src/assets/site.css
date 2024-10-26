@@ -763,6 +763,12 @@ input[type="text"].disabled,
 .js_enabled .unlock_manual { display: none; }
 .js_enabled .unlock_scripted { display: unset; }
 .js_enabled .payment.active { display: unset; }
+@media (max-width: 25rem) {
+    .track .time { display: none; }
+}
+@media (max-width: 20rem) {
+    .track .number { display: none; }
+}
 @media (min-width: 30rem) {
     .docked_player { font-size: 1.14rem;  }
     header {
