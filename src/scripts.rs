@@ -16,7 +16,7 @@ impl Scripts {
     pub fn header_tags(&self, root_prefix: &str) -> String {
         let file_names = match self {
             Scripts::Clipboard => vec!["clipboard.js"],
-            Scripts::ClipboardAndPlayer => vec!["clipboard.js", "site.js"],
+            Scripts::ClipboardAndPlayer => vec!["clipboard.js", "player.js"],
             Scripts::None => vec![]
         };
 
@@ -30,7 +30,7 @@ impl Scripts {
 
 pub fn generate(build: &Build) {
     generate_clipboard_js(build);
-    generate_site_js(build);
+    generate_player_js(build);
 
     if build.embeds_requested {
         generate_embeds_js(build);
@@ -47,7 +47,7 @@ pub fn generate_embeds_js(build: &Build) {
     fs::write(build.build_dir.join("embeds.js"), js).unwrap();
 }
 
-pub fn generate_site_js(build: &Build) {
+pub fn generate_player_js(build: &Build) {
     let t_listen = &build.locale.translations.listen;
     let t_pause = &build.locale.translations.pause;
     let mut js = formatdoc!("
@@ -57,7 +57,7 @@ pub fn generate_site_js(build: &Build) {
         }};
     ");
 
-    js.push_str(include_str!("assets/site.js"));
+    js.push_str(include_str!("assets/player.js"));
 
-    fs::write(build.build_dir.join("site.js"), js).unwrap();
+    fs::write(build.build_dir.join("player.js"), js).unwrap();
 }
