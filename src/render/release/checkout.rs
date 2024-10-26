@@ -11,7 +11,8 @@ use crate::{
     CrawlerMeta,
     DownloadOption,
     PaymentOption,
-    Release
+    Release,
+    Scripts
 };
 use crate::render::{compact_release_identifier, layout};
 use crate::util::html_escape_outside_attribute;
@@ -261,7 +262,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
 
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_center">
+            <div class="page_center page_100vh">
                 <div style="max-width: 28rem;">
                     <h1>{heading}</h1>
                     {compact_release_identifier_rendered}
@@ -279,6 +280,7 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         &body,
         build,
         catalog,
+        Scripts::None,
         &release.theme,
         &release.title,
         CrawlerMeta::NoIndexNoFollow,

@@ -6,7 +6,30 @@ use std::fs;
 
 use crate::Build;
 
+pub enum Scripts {
+    Clipboard,
+    ClipboardAndPlayer,
+    None
+}
+
+impl Scripts {
+    pub fn header_tags(&self, root_prefix: &str) -> String {
+        let file_names = match self {
+            Scripts::Clipboard => vec!["clipboard.js"],
+            Scripts::ClipboardAndPlayer => vec!["clipboard.js", "site.js"],
+            Scripts::None => vec![]
+        };
+
+        file_names
+            .iter()
+            .map(|file_name| format!(r#"<script defer src="{root_prefix}{file_name}"></script>"#))
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
+}
+
 pub fn generate(build: &Build) {
+    generate_clipboard_js(build);
     generate_site_js(build);
 
     if build.embeds_requested {
@@ -14,9 +37,13 @@ pub fn generate(build: &Build) {
     }
 }
 
+pub fn generate_clipboard_js(build: &Build) {
+    let js = include_str!("assets/clipboard.js");
+    fs::write(build.build_dir.join("clipboard.js"), js).unwrap();
+}
+
 pub fn generate_embeds_js(build: &Build) {
     let js = include_str!("assets/embeds.js");
-
     fs::write(build.build_dir.join("embeds.js"), js).unwrap();
 }
 

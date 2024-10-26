@@ -13,6 +13,7 @@ use crate::{
     DescribedImage,
     Release,
     ReleaseRc,
+    Scripts,
     Theme,
     Track
 };
@@ -355,6 +356,7 @@ fn layout(
     body: &str,
     build: &Build,
     catalog: &Catalog,
+    scripts: Scripts,
     theme: &Theme,
     title: &str,
     crawler_meta: CrawlerMeta,
@@ -435,6 +437,7 @@ fn layout(
         index_suffix = if build.clean_urls { "/" } else { "/index.html" },
         lang = &build.locale.language,
         root_prefix = root_prefix,
+        scripts = scripts.header_tags(root_prefix),
         theme_stylesheet_filename = theme.stylesheet_filename(),
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)

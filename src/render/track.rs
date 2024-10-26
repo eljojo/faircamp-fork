@@ -10,6 +10,7 @@ use crate::{
     CrawlerMeta,
     DownloadOption,
     Release,
+    Scripts,
     Track
 };
 use crate::icons;
@@ -22,11 +23,7 @@ use crate::render::{
     player_icon_templates,
     waveform
 };
-use crate::util::{
-    format_time,
-    html_escape_inside_attribute,
-    html_escape_outside_attribute
-};
+use crate::util::{format_time, html_escape_outside_attribute};
 
 pub fn track_html(
     build: &Build,
@@ -127,7 +124,6 @@ pub fn track_html(
 
     let track_duration_formatted = format_time(duration_seconds);
     let track_title_escaped = html_escape_outside_attribute(&track_title);
-    let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
 
     let compact;
     let r_waveform;
@@ -166,7 +162,7 @@ pub fn track_html(
             </button>
             <div>
                 <div>
-                    <span class="title" href="{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</span>
+                    <span class="title" href="{track_number}{index_suffix}">{track_title_escaped}</span>
                 </div>
                 {r_waveform}
             </div>
@@ -403,6 +399,7 @@ pub fn track_html(
         &body,
         build,
         catalog,
+        Scripts::ClipboardAndPlayer,
         &track.theme,
         &track_title,
         crawler_meta,

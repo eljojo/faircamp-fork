@@ -1,42 +1,29 @@
-// TODO: Potentially split player scripting into seperate script file
-//       and only load the additional js payload where it's needed.
-
-const failedIcon = document.querySelector('#failed_icon');
 const loadingIcon = document.querySelector('#loading_icon');
 const pauseIcon = document.querySelector('#pause_icon');
 const playIcon = document.querySelector('#play_icon');
-const successIcon = document.querySelector('#success_icon');
-
-const browseButton = document.querySelector('button#browse');
 
 const listenButton = document.querySelector('button.listen');
 const listenButtonIcon = document.querySelector('button.listen .icon');
 const listenButtonLabel = document.querySelector('button.listen .label');
 
-const copyFeedbackTimeouts = {};
-
 let activeTrack = null;
 let firstTrack = null;
 let preselectedTrack = null;
 
-let dockedPlayer;
-if (document.querySelector('.docked_player')) {
-    const container = document.querySelector('.docked_player');
-
-    dockedPlayer = {
-        container,
-        nextTrackButton: container.querySelector('button.next_track'),
-        number: container.querySelector('.number'),
-        playbackButton: container.querySelector('button.playback'),
-        progress: container.querySelector('.progress'),
-        time: container.querySelector('.time'),
-        timeline: container.querySelector('.timeline'),
-        timelineInput: container.querySelector('.timeline input'),
-        titleWrapper: container.querySelector('.title_wrapper'),
-        volumeButton: container.querySelector('.volume button'),
-        volumeInput: container.querySelector('.volume input')
-    };
-}
+const dockedPlayerContainer = document.querySelector('.docked_player');
+const dockedPlayer = {
+    container: dockedPlayerContainer,
+    nextTrackButton: dockedPlayerContainer.querySelector('button.next_track'),
+    number: dockedPlayerContainer.querySelector('.number'),
+    playbackButton: dockedPlayerContainer.querySelector('button.playback'),
+    progress: dockedPlayerContainer.querySelector('.progress'),
+    time: dockedPlayerContainer.querySelector('.time'),
+    timeline: dockedPlayerContainer.querySelector('.timeline'),
+    timelineInput: dockedPlayerContainer.querySelector('.timeline input'),
+    titleWrapper: dockedPlayerContainer.querySelector('.title_wrapper'),
+    volumeButton: dockedPlayerContainer.querySelector('.volume button'),
+    volumeInput: dockedPlayerContainer.querySelector('.volume input')
+};
 
 let globalUpdatePlayHeadInterval;
 
@@ -45,40 +32,14 @@ const volume = {
     level: 1,
 };
 
-if (dockedPlayer) {
-    const persistedVolume = localStorage.getItem('faircampVolume');
-    if (persistedVolume !== null) {
-        const level = parseFloat(persistedVolume);
-        if (level >= 0 && level <= 1) {
-            volume.level = level;
-        }
+const persistedVolume = localStorage.getItem('faircampVolume');
+if (persistedVolume !== null) {
+    const level = parseFloat(persistedVolume);
+    if (level >= 0 && level <= 1) {
+        volume.level = level;
     }
-    updateVolume();
 }
-
-function copyFeedback(content, feedbackIcon, iconContainer, originalIcon) {
-    if (content in copyFeedbackTimeouts) {
-        clearTimeout(copyFeedbackTimeouts[content]);
-        delete copyFeedbackTimeouts[content];
-    }
-
-    iconContainer.replaceChildren(feedbackIcon.content.cloneNode(true));
-
-    copyFeedbackTimeouts[content] = setTimeout(
-        () => iconContainer.replaceChildren(originalIcon.content.cloneNode(true)),
-        3000
-    );
-}
-
-function copyToClipboard(button) {
-    const content = button.dataset.content;
-    const iconContainer = button.querySelector('.icon');
-    const originalIcon = document.querySelector('#copy_icon');
-    navigator.clipboard
-        .writeText(content)
-        .then(() => copyFeedback(content, successIcon, iconContainer, originalIcon))
-        .catch(_err => copyFeedback(content, failedIcon, iconContainer, originalIcon));
-};
+updateVolume();
 
 function formatTime(seconds) {
     if (seconds < 60) {
@@ -362,122 +323,109 @@ function updateVolume(restoreLevel = null) {
     }
 }
 
-if (dockedPlayer) {
-    dockedPlayer.container.addEventListener('keydown', event => {
-        if (event.key === 'ArrowLeft') {
-            event.preventDefault();
-            const seekTo = Math.max(0, activeTrack.audio.currentTime - 5);
-            togglePlayback(activeTrack, seekTo);
-        } else if (event.key === 'ArrowRight') {
-            event.preventDefault();
-            const seekTo = Math.min(activeTrack.duration - 1, activeTrack.audio.currentTime + 5);
-            togglePlayback(activeTrack, seekTo);
-        }
-    });
-
-    dockedPlayer.playbackButton.addEventListener('click', () => {
-        togglePlayback(activeTrack ?? firstTrack);
-    });
-
-    // Not available on a track player
-    if (dockedPlayer.nextTrackButton) {
-        dockedPlayer.nextTrackButton.addEventListener('click', () => {
-            if (activeTrack?.nextTrack) {
-                togglePlayback(activeTrack.nextTrack);
-            }
-        });
-    }
-
-    dockedPlayer.timeline.addEventListener('click', () => {
-        const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
-        const seekTo = factor * dockedPlayer.timelineInput.max;
+dockedPlayer.container.addEventListener('keydown', event => {
+    if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        const seekTo = Math.max(0, activeTrack.audio.currentTime - 5);
         togglePlayback(activeTrack, seekTo);
-        dockedPlayer.timelineInput.classList.add('focus_from_click');
-        dockedPlayer.timelineInput.focus();
-    });
-
-    dockedPlayer.timelineInput.addEventListener('blur', () => {
-        dockedPlayer.timelineInput.classList.remove('focus_from_click');
-    });
-
-    dockedPlayer.timelineInput.addEventListener('keydown', event => {
-        if (event.key === ' ' || event.key === 'Enter') {
-            event.preventDefault();
-            togglePlayback(activeTrack);
-        }
-    });
-
-    volume.container.addEventListener('wheel', event => {
+    } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-
-        volume.level += event.deltaY * -0.0001;
-
-        if (volume.level > 1) {
-            volume.level = 1;
-        } else if (volume.level < 0) {
-            volume.level = 0;
-        }
-
-        updateVolume();
-    });
-
-    dockedPlayer.volumeButton.addEventListener('click', () => {
-        if (volume.level > 0) {
-            const restoreLevel = volume.level;
-            volume.level = 0;
-            updateVolume(restoreLevel);
-        } else {
-            volume.level = volume.restoreLevel ?? 1;
-            updateVolume();
-        }
-    });
-
-    dockedPlayer.volumeInput.addEventListener('input', () => {
-        volume.level = parseFloat(dockedPlayer.volumeInput.valueAsNumber);
-        updateVolume();
-    });
-
-    // This was observed to jump between 0 and 1 without a single step in between,
-    // hence we disable the default behavior and handle it ourselves
-    dockedPlayer.volumeInput.addEventListener('keydown', event => {
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-            volume.level -= 0.02;
-        } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
-            volume.level += 0.02;
-        } else {
-            return;
-        }
-
-        if (volume.level > 1) {
-            volume.level = 1;
-        } else if (volume.level < 0) {
-            volume.level = 0;
-        }
-
-        updateVolume();
-
-        event.preventDefault();
-    });
-
-    // This was observed to "scroll" between 0 and 1 without a single step in between,
-    // hence we disable the default behavior and let the event bubble up to our own handler
-    dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
-
-    listenButton.addEventListener('click', () => {
-        togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
-    });
-}
-
-browseButton.addEventListener('click', () => {
-    // TODO: aria attributes etc.
-    browser.classList.add('active');
+        const seekTo = Math.min(activeTrack.duration - 1, activeTrack.audio.currentTime + 5);
+        togglePlayback(activeTrack, seekTo);
+    }
 });
 
-for (const copyButton of document.querySelectorAll('[data-copy]')) {
-    copyButton.addEventListener('click', () => {
-        copyToClipboard(copyButton);
+dockedPlayer.playbackButton.addEventListener('click', () => {
+    togglePlayback(activeTrack ?? firstTrack);
+});
+
+// Not available on a track player
+if (dockedPlayer.nextTrackButton) {
+    dockedPlayer.nextTrackButton.addEventListener('click', () => {
+        if (activeTrack?.nextTrack) {
+            togglePlayback(activeTrack.nextTrack);
+        }
     });
 }
+
+dockedPlayer.timeline.addEventListener('click', () => {
+    const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
+    const seekTo = factor * dockedPlayer.timelineInput.max;
+    togglePlayback(activeTrack, seekTo);
+    dockedPlayer.timelineInput.classList.add('focus_from_click');
+    dockedPlayer.timelineInput.focus();
+});
+
+dockedPlayer.timelineInput.addEventListener('blur', () => {
+    dockedPlayer.timelineInput.classList.remove('focus_from_click');
+});
+
+dockedPlayer.timelineInput.addEventListener('keydown', event => {
+    if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        togglePlayback(activeTrack);
+    }
+});
+
+volume.container.addEventListener('wheel', event => {
+    event.preventDefault();
+
+    volume.level += event.deltaY * -0.0001;
+
+    if (volume.level > 1) {
+        volume.level = 1;
+    } else if (volume.level < 0) {
+        volume.level = 0;
+    }
+
+    updateVolume();
+});
+
+dockedPlayer.volumeButton.addEventListener('click', () => {
+    if (volume.level > 0) {
+        const restoreLevel = volume.level;
+        volume.level = 0;
+        updateVolume(restoreLevel);
+    } else {
+        volume.level = volume.restoreLevel ?? 1;
+        updateVolume();
+    }
+});
+
+dockedPlayer.volumeInput.addEventListener('input', () => {
+    volume.level = parseFloat(dockedPlayer.volumeInput.valueAsNumber);
+    updateVolume();
+});
+
+// This was observed to jump between 0 and 1 without a single step in between,
+// hence we disable the default behavior and handle it ourselves
+dockedPlayer.volumeInput.addEventListener('keydown', event => {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+        volume.level -= 0.02;
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+        volume.level += 0.02;
+    } else {
+        return;
+    }
+
+    if (volume.level > 1) {
+        volume.level = 1;
+    } else if (volume.level < 0) {
+        volume.level = 0;
+    }
+
+    updateVolume();
+
+    event.preventDefault();
+});
+
+// This was observed to "scroll" between 0 and 1 without a single step in between,
+// hence we disable the default behavior and let the event bubble up to our own handler
+dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
+
+listenButton.addEventListener('click', () => {
+    togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
+});
 
 const resizeObserver = new ResizeObserver(entries => {
     const minWidth = entries.reduce(
@@ -820,27 +768,3 @@ function waveforms(minWidth) {
     waveformRenderState.initialized = true;
     waveformRenderState.widthRem = maxWaveformWidthRem;
 }
-
-window.addEventListener('DOMContentLoaded', event => {
-    if (navigator.clipboard) {
-        for (const button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
-            if (button.dataset.dynamicUrl !== undefined) {
-                if (button.dataset.dynamicUrl === '') {
-                    // Build link to this page dynamically
-                    const thisPageUrl = window.location.href.split('#')[0]; // discard hash if present
-                    button.dataset.content = thisPageUrl;
-                } else {
-                    // Build link to subpage dynamically
-                    let subPageUrl = window.location.href.split('#')[0]; // discard hash if present
-                    if (!subPageUrl.endsWith('/')) { subPageUrl += '/' }
-                    subPageUrl += button.dataset.dynamicUrl;
-                    button.dataset.content = subPageUrl;
-                }
-            }
-        }
-    } else {
-        for (const button of document.querySelectorAll('[data-copy], [data-copy-track]')) {
-            button.remove();
-        }
-    }
-});

@@ -4,7 +4,7 @@
 use indoc::formatdoc;
 use url::Url;
 
-use crate::{Build, Catalog, CrawlerMeta, Release};
+use crate::{Build, Catalog, CrawlerMeta, Release, Scripts};
 use crate::icons;
 use crate::render::{compact_release_identifier, copy_button, layout};
 use crate::util::{
@@ -146,7 +146,7 @@ pub fn embed_choices_html(
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_center">
+            <div class="page_center page_100vh">
                 <div>
                     <h1>{t_embed}</h1>
                     {r_compact_release_identifier}
@@ -174,6 +174,7 @@ pub fn embed_choices_html(
         &body,
         build,
         catalog,
+        Scripts::Clipboard,
         &release.theme,
         &release.title,
         CrawlerMeta::NoIndexNoFollow,

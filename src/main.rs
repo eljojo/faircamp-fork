@@ -75,6 +75,7 @@ use payment_option::PaymentOption;
 use permalink::{Permalink, PermalinkUsage};
 use release::{DownloadGranularity, Extra, Release, ReleaseRc};
 use render::CrawlerMeta;
+use scripts::Scripts;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
 use tags::{ImageEmbed, TagAgenda, TagMapping};

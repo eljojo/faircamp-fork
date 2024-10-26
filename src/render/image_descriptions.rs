@@ -3,7 +3,7 @@
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta};
+use crate::{Build, Catalog, CrawlerMeta, Scripts};
 use crate::render::layout;
 
 pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
@@ -14,7 +14,7 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_center">
+            <div class="page_center page_100vh">
                 <div style="max-width: 28rem;">
                     <h1 style="margin-bottom: 2rem;">{t_image_descriptions}</h1>
                     {t_image_descriptions_guide}
@@ -28,6 +28,7 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
         &body,
         build,
         catalog,
+        Scripts::None,
         &catalog.theme,
         t_image_descriptions,
         CrawlerMeta::NoIndexNoFollow,

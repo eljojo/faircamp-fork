@@ -9,7 +9,8 @@ use crate::{
     Catalog,
     CrawlerMeta,
     DownloadOption,
-    Release
+    Release,
+    Scripts
 };
 use crate::render::{
     copy_button,
@@ -24,11 +25,7 @@ use crate::render::{
     waveform
 };
 use crate::icons;
-use crate::util::{
-    format_time,
-    html_escape_inside_attribute,
-    html_escape_outside_attribute
-};
+use crate::util::{format_time, html_escape_outside_attribute};
 
 pub mod checkout;
 pub mod download;
@@ -147,7 +144,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let track_duration_formatted = format_time(duration_seconds);
             let track_number_formatted = release.track_numbering.format(track_number);
             let track_title_escaped = html_escape_outside_attribute(&track_title);
-            let track_title_attribute_escaped = html_escape_inside_attribute(&track_title);
 
             let r_waveform = if release.theme.waveforms {
                 let waveform_svg = waveform(track);
@@ -190,7 +186,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div>
                         <div>
                             <span class="number">{track_number_formatted}</span>
-                            <a class="title" href="{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</a>
+                            <a class="title" href="{track_number}{index_suffix}">{track_title_escaped}</a>
                         </div>
                         {track_artists}
                         {r_waveform}
@@ -460,6 +456,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         &body,
         build,
         catalog,
+        Scripts::ClipboardAndPlayer,
         &release.theme,
         &release.title,
         crawler_meta,

@@ -3,7 +3,7 @@
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta, ReleaseRc};
+use crate::{Build, Catalog, CrawlerMeta, ReleaseRc, Scripts};
 use crate::icons;
 use crate::render::{
     artist_image,
@@ -209,6 +209,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         &body,
         build,
         catalog,
+        Scripts::Clipboard,
         &catalog.theme,
         &catalog_title,
         CrawlerMeta::None,
