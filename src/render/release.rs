@@ -381,7 +381,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         <div class="page">
             <div class="page_split page_60vh">
                 <div class="cover">{cover}</div>
-                <div style="max-width: 26rem;">
+                <div class="abstract">
                     <h1>{release_title_with_unlisted_badge}</h1>
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}

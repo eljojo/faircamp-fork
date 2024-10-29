@@ -64,7 +64,7 @@ form button:hover {
     position: relative;
     top: .15em;
 }
-.actions.primary { font-size: 1.2rem; }
+.actions.primary { font-size: 1.05rem; }
 .actions.primary > .more { padding: .2em .35em .3em .35em; }
 .actions.primary > .emphasized {
     background: var(--bg-acc);
@@ -308,7 +308,7 @@ button svg { display: inline-block; }
 }
 h1 {
     color: var(--fg-1);
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 400;
     margin: 0;
 }
@@ -481,7 +481,7 @@ path.loading_right {
 .page_center > *,
 .page_grid > *,
 .page_split > * {
-    margin: 3rem var(--page-margin-h);
+    margin: 4rem var(--page-margin-h) 3rem var(--page-margin-h);
     max-width: calc(100vw - var(--page-margin-h) * 2);
 }
 .page_grid {
@@ -763,11 +763,16 @@ input[type="text"].disabled,
 .js_enabled .unlock_manual { display: none; }
 .js_enabled .unlock_scripted { display: unset; }
 .js_enabled .payment.active { display: unset; }
-@media (max-width: 25rem) {
-    .track .time { display: none; }
-}
 @media (max-width: 20rem) {
     .track .number { display: none; }
+}
+@media (max-width: 24.999rem) {
+    .track .time { display: none; }
+}
+@media (min-width: 25rem) {
+    .actions.primary { font-size: 1.1rem; }
+    h1 { font-size: 1.8rem; }
+    .page { --page-margin-h: 2rem; }
 }
 @media (min-width: 30rem) {
     .docked_player { font-size: 1.14rem;  }
@@ -781,18 +786,28 @@ input[type="text"].disabled,
         padding-right: 0;
     }
 }
-@media (min-width: 40rem) {
-    .page_grid > div { grid-template-columns: 1fr 1fr; }
-}
 @media (max-width: 39.999rem) {
     .text ol { padding-left: 1rem; }
     .text ul { padding-left: .7rem; }
 }
+@media (min-width: 40rem) {
+    .actions.primary { font-size: 1.2rem; }
+    h1 { font-size: 2rem; }
+    .page_grid > div { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 49.999rem) {
+    .abstract {
+        align-self: flex-start;
+        margin-bottom: 0;
+    }
     .page_split { flex-direction: column; }
     .page_split > :last-child:not(:first-child) { margin-top: 0; }
 }
 @media (min-width: 50rem) {
+    .abstract {
+        flex-grow: 1;
+        max-width: 26rem;
+    }
     .page { --page-margin-h: calc(1rem + (100vw - 50rem) * 0.4); } /* Between 50-55rem viewport width, --page-margin-h goes from 1-3rem */
     .page_split > :last-child:not(:first-child) { margin-left: 0; }
     .tracks { max-width: 49rem; }

@@ -327,7 +327,7 @@ pub fn track_html(
         <div class="page">
             <div class="page_split page_60vh">
                 <div class="cover">{cover}</div>
-                <div style="max-width: 26rem;">
+                <div class="abstract">
                     <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}

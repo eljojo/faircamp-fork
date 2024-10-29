@@ -177,7 +177,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         <div class="page">
             <div class="page_split page_60vh">
                 {home_image}
-                <div style="max-width: 26rem;">
+                <div class="abstract">
                     <h1>{title_escaped}</h1>
                     {synopsis}
                     {r_actions}

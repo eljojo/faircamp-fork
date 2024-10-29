@@ -142,7 +142,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         <div class="page">
             <div class="page_split page_60vh">
                 {r_artist_image}
-                <div style="max-width: 26rem;">
+                <div class="abstract">
                     <h1>{name_unlisted}</h1>
                     {synopsis}
                     {r_actions}
