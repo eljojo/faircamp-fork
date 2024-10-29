@@ -21,7 +21,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let catalog_text = match &catalog.text {
         Some(html_and_stripped) => format!(
-            r#"<div class="text">{}</div>"#,
+            r#"<div class="text padded">{}</div>"#,
             &html_and_stripped.html
         ),
         None => String::new()

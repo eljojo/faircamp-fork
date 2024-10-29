@@ -67,7 +67,6 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
         next_track: String::from("Nächster Track"),
         option: String::from("Option"),
         pause: String::from("Pausieren"),
-        pay_on_liberapay: String::from("Auf Liberapay bezahlen:"),
         payment_options: String::from("Zahlungsoptionen:"),
         play: String::from("Abspielen"),
         previous_track: String::from("Vorheriger Track"),

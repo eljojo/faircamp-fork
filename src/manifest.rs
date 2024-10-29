@@ -23,7 +23,6 @@ use crate::{
     Link,
     Locale,
     markdown,
-    PaymentOption,
     Permalink,
     StreamingQuality,
     TagAgenda,
@@ -73,7 +72,7 @@ pub struct Overrides {
     pub embedding: bool,
     pub include_extras: bool,
     pub more_label: Option<String>,
-    pub payment_options: Vec<PaymentOption>,
+    pub payment_options: Vec<String>,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<DescribedImage>,
     pub release_synopsis: Option<String>,
@@ -709,23 +708,18 @@ pub fn apply_options(
                     "custom" => if let Some(embed) = element.as_embed() {
                         embed
                             .optional_value::<String>()
-                            .and_then(|result| result.ok().map(|value| PaymentOption::init_custom(&build.base_url, &value)))
+                            .and_then(|result| result.ok().map(|value| markdown::to_html(&build.base_url, &value)))
                     } else if let Some(field) = element.as_field() {
                         field
                             .optional_value()
                             .ok()
-                            .and_then(|result| result.map(|value| PaymentOption::init_custom(&build.base_url, &value)))
+                            .and_then(|result| result.map(|value| markdown::to_html(&build.base_url, &value)))
                     } else {
                         error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}:{}", path.display(), element.line_number());
                         None
                     }
-                    "liberapay" => if let Some(field) = element.as_field() {
-                        field
-                            .optional_value()
-                            .ok()
-                            .and_then(|result| result.map(|value| PaymentOption::init_liberapay(&value)))
-                    } else {
-                        error!("Ignoring invalid payment.liberapay option (can only be a field containing a value) in {}:{}", path.display(), element.line_number());
+                    "liberapay" => {
+                        error!("The payment.liberapay option has been discontinued - please supply the link through a custom text using the \"custom\" option (encountered in {}:{})", path.display(), element.line_number());
                         None
                     }
                     key => {

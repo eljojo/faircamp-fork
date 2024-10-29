@@ -10,7 +10,6 @@ use crate::{
     Catalog,
     CrawlerMeta,
     DownloadOption,
-    PaymentOption,
     Release,
     Scripts
 };
@@ -82,33 +81,13 @@ pub fn checkout_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         let payment_options = &release.payment_options
             .iter()
             .enumerate()
-            .map(|(index, option)| {
+            .map(|(index, text)| {
                 let number = index + 1;
-
-                let option_rendered = match &option {
-                    PaymentOption::Custom(message) => {
-                        formatdoc!(r#"
-                            <div>{message}</div>
-                        "#)
-                    },
-                    PaymentOption::Liberapay(account_name) => {
-                        let liberapay_url = format!("https://liberapay.com/{}", account_name);
-
-                        let t_pay_on_liberapay = &build.locale.translations.pay_on_liberapay;
-                        formatdoc!(r#"
-                            <div>
-                                {t_pay_on_liberapay}<br>
-                                <a href="{liberapay_url}">{liberapay_url}</a>
-                            </div>
-                        "#)
-                    }
-                };
-
                 let t_option = &build.locale.translations.option;
                 formatdoc!(r#"
                     <div style="align-items: center; display: flex; margin-bottom: 1rem;">
                         <div style="font-size: .8rem; margin-right: 1rem; white-space: nowrap;">{t_option} {number}</div>
-                        {option_rendered}
+                        <div class="text">{text}</div>
                     </div>
                 "#)
             })

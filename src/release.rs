@@ -33,7 +33,6 @@ use crate::{
     HtmlAndStripped,
     Link,
     m3u,
-    PaymentOption,
     Permalink,
     render,
     StreamingQuality,
@@ -96,7 +95,7 @@ pub struct Release {
     /// Optional override label for the button that (by default) says "More" on the
     /// release page and points to the long-form text on the release page.
     pub more_label: Option<String>,
-    pub payment_options: Vec<PaymentOption>,
+    pub payment_options: Vec<String>,
     pub permalink: Permalink,
     /// Lazily generated when there is no regular cover
     pub procedural_cover: Option<String>,
@@ -209,7 +208,7 @@ impl Release {
         links: Vec<Link>,
         main_artists_to_map: Vec<String>,
         more_label: Option<String>,
-        payment_options: Vec<PaymentOption>,
+        payment_options: Vec<String>,
         permalink: Option<Permalink>,
         source_dir: PathBuf,
         streaming_quality: StreamingQuality,

@@ -20,6 +20,7 @@ Thanks everyone for your support.
 [AxWax](https://axwax.eu/)<br>
 [Christian Pacaud](https://www.christianpacaud.com/)<br>
 [controlfreak](https://control.org/)<br>
+[Crocuta](https://crocutaband.org/)<br>
 [DaforLynx](https://dafor.link/)<br>
 Damian Szetela<br>
 [Dave Lane](https://davelane.nz)<br>

@@ -66,7 +66,6 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
         next_track: untranslated!(next_track),
         option: String::from("Opción"),
         pause: untranslated!(pause),
-        pay_on_liberapay: String::from("Pagar en liberapay:"),
         payment_options: String::from("Opciones de pago:"),
         play: untranslated!(play),
         previous_track: untranslated!(previous_track),

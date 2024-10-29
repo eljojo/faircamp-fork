@@ -67,7 +67,6 @@ Here are some tips for writing good image descriptions:<br>\
         next_track: String::from("Next Track"),
         option: String::from("Option"),
         pause: String::from("Pause"),
-        pay_on_liberapay: String::from("Pay on liberapay:"),
         payment_options: String::from("Payment options:"),
         play: String::from("Play"),
         previous_track: String::from("Previous Track"),

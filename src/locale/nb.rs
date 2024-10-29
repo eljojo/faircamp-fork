@@ -67,7 +67,6 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
         next_track: untranslated!(next_track),
         option: String::from("Valg"),
         pause: untranslated!(pause),
-        pay_on_liberapay: String::from("Betal via Liberapay"),
         payment_options: String::from("Payment options:"),
         play: untranslated!(play),
         previous_track: untranslated!(previous_track),

@@ -20,7 +20,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let artist_text = match &artist.text {
         Some(html_and_stripped) => format!(
-            r#"<div class="text">{}</div>"#,
+            r#"<div class="text padded">{}</div>"#,
             &html_and_stripped.html
         ),
         None => String::new()

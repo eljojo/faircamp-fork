@@ -67,7 +67,6 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
         next_track: String::from("Sonraki parça"),
         option: String::from("Seçenek"),
         pause: String::from("Duraklat"),
-        pay_on_liberapay: String::from("Liberapay üzerinden öde:"),
         payment_options: String::from("Ödeme seçenekleri:"),
         play: String::from("Oynat"),
         previous_track: untranslated!(previous_track),

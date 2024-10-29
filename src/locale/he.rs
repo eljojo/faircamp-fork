@@ -51,7 +51,6 @@ pub fn translations() -> Translations {
         next_track: untranslated!(next_track),
         option: untranslated!(option),
         pause: String::from("הַפסָקָה"),
-        pay_on_liberapay: untranslated!(pay_on_liberapay),
         payment_options: untranslated!(payment_options),
         play: String::from("לְשַׂחֵק"),
         previous_track: untranslated!(previous_track),

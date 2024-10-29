@@ -67,7 +67,6 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
         next_track: untranslated!(next_track),
         option: String::from("Opcja"),
         pause: untranslated!(pause),
-        pay_on_liberapay: String::from("Zapłać przez liberapay:"),
         payment_options: String::from("Opcje płatności:"),
         play: untranslated!(play),
         previous_track: untranslated!(previous_track),

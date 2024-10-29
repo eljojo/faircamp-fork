@@ -88,7 +88,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         Some(html_and_stripped) => {
             let html = &html_and_stripped.html;
             formatdoc!(r#"
-                <div class="text">
+                <div class="text padded">
                     {html}
                 </div>
             "#)

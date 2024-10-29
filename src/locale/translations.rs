@@ -20,7 +20,6 @@ pub struct Translations {
     pub auto_generated_cover: String,
     pub available_formats: String,
     pub buy: String,
-    /// We keep this one around for now as we could possibly use it for a feed selection overlay
     pub copied: String,
     pub copy: String,
     pub copy_link: String,
@@ -56,7 +55,6 @@ pub struct Translations {
     pub next_track: String,
     pub option: String,
     pub pause: String,
-    pub pay_on_liberapay: String,
     pub payment_options: String,
     pub play: String,
     pub previous_track: String,
@@ -137,7 +135,6 @@ impl Translations {
             next_track: String::from("next_track"),
             option: String::from("option"),
             pause: String::from("pause"),
-            pay_on_liberapay: String::from("pay_on_liberapay"),
             payment_options: String::from("payment_options"),
             play: String::from("play"),
             previous_track: String::from("previous_track"),

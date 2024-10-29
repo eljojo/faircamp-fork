@@ -67,7 +67,6 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
         next_track: untranslated!(next_track),
         option: String::from("Optie"),
         pause: untranslated!(pause),
-        pay_on_liberapay: String::from("Op liberapay betaalen:"),
         payment_options: String::from("Betalingsmogelijkheden:"),
         play: untranslated!(play),
         previous_track: untranslated!(previous_track),

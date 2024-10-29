@@ -66,7 +66,6 @@ pub fn translations() -> Translations {
         next_track: String::from("Наступна доріжка"),
         option: String::from("Варіант"),
         pause: String::from("Призупинити"),
-        pay_on_liberapay: String::from("Сплатити на liberapay:"),
         payment_options: String::from("Як сплатити:"),
         play: String::from("Відтворити"),
         previous_track: String::from("Попередня доріжка"),
