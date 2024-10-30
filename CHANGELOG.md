@@ -5,6 +5,21 @@
 
 # Changelog
 
+## 0.19.0
+
+- Introduce M3U playlists for releases (b5ecf9f)
+- Introduce link fields for catalog and releases (dab361e)
+- Introduce label overrides for catalog/release level "More" links (2d3cee4, f16763d)
+- Redesign track lists, visually reconnect them to release/track headers (406d1ff, f5156b6)
+- Move Download/Embed/Copy-Link buttons and links above the fold, further compact pages, drop Releases/Tracks buttons (3246a18)
+- Refine alignment and adaptive, responsive behavior for page header elements (c4ab209)
+- Split site scripts into clipboard and player scripts and load them on demand (4e8b39f, 27ccc62)
+- Underline links in custom payment texts, remove deprecated/undocumented liberapay option (2cfe1b7)
+- Add Ukrainian translations (Denys Nykula, 4341dcf)
+- Localize volume button label (7409bbe)
+- Remove scroll hints (6c419f7)
+- Visually widen download icon (5b682f5)
+
 ## 0.18.1
 
 - Unbreak theming widget scripting after ESM import changes (52f3e24)
