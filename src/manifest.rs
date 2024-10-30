@@ -122,6 +122,55 @@ impl Overrides {
     }
 }
 
+fn apply_link(
+    element: &Box<dyn SectionElement>,
+    local_options: &mut LocalOptions,
+    path: &Path
+) {
+    if element.key() == "link" {
+        if let Some(field) = element.as_field() {
+            match field.required_attribute("url") {
+                Ok(attribute) => {
+                    match attribute.required_value::<String>() {
+                        Ok(value) => match Url::parse(&value) {
+                            Ok(url) => {
+                                // TODO: Errors, optional_attribute does not exist in enolib?
+                                let label = match field.required_attribute("label") {
+                                    Ok(attribute) => match attribute.required_value() {
+                                        Ok(label) => Some(label),
+                                        Err(_) => None
+                                    }
+                                    Err(_) => None
+                                };
+
+                                let (hidden, rel_me) = match field.required_attribute("verification") {
+                                    Ok(attribute) => match attribute.required_value::<String>() {
+                                        Ok(value) => match value.as_str() {
+                                            "rel-me" => (false, true),
+                                            "rel-me-hidden" => (true, true),
+                                            _ => (false, false)
+                                        }
+                                        Err(_) => (false, false)
+                                    }
+                                    Err(_) => (false, false)
+                                };
+
+                                let link = Link::new(hidden, label, rel_me, url);
+                                local_options.links.push(link);
+                            }
+                            Err(err) => error!("Error in {}:{} ({})", path.display(), attribute.line_number(), err)
+                        }
+                        Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
+                    }
+                }
+                Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
+            }
+        } else {
+            error!("Error in {}:{} (Links must be provided as fields with attributes)", path.display(), element.line_number())
+        }
+    }
+}
+
 /// Receives the path to a manifest (.eno) file, alongside references to
 /// various mutable structures used by faircamp. The options found in the
 /// manifest are applied to these various structures (e.g. the catalog title
@@ -465,6 +514,10 @@ pub fn apply_options(
                 build.locale = Locale::from_code(&value);
             }
 
+            for element in section.elements() {
+                apply_link(element, local_options, path);
+            }
+
             if let Some(value) = optional_field_value(section, "more_label") {
                 catalog.more_label = Some(value);
             }
@@ -652,48 +705,7 @@ pub fn apply_options(
     }
 
     for element in document.elements() {
-        if element.key() == "link" {
-            if let Some(field) = element.as_field() {
-                match field.required_attribute("url") {
-                    Ok(attribute) => {
-                        match attribute.required_value::<String>() {
-                            Ok(value) => match Url::parse(&value) {
-                                Ok(url) => {
-                                    // TODO: Errors, optional_attribute does not exist in enolib?
-                                    let label = match field.required_attribute("label") {
-                                        Ok(attribute) => match attribute.required_value() {
-                                            Ok(label) => Some(label),
-                                            Err(_) => None
-                                        }
-                                        Err(_) => None
-                                    };
-
-                                    let (hidden, rel_me) = match field.required_attribute("verification") {
-                                        Ok(attribute) => match attribute.required_value::<String>() {
-                                            Ok(value) => match value.as_str() {
-                                                "rel-me" => (false, true),
-                                                "rel-me-hidden" => (true, true),
-                                                _ => (false, false)
-                                            }
-                                            Err(_) => (false, false)
-                                        }
-                                        Err(_) => (false, false)
-                                    };
-
-                                    let link = Link::new(hidden, label, rel_me, url);
-                                    local_options.links.push(link);
-                                }
-                                Err(err) => error!("Error in {}:{} ({})", path.display(), attribute.line_number(), err)
-                            }
-                            Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
-                        }
-                    }
-                    Err(err) => error!("Error in {}:{} ({})", path.display(), err.line, err)
-                }
-            } else {
-                error!("Error in {}:{} (Links must be provided as fields with attributes)", path.display(), element.line_number())
-            }
-        }
+        apply_link(element, local_options, path);
     }
 
     if let Some(section) = optional_section(&document, "localization", path) {
@@ -805,6 +817,10 @@ pub fn apply_options(
                 "no" => overrides.include_extras = false,
                 other => error!("Ignoring invalid release.include_extras value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
             }
+        }
+
+        for element in section.elements() {
+            apply_link(element, local_options, path);
         }
 
         if let Some(value) = optional_field_value(section, "more_label") {

@@ -66,6 +66,22 @@ artists:
 - Bob
 ```
 
+## `link`
+
+```eno
+link:
+url = https://example.com/this/release/elsewhere/
+
+link:
+label = An Album review
+url = https://example.com/some-blog/some-review/
+```
+
+You can supply any number of `link` fields, these are prominently displayed in the
+header/landing area of your release page. A `link` must have at least a `url`
+attribute. Optionally you can also supply a `label` which is what is visibly
+displayed instead of the `url`, when given.
+
 ## `synopsis`
 
 ```eno

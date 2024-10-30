@@ -23,6 +23,13 @@ home_image:
 description = Me in my studio
 file = studio_3.png
 
+link:
+url = https://example.com/my/music/elsewhere/
+
+link:
+label = Blog
+url = https://example.com/my-blog/
+
 -- synopsis
 My self hosted faircamp site, presenting some of my music.
 Thanks for stopping by!
@@ -100,6 +107,37 @@ make the catalog description the description of that artist, etc..
 The `label_mode` flag can be used if one wants to present multiple artists
 on a single faircamp site. This adds an additional layer of information to the
 page that differentiates the artists, gives them each their own page, etc.
+
+## `link`
+
+```eno
+link:
+url = https://example.com/my/music/elsewhere/
+
+link:
+label = Blog
+url = https://example.com/my-blog/
+
+link:
+url = https://social.example.com/@account-a
+verification = rel-me
+
+link:
+url = https://social.example.com/@account-b
+verification = rel-me-hidden
+```
+
+You can supply any number of `link` fields, these are prominently displayed in the
+header/landing area of your catalog homepage. A `link` must have at least a `url`
+attribute. Optionally you can also supply a `label` which is what is visibly
+displayed instead of the `url`, when given.
+
+Even more optionally, you can configure [rel="me"](https://microformats.org/wiki/rel-me)
+linking, by supplying the attribute `verification = rel-me`. This allows you
+to verify yourself as the site owner when you place a link to your faircamp
+site from (e.g.) a fediverse profile. With `verification = rel-me-hidden` you
+can have the link be included on your faircamp site without it showing up
+on the page, thus serving only for verification purposes.
 
 ## `synopsis`
 
