@@ -10,12 +10,13 @@ Site-wide metadata and settings, such as the title and site URL.
 ```eno
 # catalog
 
-base_url: https://myawesomemusic.site/
+base_url: https://example.com/my-music/
 cache_optimization: delayed
 favicon: my_favicon.png
 embedding: disabled
 label_mode
 language: en
+more_label: About
 show_support_artists
 title: My awesome music
 
@@ -24,7 +25,7 @@ description = Me in my studio
 file = studio_3.png
 
 link:
-url = https://example.com/my/music/elsewhere/
+url = https://example.com/my-music-elsewhere/
 
 link:
 label = Blog
@@ -32,7 +33,6 @@ url = https://example.com/my-blog/
 
 -- synopsis
 My self hosted faircamp site, presenting some of my music.
-Thanks for stopping by!
 -- synopsis
 
 -- text
@@ -138,6 +138,21 @@ to verify yourself as the site owner when you place a link to your faircamp
 site from (e.g.) a fediverse profile. With `verification = rel-me-hidden` you
 can have the link be included on your faircamp site without it showing up
 on the page, thus serving only for verification purposes.
+
+## `more_label`
+
+```eno
+more_label: About
+```
+
+If you provide long-form text content for your catalog (which can be anything
+you want, content-wise) through the `text` field, by default there will be a
+link with the label "More" on your homepage, leading to the section
+containing your long-form text. If you want to customize that label so it
+specifically refers to the type of content you are providing there, the
+`more_label` field allows you to do that. Some typical examples of custom
+`more_label`s one might use for the catalog text: "About", "Biography",
+"Artist Statement", "Read on", "Artist roster" etc.
 
 ## `synopsis`
 

@@ -16,6 +16,7 @@ be provided through the manifests.
 artist: Heston Exchange
 date: 2019-11-03
 include_extras: no
+more_label: Liner Notes
 permalink: ape-affairs-bonus-track-edition
 title: Ape Affairs (Bonus Track Edition)
 track_numbering: disabled
@@ -81,6 +82,21 @@ You can supply any number of `link` fields, these are prominently displayed in t
 header/landing area of your release page. A `link` must have at least a `url`
 attribute. Optionally you can also supply a `label` which is what is visibly
 displayed instead of the `url`, when given.
+
+## `more_label`
+
+```eno
+more_label: Liner Notes
+```
+
+If you provide long-form text content for your release (which can be anything
+you want, content-wise) through the `text` field, by default there will be a
+link with the label "More" on your release page, leading to the section
+containing your long-form text. If you want to customize that label so it
+specifically refers to the type of content you are providing there, the
+`more_label` field allows you to do that. Some typical examples of custom
+`more_label`s one might use for the release text: "Details", "Liner Notes",
+"Staff", "Lyrics", "About" etc.
 
 ## `synopsis`
 
