@@ -700,9 +700,18 @@ impl Catalog {
                 }
 
                 let mut download_option = merged_overrides.download_option.clone();
-                if let DownloadOption::Codes { unlock_text, .. } = &mut download_option {
-                    if let Some(custom_unlock_text) = &merged_overrides.unlock_text {
-                        unlock_text.replace(custom_unlock_text.clone());
+                match &mut download_option {
+                    DownloadOption::Codes { unlock_text, .. } => {
+                        if let Some(custom_unlock_text) = &merged_overrides.unlock_text {
+                            unlock_text.replace(custom_unlock_text.clone());
+                        }
+                    }
+                    DownloadOption::Disabled |
+                    DownloadOption::Free => (),
+                    DownloadOption::Paid { payment_text, .. } => {
+                        if let Some(custom_payment_text) = &merged_overrides.payment_text {
+                            payment_text.replace(custom_payment_text.clone());
+                        }
                     }
                 }
 
@@ -721,7 +730,6 @@ impl Catalog {
                     mem::take(&mut local_options.links),
                     main_artists_to_map,
                     merged_overrides.more_label.clone(),
-                    merged_overrides.payment_options.clone(),
                     local_options.release_permalink.take(),
                     release_dir_relative_to_catalog,
                     merged_overrides.streaming_quality,

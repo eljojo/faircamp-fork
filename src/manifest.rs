@@ -72,7 +72,7 @@ pub struct Overrides {
     pub embedding: bool,
     pub include_extras: bool,
     pub more_label: Option<String>,
-    pub payment_options: Vec<String>,
+    pub payment_text: Option<String>,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<DescribedImage>,
     pub release_synopsis: Option<String>,
@@ -107,7 +107,7 @@ impl Overrides {
             embedding: false,
             include_extras: true,
             more_label: None,
-            payment_options: Vec::new(),
+            payment_text: None,
             release_artists: None,
             release_cover: None,
             release_synopsis: None,
@@ -673,6 +673,10 @@ pub fn apply_options(
             overrides.download_option = DownloadOption::Free;
         }
 
+        if let Some(text_markdown) = optional_embed_value(section, "payment_text") {
+            overrides.payment_text = Some(markdown::to_html(&build.base_url, &text_markdown));
+        }
+
         if let Some((value, line)) = optional_field_value_with_line(section, "price") {
              match DownloadOption::new_from_price_string(&value) {
                 Ok(download_option) => overrides.download_option = download_option,
@@ -713,34 +717,37 @@ pub fn apply_options(
     }
     
     if let Some(section) = optional_section(&document, "payment", path) {
-        overrides.payment_options = section.elements()
-            .iter()
-            .filter_map(|element|
-                match element.key() {
-                    "custom" => if let Some(embed) = element.as_embed() {
-                        embed
-                            .optional_value::<String>()
-                            .and_then(|result| result.ok().map(|value| markdown::to_html(&build.base_url, &value)))
-                    } else if let Some(field) = element.as_field() {
-                        field
-                            .optional_value()
-                            .ok()
-                            .and_then(|result| result.map(|value| markdown::to_html(&build.base_url, &value)))
-                    } else {
-                        error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}:{}", path.display(), element.line_number());
-                        None
+        error!(r##"From faircamp 0.20.0 onwards, specify payment options directly in "# download ..." using the single "payment_text" field. The payment section specified in {}:{} should be removed, it will soon not be supported anymore."##, path.display(), section.line_number());
+        for element in section.elements() {
+            match element.key() {
+                "custom" => if let Some(embed) = element.as_embed() {
+                    if let Some(Ok(value)) = embed.optional_value::<String>() {
+                        let html = markdown::to_html(&build.base_url, &value);
+                        // This is just a temporary hack to allow the old payment options to stil be recognized and used
+                        if let Some(payment_text) = &mut overrides.payment_text {
+                            payment_text.push_str(&html);
+                        } else {
+                            overrides.payment_text = Some(html);
+                        }
                     }
-                    "liberapay" => {
-                        error!("The payment.liberapay option has been discontinued - please supply the link through a custom text using the \"custom\" option (encountered in {}:{})", path.display(), element.line_number());
-                        None
+                } else if let Some(field) = element.as_field() {
+                    if let Ok(Some(value)) = field.optional_value() {
+                        let html = markdown::to_html(&build.base_url, &value);
+                        // This is just a temporary hack to allow the old payment options to stil be recognized and used
+                        if let Some(payment_text) = &mut overrides.payment_text {
+                            payment_text.push_str(&html);
+                        } else {
+                            overrides.payment_text = Some(html);
+                        }
                     }
-                    key => {
-                        error!("Ignoring unsupported payment.options setting '{}' in {}:{}", key, path.display(), element.line_number());
-                        None
-                    }
+                } else {
+                    error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}:{}", path.display(), element.line_number());
                 }
-            )
-            .collect();
+                "liberapay" => error!("The payment.liberapay option has been discontinued - please supply the link through the payment_text field in the # download section (encountered in {}:{})", path.display(), element.line_number()),
+                key => error!("Ignoring unsupported payment option '{}' in {}:{}", key, path.display(), element.line_number())
+            }
+
+        }
     }
 
     if let Some(section) = optional_section(&document, "release", path) {

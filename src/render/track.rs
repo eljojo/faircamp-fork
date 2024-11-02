@@ -65,8 +65,8 @@ pub fn track_html(
                 </a>
             "#))
         },
-        DownloadOption::Paid(_currency, _range) => {
-            if release.payment_options.is_empty() {
+        DownloadOption::Paid { payment_text, .. } => {
+            if payment_text.is_none() {
                 None
             } else {
                 let t_purchase_permalink = &build.locale.translations.purchase_permalink;

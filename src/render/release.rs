@@ -27,9 +27,10 @@ use crate::render::{
 use crate::icons;
 use crate::util::{format_time, html_escape_outside_attribute};
 
-pub mod checkout;
 pub mod download;
 pub mod embed;
+pub mod purchase;
+pub mod unlock;
 
 /// The actual release page, featuring the track listing and streaming player, links
 /// to downloads, embeds, description, etc.
@@ -65,8 +66,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </a>
             "#)
         },
-        DownloadOption::Paid(_currency, _range) => {
-            if release.payment_options.is_empty() {
+        DownloadOption::Paid { payment_text, .. } => {
+            if payment_text.is_none() {
                 String::new()
             } else {
                 let t_purchase_permalink = &build.locale.translations.purchase_permalink;

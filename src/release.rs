@@ -95,7 +95,6 @@ pub struct Release {
     /// Optional override label for the button that (by default) says "More" on the
     /// release page and points to the long-form text on the release page.
     pub more_label: Option<String>,
-    pub payment_options: Vec<String>,
     pub permalink: Permalink,
     /// Lazily generated when there is no regular cover
     pub procedural_cover: Option<String>,
@@ -208,7 +207,6 @@ impl Release {
         links: Vec<Link>,
         main_artists_to_map: Vec<String>,
         more_label: Option<String>,
-        payment_options: Vec<String>,
         permalink: Option<Permalink>,
         source_dir: PathBuf,
         streaming_quality: StreamingQuality,
@@ -240,7 +238,6 @@ impl Release {
             main_artists: Vec::new(),
             main_artists_to_map,
             more_label,
-            payment_options,
             permalink,
             procedural_cover: None,
             source_dir,
@@ -547,7 +544,7 @@ impl Release {
 
     pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
-            DownloadOption::Codes { codes, .. } => {
+            DownloadOption::Codes { codes, unlock_text } => {
                 let t_unlock_permalink = &build.locale.translations.unlock_permalink;
                 let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_unlock_permalink]);
 
@@ -556,8 +553,7 @@ impl Release {
                     .join(t_unlock_permalink)
                     .join(page_hash);
 
-                // TODO: Split up checkout_html into unlock_html + purchase_html - different pages!
-                let unlock_html = render::release::checkout::checkout_html(build, catalog, self);
+                let unlock_html = render::release::unlock::unlock_html(build, catalog, self, unlock_text);
                 util::ensure_dir_and_write_index(&unlock_page_dir, &unlock_html);
 
                 let t_downloads_permalink = &build.locale.translations.downloads_permalink;
@@ -587,13 +583,8 @@ impl Release {
                 let download_html = render::release::download::download_html(build, catalog, self);
                 util::ensure_dir_and_write_index(&download_page_dir, &download_html);
             }
-            DownloadOption::Paid(_currency, _ranges) => {
-                if self.payment_options.is_empty() {
-                    warn!(
-                        "No payment options specified for release '{}', no purchase/download option will be displayed for this release.",
-                        self.title
-                    );
-                } else {
+            DownloadOption::Paid { currency, payment_text, range } => {
+                if let Some(payment_text) = payment_text {
                     let t_purchase_permalink = &build.locale.translations.purchase_permalink;
                     let purchase_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_purchase_permalink]);
 
@@ -602,7 +593,7 @@ impl Release {
                         .join(t_purchase_permalink)
                         .join(purchase_page_hash);
 
-                    let purchase_html = render::release::checkout::checkout_html(build, catalog, self);
+                    let purchase_html = render::release::purchase::purchase_html(build, catalog, currency, payment_text, range, self);
                     util::ensure_dir_and_write_index(&purchase_page_dir, &purchase_html);
 
                     let t_downloads_permalink = &build.locale.translations.downloads_permalink;
@@ -615,6 +606,11 @@ impl Release {
 
                     let download_html = render::release::download::download_html(build, catalog, self);
                     util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                } else {
+                    warn!(
+                        "No payment text specified for release '{}', no purchase/download option will be displayed for this release.",
+                        self.title
+                    );
                 }
             }
         }

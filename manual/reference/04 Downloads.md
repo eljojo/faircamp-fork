@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
     SPDX-FileCopyrightText: 2023 Deborah Pickett
     SPDX-License-Identifier: CC0-1.0
 -->
@@ -64,14 +64,34 @@ formats:
 
 A soft (i.e. not technically enforced) paycurtain needs to be passed before downloading.
 
+The idea here is simply that you name a price and provide external links to
+one or more payment, donation or patronage platforms that you use, be it
+liberapay, ko-fi, paypal, stripe, you name it. You could also link to
+bandcamp if you want to use it in parallel with your faircamp site.
+
 For example in order to ask for 4€ for accessing the FLAC downloads on a release:
 
 ```eno
 # download
 
-format: flac
-
 price: EUR 4+
+
+-- payment_text
+Most easily you can transfer the money for your purchase
+via my [liberapay account](https://liberapay.com/somewhatsynthwave)
+
+Another option is supporting me through my [ko-fi page](https://ko-fi.com/satanclaus92)
+
+If you're in europe you can send the money via SEPA, contact me at
+[lila@thatawesomeartist42.com](mailto:lila@thatawesomeartist42.com) and I'll
+send you the account details.
+
+On Dec 19th I'm playing a show at *Substage Indenhoven* - you can get the
+digital album now and meet me at the merch stand in december in person to give
+me the money yourself as well, make sure to make a note of it though! :)
+-- payment_text
+
+format: flac
 ```
 
 The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
@@ -82,7 +102,10 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 - `INR 230+` (230 indian rupees or more)
 - `JPY 400-800` (Between 400 and 800 japanese yen)
 
-In conjunction with this mode you will also need to specify at least one payment option, see the reference on "Payment".
+In conjunction with the price you then describe where or how the
+payment can be made (as faircamp itself does not handle payments). This
+is done inside the `payment_text` field, in which you can use
+[Markdown](https://commonmark.org/help/) to place links, bullet points, etc.
 
 ## Disabled – `disabled`
 

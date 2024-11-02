@@ -12,7 +12,11 @@ pub enum DownloadOption {
     },
     Disabled,
     Free,
-    Paid(Currency, Range<f32>)
+    Paid {
+        currency: Currency,
+        payment_text: Option<String>,
+        range: Range<f32>
+    }
 }
 
 impl DownloadOption {
@@ -22,7 +26,11 @@ impl DownloadOption {
         let parse_price = |currency: Currency, amount: &str| {
             if let Some(amount_min_str) = amount.strip_suffix('+') {
                 if let Ok(amount_min) = amount_min_str.parse::<f32>() {
-                    return Ok(DownloadOption::Paid(currency, amount_min..f32::INFINITY));
+                    return Ok(DownloadOption::Paid {
+                        currency,
+                        payment_text: None,
+                        range: amount_min..f32::INFINITY
+                    });
                 } else {
                     return Err(String::from("Malformed minimum price"));
                 }
@@ -39,7 +47,11 @@ impl DownloadOption {
                                     return Ok(DownloadOption::Free);
                                 }
 
-                                return Ok(DownloadOption::Paid(currency, amount_parsed..max_amount_parsed));
+                                return Ok(DownloadOption::Paid {
+                                    currency,
+                                    payment_text: None,
+                                    range: amount_parsed..max_amount_parsed
+                                });
                             } else {
                                 return Err(String::from("Minimum price can not be higher than maximum price"));
                             }
@@ -52,7 +64,11 @@ impl DownloadOption {
                         return Ok(DownloadOption::Free);
                     }
 
-                    return Ok(DownloadOption::Paid(currency, amount_parsed..amount_parsed));
+                    return Ok(DownloadOption::Paid {
+                        currency,
+                        payment_text: None,
+                        range: amount_parsed..amount_parsed
+                    });
                 }
             }
 
