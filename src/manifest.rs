@@ -654,6 +654,15 @@ pub fn apply_options(
             }
         }
 
+        if let Some((value, line)) = optional_field_value_with_line(section, "external") {
+            match Url::parse(&value) {
+                Ok(_) => {
+                    overrides.download_option = DownloadOption::External { link: value };
+                }
+                Err(err) => error!("Ignoring invalid download.external setting value '{}' in {}:{} ({})", value, path.display(), line, err)
+            }
+        }
+
         optional_field_with_items(section, "formats", &mut |items: &[Item]| { 
             overrides.download_formats = items
                     .iter()

@@ -4,12 +4,12 @@
     SPDX-License-Identifier: CC0-1.0
 -->
 
-# Download
+# Downloads
 
-By default your visitors can only stream your releases. There are three
+By default your visitors can only stream your releases. There are four
 mutually exclusive download modes you can enable for each release:
 
-## Free download – `free`
+## Free downloads – `free`
 
 For example, to enable free downloads in Opus format:
 
@@ -19,6 +19,21 @@ For example, to enable free downloads in Opus format:
 free
 
 format: opus
+```
+
+## External downloads – `external`
+
+If you want to use your faircamp site purely to let people stream your audio,
+but there is still a place elsewhere on the web where your release(s) can be
+downloaded, the external option allows you to display a download button that
+merely takes people to the external download page.
+
+For example, to display a download button that should take people to `https://example.com/my-release/`:
+
+```eno
+# download
+
+external: https://example.com/my-release/
 ```
 
 ## Unlock code(s) – `code` or `codes`

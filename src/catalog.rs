@@ -707,6 +707,7 @@ impl Catalog {
                         }
                     }
                     DownloadOption::Disabled |
+                    DownloadOption::External { .. } |
                     DownloadOption::Free => (),
                     DownloadOption::Paid { payment_text, .. } => {
                         if let Some(custom_payment_text) = &merged_overrides.payment_text {
@@ -1094,7 +1095,7 @@ impl Catalog {
                 }
             }
 
-            if release_mut.download_option != DownloadOption::Disabled {
+            if release_mut.download_option.requires_writing_files() {
                 release_mut.write_downloadable_files(build);
             }
         }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2023 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use iso_currency::Currency;
@@ -11,6 +11,9 @@ pub enum DownloadOption {
         unlock_text: Option<String>
     },
     Disabled,
+    External {
+        link: String
+    },
     Free,
     Paid {
         currency: Currency,
@@ -92,5 +95,17 @@ impl DownloadOption {
         }
 
         Err(String::from("Price format must consist of two tokens"))
+    }
+
+    /// Downloadable assets need not be generated when downloads are disabled
+    /// or hosted externally, and this encapsulates the condition to query that.
+    pub fn requires_writing_files(&self) -> bool {
+        match self {
+            DownloadOption::Codes { .. } |
+            DownloadOption::Free { .. } |
+            DownloadOption::Paid { .. } => true,
+            DownloadOption::Disabled |
+            DownloadOption::External { .. } => false
+        }
     }
 }

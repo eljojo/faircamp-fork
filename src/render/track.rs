@@ -50,8 +50,18 @@ pub fn track_html(
                     <span>{t_downloads}</span>
                 </a>
             "#))
-        },
+        }
         DownloadOption::Disabled => None,
+        DownloadOption::External { link } => {
+            let external_icon = icons::external(&build.locale.translations.external_link);
+            let t_download = &build.locale.translations.download;
+            Some(formatdoc!(r#"
+                <a href="{link}" target="_blank">
+                    {external_icon}
+                    <span>{t_download}</span>
+                </a>
+            "#))
+        }
         DownloadOption::Free => {
             let t_downloads_permalink = &build.locale.translations.downloads_permalink;
             let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
@@ -64,7 +74,7 @@ pub fn track_html(
                     <span>{t_downloads}</span>
                 </a>
             "#))
-        },
+        }
         DownloadOption::Paid { payment_text, .. } => {
             if payment_text.is_none() {
                 None

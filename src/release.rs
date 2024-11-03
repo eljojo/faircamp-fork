@@ -570,7 +570,8 @@ impl Release {
                     util::ensure_dir_and_write_index(&code_dir, &download_html);
                 }
             }
-            DownloadOption::Disabled => (),
+            DownloadOption::Disabled |
+            DownloadOption::External { .. }  => (),
             DownloadOption::Free  => {
                 let t_downloads_permalink = &build.locale.translations.downloads_permalink;
                 let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
