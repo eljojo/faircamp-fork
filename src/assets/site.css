@@ -238,12 +238,21 @@ button svg { display: inline-block; }
 }
 .docked_player.tall .title_wrapper { margin-right: .9rem; }
 .download_entry { display: flex; }
+.download_entry a { color: var(--fg-3); }
+.download_entry a:hover { color: var(--fg-3-focus); }
 .download_formats {
     display: flex;
     flex-direction: column;
     row-gap: .1rem;
 }
-.download_group { margin: 1.2rem 0; }
+.download_group {
+    margin-bottom: .6rem;
+    margin-top: 1.8rem;
+}
+.download_group > span {
+    color: var(--fg-3);
+    margin-inline-end: .1rem
+}
 .download_hints {
     display: flex;
     flex-direction: column;

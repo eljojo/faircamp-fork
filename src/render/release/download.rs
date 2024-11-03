@@ -159,7 +159,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
             let t_extras = &build.locale.translations.extras;
             formatdoc!(
                 r#"
-                    <span class="download_group">{t_extras}</span>
+                    <div class="download_group">{t_extras}</div>
 
                     <div class="download_formats" style="margin-bottom: 1rem;">
                         {cover_entry}
@@ -208,19 +208,18 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                     .collect::<Vec<String>>()
                     .join("");
 
-                formatdoc!(
-                    r#"
-                        <span class="download_group">
-                            <span class="track_number">{number}</span>{title}
-                        </span>
+                let track_number_formatted = release.track_numbering.format(track_index + 1);
+                let track_title_escaped = html_escape_outside_attribute(&track.title());
 
-                        <div class="download_formats">
-                            {track_download_columns}
-                        </div>
-                    "#,
-                    number = release.track_numbering.format(track_index + 1),
-                    title = html_escape_outside_attribute(&track.title())
-                )
+                formatdoc!(r#"
+                    <div class="download_group">
+                        <span class="track_number">{track_number_formatted}</span> {track_title_escaped}
+                    </div>
+
+                    <div class="download_formats">
+                        {track_download_columns}
+                    </div>
+                "#)
             })
             .collect::<Vec<String>>()
             .join("\n");
