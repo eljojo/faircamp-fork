@@ -26,7 +26,7 @@ pub fn unlock_html(
     let custom_or_default_unlock_text = unlock_text
         .as_ref()
         .map(|text| text.to_string())
-        .unwrap_or(build.locale.translations.default_unlock_text.clone());
+        .unwrap_or(build.locale.translations.default_unlock_text.to_string());
 
     let t_unlock_permalink = &build.locale.translations.unlock_permalink;
     let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);

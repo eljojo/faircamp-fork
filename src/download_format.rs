@@ -49,15 +49,15 @@ impl DownloadFormat {
     pub fn description(&self, build: &Build) -> String {
         match self {
             DownloadFormat::Aac |
-            DownloadFormat::OggVorbis => build.locale.translations.audio_format_average.clone(),
+            DownloadFormat::OggVorbis => build.locale.translations.audio_format_average.to_string(),
             DownloadFormat::Aiff |
-            DownloadFormat::Wav => build.locale.translations.audio_format_uncompressed.clone(),
-            DownloadFormat::Alac => build.locale.translations.audio_format_alac.clone(),
-            DownloadFormat::Flac => build.locale.translations.audio_format_flac.clone(),
-            DownloadFormat::Mp3VbrV0 => build.locale.translations.audio_format_mp3.clone(),
-            DownloadFormat::Opus48Kbps => build.locale.translations.audio_format_opus_48.clone(),
-            DownloadFormat::Opus96Kbps => build.locale.translations.audio_format_opus_96.clone(),
-            DownloadFormat::Opus128Kbps => build.locale.translations.audio_format_opus_128.clone(),
+            DownloadFormat::Wav => build.locale.translations.audio_format_uncompressed.to_string(),
+            DownloadFormat::Alac => build.locale.translations.audio_format_alac.to_string(),
+            DownloadFormat::Flac => build.locale.translations.audio_format_flac.to_string(),
+            DownloadFormat::Mp3VbrV0 => build.locale.translations.audio_format_mp3.to_string(),
+            DownloadFormat::Opus48Kbps => build.locale.translations.audio_format_opus_48.to_string(),
+            DownloadFormat::Opus96Kbps => build.locale.translations.audio_format_opus_96.to_string(),
+            DownloadFormat::Opus128Kbps => build.locale.translations.audio_format_opus_128.to_string(),
         }
     }
 

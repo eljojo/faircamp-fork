@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2024 Simon Repp
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[package]
+authors = ["Simon Repp"]
+edition = "2021"
+name = "translations"
+
+[dependencies]
+indoc = "2.0.5"

@@ -1,0 +1,112 @@
+// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+use indoc::formatdoc;
+use std::env;
+use std::fs;
+use std::path::PathBuf;
+
+pub fn main() {
+    let mut args = env::args();
+
+    let website_out_dir = match args.nth(1) {
+        Some(path) => PathBuf::from(&path),
+        None => {
+            eprintln!("A single argument is required (directory path to which to write the translation website), aborting.");
+            return;
+        }
+    };
+
+    if website_out_dir.exists() {
+        let _ = fs::remove_dir_all(&website_out_dir);
+    }
+
+    fs::create_dir(&website_out_dir).unwrap();
+
+    let mut body = String::new();
+
+    for translation in translations::all_translations() {
+        let code = translation.0;
+
+        let mut strings = String::new();
+
+        for string in translation.1.all_strings() {
+            let key = string.0;
+            let value = string.1;
+
+            let r_string = formatdoc!(r#"
+                <div>
+                    <code>{key}</code>
+                    -&gt;
+                    <input>{value}</input>
+                </div>
+            "#);
+
+            strings.push_str(&r_string);
+        }
+
+        let section = formatdoc!(r#"
+            <h2>{code}</h2>
+
+            <div>
+                {strings}
+            </div>
+        "#);
+
+        body.push_str(&section);
+    }
+
+    let html = layout(&body);
+
+    fs::write(website_out_dir.join("index.html"), html).unwrap();
+
+    fs::write(
+        website_out_dir.join("favicon.svg"),
+        include_bytes!("../../../src/assets/favicon.svg")
+    ).unwrap();
+
+    fs::write(
+        website_out_dir.join("favicon_dark.png"),
+        include_bytes!("../../../src/assets/favicon_dark.png")
+    ).unwrap();
+
+    fs::write(
+        website_out_dir.join("favicon_light.png"),
+        include_bytes!("../../../src/assets/favicon_light.png")
+    ).unwrap();
+
+    fs::copy(
+        "assets/styles.css",
+        website_out_dir.join("styles.css")
+    ).unwrap();
+}
+
+fn layout(body: &str) -> String {
+    formatdoc!(r##"
+        <!doctype html>
+        <html>
+            <head>
+                <title>Faircamp Translations</title>
+                <meta charset="utf-8">
+                <meta name="description" content="Easily accessible translation contributions for Faircamp">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <link href="favicon.svg" rel="icon" type="image/svg+xml">
+                <link href="favicon_light.png" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
+                <link href="favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
+                <link href="styles.css?0" rel="stylesheet">
+            </head>
+            <body>
+                <header>
+                    <span>Faircamp Translations</span>
+                    <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                        <title>Faircamp</title>
+                        <path d="m46.739 32.391-9.0123 4.9051 0.58674-2.9505 5.1633-2.8163-4.1776-2.8633 0.58674-2.9505 7.2756 4.9286zm-22.625 4.9051-7.2756-4.9051 0.42245-1.7468 9.0123-4.9286-0.56327 2.9505-5.1868 2.8633 4.1776 2.8163zm14.632-19.062c-4.2114 0-7.2885 4.6842-9.799 15.112-2.5104 10.427-4.81 11.612-6.0734 11.638-0.67667 0.01381-1.0456-0.96107-0.71705-1.2122 0.2281-0.13864 0.67976-0.49247 0.70632-0.95004 0.02966-0.51099-0.40513-0.80927-0.93131-0.79703-0.54473 0.0127-0.99994 0.58986-1.0339 1.1848-0.0031 0.05482-0.0017 0.10857-0.01283 0.63607-0.01113 0.52749 0.611 1.92 1.9896 1.92 3.9236 0 7.7931-4.51 9.6802-12.343 1.2651-5.2512 3.1875-14.459 6.1404-14.459 0.97806 0 0.92916 0.8773 0.65297 1.1098-0.27618 0.23251-0.58556 0.48163-0.61212 0.93918-0.02967 0.51099 0.14424 1.1179 0.88584 1.1006 0.74292-0.01727 1.2641-0.56811 1.2918-1.3344 0.0023-0.05967-2e-3 -0.11806-0.01221-0.17492-0.02172-1.0411-0.63078-2.3695-2.1553-2.3695z"/>
+                    </svg>
+                </header>
+                <main>
+                    {body}
+                </main>
+            </body>
+        </html>
+    "##)
+}

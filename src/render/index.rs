@@ -46,7 +46,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let more_icon = icons::more(&build.locale.translations.more);
     let more_label = match &catalog.more_label {
         Some(label) => label,
-        None => &build.locale.translations.more
+        None => build.locale.translations.more
     };
 
     let more_link = format!(r##"
