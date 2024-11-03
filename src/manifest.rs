@@ -29,9 +29,9 @@ use crate::{
     Theme,
     ThemeBase,
     ThemeFont,
-    TrackNumbering,
-    util
+    TrackNumbering
 };
+use crate::util::{html_escape_outside_attribute, uid};
 
 const MAX_SYNOPSIS_CHARS: usize = 256;
 
@@ -527,7 +527,7 @@ pub fn apply_options(
             // could lead to unexpected, frustrating behavior for users (and it
             // can happen by accident).
             if optional_flag_present(section, "rotate_download_urls") {
-                build.url_salt = util::uid();
+                build.url_salt = uid();
             }
 
             if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
@@ -574,7 +574,9 @@ pub fn apply_options(
                         warn_global_set_repeatedly!("catalog.synopsis", previous_synopsis, synopsis);
                     }
 
-                    catalog.synopsis = Some(synopsis);
+                    let synopsis_escaped = html_escape_outside_attribute(&synopsis);
+
+                    catalog.synopsis = Some(synopsis_escaped);
                 } else {
                     error!("Ignoring catalog.synopsis value in {} because it is too long ({} / {} characters)", path.display(), synopsis_chars, MAX_SYNOPSIS_CHARS);
                 }
@@ -882,7 +884,8 @@ pub fn apply_options(
             let synopsis_chars = synopsis.chars().count();
 
             if synopsis_chars <= MAX_SYNOPSIS_CHARS {
-                overrides.release_synopsis = Some(synopsis);
+                let synopsis_escaped = html_escape_outside_attribute(&synopsis);
+                overrides.release_synopsis = Some(synopsis_escaped);
             } else {
                 error!("Ignoring release.synopsis value in {} because it is too long ({} / {} characters)", path.display(), synopsis_chars, MAX_SYNOPSIS_CHARS);
             }
