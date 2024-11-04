@@ -131,8 +131,7 @@ pub struct Translations {
     pub audio_format_opus_96: Translation,
     pub audio_format_opus_128: Translation,
     pub audio_format_uncompressed: Translation,
-    pub audio_player_widget_for_release: Translation,
-    pub audio_player_widget_for_track: Translation,
+    pub audio_player_widget_for_xxx: Translation,
     pub auto_generated_cover: Translation,
     pub available_formats: Translation,
     pub buy: Translation,
@@ -204,8 +203,7 @@ impl Translations {
 			("audio_format_opus_96", &self.audio_format_opus_96, false),
 			("audio_format_opus_128", &self.audio_format_opus_128, false),
 			("audio_format_uncompressed", &self.audio_format_uncompressed, false),
-			("audio_player_widget_for_release", &self.audio_player_widget_for_release, false),
-			("audio_player_widget_for_track", &self.audio_player_widget_for_track, false),
+			("audio_player_widget_for_xxx", &self.audio_player_widget_for_xxx, false),
 			("auto_generated_cover", &self.auto_generated_cover, false),
 			("available_formats", &self.available_formats, false),
 			("buy", &self.buy, false),
@@ -262,12 +260,8 @@ impl Translations {
 		]
 	}
 
-    pub fn audio_player_widget_for_release(&self, title: &str) -> String {
-        self.audio_player_widget_for_release.replace("{title}", title)
-    }
-
-    pub fn audio_player_widget_for_track(&self, title: &str) -> String {
-        self.audio_player_widget_for_track.replace("{title}", title)
+    pub fn audio_player_widget_for_xxx(&self, title: &str) -> String {
+        self.audio_player_widget_for_xxx.replace("{title}", title)
     }
 
     pub fn keys() -> Translations {
@@ -280,9 +274,8 @@ impl Translations {
             audio_format_opus_96: reviewed!("audio_format_opus_96"),
             audio_format_opus_128: reviewed!("audio_format_opus_128"),
             audio_format_uncompressed: reviewed!("audio_format_uncompressed"),
-            audio_player_widget_for_release: reviewed!("audio_player_widget_for_release"),
-            audio_player_widget_for_track: reviewed!("audio_player_widget_for_track"),
-            auto_generated_cover: reviewed!("audio_player_widget_for_track"),
+            audio_player_widget_for_xxx: reviewed!("audio_player_widget_for_xxx"),
+            auto_generated_cover: reviewed!("auto_generated_cover"),
             available_formats: reviewed!("available_formats"),
             buy: reviewed!("buy"),
             copied: reviewed!("copied"),
@@ -408,8 +401,7 @@ fn check_translations() {
     let locales = [DE, EN, ES, FR, HE, IT, NB, NL, PL, SV, TR];
 
     for translations in &locales {
-        assert!(&translations.audio_player_widget_for_release.contains("{title}"));
-        assert!(&translations.audio_player_widget_for_track.contains("{title}"));
+        assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));
         assert!(&translations.this_site_was_created_with_faircamp.contains("{faircamp_link}"));
         assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));
         assert!(&translations.unlock_manual_instructions.contains("{index_suffix}"));

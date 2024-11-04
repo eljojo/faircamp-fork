@@ -71,15 +71,15 @@ pub fn embed_choices_html(
             let track_number = index + 1;
             let track_title = track.title();
 
-            let t_audio_player_widget_for_track =
-                build.locale.translations.audio_player_widget_for_track(&track_title);
+            let t_audio_player_widget_for_xxx =
+                build.locale.translations.audio_player_widget_for_xxx(&track_title);
 
             let (embed_copy_code, embed_display_code) = embed_code(
                 base_url,
                 index_suffix,
                 &release.permalink.slug,
                 track_number,
-                &t_audio_player_widget_for_track
+                &t_audio_player_widget_for_xxx
             );
 
             let t_copy = &build.locale.translations.copy;
@@ -113,15 +113,15 @@ pub fn embed_choices_html(
         root_prefix,
     );
 
-    let t_audio_player_widget_for_release = 
-        build.locale.translations.audio_player_widget_for_release(&release.title);
+    let t_audio_player_widget_for_xxx =
+        build.locale.translations.audio_player_widget_for_xxx(&release.title);
 
     let (embed_copy_code, embed_display_code) = embed_code(
         base_url,
         index_suffix,
         &release.permalink.slug,
         "all",
-        &t_audio_player_widget_for_release
+        &t_audio_player_widget_for_xxx
     );
 
     let t_copy = &build.locale.translations.copy;
