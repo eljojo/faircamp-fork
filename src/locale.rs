@@ -4,20 +4,7 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use translations::{
-    de,
-    en,
-    es,
-    fr,
-    he,
-    it,
-    nb,
-    nl,
-    pl,
-    sv,
-    tr,
-    uk
-};
+use translations::{DE, EN, ES, FR, HE, IT, NB, NL, PL, SV, TR, UK};
 use translations::Translations;
 
 pub struct Locale {
@@ -39,24 +26,24 @@ pub enum TextDirection {
 // TODO: Runtime-based mechanism for adding or customizing locales
 impl Locale {
     pub fn default() -> Locale {
-        Locale::new("en", en::translations(), TextDirection::Ltr)
+        Locale::new("en", EN, TextDirection::Ltr)
     }
 
     pub fn from_code(language: &str) -> Locale {
         match language {
-            "de" => Locale::new("de", de::translations(), TextDirection::Ltr),
-            "en" => Locale::new("en", en::translations(), TextDirection::Ltr),
-            "es" => Locale::new("es", es::translations(), TextDirection::Ltr),
-            "fr" => Locale::new("fr", fr::translations(), TextDirection::Ltr),
-            "he" => Locale::new("he", he::translations(), TextDirection::Rtl),
-            "it" => Locale::new("it", it::translations(), TextDirection::Ltr),
-            "nb" => Locale::new("nb", nb::translations(), TextDirection::Ltr),
-            "nl" => Locale::new("nl", nl::translations(), TextDirection::Ltr),
-            "pl" => Locale::new("pl", pl::translations(), TextDirection::Ltr),
-            "sv" => Locale::new("sv", sv::translations(), TextDirection::Ltr),
-            "tr" => Locale::new("tr", tr::translations(), TextDirection::Ltr),
-            "uk" => Locale::new("uk", uk::translations(), TextDirection::Ltr),
-            _ => Locale::new(language, en::translations(), TextDirection::from_code(language))
+            "de" => Locale::new("de", DE, TextDirection::Ltr),
+            "en" => Locale::new("en", EN, TextDirection::Ltr),
+            "es" => Locale::new("es", ES, TextDirection::Ltr),
+            "fr" => Locale::new("fr", FR, TextDirection::Ltr),
+            "he" => Locale::new("he", HE, TextDirection::Rtl),
+            "it" => Locale::new("it", IT, TextDirection::Ltr),
+            "nb" => Locale::new("nb", NB, TextDirection::Ltr),
+            "nl" => Locale::new("nl", NL, TextDirection::Ltr),
+            "pl" => Locale::new("pl", PL, TextDirection::Ltr),
+            "sv" => Locale::new("sv", SV, TextDirection::Ltr),
+            "tr" => Locale::new("tr", TR, TextDirection::Ltr),
+            "uk" => Locale::new("uk", UK, TextDirection::Ltr),
+            _ => Locale::new(language, EN, TextDirection::from_code(language))
         }
     }
 

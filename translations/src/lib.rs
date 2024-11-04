@@ -1,18 +1,20 @@
 // SPDX-FileCopyrightText: 2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// The reviewed!("Example") macro basically just serves as a marker for
+use std::ops::Deref;
+
+/// The Reviewed("Example") macro basically just serves as a marker for
 /// a translation, to say it has been checked by at least one native speaker
 /// or expert of a given language. Otherwise no transformation occurs.
 macro_rules! reviewed {
     ($_value:literal) => {
-        $_value
+        crate::Translation::Reviewed($_value)
     };
 }
 
 macro_rules! unreviewed {
     ($_value:literal) => {
-        $_value
+        crate::Translation::Unreviewed($_value)
     };
 }
 
@@ -20,7 +22,7 @@ macro_rules! unreviewed {
 #[cfg(all(debug_assertions, not(test)))]
 macro_rules! untranslated {
     ($_key:ident) => {
-        "UNTRANSLATED"
+        crate::Translation::Untranslated("UNTRANSLATED")
     };
 }
 
@@ -28,38 +30,91 @@ macro_rules! untranslated {
 #[cfg(any(not(debug_assertions), test))]
 macro_rules! untranslated {
     ($key:ident) => {
-        crate::en::translations().$key
+        crate::EN.$key
     };
 }
 
-pub mod de;
-pub mod en;
-pub mod es;
-pub mod fr;
-pub mod he;
-pub mod it;
-pub mod nb;
-pub mod nl;
-pub mod pl;
-pub mod sv;
-pub mod tr;
-pub mod uk;
+mod de;
+mod en;
+mod es;
+mod fr;
+mod he;
+mod it;
+mod nb;
+mod nl;
+mod pl;
+mod sv;
+mod tr;
+mod uk;
+
+pub use de::DE;
+pub use en::EN;
+pub use es::ES;
+pub use fr::FR;
+pub use he::HE;
+pub use it::IT;
+pub use nb::NB;
+pub use nl::NL;
+pub use pl::PL;
+pub use sv::SV;
+pub use tr::TR;
+pub use uk::UK;
 
 pub fn all_translations() -> Vec<(&'static str, Translations)> {
 	vec![
-		("de", de::translations()),
-		("en", en::translations()),
-		("es", es::translations()),
-		("fr", fr::translations()),
-		("he", he::translations()),
-		("it", it::translations()),
-		("nb", nb::translations()),
-		("nl", nl::translations()),
-		("pl", pl::translations()),
-		("sv", sv::translations()),
-		("tr", tr::translations()),
-		("uk", uk::translations())
+		("de", DE),
+		("en", EN),
+		("es", ES),
+		("fr", FR),
+		("he", HE),
+		("it", IT),
+		("nb", NB),
+		("nl", NL),
+		("pl", PL),
+		("sv", SV),
+		("tr", TR),
+		("uk", UK)
 	]
+}
+
+pub enum Translation {
+    Reviewed(&'static str),
+    Unreviewed(&'static str),
+    Untranslated(&'static str)
+}
+
+impl Translation {
+    pub fn status(&self) -> &'static str {
+        match self {
+            Translation::Reviewed(_) => "reviewed",
+            Translation::Unreviewed(_) => "unreviewed",
+            Translation::Untranslated(_) => "untranslated"
+        }
+    }
+}
+
+impl Deref for Translation {
+    type Target = &'static str;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Translation::Reviewed(value) => value,
+            Translation::Unreviewed(value) => value,
+            Translation::Untranslated(value) => value
+        }
+    }
+}
+
+impl std::fmt::Display for Translation {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let text = match self {
+            Translation::Reviewed(value) => value,
+            Translation::Unreviewed(value) => value,
+            Translation::Untranslated(value) => value
+        };
+
+        write!(f, "{}", text)
+    }
 }
 
 /// A key-value mapping for every translatable string found in the interface.
@@ -68,141 +123,142 @@ pub fn all_translations() -> Vec<(&'static str, Translations)> {
 /// a method of the same name - these are translations that need to be called
 /// as a function because they interpolate some parameter into the translation.
 pub struct Translations {
-    pub audio_format_alac: &'static str,
-    pub audio_format_average: &'static str,
-    pub audio_format_flac: &'static str,
-    pub audio_format_mp3: &'static str,
-    pub audio_format_opus_48: &'static str,
-    pub audio_format_opus_96: &'static str,
-    pub audio_format_opus_128: &'static str,
-    pub audio_format_uncompressed: &'static str,
-    pub audio_player_widget_for_release: &'static str,
-    pub audio_player_widget_for_track: &'static str,
-    pub auto_generated_cover: &'static str,
-    pub available_formats: &'static str,
-    pub buy: &'static str,
-    pub copied: &'static str,
-    pub copy: &'static str,
-    pub copy_link: &'static str,
-    pub confirm: &'static str,
-    pub r#continue: &'static str,
-    pub cover_image: &'static str,
-    pub default_unlock_text: &'static str,
-    pub dimmed: &'static str,
-    pub download: &'static str,
-    pub downloads: &'static str,
+    pub audio_format_alac: Translation,
+    pub audio_format_average: Translation,
+    pub audio_format_flac: Translation,
+    pub audio_format_mp3: Translation,
+    pub audio_format_opus_48: Translation,
+    pub audio_format_opus_96: Translation,
+    pub audio_format_opus_128: Translation,
+    pub audio_format_uncompressed: Translation,
+    pub audio_player_widget_for_release: Translation,
+    pub audio_player_widget_for_track: Translation,
+    pub auto_generated_cover: Translation,
+    pub available_formats: Translation,
+    pub buy: Translation,
+    pub copied: Translation,
+    pub copy: Translation,
+    pub copy_link: Translation,
+    pub confirm: Translation,
+    pub r#continue: Translation,
+    pub cover_image: Translation,
+    pub default_unlock_text: Translation,
+    pub dimmed: Translation,
+    pub download: Translation,
+    pub downloads: Translation,
     /// Must be unique and only contain url-safe characters
-    pub downloads_permalink: &'static str,
-    pub embed: &'static str,
-    pub embed_entire_release: &'static str,
-    pub enter_code_here: &'static str,
-    pub external_link: &'static str,
-    pub extras: &'static str,
-    pub failed: &'static str,
-    pub feed: &'static str,
-    pub fixed_price: &'static str,
-    pub image_descriptions: &'static str,
-    pub image_descriptions_guide: &'static str,
+    pub downloads_permalink: Translation,
+    pub embed: Translation,
+    pub embed_entire_release: Translation,
+    pub enter_code_here: Translation,
+    pub external_link: Translation,
+    pub extras: Translation,
+    pub failed: Translation,
+    pub feed: Translation,
+    pub fixed_price: Translation,
+    pub image_descriptions: Translation,
+    pub image_descriptions_guide: Translation,
     /// Must be unique and only contain url-safe characters
-    pub image_descriptions_permalink: &'static str,
-    pub listen: &'static str,
-    pub loading: &'static str,
-    pub m3u_playlist: &'static str,
-    pub made_or_arranged_payment: &'static str,
-    pub missing_image_description_note: &'static str,
-    pub more: &'static str,
-    pub muted: &'static str,
-    pub name_your_price: &'static str,
-    pub next_track: &'static str,
-    pub pause: &'static str,
-    pub play: &'static str,
-    pub previous_track: &'static str,
-    pub purchase_downloads: &'static str,
+    pub image_descriptions_permalink: Translation,
+    pub listen: Translation,
+    pub loading: Translation,
+    pub m3u_playlist: Translation,
+    pub made_or_arranged_payment: Translation,
+    pub missing_image_description_note: Translation,
+    pub more: Translation,
+    pub muted: Translation,
+    pub name_your_price: Translation,
+    pub next_track: Translation,
+    pub pause: Translation,
+    pub play: Translation,
+    pub previous_track: Translation,
+    pub purchase_downloads: Translation,
     /// Must be unique and only contain url-safe characters
-    pub purchase_permalink: &'static str,
-    pub recommended_format: &'static str,
-    pub rss_feed: &'static str,
-    pub this_site_was_created_with_faircamp: &'static str,
-    pub unlisted: &'static str,
-    pub unlock: &'static str,
-    pub unlock_downloads: &'static str,
+    pub purchase_permalink: Translation,
+    pub recommended_format: Translation,
+    pub rss_feed: Translation,
+    pub this_site_was_created_with_faircamp: Translation,
+    pub unlisted: Translation,
+    pub unlock: Translation,
+    pub unlock_downloads: Translation,
     /// Must be unique and only contain url-safe characters
-    pub unlock_permalink: &'static str,
-    pub unlock_code_seems_incorrect: &'static str,
-    pub unlock_manual_instructions: &'static str,
-    pub up_to_xxx: &'static str,
-    pub visual_impairment: &'static str,
-    pub volume: &'static str,
-    pub xxx_and_others: &'static str,
-    pub xxx_or_more: &'static str
+    pub unlock_permalink: Translation,
+    pub unlock_code_seems_incorrect: Translation,
+    pub unlock_manual_instructions: Translation,
+    pub up_to_xxx: Translation,
+    pub visual_impairment: Translation,
+    pub volume: Translation,
+    pub xxx_and_others: Translation,
+    pub xxx_or_more: Translation
 }
 
 impl Translations {
-	pub fn all_strings(&self) -> Vec<(&'static str, &str)> {
+    /// (key, value, is_multiline)
+	pub fn all_strings(&self) -> Vec<(&'static str, &Translation, bool)> {
 		vec![
-			("audio_format_alac", &self.audio_format_alac),
-			("audio_format_average", &self.audio_format_average),
-			("audio_format_flac", &self.audio_format_flac),
-			("audio_format_mp3", &self.audio_format_mp3),
-			("audio_format_opus_48", &self.audio_format_opus_48),
-			("audio_format_opus_96", &self.audio_format_opus_96),
-			("audio_format_opus_128", &self.audio_format_opus_128),
-			("audio_format_uncompressed", &self.audio_format_uncompressed),
-			("audio_player_widget_for_release", &self.audio_player_widget_for_release),
-			("audio_player_widget_for_track", &self.audio_player_widget_for_track),
-			("auto_generated_cover", &self.auto_generated_cover),
-			("available_formats", &self.available_formats),
-			("buy", &self.buy),
-			("copied", &self.copied),
-			("copy", &self.copy),
-			("copy_link", &self.copy_link),
-			("confirm", &self.confirm),
-			("continue", &self.r#continue),
-			("cover_image", &self.cover_image),
-			("default_unlock_text", &self.default_unlock_text),
-			("dimmed", &self.dimmed),
-			("download", &self.download),
-			("downloads", &self.downloads),
-			("downloads_permalink", &self.downloads_permalink),
-			("embed", &self.embed),
-			("embed_entire_release", &self.embed_entire_release),
-			("enter_code_here", &self.enter_code_here),
-			("external_link", &self.external_link),
-			("extras", &self.extras),
-			("failed", &self.failed),
-			("feed", &self.feed),
-			("fixed_price", &self.fixed_price),
-			("image_descriptions", &self.image_descriptions),
-			("image_descriptions_guide", &self.image_descriptions_guide),
-			("image_descriptions_permalink", &self.image_descriptions_permalink),
-			("listen", &self.listen),
-			("loading", &self.loading),
-			("m3u_playlist", &self.m3u_playlist),
-			("made_or_arranged_payment", &self.made_or_arranged_payment),
-			("missing_image_description_note", &self.missing_image_description_note),
-			("more", &self.more),
-			("muted", &self.muted),
-			("name_your_price", &self.name_your_price),
-			("next_track", &self.next_track),
-			("pause", &self.pause),
-			("play", &self.play),
-			("previous_track", &self.previous_track),
-			("purchase_downloads", &self.purchase_downloads),
-			("purchase_permalink", &self.purchase_permalink),
-			("recommended_format", &self.recommended_format),
-			("rss_feed", &self.rss_feed),
-			("this_site_was_created_with_faircamp", &self.this_site_was_created_with_faircamp),
-			("unlisted", &self.unlisted),
-			("unlock", &self.unlock),
-			("unlock_downloads", &self.unlock_downloads),
-			("unlock_permalink", &self.unlock_permalink),
-			("unlock_code_seems_incorrect", &self.unlock_code_seems_incorrect),
-			("unlock_manual_instructions", &self.unlock_manual_instructions),
-			("up_to_xxx", &self.up_to_xxx),
-			("visual_impairment", &self.visual_impairment),
-			("volume", &self.volume),
-			("xxx_and_others", &self.xxx_and_others),
-			("xxx_or_more", &self.xxx_or_more)
+			("audio_format_alac", &self.audio_format_alac, false),
+			("audio_format_average", &self.audio_format_average, false),
+			("audio_format_flac", &self.audio_format_flac, false),
+			("audio_format_mp3", &self.audio_format_mp3, false),
+			("audio_format_opus_48", &self.audio_format_opus_48, false),
+			("audio_format_opus_96", &self.audio_format_opus_96, false),
+			("audio_format_opus_128", &self.audio_format_opus_128, false),
+			("audio_format_uncompressed", &self.audio_format_uncompressed, false),
+			("audio_player_widget_for_release", &self.audio_player_widget_for_release, false),
+			("audio_player_widget_for_track", &self.audio_player_widget_for_track, false),
+			("auto_generated_cover", &self.auto_generated_cover, false),
+			("available_formats", &self.available_formats, false),
+			("buy", &self.buy, false),
+			("copied", &self.copied, false),
+			("copy", &self.copy, false),
+			("copy_link", &self.copy_link, false),
+			("confirm", &self.confirm, false),
+			("continue", &self.r#continue, false),
+			("cover_image", &self.cover_image, false),
+			("default_unlock_text", &self.default_unlock_text, false),
+			("dimmed", &self.dimmed, false),
+			("download", &self.download, false),
+			("downloads", &self.downloads, false),
+			("downloads_permalink", &self.downloads_permalink, false),
+			("embed", &self.embed, false),
+			("embed_entire_release", &self.embed_entire_release, false),
+			("enter_code_here", &self.enter_code_here, false),
+			("external_link", &self.external_link, false),
+			("extras", &self.extras, false),
+			("failed", &self.failed, false),
+			("feed", &self.feed, false),
+			("fixed_price", &self.fixed_price, false),
+			("image_descriptions", &self.image_descriptions, false),
+			("image_descriptions_guide", &self.image_descriptions_guide, true),
+			("image_descriptions_permalink", &self.image_descriptions_permalink, false),
+			("listen", &self.listen, false),
+			("loading", &self.loading, false),
+			("m3u_playlist", &self.m3u_playlist, false),
+			("made_or_arranged_payment", &self.made_or_arranged_payment, false),
+			("missing_image_description_note", &self.missing_image_description_note, false),
+			("more", &self.more, false),
+			("muted", &self.muted, false),
+			("name_your_price", &self.name_your_price, false),
+			("next_track", &self.next_track, false),
+			("pause", &self.pause, false),
+			("play", &self.play, false),
+			("previous_track", &self.previous_track, false),
+			("purchase_downloads", &self.purchase_downloads, false),
+			("purchase_permalink", &self.purchase_permalink, false),
+			("recommended_format", &self.recommended_format, false),
+			("rss_feed", &self.rss_feed, false),
+			("this_site_was_created_with_faircamp", &self.this_site_was_created_with_faircamp, false),
+			("unlisted", &self.unlisted, false),
+			("unlock", &self.unlock, false),
+			("unlock_downloads", &self.unlock_downloads, false),
+			("unlock_permalink", &self.unlock_permalink, false),
+			("unlock_code_seems_incorrect", &self.unlock_code_seems_incorrect, false),
+			("unlock_manual_instructions", &self.unlock_manual_instructions, true),
+			("up_to_xxx", &self.up_to_xxx, false),
+			("visual_impairment", &self.visual_impairment, false),
+			("volume", &self.volume, false),
+			("xxx_and_others", &self.xxx_and_others, false),
+			("xxx_or_more", &self.xxx_or_more, false)
 		]
 	}
 
@@ -216,70 +272,108 @@ impl Translations {
 
     pub fn keys() -> Translations {
         Translations {
-            audio_format_alac: "audio_format_alac",
-            audio_format_average: "audio_format_average",
-            audio_format_flac: "audio_format_flac",
-            audio_format_mp3: "audio_format_mp3",
-            audio_format_opus_48: "audio_format_opus_48",
-            audio_format_opus_96: "audio_format_opus_96",
-            audio_format_opus_128: "audio_format_opus_128",
-            audio_format_uncompressed: "audio_format_uncompressed",
-            audio_player_widget_for_release: "audio_player_widget_for_release",
-            audio_player_widget_for_track: "audio_player_widget_for_track",
-            auto_generated_cover: "audio_player_widget_for_track",
-            available_formats: "available_formats",
-            buy: "buy",
-            copied: "copied",
-            copy: "copy",
-            copy_link: "copy_link",
-            confirm: "confirm",
-            r#continue: "continue",
-            cover_image: "cover_image",
-            default_unlock_text: "default_unlock_text",
-            dimmed: "dimmed",
-            download: "download",
-            downloads: "downloads",
-            downloads_permalink: "downloads_permalink",
-            embed: "embed",
-            embed_entire_release: "embed_entire_release",
-            enter_code_here: "enter_code_here",
-            external_link: "external_link",
-            extras: "extras",
-            failed: "failed",
-            feed: "feed",
-            fixed_price: "fixed_price",
-            image_descriptions: "image_descriptions",
-            image_descriptions_guide: "image_descriptions_guide",
-            image_descriptions_permalink: "image_descriptions_permalink",
-            listen: "listen",
-            loading: "loading",
-            m3u_playlist: "m3u_playlist",
-            made_or_arranged_payment: "made_or_arranged_payment",
-            missing_image_description_note: "missing_image_description_note",
-            more: "more",
-            muted: "muted",
-            name_your_price: "name_your_price",
-            next_track: "next_track",
-            pause: "pause",
-            play: "play",
-            previous_track: "previous_track",
-            purchase_downloads: "purchase_downloads",
-            purchase_permalink: "purchase_permalink",
-            recommended_format: "recommended_format",
-            rss_feed: "rss_feed",
-            this_site_was_created_with_faircamp: "this_site_was_created_with_faircamp",
-            unlisted: "unlisted",
-            unlock: "unlock",
-            unlock_downloads: "unlock_downloads",
-            unlock_permalink: "unlock_permalink",
-            unlock_code_seems_incorrect: "unlock_code_seems_incorrect",
-            unlock_manual_instructions: "unlock_manual_instructions",
-            up_to_xxx: "up_to_xxx",
-            visual_impairment: "visual_impairment",
-            volume: "volume",
-            xxx_and_others: "xxx_and_others",
-            xxx_or_more: "xxx_or_more"
+            audio_format_alac: reviewed!("audio_format_alac"),
+            audio_format_average: reviewed!("audio_format_average"),
+            audio_format_flac: reviewed!("audio_format_flac"),
+            audio_format_mp3: reviewed!("audio_format_mp3"),
+            audio_format_opus_48: reviewed!("audio_format_opus_48"),
+            audio_format_opus_96: reviewed!("audio_format_opus_96"),
+            audio_format_opus_128: reviewed!("audio_format_opus_128"),
+            audio_format_uncompressed: reviewed!("audio_format_uncompressed"),
+            audio_player_widget_for_release: reviewed!("audio_player_widget_for_release"),
+            audio_player_widget_for_track: reviewed!("audio_player_widget_for_track"),
+            auto_generated_cover: reviewed!("audio_player_widget_for_track"),
+            available_formats: reviewed!("available_formats"),
+            buy: reviewed!("buy"),
+            copied: reviewed!("copied"),
+            copy: reviewed!("copy"),
+            copy_link: reviewed!("copy_link"),
+            confirm: reviewed!("confirm"),
+            r#continue: reviewed!("continue"),
+            cover_image: reviewed!("cover_image"),
+            default_unlock_text: reviewed!("default_unlock_text"),
+            dimmed: reviewed!("dimmed"),
+            download: reviewed!("download"),
+            downloads: reviewed!("downloads"),
+            downloads_permalink: reviewed!("downloads_permalink"),
+            embed: reviewed!("embed"),
+            embed_entire_release: reviewed!("embed_entire_release"),
+            enter_code_here: reviewed!("enter_code_here"),
+            external_link: reviewed!("external_link"),
+            extras: reviewed!("extras"),
+            failed: reviewed!("failed"),
+            feed: reviewed!("feed"),
+            fixed_price: reviewed!("fixed_price"),
+            image_descriptions: reviewed!("image_descriptions"),
+            image_descriptions_guide: reviewed!("image_descriptions_guide"),
+            image_descriptions_permalink: reviewed!("image_descriptions_permalink"),
+            listen: reviewed!("listen"),
+            loading: reviewed!("loading"),
+            m3u_playlist: reviewed!("m3u_playlist"),
+            made_or_arranged_payment: reviewed!("made_or_arranged_payment"),
+            missing_image_description_note: reviewed!("missing_image_description_note"),
+            more: reviewed!("more"),
+            muted: reviewed!("muted"),
+            name_your_price: reviewed!("name_your_price"),
+            next_track: reviewed!("next_track"),
+            pause: reviewed!("pause"),
+            play: reviewed!("play"),
+            previous_track: reviewed!("previous_track"),
+            purchase_downloads: reviewed!("purchase_downloads"),
+            purchase_permalink: reviewed!("purchase_permalink"),
+            recommended_format: reviewed!("recommended_format"),
+            rss_feed: reviewed!("rss_feed"),
+            this_site_was_created_with_faircamp: reviewed!("this_site_was_created_with_faircamp"),
+            unlisted: reviewed!("unlisted"),
+            unlock: reviewed!("unlock"),
+            unlock_downloads: reviewed!("unlock_downloads"),
+            unlock_permalink: reviewed!("unlock_permalink"),
+            unlock_code_seems_incorrect: reviewed!("unlock_code_seems_incorrect"),
+            unlock_manual_instructions: reviewed!("unlock_manual_instructions"),
+            up_to_xxx: reviewed!("up_to_xxx"),
+            visual_impairment: reviewed!("visual_impairment"),
+            volume: reviewed!("volume"),
+            xxx_and_others: reviewed!("xxx_and_others"),
+            xxx_or_more: reviewed!("xxx_or_more")
         }
+    }
+
+    pub fn percent_reviewed(&self) -> u16 {
+        let mut total = 0;
+        let mut reviewed = 0;
+
+        for string in self.all_strings() {
+            total += 1;
+
+            match string.1 {
+                Translation::Reviewed(_) => {
+                    reviewed += 1;
+                }
+                Translation::Unreviewed(_) |
+                Translation::Untranslated(_) => ()
+            }
+        }
+
+        ((reviewed as f32 / total as f32) * 100.0) as u16
+    }
+
+    pub fn percent_translated(&self) -> u16 {
+        let mut total = 0;
+        let mut translated = 0;
+
+        for string in self.all_strings() {
+            total += 1;
+
+            match string.1 {
+                Translation::Reviewed(_) |
+                Translation::Unreviewed(_) => {
+                    translated += 1;
+                }
+                Translation::Untranslated(_) => ()
+            }
+        }
+
+        ((translated as f32 / total as f32) * 100.0) as u16
     }
 
     pub fn this_site_was_created_with_faircamp(&self, faircamp_link: &str) -> String {
@@ -311,19 +405,7 @@ impl Translations {
 
 #[test]
 fn check_translations() {
-    let locales = [
-        de::translations(),
-        en::translations(),
-        es::translations(),
-        fr::translations(),
-        he::translations(),
-        it::translations(),
-        nb::translations(),
-        nl::translations(),
-        pl::translations(),
-        sv::translations(),
-        tr::translations()
-    ];
+    let locales = [DE, EN, ES, FR, HE, IT, NB, NL, PL, SV, TR];
 
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_release.contains("{title}"));

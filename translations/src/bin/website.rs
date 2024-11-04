@@ -6,6 +6,24 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+/// Escape e.g. "me&you" so it can be rendered into an attribute,
+/// e.g. as <img alt="me&quot;you" src="...">
+pub fn html_escape_inside_attribute(string: &str) -> String {
+    string.replace('&', "&amp;")
+          .replace('<', "&lt;")
+          .replace('>', "&gt;")
+          .replace('"', "&quot;")
+          .replace('\'', "&#39;")
+}
+
+/// Escape e.g. "love>hate" so it can be rendered into the page,
+/// e.g. as <span>love&gt;hate</span>
+pub fn html_escape_outside_attribute(string: &str) -> String {
+    string.replace('&', "&amp;")
+          .replace('<', "&lt;")
+          .replace('>', "&gt;")
+}
+
 pub fn main() {
     let mut args = env::args();
 
@@ -25,6 +43,8 @@ pub fn main() {
 
     let mut body = String::new();
 
+    // TODO: `translation` should be plural, but that collides with the module name,
+    // maybe "strings"/"Strings" instead?
     for translation in translations::all_translations() {
         let code = translation.0;
 
@@ -32,23 +52,37 @@ pub fn main() {
 
         for string in translation.1.all_strings() {
             let key = string.0;
-            let value = string.1;
+            let is_multiline = string.2;
+            let status = string.1.status();
+
+            let value = if status != "untranslated" { string.1 } else { "" };
+
+            let r_input = if is_multiline {
+                let value_escaped = html_escape_outside_attribute(value);
+                format!(r#"<textarea readonly>{value_escaped}</textarea>"#)
+            } else {
+                let value_escaped = html_escape_inside_attribute(value);
+                format!(r#"<input readonly value="{value_escaped}">"#)
+            };
+
 
             let r_string = formatdoc!(r#"
-                <div>
-                    <code>{key}</code>
-                    -&gt;
-                    <input>{value}</input>
+                <div class="string">
+                    <code class="{status}">{key}</code>
+                    {r_input}
                 </div>
             "#);
 
             strings.push_str(&r_string);
         }
 
-        let section = formatdoc!(r#"
-            <h2>{code}</h2>
+        let percent_reviewed = translation.1.percent_reviewed();
+        let percent_translated = translation.1.percent_translated();
 
-            <div>
+        let section = formatdoc!(r#"
+            <h2>{code} ({percent_translated}% translated, {percent_reviewed}% reviewed)</h2>
+
+            <div class="strings">
                 {strings}
             </div>
         "#);
@@ -73,6 +107,11 @@ pub fn main() {
     fs::write(
         website_out_dir.join("favicon_light.png"),
         include_bytes!("../../../src/assets/favicon_light.png")
+    ).unwrap();
+
+    fs::copy(
+        "assets/scripts.js",
+        website_out_dir.join("scripts.js")
     ).unwrap();
 
     fs::copy(
@@ -104,6 +143,7 @@ fn layout(body: &str) -> String {
                     </svg>
                 </header>
                 <main>
+                    <h3 style="color: red;">Heads up: The translation tool is work-in-progress, editing and submitting translations will be possible in a few days</h3>
                     {body}
                 </main>
             </body>

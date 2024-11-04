@@ -235,7 +235,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let more_label = match &release.more_label {
         Some(label) => label,
-        None => build.locale.translations.more
+        None => *build.locale.translations.more
     };
     let more_link = formatdoc!(r##"
         <a class="more" href="#description">

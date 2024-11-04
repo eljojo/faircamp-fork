@@ -178,7 +178,7 @@ fn main() {
 
     // Render image descriptions page (when needed)
     if build.missing_image_descriptions {
-        let t_image_descriptions_permalink = &build.locale.translations.image_descriptions_permalink;
+        let t_image_descriptions_permalink = *build.locale.translations.image_descriptions_permalink;
         let image_descriptions_dir = build.build_dir.join(t_image_descriptions_permalink);
         let image_descriptions_html = render::image_descriptions::image_descriptions_html(&build, &catalog);
         fs::create_dir(&image_descriptions_dir).unwrap();

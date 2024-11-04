@@ -545,7 +545,7 @@ impl Release {
     pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
         match &self.download_option {
             DownloadOption::Codes { codes, unlock_text } => {
-                let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                let t_unlock_permalink = *build.locale.translations.unlock_permalink;
                 let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_unlock_permalink]);
 
                 let unlock_page_dir = build.build_dir
@@ -556,7 +556,7 @@ impl Release {
                 let unlock_html = render::release::unlock::unlock_html(build, catalog, self, unlock_text);
                 util::ensure_dir_and_write_index(&unlock_page_dir, &unlock_html);
 
-                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let t_downloads_permalink = *build.locale.translations.downloads_permalink;
                 let download_dir = build.build_dir
                     .join(&self.permalink.slug)
                     .join(t_downloads_permalink);
@@ -573,7 +573,7 @@ impl Release {
             DownloadOption::Disabled |
             DownloadOption::External { .. }  => (),
             DownloadOption::Free  => {
-                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let t_downloads_permalink = *build.locale.translations.downloads_permalink;
                 let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
 
                 let download_page_dir = build.build_dir
@@ -586,7 +586,7 @@ impl Release {
             }
             DownloadOption::Paid { currency, payment_text, range } => {
                 if let Some(payment_text) = payment_text {
-                    let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                    let t_purchase_permalink = *build.locale.translations.purchase_permalink;
                     let purchase_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_purchase_permalink]);
 
                     let purchase_page_dir = build.build_dir
@@ -597,7 +597,7 @@ impl Release {
                     let purchase_html = render::release::purchase::purchase_html(build, catalog, currency, payment_text, range, self);
                     util::ensure_dir_and_write_index(&purchase_page_dir, &purchase_html);
 
-                    let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                    let t_downloads_permalink = *build.locale.translations.downloads_permalink;
                     let download_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
 
                     let download_page_dir = build.build_dir
