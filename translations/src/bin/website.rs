@@ -4,6 +4,7 @@
 use indoc::formatdoc;
 use std::env;
 use std::fs;
+use std::iter::zip;
 use std::path::PathBuf;
 
 /// Escape e.g. "me&you" so it can be rendered into an attribute,
@@ -43,48 +44,128 @@ pub fn main() {
 
     let mut body = String::new();
 
-    // TODO: `translation` should be plural, but that collides with the module name,
-    // maybe "strings"/"Strings" instead?
-    for translation in translations::all_translations() {
-        let code = translation.0;
+    let mut all_languages = translations::all_languages();
+
+    all_languages.sort_by_key(|language| language.name);
+
+    all_languages.push(translations::new_language());
+
+    for language in all_languages {
+        let language_code = language.code;
 
         let mut strings = String::new();
 
-        for string in translation.1.all_strings() {
-            let key = string.0;
+        for (reference_string, string) in zip(translations::EN.all_strings(), language.translations.all_strings()) {
+            let translation_key = string.0;
             let is_multiline = string.2;
             let status = string.1.status();
 
-            let value = if status != "untranslated" { string.1 } else { "" };
-
-            let r_input = if is_multiline {
-                let value_escaped = html_escape_outside_attribute(value);
-                format!(r#"<textarea readonly>{value_escaped}</textarea>"#)
+            let reference_value = reference_string.1;
+            let r_reference_en = if language_code == "en" {
+                String::new()
             } else {
-                let value_escaped = html_escape_inside_attribute(value);
-                format!(r#"<input readonly value="{value_escaped}">"#)
+                let input_textarea = if is_multiline {
+                    let value_escaped = html_escape_outside_attribute(reference_value);
+                    format!(r#"<span>{value_escaped}</span>"#)
+                } else {
+                    let value_escaped = html_escape_inside_attribute(reference_value);
+                    format!(r#"<span>{value_escaped}</span>"#)
+                };
+
+                formatdoc!(r#"
+                    <div>
+                        <span>Reference</span>
+                        <span>en</span>
+                        {input_textarea}
+                    </div>
+                "#)
             };
 
+            let value = if status != "untranslated" { string.1 } else { "" };
+            let r_current_xx = if language_code == ".." {
+                String::new()
+            } else {
+                let input_textarea = if is_multiline {
+                    let value_escaped = html_escape_outside_attribute(value);
+                    format!(r#"<span>{value_escaped}</span>"#)
+                } else {
+                    let value_escaped = html_escape_outside_attribute(value);
+                    format!(r#"<span>{value_escaped}</span>"#)
+                };
+
+                formatdoc!(r#"
+                    <div>
+                        <span>Current</span>
+                        <span>{language_code}</span>
+                        {input_textarea}
+                    </div>
+                "#)
+            };
+
+            let r_proposal_xx = if is_multiline {
+                format!(r#"<textarea autocomplete="off" data-translation-key="{translation_key}"></textarea>"#)
+            } else {
+                format!(r#"<input autocomplete="off" data-translation-key="{translation_key}">"#)
+            };
 
             let r_string = formatdoc!(r#"
                 <div class="string">
-                    <code class="{status}">{key}</code>
-                    {r_input}
+                    <div>
+                        <span></span>
+                        <div class="status {status}"></div>
+                        <code>{translation_key}</code>
+                    </div>
+                    {r_reference_en}
+                    {r_current_xx}
+                    <div>
+                        <span>Proposed</span>
+                        <span>{language_code}</span>
+                        {r_proposal_xx}
+                    </div>
                 </div>
             "#);
 
             strings.push_str(&r_string);
         }
 
-        let percent_reviewed = translation.1.percent_reviewed();
-        let percent_translated = translation.1.percent_translated();
+        let percent_reviewed = language.translations.percent_reviewed();
+        let percent_translated = language.translations.percent_translated();
 
+        let percent_unreviewed = percent_translated - percent_reviewed;
+        let percent_untranslated = 100.0 - percent_translated;
+
+        let count_unreviewed = language.translations.count_unreviewed();
+        let r_to_review = if count_unreviewed > 0 {
+            format!(r#"<span class="badge unreviewed">{count_unreviewed} to review</span>"#)
+        } else {
+            String::new()
+        };
+
+        let count_untranslated = language.translations.count_untranslated();
+        let r_to_translate = if count_untranslated > 0 {
+            format!(r#"<span class="badge untranslated">{count_untranslated} to translate</span>"#)
+        } else {
+            String::new()
+        };
+
+        let language_name = language.name;
         let section = formatdoc!(r#"
-            <h2>{code} ({percent_translated}% translated, {percent_reviewed}% reviewed)</h2>
-
-            <div class="strings">
-                {strings}
-            </div>
+            <details>
+                <summary class="language">
+                    <div class="progress">
+                        <div class="bar reviewed" style="width: {percent_reviewed}%;"></div>
+                        <div class="bar unreviewed" style="width: {percent_unreviewed}%;"></div>
+                        <div class="bar untranslated" style="width: {percent_untranslated}%;"></div>
+                    </div>
+                    <span>{language_name} ({language_code})</span>
+                    {r_to_translate}
+                    {r_to_review}
+                    <span class="count"></span>
+                </summary>
+                <div class="strings" data-language-code="{language_code}">
+                    {strings}
+                </div>
+            </details>
         "#);
 
         body.push_str(&section);
@@ -132,19 +213,90 @@ fn layout(body: &str) -> String {
                 <link href="favicon.svg" rel="icon" type="image/svg+xml">
                 <link href="favicon_light.png" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
                 <link href="favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
+                <script defer src="scripts.js?0"></script>
                 <link href="styles.css?0" rel="stylesheet">
             </head>
             <body>
                 <header>
-                    <span>Faircamp Translations</span>
-                    <svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <title>Faircamp</title>
-                        <path d="m46.739 32.391-9.0123 4.9051 0.58674-2.9505 5.1633-2.8163-4.1776-2.8633 0.58674-2.9505 7.2756 4.9286zm-22.625 4.9051-7.2756-4.9051 0.42245-1.7468 9.0123-4.9286-0.56327 2.9505-5.1868 2.8633 4.1776 2.8163zm14.632-19.062c-4.2114 0-7.2885 4.6842-9.799 15.112-2.5104 10.427-4.81 11.612-6.0734 11.638-0.67667 0.01381-1.0456-0.96107-0.71705-1.2122 0.2281-0.13864 0.67976-0.49247 0.70632-0.95004 0.02966-0.51099-0.40513-0.80927-0.93131-0.79703-0.54473 0.0127-0.99994 0.58986-1.0339 1.1848-0.0031 0.05482-0.0017 0.10857-0.01283 0.63607-0.01113 0.52749 0.611 1.92 1.9896 1.92 3.9236 0 7.7931-4.51 9.6802-12.343 1.2651-5.2512 3.1875-14.459 6.1404-14.459 0.97806 0 0.92916 0.8773 0.65297 1.1098-0.27618 0.23251-0.58556 0.48163-0.61212 0.93918-0.02967 0.51099 0.14424 1.1179 0.88584 1.1006 0.74292-0.01727 1.2641-0.56811 1.2918-1.3344 0.0023-0.05967-2e-3 -0.11806-0.01221-0.17492-0.02172-1.0411-0.63078-2.3695-2.1553-2.3695z"/>
-                    </svg>
+                    <span class="message">
+                        <div class="activity"></div>
+                        <span class="text"></span>
+                    </span>
+                    <span class="count">0 changes</span>
+                    <button disabled id="clear">Clear</button>
+                    <a href="#review">Review</a>
                 </header>
                 <main>
-                    <h3 style="color: red;">Heads up: The translation tool is work-in-progress, editing and submitting translations will be possible in a few days</h3>
+                    <section>
+                        <h1>
+                            <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                                <path d="m46.739 32.391-9.0123 4.9051 0.58674-2.9505 5.1633-2.8163-4.1776-2.8633 0.58674-2.9505 7.2756 4.9286zm-22.625 4.9051-7.2756-4.9051 0.42245-1.7468 9.0123-4.9286-0.56327 2.9505-5.1868 2.8633 4.1776 2.8163zm14.632-19.062c-4.2114 0-7.2885 4.6842-9.799 15.112-2.5104 10.427-4.81 11.612-6.0734 11.638-0.67667 0.01381-1.0456-0.96107-0.71705-1.2122 0.2281-0.13864 0.67976-0.49247 0.70632-0.95004 0.02966-0.51099-0.40513-0.80927-0.93131-0.79703-0.54473 0.0127-0.99994 0.58986-1.0339 1.1848-0.0031 0.05482-0.0017 0.10857-0.01283 0.63607-0.01113 0.52749 0.611 1.92 1.9896 1.92 3.9236 0 7.7931-4.51 9.6802-12.343 1.2651-5.2512 3.1875-14.459 6.1404-14.459 0.97806 0 0.92916 0.8773 0.65297 1.1098-0.27618 0.23251-0.58556 0.48163-0.61212 0.93918-0.02967 0.51099 0.14424 1.1179 0.88584 1.1006 0.74292-0.01727 1.2641-0.56811 1.2918-1.3344 0.0023-0.05967-2e-3 -0.11806-0.01221-0.17492-0.02172-1.0411-0.63078-2.3695-2.1553-2.3695z"/>
+                            </svg>
+                            <span>Faircamp Translations</span>
+                        </h1>
+
+                        <strong style="color: red;">
+                            HEADS UP: This is an early beta version of the translation website, critical errors might occur!
+                            To be 100% on the safe side manually copy longer texts to a backup document while you're working on extensive changes.
+                        </strong>
+
+                        <h2>Languages</h2>
+                    </section>
                     {body}
+                    <section>
+                        <a id="review"></a>
+                        <h2>Review and submit</h2>
+
+                        <p>
+                            When you are done translating, quickly review your
+                            changes here (this already shows the generated code
+                            but you only need to check if your content looks
+                            correct of course).
+                        </p>
+
+                        <p>
+                            Then, submit it, simply by copying everything in
+                            the grey box and sending it via email to
+                            <code>simon@fdpl.io</code> (or via the Fediverse,
+                            or via Codeberg ...). If this is your first
+                            contribution to faircamp, possibly include your
+                            name and, if you want, a url to your website or
+                            online presence of any kind, I will include you
+                            in faircamp's credits with this information. You
+                            can of course also choose to contribute
+                            anonymously, just include a note in your mail
+                            that you'd rather not be mentioned, I fully
+                            respect that too!
+                        </p>
+
+                        <div class="submission">
+                            <pre>First make some changes, then they will appear here.</pre>
+                        </div>
+                    </section>
+                    <section>
+                        <h2>Help</h2>
+                        <ul>
+                            <li>
+                                <strong>Privacy</strong>: All data is stored in your browser (locally). No data leaves your computer until you manually submit it.
+                            </li>
+                            <li>
+                                <strong>Safety</strong>: Your changes are continually saved. You can safely close this page/tab at any point. When you come back to this page (on the same computer and browser) all your changes will be restored.
+                            </li>
+                            <li>
+                                <strong>Scope</strong>: You can work on changes for multiple languages (including changes for one new language) at the same time.
+                            </li>
+                            <li>
+                                <strong>Translate (red)</strong>: Read the <span class="label">Reference</span> text and write your translation into the <span class="label">Proposed</span> field.
+                            </li>
+                            <li>
+                                <strong>Review (yellow)</strong>: Read the <span class="label">Current</span> text and check whether it correctly translates the <span class="label">Reference</span> text.
+                                When correct, simply copy/paste it to the <span class="label">Proposed</span> field, otherwise put a corrected version in the <span class="label">Proposed</span> field. 
+                            </li>
+                            <li>
+                                <strong>Re-review (green)</strong>: You may double-check strings that have already been reviewed, but only propose changes when they are really necessary.
+                            </li>
+                        </ul>
+                    </section>
                 </main>
             </body>
         </html>

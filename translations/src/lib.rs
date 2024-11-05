@@ -41,6 +41,7 @@ mod fr;
 mod he;
 mod it;
 mod nb;
+mod new;
 mod nl;
 mod pl;
 mod sv;
@@ -54,27 +55,38 @@ pub use fr::FR;
 pub use he::HE;
 pub use it::IT;
 pub use nb::NB;
+pub use new::NEW;
 pub use nl::NL;
 pub use pl::PL;
 pub use sv::SV;
 pub use tr::TR;
 pub use uk::UK;
 
-pub fn all_translations() -> Vec<(&'static str, Translations)> {
+pub fn all_languages() -> Vec<LabelledTranslations> {
 	vec![
-		("de", DE),
-		("en", EN),
-		("es", ES),
-		("fr", FR),
-		("he", HE),
-		("it", IT),
-		("nb", NB),
-		("nl", NL),
-		("pl", PL),
-		("sv", SV),
-		("tr", TR),
-		("uk", UK)
+		LabelledTranslations { code: "de", name: "German", translations: DE },
+		LabelledTranslations { code: "en", name: "English", translations: EN },
+		LabelledTranslations { code: "es", name: "Spanish", translations: ES },
+		LabelledTranslations { code: "fr", name: "French", translations: FR },
+		LabelledTranslations { code: "he", name: "Hebrew", translations: HE },
+		LabelledTranslations { code: "it", name: "Italian", translations: IT },
+		LabelledTranslations { code: "nb", name: "Norwegian Bokmål", translations: NB },
+		LabelledTranslations { code: "nl", name: "Dutch", translations: NL },
+		LabelledTranslations { code: "pl", name: "Polish", translations: PL },
+		LabelledTranslations { code: "sv", name: "Swedish", translations: SV },
+		LabelledTranslations { code: "tr", name: "Turkish", translations: TR },
+		LabelledTranslations { code: "uk", name: "Ukrainian", translations: UK }
 	]
+}
+
+pub fn new_language() -> LabelledTranslations {
+    LabelledTranslations { code: "..", name: "New Language", translations: NEW }
+}
+
+pub struct LabelledTranslations {
+    pub code: &'static str,
+    pub name: &'static str,
+    pub translations: Translations
 }
 
 pub enum Translation {
@@ -264,6 +276,24 @@ impl Translations {
         self.audio_player_widget_for_xxx.replace("{title}", title)
     }
 
+    pub fn count_untranslated(&self) -> usize {
+        self.all_strings()
+            .iter()
+            .filter(|string|
+                if let Translation::Untranslated(_) = string.1 { true } else { false }
+            )
+            .count()
+    }
+
+    pub fn count_unreviewed(&self) -> usize {
+        self.all_strings()
+            .iter()
+            .filter(|string|
+                if let Translation::Unreviewed(_) = string.1 { true } else { false }
+            )
+            .count()
+    }
+
     pub fn keys() -> Translations {
         Translations {
             audio_format_alac: reviewed!("audio_format_alac"),
@@ -331,7 +361,7 @@ impl Translations {
         }
     }
 
-    pub fn percent_reviewed(&self) -> u16 {
+    pub fn percent_reviewed(&self) -> f32 {
         let mut total = 0;
         let mut reviewed = 0;
 
@@ -347,10 +377,10 @@ impl Translations {
             }
         }
 
-        ((reviewed as f32 / total as f32) * 100.0) as u16
+        (reviewed as f32 / total as f32) * 100.0
     }
 
-    pub fn percent_translated(&self) -> u16 {
+    pub fn percent_translated(&self) -> f32 {
         let mut total = 0;
         let mut translated = 0;
 
@@ -366,7 +396,7 @@ impl Translations {
             }
         }
 
-        ((translated as f32 / total as f32) * 100.0) as u16
+        (translated as f32 / total as f32) * 100.0
     }
 
     pub fn this_site_was_created_with_faircamp(&self, faircamp_link: &str) -> String {
