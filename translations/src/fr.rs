@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2024 sknob
 // SPDX-FileCopyrightText: 2023 Florian Antoine
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -6,14 +7,14 @@
 use super::Translations;
 
 pub const FR: Translations = Translations {
-    audio_format_alac: reviewed!("Sans perte et compressé, si tu utilises exclusivement des produits Apple, choisis ceci plutôt que FLAC"),
-    audio_format_average: reviewed!("Compression moyenne, approprié si votre lecteur ne supporte pas de meilleurs formats"),
-    audio_format_flac: reviewed!("Sans perte et compressé, idéal pour l'archivage"),
-    audio_format_mp3: reviewed!("Compression inefficace, approprié si la compatibilité avec des lecteur plus anciens est nécessaire"),
-    audio_format_opus_48: reviewed!("Excellente compression, qualité économe, bon choix si l'espace est limité"),
-    audio_format_opus_96: reviewed!("Excellente compression, qualité standard, bon choix pour l'écoute hors ligne"),
-    audio_format_opus_128: reviewed!("Excellente compression, qualité supérieure, meilleur choix pour l'écoute hors ligne"),
-    audio_format_uncompressed: reviewed!("Fichiers volumineux non compressés, approprié uniquement pour la production audio"),
+    audio_format_alac: reviewed!("Sans perte et compacté. Préférer à FLAC si vous n’utilisez que des produits Apple."),
+    audio_format_average: reviewed!("Compression moyenne. Adapté aux lecteurs qui ne prennent pas en charge de meilleurs formats."),
+    audio_format_flac: reviewed!("Sans perte et compacté. Idéal pour l’archivage."),
+    audio_format_mp3: reviewed!("Compression inefficace. Adapté si la compatibilité avec d’anciens lecteurs est nécessaire."),
+    audio_format_opus_48: reviewed!("Excellente compression, qualité acceptable. Bon choix en cas d’espace limité."),
+    audio_format_opus_96: reviewed!("Excellente compression, qualité standard. Bon choix pour l’écoute hors ligne."),
+    audio_format_opus_128: reviewed!("Excellente compression, qualité élevée. Meilleur choix pour l’écoute hors ligne."),
+    audio_format_uncompressed: reviewed!("Fichiers volumineux non compactés. Réservé à la création audio."),
     audio_player_widget_for_xxx: unreviewed!(r#"Widget de lecteur audio pour "{title}""#),
     auto_generated_cover: reviewed!("Image de couverture générée automatiquement"),
     available_formats: reviewed!("Formats disponibles:"),
