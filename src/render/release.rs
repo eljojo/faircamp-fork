@@ -290,32 +290,34 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     }
 
     if build.base_url.is_some() {
-        let t_m3u_playlist = &build.locale.translations.m3u_playlist;
-        let stream_icon = icons::stream();
+        if release.m3u  {
+            let t_m3u_playlist = &build.locale.translations.m3u_playlist;
+            let stream_icon = icons::stream();
 
-        let m3u_playlist_link = formatdoc!(r#"
-            <a href="playlist.m3u">
-                {stream_icon}
-                <span>{t_m3u_playlist}</span>
-            </a>
-        "#);
+            let m3u_playlist_link = formatdoc!(r#"
+                <a href="playlist.m3u">
+                    {stream_icon}
+                    <span>{t_m3u_playlist}</span>
+                </a>
+            "#);
 
-        secondary_actions.push(m3u_playlist_link);
+            secondary_actions.push(m3u_playlist_link);
+        }
+
+        if release.embedding {
+            let t_embed = &build.locale.translations.embed;
+            let embed_icon = icons::embed(t_embed);
+
+            let embed_link = formatdoc!(r#"
+                <a href="embed{index_suffix}">
+                    {embed_icon}
+                    <span>{t_embed}</span>
+                </a>
+            "#);
+
+            secondary_actions.push(embed_link);
+        }
     }
-
-    if release.embedding && build.base_url.is_some() {
-        let t_embed = &build.locale.translations.embed;
-        let embed_icon = icons::embed(t_embed);
-
-        let embed_link = formatdoc!(r#"
-            <a href="embed{index_suffix}">
-                {embed_icon}
-                <span>{t_embed}</span>
-            </a>
-        "#);
-
-        secondary_actions.push(embed_link);
-    };
 
     for link in &release.links {
         let external_icon = icons::external(&build.locale.translations.external_link);

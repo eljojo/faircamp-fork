@@ -16,6 +16,7 @@ favicon: my_favicon.png
 embedding: disabled
 label_mode
 language: en
+m3u: disabled
 more_label: About
 show_support_artists
 title: My awesome music
@@ -138,6 +139,17 @@ to verify yourself as the site owner when you place a link to your faircamp
 site from (e.g.) a fediverse profile. With `verification = rel-me-hidden` you
 can have the link be included on your faircamp site without it showing up
 on the page, thus serving only for verification purposes.
+
+## `m3u`
+
+```eno
+m3u: disabled
+```
+
+By default, [M3U](https://en.wikipedia.org/wiki/M3U) playlists are generated
+and provided for all releases, but this can be disabled by setting the `m3u`
+option to `disabled`. Note that this setting can also be granularly enabled
+or disabled per release.
 
 ## `more_label`
 

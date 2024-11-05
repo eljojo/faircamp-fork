@@ -71,6 +71,7 @@ pub struct Overrides {
     pub download_option: DownloadOption,
     pub embedding: bool,
     pub include_extras: bool,
+    pub m3u_enabled: bool,
     pub more_label: Option<String>,
     pub payment_text: Option<String>,
     pub release_artists: Option<Vec<String>>,
@@ -106,6 +107,7 @@ impl Overrides {
             download_option: DownloadOption::Disabled,
             embedding: false,
             include_extras: true,
+            m3u_enabled: true,
             more_label: None,
             payment_text: None,
             release_artists: None,
@@ -518,6 +520,14 @@ pub fn apply_options(
                 apply_link(element, local_options, path);
             }
 
+            if let Some((value, line)) = optional_field_value_with_line(section, "m3u") {
+                match value.as_str() {
+                    "disabled" => overrides.m3u_enabled = false,
+                    "enabled" => overrides.m3u_enabled = true,
+                    value => error!("Ignoring unsupported catalog.m3u setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+                }
+            }
+
             if let Some(value) = optional_field_value(section, "more_label") {
                 catalog.more_label = Some(value);
             }
@@ -839,6 +849,14 @@ pub fn apply_options(
 
         for element in section.elements() {
             apply_link(element, local_options, path);
+        }
+
+        if let Some((value, line)) = optional_field_value_with_line(section, "m3u") {
+            match value.as_str() {
+                "disabled" => overrides.m3u_enabled = false,
+                "enabled" => overrides.m3u_enabled = true,
+                value => error!("Ignoring unsupported release.m3u setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+            }
         }
 
         if let Some(value) = optional_field_value(section, "more_label") {

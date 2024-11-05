@@ -729,6 +729,7 @@ impl Catalog {
                     extras,
                     merged_overrides.include_extras,
                     mem::take(&mut local_options.links),
+                    merged_overrides.m3u_enabled,
                     main_artists_to_map,
                     merged_overrides.more_label.clone(),
                     local_options.release_permalink.take(),

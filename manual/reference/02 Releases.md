@@ -16,6 +16,7 @@ be provided through the manifests.
 artist: Heston Exchange
 date: 2019-11-03
 include_extras: no
+m3u: disabled
 more_label: Liner Notes
 permalink: ape-affairs-bonus-track-edition
 title: Ape Affairs (Bonus Track Edition)
@@ -82,6 +83,16 @@ You can supply any number of `link` fields, these are prominently displayed in t
 header/landing area of your release page. A `link` must have at least a `url`
 attribute. Optionally you can also supply a `label` which is what is visibly
 displayed instead of the `url`, when given.
+
+## `m3u`
+
+```eno
+m3u: disabled
+```
+
+By default, [M3U](https://en.wikipedia.org/wiki/M3U) playlists are generated
+and provided for each release, but this can be controlled with the `m3u`
+option by setting it to `enabled` or `disabled`.
 
 ## `more_label`
 

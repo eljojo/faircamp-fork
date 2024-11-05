@@ -92,6 +92,8 @@ pub struct Release {
     /// we store until the entire catalog is read. After that point, we
     /// use it to build the final mapping in `main_artists`, then dispose of it.
     pub main_artists_to_map: Vec<String>,
+    /// Whether an m3u playlist should be generated and provided on the release page
+    pub m3u: bool,
     /// Optional override label for the button that (by default) says "More" on the
     /// release page and points to the long-form text on the release page.
     pub more_label: Option<String>,
@@ -205,6 +207,7 @@ impl Release {
         extras: Vec<Extra>,
         include_extras: bool,
         links: Vec<Link>,
+        m3u: bool,
         main_artists_to_map: Vec<String>,
         more_label: Option<String>,
         permalink: Option<Permalink>,
@@ -235,6 +238,7 @@ impl Release {
             extras,
             include_extras,
             links,
+            m3u,
             main_artists: Vec::new(),
             main_artists_to_map,
             more_label,
@@ -627,8 +631,10 @@ impl Release {
 
         if let Some(base_url) = &build.base_url {
             // Render m3u playlist
-            let r_m3u = m3u::generate(base_url, build, self);
-            fs::write(release_dir.join("playlist.m3u"), r_m3u).unwrap();
+            if self.m3u {
+                let r_m3u = m3u::generate(base_url, build, self);
+                fs::write(release_dir.join("playlist.m3u"), r_m3u).unwrap();
+            }
 
             // Render embed pages
             if self.embedding  {
