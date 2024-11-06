@@ -147,6 +147,7 @@ pub struct Translations {
     pub auto_generated_cover: Translation,
     pub available_formats: Translation,
     pub buy: Translation,
+    pub close: Translation,
     pub copied: Translation,
     pub copy: Translation,
     pub copy_link: Translation,
@@ -188,6 +189,7 @@ pub struct Translations {
     pub purchase_permalink: Translation,
     pub recommended_format: Translation,
     pub rss_feed: Translation,
+    pub search: Translation,
     pub this_site_was_created_with_faircamp: Translation,
     pub unlisted: Translation,
     pub unlock: Translation,
@@ -200,6 +202,7 @@ pub struct Translations {
     pub visual_impairment: Translation,
     pub volume: Translation,
     pub xxx_and_others: Translation,
+    pub xxx_minutes: Translation,
     pub xxx_or_more: Translation
 }
 
@@ -219,6 +222,7 @@ impl Translations {
 			("auto_generated_cover", &self.auto_generated_cover, false),
 			("available_formats", &self.available_formats, false),
 			("buy", &self.buy, false),
+			("close", &self.close, false),
 			("copied", &self.copied, false),
 			("copy", &self.copy, false),
 			("copy_link", &self.copy_link, false),
@@ -257,6 +261,7 @@ impl Translations {
 			("purchase_permalink", &self.purchase_permalink, false),
 			("recommended_format", &self.recommended_format, false),
 			("rss_feed", &self.rss_feed, false),
+			("search", &self.search, false),
 			("this_site_was_created_with_faircamp", &self.this_site_was_created_with_faircamp, false),
 			("unlisted", &self.unlisted, false),
 			("unlock", &self.unlock, false),
@@ -268,6 +273,7 @@ impl Translations {
 			("visual_impairment", &self.visual_impairment, false),
 			("volume", &self.volume, false),
 			("xxx_and_others", &self.xxx_and_others, false),
+			("xxx_minutes", &self.xxx_minutes, false),
 			("xxx_or_more", &self.xxx_or_more, false)
 		]
 	}
@@ -308,6 +314,7 @@ impl Translations {
             auto_generated_cover: reviewed!("auto_generated_cover"),
             available_formats: reviewed!("available_formats"),
             buy: reviewed!("buy"),
+            close: reviewed!("close"),
             copied: reviewed!("copied"),
             copy: reviewed!("copy"),
             copy_link: reviewed!("copy_link"),
@@ -346,6 +353,7 @@ impl Translations {
             purchase_permalink: reviewed!("purchase_permalink"),
             recommended_format: reviewed!("recommended_format"),
             rss_feed: reviewed!("rss_feed"),
+            search: reviewed!("search"),
             this_site_was_created_with_faircamp: reviewed!("this_site_was_created_with_faircamp"),
             unlisted: reviewed!("unlisted"),
             unlock: reviewed!("unlock"),
@@ -357,6 +365,7 @@ impl Translations {
             visual_impairment: reviewed!("visual_impairment"),
             volume: reviewed!("volume"),
             xxx_and_others: reviewed!("xxx_and_others"),
+            xxx_minutes: reviewed!("xxx_minutes"),
             xxx_or_more: reviewed!("xxx_or_more")
         }
     }
@@ -421,6 +430,10 @@ impl Translations {
             .replace("{others_link}", others_link)
     }
 
+    pub fn xxx_minutes(&self, xxx: &str) -> String {
+        self.xxx_minutes.replace("{xxx}", xxx)
+    }
+
     pub fn xxx_or_more(&self, xxx: &str) -> String {
         self.xxx_or_more.replace("{xxx}", xxx)
     }
@@ -440,6 +453,7 @@ fn check_translations() {
         assert!(&translations.up_to_xxx.contains("{xxx}"));
         assert!(&translations.xxx_and_others.contains("{xxx}"));
         assert!(&translations.xxx_and_others.contains("{others_link}"));
+        assert!(&translations.xxx_minutes.contains("{xxx}"));
         assert!(&translations.xxx_or_more.contains("{xxx}"));
 
         let disallowed_char = |c: char| !c.is_ascii_alphanumeric() && c != '-' ;

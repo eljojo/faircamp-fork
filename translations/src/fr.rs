@@ -19,6 +19,7 @@ pub const FR: Translations = Translations {
     auto_generated_cover: reviewed!("Image de couverture générée automatiquement"),
     available_formats: reviewed!("Formats disponibles:"),
     buy: untranslated!(buy),
+    close: reviewed!("Fermer"),
     copied: reviewed!("Copié"),
     copy: reviewed!("Copier"),
     copy_link: untranslated!(copy_link),
@@ -72,6 +73,7 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
     purchase_permalink: reviewed!("acheter"),
     recommended_format: reviewed!("Format recommandé"),
     rss_feed: reviewed!("Flux RSS"),
+    search: reviewed!("Chercher"),
     this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
     unlisted: untranslated!(unlisted),
     unlock: reviewed!("Déverouiller"),
@@ -92,5 +94,6 @@ avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appu
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: reviewed!(r#"{xxx} et <a href="{others_link}">plus</a>"#),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: reviewed!("{xxx} ou plus")
 };

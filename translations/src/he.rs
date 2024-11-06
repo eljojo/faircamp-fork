@@ -16,6 +16,7 @@ pub const HE: Translations = Translations {
     auto_generated_cover: untranslated!(auto_generated_cover),
     available_formats: untranslated!(available_formats),
     buy: unreviewed!("לִקְנוֹת"),
+    close: untranslated!(close),
     copied: untranslated!(copied),
     copy: unreviewed!("לְהַעְתִיק"),
     copy_link: unreviewed!("העתק קישור"),
@@ -54,6 +55,7 @@ pub const HE: Translations = Translations {
     purchase_permalink: untranslated!(purchase_permalink),
     recommended_format: untranslated!(recommended_format),
     rss_feed: unreviewed!("הזנת RSS"),
+    search: untranslated!(search),
     this_site_was_created_with_faircamp: unreviewed!("אתר זה נוצר עם {faircamp_link}"),
     unlisted: unreviewed!("לא רשום"),
     unlock: unreviewed!("לִפְתוֹחַ"),
@@ -65,5 +67,6 @@ pub const HE: Translations = Translations {
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: untranslated!(xxx_and_others),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: untranslated!(xxx_or_more)
 };

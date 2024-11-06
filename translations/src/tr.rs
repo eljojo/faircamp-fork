@@ -16,6 +16,7 @@ pub const TR: Translations = Translations {
     auto_generated_cover: reviewed!("Otomatik oluşturulmuş albüm kapağı"),
     available_formats: reviewed!("Mevcut dosya türleri:"),
     buy: reviewed!("Satın al"),
+    close: reviewed!("Kapat"),
     copied: reviewed!("Kopyalandı"),
     copy: reviewed!("Kopyala"),
     copy_link: reviewed!("Bağlantıyı kopyala"),
@@ -70,6 +71,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     purchase_permalink: reviewed!("satin-al"),
     recommended_format: reviewed!("Tavsiye edilen dosya türü"),
     rss_feed: reviewed!("RSS Kaynağı"),
+    search: reviewed!("Ara"),
     this_site_was_created_with_faircamp: reviewed!("Bu sayfa {faircamp_link} ile oluşturulmuştur"),
     unlisted: reviewed!("Yayınlanmamış"),
     unlock: reviewed!("Kilidi aç"),
@@ -92,5 +94,6 @@ Enter tuşuna basın."),
     visual_impairment: reviewed!("Görme Bozukluğu"),
     volume: reviewed!("Ses Düzeyi"),
     xxx_and_others: reviewed!(r#"{xxx} ve <a href="{others_link}">diğerleri</a>"#),
+    xxx_minutes: reviewed!("{xxx} dakika"),
     xxx_or_more: reviewed!("{xxx} ya da daha fazlası")
 };

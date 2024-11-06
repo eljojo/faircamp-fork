@@ -16,6 +16,7 @@ pub const UK: Translations = Translations {
     auto_generated_cover: reviewed!("Автоматично згенерована обкладинка"),
     available_formats: reviewed!("Доступні формати:"),
     buy: reviewed!("Придбати"),
+    close: untranslated!(close),
     copied: reviewed!("Скопійовано"),
     copy: reviewed!("Копіювати"),
     copy_link: reviewed!("Копіювати посилання"),
@@ -69,6 +70,7 @@ pub const UK: Translations = Translations {
     purchase_permalink: reviewed!("purchase"),
     recommended_format: reviewed!("Рекомендований формат"),
     rss_feed: reviewed!("RSS-стрічка"),
+    search: untranslated!(search),
     this_site_was_created_with_faircamp: reviewed!("Сайт створено за допомогою {faircamp_link}"),
     unlisted: reviewed!("Поза списком"),
     unlock: reviewed!("Розблокувати"),
@@ -89,5 +91,6 @@ pub const UK: Translations = Translations {
     visual_impairment: reviewed!("Вади зору"),
     volume: reviewed!("Гучність"),
     xxx_and_others: reviewed!(r#"{xxx} та <a href="{others_link}">інші</a>"#),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: reviewed!("{xxx} чи більше")
 };

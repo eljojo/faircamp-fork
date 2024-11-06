@@ -17,6 +17,7 @@ pub const ES: Translations = Translations {
     auto_generated_cover: unreviewed!("Imagen de tapa generada automáticamente"),
     available_formats: unreviewed!("Formatos disponibles:"),
     buy: reviewed!("Comprar"),
+    close: unreviewed!("Cerrar"),
     copied: unreviewed!("Copiado"),
     copy: unreviewed!("Copiar"),
     copy_link: reviewed!("Copiar enlace"),
@@ -69,6 +70,7 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     purchase_permalink: unreviewed!("comprar"),
     recommended_format: unreviewed!("Formato recomendado"),
     rss_feed: unreviewed!("Feed RSS"),
+    search: unreviewed!("Buscar"),
     this_site_was_created_with_faircamp: reviewed!("Este sitio fue creado con {faircamp_link}"),
     unlisted: unreviewed!("No listado"),
     unlock: unreviewed!("Desbloquear"),
@@ -90,5 +92,6 @@ con /{downloads_permalink}/[tu-código-de-desbloqueo]{index_suffix} y presiona E
     visual_impairment: untranslated!(visual_impairment),
     volume: reviewed!("Volumen"),
     xxx_and_others: unreviewed!(r#"{xxx} y <a href="{others_link}">otros</a>"#),
+    xxx_minutes: unreviewed!("{xxx} minutos"),
     xxx_or_more: unreviewed!("{xxx} o más")
 };

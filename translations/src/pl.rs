@@ -16,6 +16,7 @@ pub const PL: Translations = Translations {
     auto_generated_cover: reviewed!("Automatycznie wygenerowana okładka"),
     available_formats: reviewed!("Dostępne czczionki:"),
     buy: untranslated!(buy),
+    close: reviewed!("Zamknij"),
     copied: reviewed!("Skopiowane"),
     copy: reviewed!("Kopiuj"),
     copy_link: untranslated!(copy_link),
@@ -69,6 +70,7 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
     purchase_permalink: reviewed!("zakup"),
     recommended_format: reviewed!("Polecany Format"),
     rss_feed: reviewed!("Źródło RSS"),
+    search: untranslated!(search),
     this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
     unlisted: untranslated!(unlisted),
     unlock: reviewed!("Odblokuj"),
@@ -89,5 +91,6 @@ na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij E
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: untranslated!(xxx_and_others),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: reviewed!("{xxx} i więcej")
 };

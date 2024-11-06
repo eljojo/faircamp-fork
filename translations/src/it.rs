@@ -16,6 +16,7 @@ pub const IT: Translations = Translations {
     auto_generated_cover: reviewed!("Copertina generata automaticamente"),
     available_formats: reviewed!("Formati disponibili:"),
     buy: reviewed!("Acquista"),
+    close: reviewed!("Chiudi"),
     copied: reviewed!("Copiato"),
     copy: reviewed!("Copia"),
     copy_link: reviewed!("Copia link"),
@@ -68,6 +69,7 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     purchase_permalink: reviewed!("acquista"),
     recommended_format: reviewed!("Formato consigliato"),
     rss_feed: reviewed!("Feed RSS"),
+    search: reviewed!("Cerca"),
     this_site_was_created_with_faircamp: reviewed!("Questo sito è stato creato con {faircamp_link}"),
     unlisted: reviewed!("Non elencato"),
     unlock: reviewed!("Sblocca"),
@@ -88,5 +90,6 @@ con /{downloads_permalink}/[il-tuo-codice-di-sblocco]{index_suffix} e poi premi 
     visual_impairment: reviewed!("Disabilità visiva"),
     volume: reviewed!("Volume"),
     xxx_and_others: reviewed!(r#"{xxx} e <a href="{others_link}">altri</a>"#),
+    xxx_minutes: reviewed!("{xxx} minuti"),
     xxx_or_more: reviewed!("{xxx} o più")
 };

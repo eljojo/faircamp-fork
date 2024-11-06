@@ -16,6 +16,7 @@ pub const NB: Translations = Translations {
     auto_generated_cover: reviewed!("Automatisk generert omslag"),
     available_formats: reviewed!("Tilgjengelige formater:"),
     buy: untranslated!(buy),
+    close: reviewed!("Lukk"),
     copied: reviewed!("Kopiert"),
     copy: reviewed!("Kopier"),
     copy_link: untranslated!(copy_link),
@@ -69,6 +70,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
     purchase_permalink: reviewed!("kjop"),
     recommended_format: reviewed!("Anbefalt format"),
     rss_feed: reviewed!("RSS-Strøm"),
+    search: untranslated!(search),
     this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
     unlisted: untranslated!(unlisted),
     unlock: reviewed!("Lås opp"),
@@ -89,5 +91,6 @@ med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: reviewed!(r#"{xxx} og <a href="{others_link}">mer</a>"#),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: reviewed!("{xxx} eller mer")
 };

@@ -16,6 +16,7 @@ pub const SV: Translations = Translations {
     auto_generated_cover: reviewed!("Automatiskt genererat omslag"),
     available_formats: reviewed!("Tillgängliga format:"),
     buy: reviewed!("Köp"),
+    close: untranslated!(close),
     copied: reviewed!("Kopierad"),
     copy: reviewed!("Kopiera"),
     copy_link: reviewed!("Kopiera länk"),
@@ -68,6 +69,7 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
     purchase_permalink: reviewed!("betala"),
     recommended_format: reviewed!("Rekommenderat format"),
     rss_feed: reviewed!("RSS-flöde"),
+    search: untranslated!(search),
     this_site_was_created_with_faircamp: reviewed!("Denna hemsida skapades med {faircamp_link}"),
     unlisted: reviewed!("Olistade"),
     unlock: reviewed!("Lås upp"),
@@ -88,5 +90,6 @@ med /{downloads_permalink}/[din-upplåsningskod]{index_suffix} och tryck sedan p
     visual_impairment: reviewed!("Synnedsättning"),
     volume: untranslated!(volume),
     xxx_and_others: reviewed!(r#"{xxx} med <a href="{others_link}">flera</a>"#),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: reviewed!("{xxx} eller mer")
 };

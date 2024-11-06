@@ -17,6 +17,7 @@ pub const NL: Translations = Translations {
     auto_generated_cover: unreviewed!("Automatisch gegenereerde omslagafbeelding"),
     available_formats: unreviewed!("Beschikbare formaten:"),
     buy: untranslated!(buy),
+    close: unreviewed!("Sluiten"),
     copied: unreviewed!("Gekopieerd"),
     copy: unreviewed!("Kopiëren"),
     copy_link: untranslated!(copy_link),
@@ -70,6 +71,7 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
     purchase_permalink: unreviewed!("kopen"),
     recommended_format: unreviewed!("Aanbevolen Formaat"),
     rss_feed: unreviewed!("RSS Feed"),
+    search: untranslated!(search),
     this_site_was_created_with_faircamp: untranslated!(this_site_was_created_with_faircamp),
     unlisted: untranslated!(unlisted),
     unlock: unreviewed!("Ontsluiten"),
@@ -90,5 +92,6 @@ met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens o
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: unreviewed!(r#"{xxx} en <a href="{others_link}">meer</a>"#),
+    xxx_minutes: untranslated!(xxx_minutes),
     xxx_or_more: unreviewed!("{xxx} of meer")
 };
