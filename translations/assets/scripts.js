@@ -2,8 +2,8 @@ const PERSISTENCE_KEY = 'faircampTranslateState';
 
 const clearButton = document.querySelector('button#clear');
 const headerCountSpan = document.querySelector('header span.count');
-const messageSpan = document.querySelector('span.message');
-const messageTextSpan = document.querySelector('span.message .text');
+const messageDiv = document.querySelector('div.message');
+const messageTextSpan = document.querySelector('div.message .text');
 const submissionDiv = document.querySelector('div.submission');
 
 let scheduledActivityOff = null;
@@ -23,7 +23,7 @@ function clearTranslations() {
     persist();
     updateControls();
     updateSubmission();
-    message('Cleared all changes from your session');
+    message('Cleared all changes');
 }
 
 function countTranslations() {
@@ -37,12 +37,12 @@ function message(text) {
     if (scheduledActivityOff !== null) {
         clearTimeout(scheduledActivityOff);
     } else {
-        messageSpan.classList.add('active');
+        messageDiv.classList.add('active');
     }
 
     scheduledActivityOff = setTimeout(
         () => {
-            messageSpan.classList.remove('active');
+            messageDiv.classList.remove('active');
             scheduledActivityOff = null;
         },
         5000
@@ -52,7 +52,9 @@ function message(text) {
 function persist() {
     const stateSerialized = JSON.stringify(state);
     localStorage.setItem(PERSISTENCE_KEY, stateSerialized);
-    message(`Saved all ${countTranslations()} changes (to browser localStorage)`);
+
+    const count = countTranslations();
+    message(count > 0 ? `${count} changes saved` : 'No changes to save');
 }
 
 function persistDebounced() {
@@ -98,7 +100,7 @@ function restore() {
             if (countTranslations()) {
                 updateControls();
                 updateSubmission();
-                message(`Restored all ${countTranslations()} changes from a previous session (from browser localStorage)`);
+                message(`${countTranslations()} changes restored from last session`);
                 return;
             }
         } catch { /* pass */ }
@@ -124,24 +126,42 @@ function updateControls() {
 }
 
 function updateSubmission() {
-    const languages = [];
+    let submission;
 
-    for (const [languageCode, translations] of Object.entries(state)) {
-        let language = `${languageCode.toUpperCase()} {\n`;
+    if (countTranslations() > 0) {
+        const languages = [];
+        for (const [languageCode, translations] of Object.entries(state)) {
+            let language = `pub const ${languageCode.toUpperCase()}: Translations = Translations {\n`;
 
-        const strings = [];
-        for (const [translationKey, value] of Object.entries(translations)) {
-            // TODO: Escape
-            strings.push(`    ${translationKey}: "${value}"`);
+            const strings = [];
+
+            const translationsSorted = Object.entries(translations);
+
+            translationsSorted.sort(([aKey], [bKey]) => aKey.localeCompare(bKey));
+
+            for (const [translationKey, value] of translationsSorted) {
+                let escapedValue;
+                if (value.includes('"')) {
+                    if (value.includes('"#')) {
+                        escapedValue = `r##"${value}"##`;
+                    } else {
+                        escapedValue = `r#"${value}"#`;
+                    }
+                } else {
+                    escapedValue = `"${value}"`;
+                }
+                strings.push(`    ${translationKey}: reviewed!(${escapedValue})`);
+            }
+            language += strings.join(',\n') + '\n';
+
+            language += '};\n';
+
+            languages.push(language);
         }
-        language += strings.join(',\n') + '\n';
-
-        language += '};\n';
-
-        languages.push(language);
+        submission = languages.join('\n');
+    } else {
+        submission = 'First make some changes, then they will appear here.';
     }
-
-    const submission = languages.join('\n');
 
     const pre = document.createElement('pre');
 

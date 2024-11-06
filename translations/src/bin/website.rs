@@ -64,40 +64,25 @@ pub fn main() {
             let r_reference_en = if language_code == "en" {
                 String::new()
             } else {
-                let input_textarea = if is_multiline {
-                    let value_escaped = html_escape_outside_attribute(reference_value);
-                    format!(r#"<span>{value_escaped}</span>"#)
-                } else {
-                    let value_escaped = html_escape_inside_attribute(reference_value);
-                    format!(r#"<span>{value_escaped}</span>"#)
-                };
-
+                let value_escaped = html_escape_outside_attribute(reference_value);
                 formatdoc!(r#"
                     <div>
                         <span>Reference</span>
                         <span>en</span>
-                        {input_textarea}
+                        <span>{value_escaped}</span>
                     </div>
                 "#)
             };
 
-            let value = if status != "untranslated" { string.1 } else { "" };
-            let r_current_xx = if language_code == ".." {
+            let r_current_xx = if status == "untranslated" {
                 String::new()
             } else {
-                let input_textarea = if is_multiline {
-                    let value_escaped = html_escape_outside_attribute(value);
-                    format!(r#"<span>{value_escaped}</span>"#)
-                } else {
-                    let value_escaped = html_escape_outside_attribute(value);
-                    format!(r#"<span>{value_escaped}</span>"#)
-                };
-
+                let value_escaped = html_escape_outside_attribute(string.1);
                 formatdoc!(r#"
                     <div>
                         <span>Current</span>
                         <span>{language_code}</span>
-                        {input_textarea}
+                        <span>{value_escaped}</span>
                     </div>
                 "#)
             };
@@ -213,18 +198,20 @@ fn layout(body: &str) -> String {
                 <link href="favicon.svg" rel="icon" type="image/svg+xml">
                 <link href="favicon_light.png" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
                 <link href="favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
-                <script defer src="scripts.js?0"></script>
-                <link href="styles.css?0" rel="stylesheet">
+                <script defer src="scripts.js?1"></script>
+                <link href="styles.css?1" rel="stylesheet">
             </head>
             <body>
                 <header>
-                    <span class="message">
+                    <div>
+                        <span class="count">0 changes</span>
+                        <button disabled id="clear">Clear</button>
+                        <a href="#review">Review</a>
+                    </div>
+                    <div class="message">
                         <div class="activity"></div>
                         <span class="text"></span>
-                    </span>
-                    <span class="count">0 changes</span>
-                    <button disabled id="clear">Clear</button>
-                    <a href="#review">Review</a>
+                    </div>
                 </header>
                 <main>
                     <section>
@@ -232,48 +219,52 @@ fn layout(body: &str) -> String {
                             <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
                                 <path d="m46.739 32.391-9.0123 4.9051 0.58674-2.9505 5.1633-2.8163-4.1776-2.8633 0.58674-2.9505 7.2756 4.9286zm-22.625 4.9051-7.2756-4.9051 0.42245-1.7468 9.0123-4.9286-0.56327 2.9505-5.1868 2.8633 4.1776 2.8163zm14.632-19.062c-4.2114 0-7.2885 4.6842-9.799 15.112-2.5104 10.427-4.81 11.612-6.0734 11.638-0.67667 0.01381-1.0456-0.96107-0.71705-1.2122 0.2281-0.13864 0.67976-0.49247 0.70632-0.95004 0.02966-0.51099-0.40513-0.80927-0.93131-0.79703-0.54473 0.0127-0.99994 0.58986-1.0339 1.1848-0.0031 0.05482-0.0017 0.10857-0.01283 0.63607-0.01113 0.52749 0.611 1.92 1.9896 1.92 3.9236 0 7.7931-4.51 9.6802-12.343 1.2651-5.2512 3.1875-14.459 6.1404-14.459 0.97806 0 0.92916 0.8773 0.65297 1.1098-0.27618 0.23251-0.58556 0.48163-0.61212 0.93918-0.02967 0.51099 0.14424 1.1179 0.88584 1.1006 0.74292-0.01727 1.2641-0.56811 1.2918-1.3344 0.0023-0.05967-2e-3 -0.11806-0.01221-0.17492-0.02172-1.0411-0.63078-2.3695-2.1553-2.3695z"/>
                             </svg>
-                            <span>Faircamp Translations</span>
+                            <span>Help to translate faircamp</span>
                         </h1>
-
-                        <strong style="color: red;">
-                            HEADS UP: This is an early beta version of the translation website, critical errors might occur!
-                            To be 100% on the safe side manually copy longer texts to a backup document while you're working on extensive changes.
-                        </strong>
-
-                        <h2>Languages</h2>
+                        <div class="badge unreviewed">
+                            <strong>
+                                This is a public beta test. During longer sessions,
+                                consider periodically backing up your work
+                                (by copying it from "Review and submit") to stay 100% on
+                                the safe side.
+                            </strong>
+                        </div>
+                        <p>
+                            Open a language section below to begin translating.
+                            If your language is missing, start in the last section ("New Language").
+                            When you're done proceed to <a href="#review">review and submit</a>
+                            your changes. See <a href="#help">help</a> for additional
+                            instructions.
+                        </p>
                     </section>
-                    {body}
+                    <section class="unbounded">
+                        <h2>Languages</h2>
+                        {body}
+                    </section>
                     <section>
                         <a id="review"></a>
                         <h2>Review and submit</h2>
-
-                        <p>
-                            When you are done translating, quickly review your
-                            changes here (this already shows the generated code
-                            but you only need to check if your content looks
-                            correct of course).
-                        </p>
-
-                        <p>
-                            Then, submit it, simply by copying everything in
-                            the grey box and sending it via email to
-                            <code>simon@fdpl.io</code> (or via the Fediverse,
-                            or via Codeberg ...). If this is your first
-                            contribution to faircamp, possibly include your
-                            name and, if you want, a url to your website or
-                            online presence of any kind, I will include you
-                            in faircamp's credits with this information. You
-                            can of course also choose to contribute
-                            anonymously, just include a note in your mail
-                            that you'd rather not be mentioned, I fully
-                            respect that too!
-                        </p>
-
                         <div class="submission">
                             <pre>First make some changes, then they will appear here.</pre>
                         </div>
+                        <p>
+                            Please quickly review if your content looks about right in the box above,
+                            then copy all of it, and send it in your preferred way:
+                        </p>
+                        <ul>
+                            <li><strong>Via Email</strong>: <a href="mailto:simon@fdpl.io">simon@fdpl.io</a></li>
+                            <li><strong>Via Fediverse</strong>: <a href="https://post.lurk.org/@freebliss">@freebliss@post.lurk.org</a></li>
+                            <li><strong>Via Codeberg</strong>: As an <a href="https://codeberg.org/simonrepp/faircamp/issues/new">issue</a> (or a pull request)</li>
+                        </ul>
+                        <p>
+                            If this is your first contribution to faircamp, possibly include your
+                            name and, if you want, a url to your website/online presence - I will
+                            include you in faircamp's credits. You can also choose to contribute
+                            anonymously, I fully respect that too.
+                        </p>
                     </section>
                     <section>
+                        <a id="help"></a>
                         <h2>Help</h2>
                         <ul>
                             <li>
@@ -283,7 +274,7 @@ fn layout(body: &str) -> String {
                                 <strong>Safety</strong>: Your changes are continually saved. You can safely close this page/tab at any point. When you come back to this page (on the same computer and browser) all your changes will be restored.
                             </li>
                             <li>
-                                <strong>Scope</strong>: You can work on changes for multiple languages (including changes for one new language) at the same time.
+                                <strong>Scope</strong>: You can work on changes for multiple languages (including changes for a new language) at the same time.
                             </li>
                             <li>
                                 <strong>Translate (red)</strong>: Read the <span class="label">Reference</span> text and write your translation into the <span class="label">Proposed</span> field.
