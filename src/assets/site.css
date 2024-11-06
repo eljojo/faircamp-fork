@@ -60,7 +60,7 @@ form button:hover {
 }
 .actions svg {
     display: inline-block;
-    margin-right: .1em;
+    margin-inline-end: .1em;
     position: relative;
     top: .15em;
 }
@@ -178,8 +178,8 @@ button svg { display: inline-block; }
     display: flex;
     padding-bottom: env(safe-area-inset-bottom, 0);
 }
-.docked_player .number { margin-right: .5rem; }
-.docked_player .playback { margin-left: .4rem; }
+.docked_player .number { margin-inline-end: .5rem; }
+.docked_player .playback { margin-inline-start: .4rem; }
 .docked_player .timeline {
     cursor: pointer;
     height: .8rem;
@@ -215,28 +215,28 @@ button svg { display: inline-block; }
 .docked_player .title_wrapper {
     display: inline-flex;
     flex-direction: column;
-    margin-right: .6rem;
+    margin-inline-end: .6rem;
 }
 .docked_player .track_info {
     align-items: center;
     display: flex;
-    margin-left: .2em;
-    margin-right: .6em;
+    margin-inline-start: .2em;
+    margin-inline-end: .6em;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .docked_player .volume_hint {
-    margin-left: .2em;
-    margin-right: 1.2em;
+    margin-inline-start: .2em;
+    margin-inline-end: 1.2em;
 }
 .docked_player.tall .elements { height: 3.8rem; }
-.docked_player.tall .number { margin-right: .8rem; }
+.docked_player.tall .number { margin-inline-end: .8rem; }
 .docked_player.tall .timeline .base,
 .docked_player.tall .timeline .progress {
     height: .2rem;
 }
-.docked_player.tall .title_wrapper { margin-right: .9rem; }
+.docked_player.tall .title_wrapper { margin-inline-end: .9rem; }
 .download_entry { display: flex; }
 .download_entry a { color: var(--fg-3); }
 .download_entry a:hover { color: var(--fg-3-focus); }
@@ -338,8 +338,8 @@ header {
     display: flex;
     height: 2.5rem;
     justify-content: space-between;
-    padding-left: .3rem;
-    padding-right: .8rem;
+    padding-inline-start: .3rem;
+    padding-inline-end: .8rem;
     position: absolute;
     width: 100%;
     z-index: 1;
@@ -590,7 +590,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track .number {
     color: var(--fg-3);
-    margin-right: .2rem;
+    margin-inline-end: .2rem;
 }
 .track .time { margin-left: .2rem; }
 .track .track_playback {
@@ -688,7 +688,7 @@ input[type="text"].disabled,
 }
 .volume input {
     opacity: 0;
-    margin-right: 0;
+    margin-inline-end: 0;
     transition: opacity 200ms ease, margin-right 200ms ease, width 200ms ease;
     width: 0;
 }
@@ -707,7 +707,7 @@ input[type="text"].disabled,
 .volume input:focus-visible,
 .volume button:focus-visible + .slider input {
     opacity: 1;
-    margin-right: .6rem;
+    margin-inline-end: .6rem;
     width: 6rem;
 }
 .vpad {
