@@ -48,7 +48,7 @@ pub fn purchase_html(
                        {data_max}
                        data-min="{min}"
                        id="price"
-                       pattern="[0-9]+([.,][0-9])?"
+                       pattern="[0-9]+([.,][0-9]+)?"
                        placeholder="{placeholder}"
                        style="padding-left: 1.5rem; width: 8rem;"
                        type="text">
