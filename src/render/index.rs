@@ -163,7 +163,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     // TODO: Make configurable
     let faircamp_notice = if true {
         let faircamp_version = env!("CARGO_PKG_VERSION");
-        let t_this_site_was_created_with_faircamp = build.locale.translations.this_site_was_created_with_faircamp(r#"<a href="https://simonrepp.com/faircamp/">Faircamp</a>"#);
+        let t_this_site_was_created_with_faircamp = build.locale.translations.this_site_was_created_with_faircamp(
+            r#"<a href="https://simonrepp.com/faircamp/" target="_blank">Faircamp</a>"#
+        );
         formatdoc!(r#"
             <footer class="faircamp_notice" data-version="{faircamp_version}">
                 {t_this_site_was_created_with_faircamp}
