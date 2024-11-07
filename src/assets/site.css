@@ -359,6 +359,16 @@ header > div a {
     padding: .4rem;
 }
 header #browse { display: none; }
+header > div a:focus-visible {
+    background: var(--fg-3);
+    color: var(--bg-1);
+    border-radius: .3rem;
+    padding: .2rem .4rem .3rem .4rem;
+    margin-bottom: .1rem;
+    margin-top: .2rem;
+    outline: none;
+}
+header > div > span { margin-inline: .2rem; }
 header #browse { color: var(--fg-3); }
 header #browse:hover {
     color: var(--fg-3-focus);
