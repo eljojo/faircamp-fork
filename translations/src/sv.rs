@@ -59,6 +59,7 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
     made_or_arranged_payment: reviewed!("Jag har genomfört eller påbörjat betalningen"),
     missing_image_description_note: reviewed!("Bildbeskrivning saknas<br>Klicka för att lära dig mer"),
     more: reviewed!("Mer"),
+    mute: untranslated!(mute),
     muted: reviewed!("Tyst"),
     name_your_price: reviewed!("Ange eget pris"),
     next_track: reviewed!("Nästa spår"),
@@ -86,6 +87,7 @@ Om detta sker, använd bakåtknappen och följ noggrant instruktionerna igen.\
 <br><br>\
 Ersätt den sista delen av adressen - /{unlock_permalink}/{page_hash}{index_suffix} - \
 med /{downloads_permalink}/[din-upplåsningskod]{index_suffix} och tryck sedan på Retur-tangenten."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("Upp till {xxx}"),
     visual_impairment: reviewed!("Synnedsättning"),
     volume: untranslated!(volume),

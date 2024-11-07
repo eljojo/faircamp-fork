@@ -61,6 +61,7 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
     made_or_arranged_payment: unreviewed!("Ik heb de betaling gedaan of geregeld"),
     missing_image_description_note: unreviewed!("Ontbrekende afbeeldingsomschrijving<br>Klik om meer te leren"),
     more: unreviewed!("Meer"),
+    mute: untranslated!(mute),
     muted: untranslated!(muted),
     name_your_price: unreviewed!("Noem je prijs"),
     next_track: untranslated!(next_track),
@@ -88,6 +89,7 @@ gebruik de terugknop en volg de voorschriften nauwkeurig opnieuw.\
 <br><br>\
 Vervang het laatste deel van het adres - /{unlock_permalink}/{page_hash}{index_suffix} - \
 met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens op Enter."),
+    unmute: untranslated!(unmute),
     up_to_xxx: unreviewed!("Tot {xxx}"),
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),

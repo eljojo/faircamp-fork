@@ -22,14 +22,15 @@ const dockedPlayer = {
     timelineInput: dockedPlayerContainer.querySelector('.timeline input'),
     titleWrapper: dockedPlayerContainer.querySelector('.title_wrapper'),
     volumeButton: dockedPlayerContainer.querySelector('.volume button'),
-    volumeInput: dockedPlayerContainer.querySelector('.volume input')
+    volumeInput: dockedPlayerContainer.querySelector('.volume input'),
+    volumeSvgTitle: dockedPlayerContainer.querySelector('.volume svg title')
 };
 
 let globalUpdatePlayHeadInterval;
 
 const volume = {
     container: document.querySelector('.volume'),
-    level: 1,
+    level: 1
 };
 
 const persistedVolume = localStorage.getItem('faircampVolume');
@@ -289,12 +290,15 @@ function updateVolume(restoreLevel = null) {
     };
 
     if (volume.level === 1) {
+        dockedPlayer.volumeSvgTitle.textContent = T.mute;
         document.querySelector('.volume_hint.dimmed').classList.remove('active');
         document.querySelector('.volume_hint.muted').classList.remove('active');
     } else if (volume.level == 0) {
+        dockedPlayer.volumeSvgTitle.textContent = T.unmute;
         document.querySelector('.volume_hint.dimmed').classList.remove('active');
         document.querySelector('.volume_hint.muted').classList.add('active');
     } else {
+        dockedPlayer.volumeSvgTitle.textContent = T.mute;
         document.querySelector('.volume_hint.dimmed').classList.add('active');
         document.querySelector('.volume_hint.muted').classList.remove('active');
     }

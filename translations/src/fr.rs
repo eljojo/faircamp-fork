@@ -63,6 +63,7 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
     made_or_arranged_payment: reviewed!("J'ai effectué ou organisé le paiement"),
     missing_image_description_note: reviewed!("Description de l'image manquante<br>Cliquez pour en savoir plus"),
     more: reviewed!("Plus"),
+    mute: untranslated!(mute),
     muted: untranslated!(muted),
     name_your_price: reviewed!("Choisis ton prix"),
     next_track: untranslated!(next_track),
@@ -90,6 +91,7 @@ nouveau attentivement les instructions. \
 <br><br>\
 Remplacez la dernière partie de l'adresse - /{unlock_permalink}/{page_hash}{index_suffix} - \
 avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("Jusqu'à {xxx}"),
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),

@@ -330,7 +330,7 @@ pub fn track_html(
         None => String::new()
     };
 
-    let volume_icon = icons::volume(&build.locale.translations.volume); // TODO: Dynamically alternate between "Mute" / "Unmute" (?)
+    let volume_icon = icons::volume();
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"

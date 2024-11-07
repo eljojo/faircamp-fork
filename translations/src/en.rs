@@ -61,6 +61,7 @@ Here are some tips for writing good image descriptions:<br>\
     made_or_arranged_payment: reviewed!("I have made or arranged the payment"),
     missing_image_description_note: reviewed!("Missing image description<br>Click to learn more"),
     more: reviewed!("More"),
+    mute: reviewed!("Mute"),
     muted: reviewed!("Muted"),
     name_your_price: reviewed!("Name your price"),
     next_track: reviewed!("Next Track"),
@@ -88,6 +89,7 @@ use the Back button and closely follow the instructions again.\
 <br><br>\
 Replace the final part of the address - /{unlock_permalink}/{page_hash}{index_suffix} - \
 with /{downloads_permalink}/[your-unlock-code]{index_suffix} and then press Enter."),
+    unmute: reviewed!("Unmute"),
     up_to_xxx: reviewed!("Up to {xxx}"),
     visual_impairment: reviewed!("Visual Impairment"),
     volume: reviewed!("Volume"),

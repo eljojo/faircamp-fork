@@ -61,6 +61,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     made_or_arranged_payment: reviewed!("Ich habe die Bezahlung durchgeführt oder arrangiert"),
     missing_image_description_note: reviewed!("Fehlende Bildbeschreibung<br>Klick für mehr Info"),
     more: reviewed!("Mehr"),
+    mute: reviewed!("Stummschalten"),
     muted: reviewed!("Stummgeschaltet"),
     name_your_price: reviewed!("Nenne einen Preis"),
     next_track: reviewed!("Nächster Track"),
@@ -90,6 +91,7 @@ und folge den Instruktionen erneut und ganz genau.\
 Ersetze den letzten Abschnitt der Adresse - \
 /{unlock_permalink}/{page_hash}{index_suffix} - \
 mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
+    unmute: reviewed!("Lautschalten"),
     up_to_xxx: reviewed!("Bis zu {xxx}"),
     visual_impairment: reviewed!("Visuelle Beeinträchtigung"),
     volume: reviewed!("Lautstärke"),

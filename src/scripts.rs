@@ -43,17 +43,31 @@ pub fn generate_clipboard_js(build: &Build) {
 }
 
 pub fn generate_embeds_js(build: &Build) {
-    let js = include_str!("assets/embeds.js");
+    let t_mute = &build.locale.translations.mute;
+    let t_unmute = &build.locale.translations.unmute;
+    let mut js = formatdoc!("
+        const T = {{
+            mute: '{t_mute}',
+            unmute: '{t_unmute}'
+        }};
+    ");
+
+    js.push_str(include_str!("assets/embeds.js"));
+
     fs::write(build.build_dir.join("embeds.js"), js).unwrap();
 }
 
 pub fn generate_player_js(build: &Build) {
     let t_listen = &build.locale.translations.listen;
+    let t_mute = &build.locale.translations.mute;
     let t_pause = &build.locale.translations.pause;
+    let t_unmute = &build.locale.translations.unmute;
     let mut js = formatdoc!("
         const T = {{
             listen: '{t_listen}',
-            pause: '{t_pause}'
+            mute: '{t_mute}',
+            pause: '{t_pause}',
+            unmute: '{t_unmute}'
         }};
     ");
 

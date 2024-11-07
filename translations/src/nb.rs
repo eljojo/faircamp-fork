@@ -60,6 +60,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
     made_or_arranged_payment: reviewed!("Jeg har utført eller ordnet med betaling"),
     missing_image_description_note: reviewed!("Manglende bildebeskrivelse<br>Klikk for å lære mer"),
     more: reviewed!("Mer"),
+    mute: untranslated!(mute),
     muted: untranslated!(muted),
     name_your_price: reviewed!("Velg din egen pris"),
     next_track: untranslated!(next_track),
@@ -87,6 +88,7 @@ skjer, bruk tilbake-knappen og prøv å følge instruksjonene nøye igjen.\
 <br><br>\
 Erstatt den siste delen av addressen - /{unlock_permalink}/{page_hash}{index_suffix} - \
 med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("Opp til {xxx}"),
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),

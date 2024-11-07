@@ -60,6 +60,7 @@ pub const UK: Translations = Translations {
     made_or_arranged_payment: reviewed!("Платіж здійснено"),
     missing_image_description_note: reviewed!("Бракує опису картинки<br>Натисніть, щоб дізнатися більше"),
     more: reviewed!("Більше"),
+    mute: untranslated!(mute),
     muted: reviewed!("Вимкнено"),
     name_your_price: reviewed!("Назвіть свою ціну"),
     next_track: reviewed!("Наступна доріжка"),
@@ -87,6 +88,7 @@ pub const UK: Translations = Translations {
 <br><br>\
 Замініть кінець адреси — /{unlock_permalink}/{page_hash}{index_suffix} — \
 на /{downloads_permalink}/[your-unlock-code]{index_suffix} і тоді натисніть Enter."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("До {xxx}"),
     visual_impairment: reviewed!("Вади зору"),
     volume: reviewed!("Гучність"),

@@ -205,11 +205,14 @@ pub fn visual_impairment(label: &str) -> String {
     "#)
 }
 
-/// A knob as found on a mixer desk, in 12 o'clock position
-pub fn volume(label: &str) -> String {
+/// A knob as found on a mixer desk, in 12 o'clock position. The textual label
+/// for this icon is dynamically interpolated at runtime to say "Mute"
+/// or "Unmute", therefore an empty title element is present here, unlike in
+/// any other of the icons.
+pub fn volume() -> String {
     formatdoc!(r#"
         <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-            <title>{label}</title>
+            <title></title>
             <path class="knob" d="m36.252 13.334v16.561h-8.4648v-16.549a19.159 19.159 0 0 0-14.945 18.654 19.159 19.159 0 0 0 19.158 19.158 19.159 19.159 0 0 0 19.158-19.158 19.159 19.159 0 0 0-14.906-18.666z"/>
             <path class="active_range"/>
             <path class="inactive_range"/>

@@ -60,6 +60,7 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     made_or_arranged_payment: unreviewed!("He hecho o arreglado el pago"),
     missing_image_description_note: unreviewed!("Falta una descripción de imagen<br>Haz click para aprender más"),
     more: unreviewed!("Más"),
+    mute: unreviewed!("Silenciar"),
     muted: unreviewed!("Silenciado"),
     name_your_price: unreviewed!("Nombra tu precio"),
     next_track: untranslated!(next_track),
@@ -88,6 +89,7 @@ instrucciones de nuevo. \
 <br><br>\
 Reemplaza el parte final de la direccion - /{unlock_permalink}/{page_hash}{index_suffix} - \
 con /{downloads_permalink}/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
+    unmute: untranslated!(unmute),
     up_to_xxx: unreviewed!("Hasta {xxx}"),
     visual_impairment: untranslated!(visual_impairment),
     volume: reviewed!("Volumen"),

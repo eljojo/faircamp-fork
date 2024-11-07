@@ -59,6 +59,7 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     made_or_arranged_payment: reviewed!("Ho effettuato o predisposto il pagamento"),
     missing_image_description_note: reviewed!("Descrizione immagine mancante<br>Clicca per saperne di più"),
     more: reviewed!("Scopri di più"),
+    mute: untranslated!(mute),
     muted: reviewed!("Disattivato"),
     name_your_price: reviewed!("Indica un prezzo a tua scelta"),
     next_track: reviewed!("Brano successivo"),
@@ -86,6 +87,7 @@ usa il pulsante Indietro e segui nuovamente attentamente le istruzioni.\
 <br><br>\
 Sostituisci la parte finale dell'indirizzo - /{unlock_permalink}/{page_hash}{index_suffix} - \
 con /{downloads_permalink}/[il-tuo-codice-di-sblocco]{index_suffix} e poi premi Invio."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("Fino a {xxx}"),
     visual_impairment: reviewed!("Disabilità visiva"),
     volume: reviewed!("Volume"),

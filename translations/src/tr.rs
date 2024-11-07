@@ -61,6 +61,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     made_or_arranged_payment: reviewed!("Ödemeyi yaptım ya da ayarladım"),
     missing_image_description_note: reviewed!("Görüntü açıklaması eksik<br>Daha fazla öğrenmek için tıklayın"),
     more: reviewed!("Daha fazla"),
+    mute: untranslated!(mute),
     muted: reviewed!("Ses kısıldı"),
     name_your_price: reviewed!("Tutar girin"),
     next_track: reviewed!("Sonraki Parça"),
@@ -90,6 +91,7 @@ dikkatli bir şekilde tekrar takip edin.\
 Adresin son kısmındaki /{unlock_permalink}/{page_hash}{index_suffix} - \
 ibaresini  /{downloads_permalink}/[your-unlock-code]{index_suffix} ile değiştirerek \
 Enter tuşuna basın."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("{xxx} öğesine kadar"),
     visual_impairment: reviewed!("Görme Bozukluğu"),
     volume: reviewed!("Ses Düzeyi"),

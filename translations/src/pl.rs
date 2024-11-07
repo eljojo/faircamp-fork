@@ -60,6 +60,7 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
     made_or_arranged_payment: reviewed!("Zrobiłem albo ustawiłem zapłatę"),
     missing_image_description_note: reviewed!("Brakujący opis obrazka<br>Kliknij by dowiedzieć się więcej"),
     more: untranslated!(more),
+    mute: untranslated!(mute),
     muted: untranslated!(muted),
     name_your_price: reviewed!("Ustal swoją cenę"),
     next_track: untranslated!(next_track),
@@ -87,6 +88,7 @@ użyj guzika Wstecz i precyzyjnie podążaj za instrukcjami.\
 <br><br>\
 Zamień ostatnią część adresu - /{unlock_permalink}/{page_hash}{index_suffix} - \
 na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij Enter."),
+    unmute: untranslated!(unmute),
     up_to_xxx: reviewed!("Aż do {xxx}"),
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
