@@ -597,6 +597,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     display: flex;
 }
 .track:not(:first-child) { margin-top: 1rem; }
+.track .artists { margin-top: .16rem; }
 .track .artists a { color: var(--fg-3); }
 .track .artists a:hover { color: var(--fg-3-focus); }
 .track button { padding: 0; }
@@ -674,8 +675,9 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     width: 1.8rem;
 }
 .tracks.tall .track_playback {
-    height: 3.6rem;
-    width: 3.6rem;
+    font-size: 1.5rem;
+    height: 4rem;
+    width: 4rem;
 }
 input[type="number"],
 input[type="text"] {
@@ -732,7 +734,7 @@ input[type="text"].disabled,
 }
 .waveform {
     cursor: pointer;
-    margin-top: .3rem;
+    margin-top: .35rem;
     position: relative;
     width: max-content;
 }
