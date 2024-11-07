@@ -67,6 +67,7 @@ Damian Szetela<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
 [Tommaso Croce](https://mastodon.uno/@toctoc)<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
+[Vac](https://crumb.lt/Vac)<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
 [Wesley Sinks](https://linuxcreative.com)<br>
