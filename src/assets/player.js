@@ -317,7 +317,7 @@ function updateVolume(restoreLevel = null) {
 
     const percent = volume.level * 100;
     const percentFormatted = percent % 1 > 0.1 ? (Math.trunc(percent * 10) / 10) : Math.trunc(percent);
-    dockedPlayer.volumeInput.setAttribute('aria-valuetext', `${percentFormatted}%`);
+    dockedPlayer.volumeInput.setAttribute('aria-valuetext', `${T.volume} ${percentFormatted}%`);
     dockedPlayer.volumeInput.value = volume.level;
 
     if (restoreLevel === null) {

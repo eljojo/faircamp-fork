@@ -45,10 +45,12 @@ pub fn generate_clipboard_js(build: &Build) {
 pub fn generate_embeds_js(build: &Build) {
     let t_mute = &build.locale.translations.mute;
     let t_unmute = &build.locale.translations.unmute;
+    let t_volume = &build.locale.translations.volume;
     let mut js = formatdoc!("
         const T = {{
             mute: '{t_mute}',
-            unmute: '{t_unmute}'
+            unmute: '{t_unmute}',
+            volume: '{t_volume}'
         }};
     ");
 
@@ -62,12 +64,14 @@ pub fn generate_player_js(build: &Build) {
     let t_mute = &build.locale.translations.mute;
     let t_pause = &build.locale.translations.pause;
     let t_unmute = &build.locale.translations.unmute;
+    let t_volume = &build.locale.translations.volume;
     let mut js = formatdoc!("
         const T = {{
             listen: '{t_listen}',
             mute: '{t_mute}',
             pause: '{t_pause}',
-            unmute: '{t_unmute}'
+            unmute: '{t_unmute}',
+            volume: '{t_volume}'
         }};
     ");
 
