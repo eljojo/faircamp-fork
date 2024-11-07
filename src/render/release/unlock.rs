@@ -96,8 +96,11 @@ pub fn unlock_html(
         </div>
     "#);
 
-    let release_title_escaped = html_escape_outside_attribute(&release.title);
+    let release_title = &release.title;
+    let release_title_escaped = html_escape_outside_attribute(release_title);
     let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
+    let page_title = format!("{t_unlock_downloads} – {release_title}");
 
     layout(
         root_prefix,
@@ -106,7 +109,7 @@ pub fn unlock_html(
         catalog,
         Scripts::None,
         &release.theme,
-        &release.title,
+        &page_title,
         CrawlerMeta::NoIndexNoFollow,
         breadcrumb
     )
