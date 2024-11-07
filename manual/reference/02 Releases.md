@@ -208,24 +208,41 @@ cover images differs wildly between target formats, at this point pretty much
 only the `flac` and `mp3` formats can be expected to reliably contain them,
 no matter what you specify for `image`.
 
+A random example of this:
+
 ```eno
 # release
 
 tags:
 album = rewrite
 album_artist = remove
-artist = copy
-image = rewrite
-title = rewrite
-track = rewrite
+artist = rewrite
+image = copy
+title = copy
+track = copy
 ```
 
-Lastly, the default behavior can be (re-)set with the `normalize` option.
+The default behavior can be explicitly (re-)applied with the `normalize` option.
 
 ```eno
 # release
 
 tags: normalize
+```
+
+When written out explicitly using the fine-grained notation, the default behavior
+(that is, `tags: normalize`) corresponds to the following settings:
+
+```eno
+# release
+
+tags:
+album = rewrite
+album_artist = rewrite
+artist = rewrite
+image = remove
+title = rewrite
+track = rewrite
 ```
 
 ## Unlisted releases
