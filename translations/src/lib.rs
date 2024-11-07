@@ -44,6 +44,8 @@ mod nb;
 mod new;
 mod nl;
 mod pl;
+mod sr_cyrl;
+mod sr_latn;
 mod sv;
 mod tr;
 mod uk;
@@ -58,6 +60,8 @@ pub use nb::NB;
 pub use new::NEW;
 pub use nl::NL;
 pub use pl::PL;
+pub use sr_cyrl::SR_CYRL;
+pub use sr_latn::SR_LATN;
 pub use sv::SV;
 pub use tr::TR;
 pub use uk::UK;
@@ -73,6 +77,8 @@ pub fn all_languages() -> Vec<LabelledTranslations> {
         LabelledTranslations { code: "nb", name: "Norwegian Bokmål", translations: NB },
         LabelledTranslations { code: "nl", name: "Dutch", translations: NL },
         LabelledTranslations { code: "pl", name: "Polish", translations: PL },
+        LabelledTranslations { code: "sr-cyrl", name: "Serbian (Cyrillic)", translations: SR_CYRL },
+        LabelledTranslations { code: "sr-latn", name: "Serbian (Latin)", translations: SR_LATN },
         LabelledTranslations { code: "sv", name: "Swedish", translations: SV },
         LabelledTranslations { code: "tr", name: "Turkish", translations: TR },
         LabelledTranslations { code: "uk", name: "Ukrainian", translations: UK }
@@ -447,7 +453,7 @@ impl Translations {
 
 #[test]
 fn check_translations() {
-    let locales = [DE, EN, ES, FR, HE, IT, NB, NL, PL, SV, TR];
+    let locales = [DE, EN, ES, FR, HE, IT, NB, NL, PL, SR_CYRL, SV, TR];
 
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));

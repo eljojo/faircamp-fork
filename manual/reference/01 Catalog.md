@@ -266,6 +266,8 @@ Faircamp currently ships with these languages:
 - Norwegian Bokmål `nb`
 - Polish `pl`
 - Spanish `es`
+- Serbian (Cyrillic) `sr-cyrl`
+- Serbian (Latin) `sr-latn`
 - Swedish `sv`
 - Turkish `tr`
 - Ukrainian `uk`
