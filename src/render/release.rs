@@ -16,7 +16,7 @@ use crate::render::{
     copy_button,
     cover_image,
     cover_image_micro,
-    cover_image_tiny,
+    cover_image_tiny_decorative,
     layout,
     list_release_artists,
     list_track_artists,
@@ -378,7 +378,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let tall = if varying_track_artists { "tall" } else { "" };
 
-    let tiny_cover = cover_image_tiny("", release, ""); // TODO: Should not be linked
+    let tiny_cover = cover_image_tiny_decorative("", release, None);
 
     let compact_tall = match (release.theme.waveforms, varying_track_artists) {
         (true, true) => "tall",

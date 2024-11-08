@@ -133,14 +133,20 @@ fn compact_release_identifier(
     let artists_truncation = Some((40, format!("{release_prefix}#description")));
     let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let cover = cover_image_tiny(release_prefix, release, release_link);
+    let cover = cover_image_tiny_decorative(release_prefix, release, Some(release_link));
 
     format!(r#"
         <div class="release_compact">
             {cover}
             <div>
-                <div style="font-size: 1.17rem;">{release_title_escaped}</div>
-                <div style="font-size: 1.14rem;">{artists}</div>
+                <div style="font-size: 1.17rem;">
+                    <a href="{release_link}">
+                        {release_title_escaped}
+                    </a>
+                </div>
+                <div class="artists" style="font-size: 1.14rem;">
+                    {artists}
+                </div>
             </div>
         </div>
     "#)
@@ -293,38 +299,31 @@ fn cover_tile_image(
     }
 }
 
-fn cover_image_tiny(
+fn cover_image_tiny_decorative(
     release_prefix: &str,
     release: &Release,
-    href_url: &str
+    release_link: Option<&str>
 ) -> String {
-    match &release.cover {
+    let image = match &release.cover {
         Some(described_image) => {
             let image_ref = described_image.image.borrow();
             let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
             let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
 
-            let alt = if let Some(description) = &described_image.description {
-                let alt = html_escape_inside_attribute(description);
-                format!(r#" alt="{alt}""#)
-            } else {
-                String::new()
-            };
-
-            formatdoc!(r#"
-                <a href="{href_url}">
-                    <img{alt} loading="lazy" src="{src}">
-                </a>
-            "#)
+            format!(r#"<img loading="lazy" src="{src}">"#)
         }
         None => {
-            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
-            formatdoc!(r#"
-                <a href="{href_url}">
-                    {procedural_cover_svg}
-                </a>
-            "#)
+            release.procedural_cover.as_ref().unwrap().to_string()
         }
+    };
+
+    match release_link {
+        Some(release_link) => formatdoc!(r#"
+            <a aria-hidden="true" href="{release_link}" tabindex="-1">
+                {image}
+            </a>
+        "#),
+        None => format!(r#"<span aria-hidden="true">{image}</span>"#)
     }
 }
 

@@ -87,6 +87,8 @@ form button:hover {
     aspect-ratio: 1;
     width: 4rem;
 }
+.artists a { color: var(--fg-3); }
+.artists a:hover { color: var(--fg-3-focus); }
 body {
     background-color: var(--bg-1);
     color: var(--fg-2);
@@ -157,8 +159,6 @@ button svg { display: inline-block; }
     font-size: .9rem;
     margin-bottom: .2rem;
 }
-.docked_player .artists a { color: var(--fg-3); }
-.docked_player .artists a:hover { color: var(--fg-3-focus); }
 .docked_player button {
     color: var(--fg-1);
     padding: .8em .6em;
@@ -546,11 +546,11 @@ pre { margin: 0; }
     display: flex;
     margin: 2em 0;
 }
-.release_compact > a {
+.release_compact > :first-child {
     height: 4rem;
     width: 4rem;
 }
-.release_compact > a svg {
+.release_compact > :first-child svg {
     max-height: 100%;
     max-width: 100%;
 }
@@ -598,8 +598,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track:not(:first-child) { margin-top: 1rem; }
 .track .artists { margin-top: .16rem; }
-.track .artists a { color: var(--fg-3); }
-.track .artists a:hover { color: var(--fg-3-focus); }
 .track button { padding: 0; }
 .track > :nth-child(2) {
     flex-grow: 1;
