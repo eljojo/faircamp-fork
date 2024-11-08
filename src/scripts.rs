@@ -44,11 +44,13 @@ pub fn generate_clipboard_js(build: &Build) {
 
 pub fn generate_embeds_js(build: &Build) {
     let t_mute = &build.locale.translations.mute;
+    let t_playback_position = &build.locale.translations.playback_position;
     let t_unmute = &build.locale.translations.unmute;
     let t_volume = &build.locale.translations.volume;
     let mut js = formatdoc!("
         const T = {{
             mute: '{t_mute}',
+            playbackPosition: '{t_playback_position}',
             unmute: '{t_unmute}',
             volume: '{t_volume}'
         }};
@@ -63,6 +65,7 @@ pub fn generate_player_js(build: &Build) {
     let t_listen = &build.locale.translations.listen;
     let t_mute = &build.locale.translations.mute;
     let t_pause = &build.locale.translations.pause;
+    let t_playback_position = &build.locale.translations.playback_position;
     let t_unmute = &build.locale.translations.unmute;
     let t_volume = &build.locale.translations.volume;
     let mut js = formatdoc!("
@@ -70,6 +73,7 @@ pub fn generate_player_js(build: &Build) {
             listen: '{t_listen}',
             mute: '{t_mute}',
             pause: '{t_pause}',
+            playbackPosition: '{t_playback_position}',
             unmute: '{t_unmute}',
             volume: '{t_volume}'
         }};

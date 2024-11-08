@@ -222,10 +222,12 @@ function togglePlayback(track, seekTo = null) {
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
+    const valueText = `${T.playbackPosition} ${formatTime(dockedPlayer.timelineInput.value)}`;
+
+    dockedPlayer.timelineInput.setAttribute('aria-valuetext', valueText);
+
     if (track.waveform) {
-        // TODO: Announce "current: xxxx, remaining: xxxxx"?
-        dockedPlayer.timelineInput.setAttribute('aria-valuetext', formatTime(track.waveform.input.value));
-        track.waveform.input.setAttribute('aria-valuetext', formatTime(track.waveform.input.value));
+        track.waveform.input.setAttribute('aria-valuetext', valueText);
     }
 }
 
@@ -235,6 +237,7 @@ function updatePlayhead(track, reset = false) {
 
     dockedPlayer.progress.style.setProperty('width', `${factor * 100}%`);
     dockedPlayer.time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
+    dockedPlayer.timelineInput.value = audio.currentTime;
 
     if (track.waveform) {
         track.waveform.svg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);

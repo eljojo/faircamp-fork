@@ -51,6 +51,7 @@ pub const NEW: Translations = Translations {
     next_track: untranslated!(next_track),
     pause: untranslated!(pause),
     play: untranslated!(play),
+    playback_position: untranslated!(playback_position),
     previous_track: untranslated!(previous_track),
     purchase_downloads: untranslated!(purchase_downloads),
     purchase_permalink: untranslated!(purchase_permalink),

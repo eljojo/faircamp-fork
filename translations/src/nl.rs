@@ -67,6 +67,7 @@ Hier zijn een paar tips voor het schrijven van goede afbeeldingsomschrijvingen:<
     next_track: untranslated!(next_track),
     pause: untranslated!(pause),
     play: untranslated!(play),
+    playback_position: untranslated!(playback_position),
     previous_track: untranslated!(previous_track),
     purchase_downloads: unreviewed!("Downloads kopen"),
     purchase_permalink: unreviewed!("kopen"),

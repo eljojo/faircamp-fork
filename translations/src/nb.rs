@@ -66,6 +66,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
     next_track: untranslated!(next_track),
     pause: untranslated!(pause),
     play: untranslated!(play),
+    playback_position: untranslated!(playback_position),
     previous_track: untranslated!(previous_track),
     purchase_downloads: reviewed!("Kjøp nedlastinger"),
     purchase_permalink: reviewed!("kjop"),

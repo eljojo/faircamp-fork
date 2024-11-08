@@ -66,6 +66,7 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     next_track: untranslated!(next_track),
     pause: unreviewed!("Pausar"),
     play: unreviewed!("Reproducir"),
+    playback_position: untranslated!(playback_position),
     previous_track: untranslated!(previous_track),
     purchase_downloads: unreviewed!("Comprar descargas"),
     purchase_permalink: unreviewed!("comprar"),

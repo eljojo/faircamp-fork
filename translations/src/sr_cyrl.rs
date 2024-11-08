@@ -51,6 +51,7 @@ pub const SR_CYRL: Translations = Translations {
     next_track: reviewed!("Следећа нумера"),
     pause: reviewed!("Пауза"),
     play: reviewed!("Пустите"),
+    playback_position: untranslated!(playback_position),
     previous_track: reviewed!("Претходна нумера"),
     purchase_downloads: reviewed!("Куповина музике за преузимање"),
     purchase_permalink: reviewed!("kupovina"),

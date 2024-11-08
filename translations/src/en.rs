@@ -67,6 +67,7 @@ Here are some tips for writing good image descriptions:<br>\
     next_track: reviewed!("Next Track"),
     pause: reviewed!("Pause"),
     play: reviewed!("Play"),
+    playback_position: reviewed!("Playback position"),
     previous_track: reviewed!("Previous Track"),
     purchase_downloads: reviewed!("Purchase downloads"),
     purchase_permalink: reviewed!("purchase"),

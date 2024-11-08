@@ -193,6 +193,7 @@ pub struct Translations {
     pub next_track: Translation,
     pub pause: Translation,
     pub play: Translation,
+    pub playback_position: Translation,
     pub previous_track: Translation,
     pub purchase_downloads: Translation,
     /// Must be unique and only contain url-safe characters
@@ -268,6 +269,7 @@ impl Translations {
             ("next_track", &self.next_track, false),
             ("pause", &self.pause, false),
             ("play", &self.play, false),
+            ("playback_position", &self.playback_position, false),
             ("previous_track", &self.previous_track, false),
             ("purchase_downloads", &self.purchase_downloads, false),
             ("purchase_permalink", &self.purchase_permalink, false),
@@ -362,6 +364,7 @@ impl Translations {
             next_track: reviewed!("next_track"),
             pause: reviewed!("pause"),
             play: reviewed!("play"),
+            playback_position: reviewed!("playback_position"),
             previous_track: reviewed!("previous_track"),
             purchase_downloads: reviewed!("purchase_downloads"),
             purchase_permalink: reviewed!("purchase_permalink"),

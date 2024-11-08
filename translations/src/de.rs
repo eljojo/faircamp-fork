@@ -67,6 +67,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     next_track: reviewed!("Nächster Track"),
     pause: reviewed!("Pausieren"),
     play: reviewed!("Abspielen"),
+    playback_position: reviewed!("Wiedergabeposition"),
     previous_track: reviewed!("Vorheriger Track"),
     purchase_downloads: reviewed!("Downloads bezahlen"),
     purchase_permalink: reviewed!("bezahlen"),

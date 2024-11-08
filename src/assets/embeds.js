@@ -43,8 +43,8 @@ updateVolume();
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
-    // TODO: Announce "current: xxxx, remaining: xxxxx"?
-    player.timelineInput.setAttribute('aria-valuetext', formatTime(track.input.value));
+    const valueText = `${T.playbackPosition} ${formatTime(track.input.value)}`;
+    player.timelineInput.setAttribute('aria-valuetext', valueText);
 }
 
 function formatTime(seconds) {

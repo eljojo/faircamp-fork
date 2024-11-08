@@ -66,6 +66,7 @@ pub const UK: Translations = Translations {
     next_track: reviewed!("Наступна доріжка"),
     pause: reviewed!("Призупинити"),
     play: reviewed!("Відтворити"),
+    playback_position: untranslated!(playback_position),
     previous_track: reviewed!("Попередня доріжка"),
     purchase_downloads: reviewed!("Купити завантаження"),
     purchase_permalink: reviewed!("purchase"),
