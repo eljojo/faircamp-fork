@@ -189,7 +189,7 @@ button svg { display: inline-block; }
 .docked_player .timeline .base,
 .docked_player .timeline .progress {
     bottom: .3rem;
-    height: .15rem;
+    height: .2rem;
     position: absolute;
 }
 .docked_player .timeline .base {
@@ -197,10 +197,12 @@ button svg { display: inline-block; }
     width: 100%;
 }
 .docked_player .timeline .progress { background: var(--mg-acc); }
-.docked_player .timeline:hover .base,
-.docked_player .timeline:hover .progress {
-    height: .25rem;
+.docked_player .timeline:hover > div { height: .35rem; }
+.docked_player .timeline.focus:not(.focus_from_click) > div {
+    bottom: .15rem;
+    height: .5rem;
 }
+.docked_player .timeline.focus:not(.focus_from_click) .progress { background: var(--fg-1); }
 .docked_player .timeline input {
     height: 100%;
     left: 0;

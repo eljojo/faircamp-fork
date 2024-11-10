@@ -361,12 +361,16 @@ dockedPlayer.timeline.addEventListener('click', () => {
     const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
     const seekTo = factor * dockedPlayer.timelineInput.max;
     togglePlayback(activeTrack, seekTo);
-    dockedPlayer.timelineInput.classList.add('focus_from_click');
+    dockedPlayer.timeline.classList.add('focus_from_click');
     dockedPlayer.timelineInput.focus();
 });
 
 dockedPlayer.timelineInput.addEventListener('blur', () => {
-    dockedPlayer.timelineInput.classList.remove('focus_from_click');
+    dockedPlayer.timeline.classList.remove('focus', 'focus_from_click');
+});
+
+dockedPlayer.timelineInput.addEventListener('focus', () => {
+    dockedPlayer.timeline.classList.add('focus');
 });
 
 dockedPlayer.timelineInput.addEventListener('keydown', event => {

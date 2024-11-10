@@ -103,7 +103,7 @@ button svg { display: inline-block; }
 .player .timeline .base,
 .player .timeline .progress {
     bottom: .3rem;
-    height: .15rem;
+    height: .2rem;
     position: absolute;
 }
 .player .timeline .base {
@@ -111,10 +111,12 @@ button svg { display: inline-block; }
     width: 100%;
 }
 .player .timeline .progress { background: var(--mg-acc); }
-.player .timeline:hover .base,
-.player .timeline:hover .progress {
-    height: .25rem;
+.player .timeline:hover > div { height: .35rem; }
+.player .timeline.focus:not(.focus_from_click) > div {
+    bottom: .15rem;
+    height: .5rem;
 }
+.player .timeline.focus:not(.focus_from_click) .progress { background: var(--fg-1); }
 .player .timeline input {
     height: 100%;
     left: 0;
