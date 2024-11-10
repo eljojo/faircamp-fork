@@ -52,7 +52,7 @@ fn artist_image(
     let image_ref = described_image.image.borrow();
 
     let alt = match &described_image.description {
-        Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
+        Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
         None => String::new()
     };
 
@@ -68,7 +68,8 @@ fn artist_image(
                     <source media="(min-width: 30rem)"
                             sizes="100vw"
                             srcset="{srcset_fluid}" />
-                    <img{alt}
+                    <img
+                        {alt}
                         class="home_image"
                         sizes="100vw"
                         src="{src_fixed}"
@@ -172,11 +173,11 @@ fn cover_image(
     release: &Release
 ) -> String {
     match &release.cover {
-        Some (described_image) => {
+        Some(described_image) => {
             let image_ref = described_image.image.borrow();
 
             let alt = match &described_image.description {
-                Some(description) => format!(r#" alt="{}""#, html_escape_inside_attribute(description)),
+                Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
                 None => String::new()
             };
 
@@ -184,7 +185,11 @@ fn cover_image(
             let thumbnail = formatdoc!(
                 r##"
                     <a class="image" href="#overlay">
-                        <img{alt} sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)" src="{src}" srcset="{srcset}">
+                        <img
+                            {alt}
+                            sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
+                            src="{src}"
+                            srcset="{srcset}">
                     </a>
                 "##,
                 src = thumbnail_img.src,
@@ -223,7 +228,7 @@ fn cover_image(
         None => {
             let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
             formatdoc!(r#"
-                <span class="image">
+                <span aria-hidden="true" class="image">
                     {procedural_cover_svg}
                 </span>
             "#)
@@ -291,7 +296,7 @@ fn cover_tile_image(
         None => {
             let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
             formatdoc!(r#"
-                <a href="{href}">
+                <a aria-hidden="true" href="{href}">
                     {procedural_cover_svg}
                 </a>
             "#)
@@ -773,7 +778,7 @@ fn wrap_undescribed_image(
     let t_image_descriptions_permalink = &build.locale.translations.image_descriptions_permalink;
     let t_missing_image_description_note = &build.locale.translations.missing_image_description_note;
     formatdoc!(r#"
-        <div class="{extra_class} undescribed_wrapper">
+        <div aria-hidden="true" class="{extra_class} undescribed_wrapper">
             <a class="undescribed_icon" href="{root_prefix}{t_image_descriptions_permalink}{index_suffix}">
                 {visual_impairment_icon}
             </a>
