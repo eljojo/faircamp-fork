@@ -68,6 +68,8 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     pause: reviewed!("Pausieren"),
     play: reviewed!("Abspielen"),
     playback_position: reviewed!("Wiedergabeposition"),
+    player_closed: reviewed!("Player geschlossen"),
+    player_open_playing_xxx: reviewed!("Player offen, spielt {title}"),
     previous_track: reviewed!("Vorheriger Track"),
     purchase_downloads: reviewed!("Downloads bezahlen"),
     purchase_permalink: reviewed!("bezahlen"),

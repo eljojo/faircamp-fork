@@ -17,6 +17,7 @@ const dockedPlayer = {
     number: dockedPlayerContainer.querySelector('.number'),
     playbackButton: dockedPlayerContainer.querySelector('button.playback'),
     progress: dockedPlayerContainer.querySelector('.progress'),
+    status: document.querySelector('.docked_player_status'),
     time: dockedPlayerContainer.querySelector('.time'),
     timeline: dockedPlayerContainer.querySelector('.timeline'),
     timelineInput: dockedPlayerContainer.querySelector('.timeline input'),
@@ -59,6 +60,7 @@ async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
     dockedPlayer.container.classList.add('active');
+    dockedPlayer.status.setAttribute('aria-label', T.playerOpenPlayingXxx(track.title.textContent));
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
 
@@ -518,6 +520,7 @@ for (const container of document.querySelectorAll('.track')) {
         } else {
             activeTrack = null;
             dockedPlayer.container.classList.remove('active');
+            dockedPlayer.status.setAttribute('aria-label', T.playerClosed);
         }
     });
 

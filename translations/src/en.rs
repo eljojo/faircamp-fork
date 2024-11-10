@@ -68,6 +68,8 @@ Here are some tips for writing good image descriptions:<br>\
     pause: reviewed!("Pause"),
     play: reviewed!("Play"),
     playback_position: reviewed!("Playback position"),
+    player_closed: reviewed!("Player closed"),
+    player_open_playing_xxx: reviewed!("Player open, playing {title}"),
     previous_track: reviewed!("Previous Track"),
     purchase_downloads: reviewed!("Purchase downloads"),
     purchase_permalink: reviewed!("purchase"),

@@ -68,6 +68,8 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     pause: reviewed!("Duraklat"),
     play: reviewed!("Oynat"),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: reviewed!("Önceki Parça"),
     purchase_downloads: reviewed!("İndirmeleri satın al"),
     purchase_permalink: reviewed!("satin-al"),

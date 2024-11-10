@@ -52,6 +52,8 @@ pub const HE: Translations = Translations {
     pause: unreviewed!("הַפסָקָה"),
     play: unreviewed!("לְשַׂחֵק"),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: untranslated!(previous_track),
     purchase_downloads: untranslated!(purchase_downloads),
     purchase_permalink: untranslated!(purchase_permalink),

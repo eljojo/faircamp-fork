@@ -66,6 +66,8 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
     pause: reviewed!("Pausa"),
     play: reviewed!("Spela"),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: untranslated!(previous_track),
     purchase_downloads: reviewed!("Köp nedladdningar"),
     purchase_permalink: reviewed!("betala"),

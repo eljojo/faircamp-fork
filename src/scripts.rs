@@ -66,6 +66,8 @@ pub fn generate_player_js(build: &Build) {
     let t_mute = &build.locale.translations.mute;
     let t_pause = &build.locale.translations.pause;
     let t_playback_position = &build.locale.translations.playback_position;
+    let t_player_closed = &build.locale.translations.player_closed;
+    let t_player_open_playing_xxx = &build.locale.translations.player_open_playing_xxx;
     let t_unmute = &build.locale.translations.unmute;
     let t_volume = &build.locale.translations.volume;
     let mut js = formatdoc!("
@@ -74,6 +76,8 @@ pub fn generate_player_js(build: &Build) {
             mute: '{t_mute}',
             pause: '{t_pause}',
             playbackPosition: '{t_playback_position}',
+            playerClosed: '{t_player_closed}',
+            playerOpenPlayingXxx: title => '{t_player_open_playing_xxx}'.replace('{{title}}', title),
             unmute: '{t_unmute}',
             volume: '{t_volume}'
         }};

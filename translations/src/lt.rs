@@ -52,6 +52,8 @@ pub const LT: Translations = Translations {
     pause: reviewed!("Pristabdyti"),
     play: reviewed!("Leisti"),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: reviewed!("Ankstesnis takelis"),
     purchase_downloads: reviewed!("Pirkti atsisiuntimus"),
     purchase_permalink: reviewed!("pirkti"),

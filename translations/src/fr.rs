@@ -70,6 +70,8 @@ Voici quelques conseils pour rédiger de bonnes descriptions d'images:<br>\
     pause: untranslated!(pause),
     play: untranslated!(play),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: untranslated!(previous_track),
     purchase_downloads: reviewed!("Acheter des téléchargements"),
     purchase_permalink: reviewed!("acheter"),

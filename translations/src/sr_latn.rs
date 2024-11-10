@@ -52,6 +52,8 @@ pub const SR_LATN: Translations = Translations {
     pause: reviewed!("Pauza"),
     play: reviewed!("Pustite"),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: reviewed!("Prethodna numera"),
     purchase_downloads: reviewed!("Kupovina muzike za preuzimanje"),
     purchase_permalink: reviewed!("kupovina"),

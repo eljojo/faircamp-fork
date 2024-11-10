@@ -395,6 +395,7 @@ pub fn track_html(
                 <span class="volume_hint muted">{t_muted}</span>
             </div>
         </div>
+        <div aria-label="" class="docked_player_status" role="status"></div>
         {templates}
     "##);
 

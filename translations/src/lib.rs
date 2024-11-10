@@ -194,6 +194,8 @@ pub struct Translations {
     pub pause: Translation,
     pub play: Translation,
     pub playback_position: Translation,
+    pub player_closed: Translation,
+    pub player_open_playing_xxx: Translation,
     pub previous_track: Translation,
     pub purchase_downloads: Translation,
     /// Must be unique and only contain url-safe characters
@@ -270,6 +272,8 @@ impl Translations {
             ("pause", &self.pause, false),
             ("play", &self.play, false),
             ("playback_position", &self.playback_position, false),
+            ("player_closed", &self.player_closed, false),
+            ("player_open_playing_xxx", &self.player_open_playing_xxx, false),
             ("previous_track", &self.previous_track, false),
             ("purchase_downloads", &self.purchase_downloads, false),
             ("purchase_permalink", &self.purchase_permalink, false),
@@ -364,7 +368,9 @@ impl Translations {
             next_track: reviewed!("next_track"),
             pause: reviewed!("pause"),
             play: reviewed!("play"),
+            player_closed: reviewed!("player_closed"),
             playback_position: reviewed!("playback_position"),
+            player_open_playing_xxx: reviewed!("player_open_playing_xxx"),
             previous_track: reviewed!("previous_track"),
             purchase_downloads: reviewed!("purchase_downloads"),
             purchase_permalink: reviewed!("purchase_permalink"),
@@ -463,6 +469,7 @@ fn check_translations() {
 
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));
+        assert!(&translations.player_open_playing_xxx.contains("{title}"));
         assert!(&translations.this_site_was_created_with_faircamp.contains("{faircamp_link}"));
         assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));
         assert!(&translations.unlock_manual_instructions.contains("{index_suffix}"));

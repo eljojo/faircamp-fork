@@ -66,6 +66,8 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     pause: reviewed!("Pausa"),
     play: reviewed!("Riproduci"),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: reviewed!("Traccia Precedente"),
     purchase_downloads: reviewed!("Acquista download"),
     purchase_permalink: reviewed!("acquista"),

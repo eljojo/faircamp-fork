@@ -459,6 +459,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <span class="volume_hint muted">{t_muted}</span>
             </div>
         </div>
+        <div aria-label="" class="docked_player_status" role="status"></div>
         {templates}
     "##);
 

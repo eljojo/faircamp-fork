@@ -67,6 +67,8 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
     pause: untranslated!(pause),
     play: untranslated!(play),
     playback_position: untranslated!(playback_position),
+    player_closed: untranslated!(player_closed),
+    player_open_playing_xxx: untranslated!(player_open_playing_xxx),
     previous_track: untranslated!(previous_track),
     purchase_downloads: reviewed!("Kup pobranie"),
     purchase_permalink: reviewed!("zakup"),
