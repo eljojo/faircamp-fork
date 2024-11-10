@@ -318,6 +318,8 @@ function updateVolume(restoreLevel = null) {
 }
 
 player.container.addEventListener('keydown', event => {
+    if (event.target === player.volumeInput) return;
+
     if (event.key === 'ArrowLeft') {
         event.preventDefault();
         const seekTo = Math.max(0, activeTrack.audio.currentTime - 5);

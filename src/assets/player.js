@@ -331,6 +331,8 @@ function updateVolume(restoreLevel = null) {
 }
 
 dockedPlayer.container.addEventListener('keydown', event => {
+    if (event.target === dockedPlayer.volumeInput) return;
+
     if (event.key === 'ArrowLeft') {
         event.preventDefault();
         const seekTo = Math.max(0, activeTrack.audio.currentTime - 5);
