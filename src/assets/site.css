@@ -383,6 +383,7 @@ header svg {
     object-fit: cover;
     width: 100vw;
 }
+html { scroll-padding: 10rem; }
 img {
     display: block;
     max-width: 100%;
