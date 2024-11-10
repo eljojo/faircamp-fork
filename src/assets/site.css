@@ -660,10 +660,17 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     color: var(--fg-1);
     flex-shrink: 1;
 }
-.track .title:focus-visible,
-.track .title:hover {
-    color: var(--fg-1-focus);
+.track .title:focus-visible {
+    background: var(--fg-3);
+    color: var(--bg-1);
+    border-radius: .3rem;
+    padding: 0 .3rem .2rem .3rem;
+    margin-bottom: .1rem;
+    margin-left: -.2rem;
+    margin-top: .2rem;
+    outline: none;
 }
+.track .title:hover { color: var(--fg-1-focus); }
 .tracks { flex-grow: 1; }
 .tracks.compact .track { column-gap: .5rem; }
 .tracks.compact .track:not(:first-child) { margin-top: .5rem; }
