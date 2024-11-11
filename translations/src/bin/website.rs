@@ -93,8 +93,10 @@ pub fn main() {
                 format!(r#"<input autocomplete="off" data-translation-key="{translation_key}">"#)
             };
 
+            let data_reviewed = if status == "reviewed" { "data-reviewed" } else { "" };
+
             let r_string = formatdoc!(r#"
-                <div class="string">
+                <div class="string" {data_reviewed}>
                     <div>
                         <span></span>
                         <div class="status {status}"></div>
@@ -133,9 +135,11 @@ pub fn main() {
             String::new()
         };
 
+        let data_reviewed = if percent_reviewed < 100.0 { "" } else { "data-reviewed" };
+
         let language_name = language.name;
         let section = formatdoc!(r#"
-            <details>
+            <details {data_reviewed}>
                 <summary class="language">
                     <div class="progress">
                         <div class="bar reviewed" style="width: {percent_reviewed}%;"></div>
@@ -221,20 +225,17 @@ fn layout(body: &str) -> String {
                             </svg>
                             <span>Help to translate faircamp</span>
                         </h1>
-                        <div class="badge unreviewed">
-                            <strong>
-                                This is a public beta test. During longer sessions,
-                                consider periodically backing up your work
-                                (by copying it from "Review and submit") to stay 100% on
-                                the safe side.
-                            </strong>
-                        </div>
                         <p>
                             Open a language section below to begin translating.
                             If your language is missing, start in the last section ("New Language").
                             When you're done proceed to <a href="#review">review and submit</a>
                             your changes. See <a href="#help">help</a> for additional
                             instructions.
+                        </p>
+                        <p>
+                            <span>Display filter:</span>
+                            <input autocomplete="off" id="hide-reviewed" type="checkbox">
+                            <label for="hide-reviewed">Hide complete languages and translations</label>
                         </p>
                     </section>
                     <section class="unbounded">

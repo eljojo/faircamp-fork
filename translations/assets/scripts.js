@@ -5,6 +5,7 @@ const headerCountSpan = document.querySelector('header span.count');
 const messageDiv = document.querySelector('div.message');
 const messageTextSpan = document.querySelector('div.message .text');
 const submissionDiv = document.querySelector('div.submission');
+const toggleHideReviewed = document.querySelector('input#hide-reviewed');
 
 let scheduledActivityOff = null;
 let scheduledPersist = null;
@@ -202,6 +203,18 @@ function updateTranslation(languageCode, translationKey, value) {
 clearButton.addEventListener('click', () => {
     if (confirm(`THIS WILL DISCARD ALL ${countTranslations()} TRANSLATIONS YOU ENTERED\n\nREALLY CLEAR?`)) {
         clearTranslations();
+    }
+});
+
+toggleHideReviewed.addEventListener('change', () => {
+    if (toggleHideReviewed.checked) {
+        for (const element of document.querySelectorAll('[data-reviewed]')) {
+            element.style.display = 'none';
+        }
+    } else {
+        for (const element of document.querySelectorAll('[data-reviewed]')) {
+            element.style.display = null;
+        }
     }
 });
 
