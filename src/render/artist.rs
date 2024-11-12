@@ -160,7 +160,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         <div class="page">
             <div class="page_center page_50vh">
                 <div style="max-width: 32rem;">
-                    <div style="font-size: 1.4rem;">{artist_name_escaped}</div>
+                    <h2>{artist_name_escaped}</div>
                     {artist_text}
                 </div>
             </div>

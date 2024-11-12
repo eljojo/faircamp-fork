@@ -13,6 +13,12 @@ button.link:hover {
     color: var(--fg-1-focus);
 }
 a * { pointer-events: none; }
+.abstract .release_artists a,
+.release_info .release_artists a {
+    text-decoration: underline;
+    text-decoration-color: var(--bg-3);
+    text-underline-offset: .3rem;
+}
 .actions {
     align-items: flex-start;
     display:flex;
@@ -379,7 +385,7 @@ h1 {
     margin: 0;
 }
 h2 {
-    font-size: 1.17rem;
+    font-size: 1.4rem;
     font-weight: 400;
     margin: 0;
 }

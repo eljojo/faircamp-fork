@@ -188,7 +188,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         <div class="page">
             <div class="page_center page_50vh">
                 <div style="max-width: 32rem;">
-                    <div style="font-size: 1.4rem;">{title_escaped}</div>
+                    <h2>{title_escaped}</h2>
                     {catalog_text}
                 </div>
             </div>

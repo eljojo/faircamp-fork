@@ -422,9 +422,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             {tiny_cover}
                         </div>
                         <div>
-                            <div style="font-size: 1.4rem;">
-                                {release_title_escaped}
-                            </div>
+                            <h2>{release_title_escaped}</h2>
                             <div class="release_artists">{artists}</div>
                         </div>
                     </div>
