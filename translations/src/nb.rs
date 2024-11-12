@@ -100,6 +100,8 @@ med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: reviewed!(r#"{xxx} og <a href="{others_link}">mer</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: reviewed!("{xxx} eller mer")
+    xxx_or_more: reviewed!("{xxx} eller mer"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

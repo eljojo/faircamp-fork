@@ -103,6 +103,8 @@ Enter tuşuna basın."),
     visual_impairment: reviewed!("Görme Bozukluğu"),
     volume: reviewed!("Ses Düzeyi"),
     xxx_and_others: reviewed!(r#"{xxx} ve <a href="{others_link}">diğerleri</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: reviewed!("{xxx} dakika"),
-    xxx_or_more: reviewed!("{xxx} ya da daha fazlası")
+    xxx_or_more: reviewed!("{xxx} ya da daha fazlası"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

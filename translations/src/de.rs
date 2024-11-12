@@ -103,6 +103,8 @@ mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} and drücke dann
     visual_impairment: reviewed!("Visuelle Beeinträchtigung"),
     volume: reviewed!("Lautstärke"),
     xxx_and_others: reviewed!(r#"{xxx} und <a href="{others_link}">Weitere</a>"#),
+    xxx_hours: reviewed!("{xxx} Stunden"),
     xxx_minutes: reviewed!("{xxx} Minuten"),
-    xxx_or_more: reviewed!("{xxx} oder mehr")
+    xxx_or_more: reviewed!("{xxx} oder mehr"),
+    xxx_seconds: reviewed!("{xxx} Sekunden")
 };

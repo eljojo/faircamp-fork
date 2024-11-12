@@ -99,6 +99,8 @@ med /{downloads_permalink}/[din-upplåsningskod]{index_suffix} och tryck sedan p
     visual_impairment: reviewed!("Synnedsättning"),
     volume: untranslated!(volume),
     xxx_and_others: reviewed!(r#"{xxx} med <a href="{others_link}">flera</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: reviewed!("{xxx} eller mer")
+    xxx_or_more: reviewed!("{xxx} eller mer"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

@@ -76,6 +76,8 @@ pub const LT: Translations = Translations {
     visual_impairment: reviewed!("Regėjimo sutrikimas"),
     volume: reviewed!("Garsumas"),
     xxx_and_others: reviewed!(r#"{xxx} ir <a href="{others_link}">kiti</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: reviewed!("{xxx} min."),
-    xxx_or_more: reviewed!("{xxx} ar daugiau")
+    xxx_or_more: reviewed!("{xxx} ar daugiau"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

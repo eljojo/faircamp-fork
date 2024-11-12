@@ -99,6 +99,8 @@ con /{downloads_permalink}/[il-tuo-codice-di-sblocco]{index_suffix} e poi premi 
     visual_impairment: reviewed!("Disabilità visiva"),
     volume: reviewed!("Volume"),
     xxx_and_others: reviewed!(r#"{xxx} e <a href="{others_link}">altri</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: reviewed!("{xxx} minuti"),
-    xxx_or_more: reviewed!("{xxx} o più")
+    xxx_or_more: reviewed!("{xxx} o più"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

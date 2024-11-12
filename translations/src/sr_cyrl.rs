@@ -76,6 +76,8 @@ pub const SR_CYRL: Translations = Translations {
     visual_impairment: reviewed!("Оштећење вида"),
     volume: reviewed!("Јачина зука"),
     xxx_and_others: reviewed!(r#"{xxx} и <a href="{others_link}">остали</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: reviewed!("{xxx} минута"),
-    xxx_or_more: reviewed!("{xxx} или више")
+    xxx_or_more: reviewed!("{xxx} или више"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

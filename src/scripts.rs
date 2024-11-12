@@ -191,12 +191,18 @@ pub fn generate_embeds_js(build: &Build) {
     let t_playback_position = &build.locale.translations.playback_position;
     let t_unmute = &build.locale.translations.unmute;
     let t_volume = &build.locale.translations.volume;
+    let t_xxx_hours = &build.locale.translations.xxx_hours;
+    let t_xxx_minutes = &build.locale.translations.xxx_minutes;
+    let t_xxx_seconds = &build.locale.translations.xxx_seconds;
     let mut js = formatdoc!("
         const EMBEDS_JS_T = {{
             mute: '{t_mute}',
             playbackPosition: '{t_playback_position}',
             unmute: '{t_unmute}',
-            volume: '{t_volume}'
+            volume: '{t_volume}',
+            xxxHours: hours => '{t_xxx_hours}'.replace('{{xxx}}', hours),
+            xxxMinutes: minutes => '{t_xxx_minutes}'.replace('{{xxx}}', minutes),
+            xxxSeconds: seconds => '{t_xxx_seconds}'.replace('{{xxx}}', seconds)
         }};
     ");
 
@@ -214,6 +220,9 @@ pub fn generate_player_js(build: &Build) {
     let t_player_open_playing_xxx = js_escape_inside_single_quoted_string(&build.locale.translations.player_open_playing_xxx);
     let t_unmute = &build.locale.translations.unmute;
     let t_volume = &build.locale.translations.volume;
+    let t_xxx_hours = &build.locale.translations.xxx_hours;
+    let t_xxx_minutes = &build.locale.translations.xxx_minutes;
+    let t_xxx_seconds = &build.locale.translations.xxx_seconds;
     let mut js = formatdoc!("
         const PLAYER_JS_T = {{
             listen: '{t_listen}',
@@ -223,7 +232,10 @@ pub fn generate_player_js(build: &Build) {
             playerClosed: '{t_player_closed}',
             playerOpenPlayingXxx: title => '{t_player_open_playing_xxx}'.replace('{{title}}', title),
             unmute: '{t_unmute}',
-            volume: '{t_volume}'
+            volume: '{t_volume}',
+            xxxHours: hours => '{t_xxx_hours}'.replace('{{xxx}}', hours),
+            xxxMinutes: minutes => '{t_xxx_minutes}'.replace('{{xxx}}', minutes),
+            xxxSeconds: seconds => '{t_xxx_seconds}'.replace('{{xxx}}', seconds)
         }};
     ");
 

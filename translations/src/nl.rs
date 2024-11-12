@@ -101,6 +101,8 @@ met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens o
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: unreviewed!(r#"{xxx} en <a href="{others_link}">meer</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: unreviewed!("{xxx} of meer")
+    xxx_or_more: unreviewed!("{xxx} of meer"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

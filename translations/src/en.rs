@@ -101,6 +101,8 @@ with /{downloads_permalink}/[your-unlock-code]{index_suffix} and then press Ente
     visual_impairment: reviewed!("Visual Impairment"),
     volume: reviewed!("Volume"),
     xxx_and_others: reviewed!(r#"{xxx} and <a href="{others_link}">others</a>"#),
+    xxx_hours: reviewed!("{xxx} hours"),
     xxx_minutes: reviewed!("{xxx} minutes"),
-    xxx_or_more: reviewed!("{xxx} or more")
+    xxx_or_more: reviewed!("{xxx} or more"),
+    xxx_seconds: reviewed!("{xxx} seconds")
 };

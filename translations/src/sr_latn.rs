@@ -76,6 +76,8 @@ pub const SR_LATN: Translations = Translations {
     visual_impairment: reviewed!("Oštećenje vida"),
     volume: reviewed!("Jačina zuka"),
     xxx_and_others: reviewed!(r#"{xxx} i <a href="{others_link}">ostali</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: reviewed!("{xxx} minuta"),
-    xxx_or_more: reviewed!("{xxx} ili više")
+    xxx_or_more: reviewed!("{xxx} ili više"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

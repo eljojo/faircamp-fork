@@ -101,6 +101,8 @@ con /{downloads_permalink}/[tu-código-de-desbloqueo]{index_suffix} y presiona E
     visual_impairment: untranslated!(visual_impairment),
     volume: reviewed!("Volumen"),
     xxx_and_others: unreviewed!(r#"{xxx} y <a href="{others_link}">otros</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: unreviewed!("{xxx} minutos"),
-    xxx_or_more: unreviewed!("{xxx} o más")
+    xxx_or_more: unreviewed!("{xxx} o más"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

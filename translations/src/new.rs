@@ -76,6 +76,8 @@ pub const NEW: Translations = Translations {
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: untranslated!(xxx_and_others),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: untranslated!(xxx_or_more)
+    xxx_or_more: untranslated!(xxx_or_more),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

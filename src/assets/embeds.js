@@ -43,7 +43,7 @@ updateVolume();
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
-    const valueText = `${EMBEDS_JS_T.playbackPosition} ${formatTime(track.input.value)}`;
+    const valueText = `${EMBEDS_JS_T.playbackPosition} ${formatTimeWrittenOut(track.input.value)}`;
     player.timelineInput.setAttribute('aria-valuetext', valueText);
 }
 
@@ -56,6 +56,19 @@ function formatTime(seconds) {
             return `${Math.floor(seconds / 60)}:${secondsFormatted}`;
         } else {
             return `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60).toString().padStart(2, '0')}:${secondsFormatted}`;
+        }
+    }
+}
+
+function formatTimeWrittenOut(seconds) {
+    if (seconds < 60) {
+        return EMBEDS_JS_T.xxxSeconds(Math.floor(seconds));
+    } else {
+        const secondsWrittenOut = EMBEDS_JS_T.xxxSeconds(Math.floor(Math.floor(seconds % 60)));
+        if (seconds < 3600) {
+            return `${EMBEDS_JS_T.xxxMinutes(Math.floor(seconds / 60))} ${secondsWrittenOut}`;
+        } else {
+            return `${EMBEDS_JS_T.xxxHours(Math.floor(seconds / 3600))} ${EMBEDS_JS_T.xxxMinutes(Math.floor((seconds % 3600) / 60))} ${secondsWrittenOut}`;
         }
     }
 }

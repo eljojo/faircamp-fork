@@ -100,6 +100,8 @@ na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij E
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: untranslated!(xxx_and_others),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: reviewed!("{xxx} i więcej")
+    xxx_or_more: reviewed!("{xxx} i więcej"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

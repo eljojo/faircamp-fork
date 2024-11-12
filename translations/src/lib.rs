@@ -220,8 +220,10 @@ pub struct Translations {
     pub visual_impairment: Translation,
     pub volume: Translation,
     pub xxx_and_others: Translation,
+    pub xxx_hours: Translation,
     pub xxx_minutes: Translation,
-    pub xxx_or_more: Translation
+    pub xxx_or_more: Translation,
+    pub xxx_seconds: Translation
 }
 
 impl Translations {
@@ -300,8 +302,10 @@ impl Translations {
             ("visual_impairment", &self.visual_impairment, false),
             ("volume", &self.volume, false),
             ("xxx_and_others", &self.xxx_and_others, false),
+            ("xxx_hours", &self.xxx_hours, false),
             ("xxx_minutes", &self.xxx_minutes, false),
-            ("xxx_or_more", &self.xxx_or_more, false)
+            ("xxx_or_more", &self.xxx_or_more, false),
+            ("xxx_seconds", &self.xxx_seconds, false)
         ]
     }
 
@@ -401,8 +405,10 @@ impl Translations {
             visual_impairment: reviewed!("visual_impairment"),
             volume: reviewed!("volume"),
             xxx_and_others: reviewed!("xxx_and_others"),
+            xxx_hours: reviewed!("xxx_hours"),
             xxx_minutes: reviewed!("xxx_minutes"),
-            xxx_or_more: reviewed!("xxx_or_more")
+            xxx_or_more: reviewed!("xxx_or_more"),
+            xxx_seconds: reviewed!("xxx_seconds")
         }
     }
 
@@ -493,8 +499,10 @@ fn check_translations() {
         assert!(&translations.up_to_xxx.contains("{xxx}"));
         assert!(&translations.xxx_and_others.contains("{xxx}"));
         assert!(&translations.xxx_and_others.contains("{others_link}"));
+        assert!(&translations.xxx_hours.contains("{xxx}"));
         assert!(&translations.xxx_minutes.contains("{xxx}"));
         assert!(&translations.xxx_or_more.contains("{xxx}"));
+        assert!(&translations.xxx_seconds.contains("{xxx}"));
 
         let disallowed_char = |c: char| !c.is_ascii_alphanumeric() && c != '-' ;
 

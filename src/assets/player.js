@@ -56,6 +56,19 @@ function formatTime(seconds) {
     }
 }
 
+function formatTimeWrittenOut(seconds) {
+    if (seconds < 60) {
+        return PLAYER_JS_T.xxxSeconds(Math.floor(seconds));
+    } else {
+        const secondsWrittenOut = PLAYER_JS_T.xxxSeconds(Math.floor(Math.floor(seconds % 60)));
+        if (seconds < 3600) {
+            return `${PLAYER_JS_T.xxxMinutes(Math.floor(seconds / 60))} ${secondsWrittenOut}`;
+        } else {
+            return `${PLAYER_JS_T.xxxHours(Math.floor(seconds / 3600))} ${PLAYER_JS_T.xxxMinutes(Math.floor((seconds % 3600) / 60))} ${secondsWrittenOut}`;
+        }
+    }
+}
+
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
@@ -224,7 +237,7 @@ function togglePlayback(track, seekTo = null) {
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
-    const valueText = `${PLAYER_JS_T.playbackPosition} ${formatTime(dockedPlayer.timelineInput.value)}`;
+    const valueText = `${PLAYER_JS_T.playbackPosition} ${formatTimeWrittenOut(dockedPlayer.timelineInput.value)}`;
 
     dockedPlayer.timelineInput.setAttribute('aria-valuetext', valueText);
 

@@ -100,6 +100,8 @@ pub const UK: Translations = Translations {
     visual_impairment: reviewed!("Вади зору"),
     volume: reviewed!("Гучність"),
     xxx_and_others: reviewed!(r#"{xxx} та <a href="{others_link}">інші</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: reviewed!("{xxx} чи більше")
+    xxx_or_more: reviewed!("{xxx} чи більше"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };

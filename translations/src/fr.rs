@@ -103,6 +103,8 @@ avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appu
     visual_impairment: untranslated!(visual_impairment),
     volume: untranslated!(volume),
     xxx_and_others: reviewed!(r#"{xxx} et <a href="{others_link}">plus</a>"#),
+    xxx_hours: untranslated!(xxx_hours),
     xxx_minutes: untranslated!(xxx_minutes),
-    xxx_or_more: reviewed!("{xxx} ou plus")
+    xxx_or_more: reviewed!("{xxx} ou plus"),
+    xxx_seconds: untranslated!(xxx_seconds)
 };
