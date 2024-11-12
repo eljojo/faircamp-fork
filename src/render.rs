@@ -184,21 +184,21 @@ fn cover_image(
             let cover_ref = image_ref.cover_assets.as_ref().unwrap();
             let overlay_img = cover_ref.img_attributes_up_to_1280(release_prefix);
             let largest_edge_size = cover_ref.largest().edge_size;
+            let t_close = &build.locale.translations.close;
             let overlay = formatdoc!(
                 r##"
                     <dialog id="overlay">
                         <form method="dialog">
-                            <button>
-                                <img
-                                    {alt}
-                                    height="{largest_edge_size}"
-                                    loading="lazy"
-                                    sizes="calc(100vmin - 4rem)"
-                                    src="{src}"
-                                    srcset="{srcset}"
-                                    width="{largest_edge_size}">
-                            </button>
+                            <button aria-label="{t_close}"></button>
                         </form>
+                        <img
+                            {alt}
+                            height="{largest_edge_size}"
+                            loading="lazy"
+                            sizes="calc(100vmin - 4rem)"
+                            src="{src}"
+                            srcset="{srcset}"
+                            width="{largest_edge_size}">
                     </dialog>
                     <script>
                         const overlay = document.querySelector('dialog#overlay');

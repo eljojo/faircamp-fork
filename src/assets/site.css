@@ -525,6 +525,7 @@ path.loading_right {
     }
 }
 #overlay {
+    background: transparent;
     border: none;
     padding: 0;
 }
