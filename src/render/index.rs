@@ -3,7 +3,7 @@
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta, ReleaseRc, Scripts};
+use crate::{Build, Catalog, CrawlerMeta, Scripts};
 use crate::icons;
 use crate::render::{
     artist_image,
@@ -131,16 +131,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         "#)
     };
 
-    let public_releases: Vec<ReleaseRc> = catalog.releases
-        .iter()
-        .filter_map(|release| {
-            match release.borrow().unlisted {
-                true => None,
-                false => Some(release.clone())
-            }
-        })
-        .collect();
-
+    let public_releases = catalog.public_releases();
     let r_releases = releases(
         build,
         index_suffix,

@@ -144,6 +144,18 @@ impl Extra {
 }
 
 impl Release {
+    /// Returns - if available - the file name of the release cover,
+    /// without any prefixing (i.e. in the context of the release directory)
+    pub fn cover_image_micro_src(&self) -> Option<String> {
+        self.cover
+            .as_ref()
+            .map(|described_image| {
+                let image_ref = described_image.image.borrow();
+                let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+                format!("cover_{edge_size}.jpg", edge_size = asset.edge_size)
+            })
+    }
+
     /// It is critical that every last detail of this hashing implementation
     /// stays the same - unless explicitly needed of course - because this signature
     /// makes or breaks finding cached archives.

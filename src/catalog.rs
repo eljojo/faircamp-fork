@@ -323,6 +323,18 @@ impl Catalog {
             title: None
         }
     }
+
+    pub fn public_releases(&self) -> Vec<ReleaseRc> {
+        self.releases
+            .iter()
+            .filter_map(|release| {
+                match release.borrow().unlisted {
+                    true => None,
+                    false => Some(release.clone())
+                }
+            })
+            .collect()
+    }
     
     pub fn read(build: &mut Build, cache: &mut Cache) -> Result<Catalog, ()> {
         let mut catalog = Catalog::new();

@@ -96,8 +96,11 @@ body {
     min-height: 100vh;
 }
 #browser {
-    background: var(--bg-1-overlay);
+    backdrop-filter: blur(3px) brightness(60%);
+    background: var(--bg-1-90);
     bottom: 0;
+    display: flex;
+    justify-content: center;
     left: 0;
     position: fixed;
     right: 0;
@@ -105,6 +108,59 @@ body {
     z-index: 10;
 }
 #browser:not(.active) { display: none; }
+#browser > div {
+    margin-top: 18vh;
+    width: min(24rem, calc(100vw - 2rem));
+}
+#browser button {
+    align-items: center;
+    display: flex;
+    position: fixed;
+    right: .8rem;
+    top: .9rem;
+}
+#browser input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--bg-3);
+    border-radius: 0;
+    color: var(--fg-2);
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    padding: .3rem 0;
+    width: 100%;
+}
+#browser input:focus-visible { outline: none; }
+#browser .number {
+    color: var(--fg-3);
+    padding-right: .4rem;
+}
+#browser #results {
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh;
+    overflow-y: auto;
+    row-gap: .5rem;
+}
+#browser #results > div {
+    align-items: center;
+    column-gap: .6rem;
+    display: flex;
+}
+#browser #results img,
+#browser #results .placeholder {
+    border-radius: calc(var(--cover-border-radius) * 0.2);
+    height: 4rem;
+    width: 4rem;
+}
+#browser #results .placeholder {
+    background: var(--bg-2);
+    display: inline-block;
+}
+#browser [role="status"] {
+    color: var(--fg-3);
+    font-size: 1.2rem;
+}
 button {
     background: none;
     border: none;
@@ -358,7 +414,7 @@ header > div a {
     display: flex;
     padding: .4rem;
 }
-header #browse { display: none; }
+#browse:focus-visible,
 header > div a:focus-visible {
     background: var(--fg-3);
     color: var(--bg-1);

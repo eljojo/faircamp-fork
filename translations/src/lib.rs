@@ -155,6 +155,7 @@ pub struct Translations {
     pub audio_player_widget_for_xxx: Translation,
     pub auto_generated_cover: Translation,
     pub available_formats: Translation,
+    pub browse: Translation,
     pub buy: Translation,
     pub close: Translation,
     pub copied: Translation,
@@ -191,6 +192,7 @@ pub struct Translations {
     pub muted: Translation,
     pub name_your_price: Translation,
     pub next_track: Translation,
+    pub nothing_found_for_xxx: Translation,
     pub pause: Translation,
     pub play: Translation,
     pub playback_position: Translation,
@@ -203,6 +205,8 @@ pub struct Translations {
     pub recommended_format: Translation,
     pub rss_feed: Translation,
     pub search: Translation,
+    pub showing_featured_items: Translation,
+    pub showing_xxx_results_for_xxx: Translation,
     pub this_site_was_created_with_faircamp: Translation,
     pub unlisted: Translation,
     pub unlock: Translation,
@@ -235,6 +239,7 @@ impl Translations {
             ("audio_player_widget_for_xxx", &self.audio_player_widget_for_xxx, false),
             ("auto_generated_cover", &self.auto_generated_cover, false),
             ("available_formats", &self.available_formats, false),
+            ("browse", &self.browse, false),
             ("buy", &self.buy, false),
             ("close", &self.close, false),
             ("copied", &self.copied, false),
@@ -269,6 +274,7 @@ impl Translations {
             ("muted", &self.muted, false),
             ("name_your_price", &self.name_your_price, false),
             ("next_track", &self.next_track, false),
+            ("nothing_found_for_xxx", &self.nothing_found_for_xxx, false),
             ("pause", &self.pause, false),
             ("play", &self.play, false),
             ("playback_position", &self.playback_position, false),
@@ -280,6 +286,8 @@ impl Translations {
             ("recommended_format", &self.recommended_format, false),
             ("rss_feed", &self.rss_feed, false),
             ("search", &self.search, false),
+            ("showing_featured_items", &self.showing_featured_items, false),
+            ("showing_xxx_results_for_xxx", &self.showing_xxx_results_for_xxx, false),
             ("this_site_was_created_with_faircamp", &self.this_site_was_created_with_faircamp, false),
             ("unlisted", &self.unlisted, false),
             ("unlock", &self.unlock, false),
@@ -332,6 +340,7 @@ impl Translations {
             audio_player_widget_for_xxx: reviewed!("audio_player_widget_for_xxx"),
             auto_generated_cover: reviewed!("auto_generated_cover"),
             available_formats: reviewed!("available_formats"),
+            browse: reviewed!("browse"),
             buy: reviewed!("buy"),
             close: reviewed!("close"),
             copied: reviewed!("copied"),
@@ -366,6 +375,7 @@ impl Translations {
             muted: reviewed!("muted"),
             name_your_price: reviewed!("name_your_price"),
             next_track: reviewed!("next_track"),
+            nothing_found_for_xxx: reviewed!("next_track"),
             pause: reviewed!("pause"),
             play: reviewed!("play"),
             player_closed: reviewed!("player_closed"),
@@ -377,6 +387,8 @@ impl Translations {
             recommended_format: reviewed!("recommended_format"),
             rss_feed: reviewed!("rss_feed"),
             search: reviewed!("search"),
+            showing_featured_items: reviewed!("showing_featured_items"),
+            showing_xxx_results_for_xxx: reviewed!("showing_xxx_results_for_xxx"),
             this_site_was_created_with_faircamp: reviewed!("this_site_was_created_with_faircamp"),
             unlisted: reviewed!("unlisted"),
             unlock: reviewed!("unlock"),
@@ -469,7 +481,10 @@ fn check_translations() {
 
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));
+        assert!(&translations.nothing_found_for_xxx.contains("{query}"));
         assert!(&translations.player_open_playing_xxx.contains("{title}"));
+        assert!(&translations.showing_xxx_results_for_xxx.contains("{count}"));
+        assert!(&translations.showing_xxx_results_for_xxx.contains("{query}"));
         assert!(&translations.this_site_was_created_with_faircamp.contains("{faircamp_link}"));
         assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));
         assert!(&translations.unlock_manual_instructions.contains("{index_suffix}"));

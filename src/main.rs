@@ -185,7 +185,7 @@ fn main() {
         fs::write(image_descriptions_dir.join("index.html"), image_descriptions_html).unwrap();
     }
     
-    scripts::generate(&build);
+    scripts::generate(&build, &catalog);
     styles::generate(&build, &catalog);
 
     if catalog.feed_enabled {

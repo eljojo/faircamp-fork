@@ -89,35 +89,20 @@ fn artist_image(
     }
 }
 
-fn browser(catalog: &Catalog) -> String {
-    // let public_releases: Vec<ReleaseRc> = catalog.releases
-    //     .iter()
-    //     .filter_map(|release| {
-    //         match release.borrow().unlisted {
-    //             true => None,
-    //             false => Some(release.clone())
-    //         }
-    //     })
-    //     .collect();
+fn browser(build: &Build, root_prefix: &str) -> String {
+    let close_icon = icons::failure(&build.locale.translations.close);
+    let t_search = &build.locale.translations.search;
 
-    // let r_releases = public_releases
-    //     .iter()
-    //     .map(|release| {
-    //         release.borrow().title.clone()
-    //     })
-    //     .collect::<Vec<String>>()
-    //     .join("\n");
-
-    let close_icon = icons::failure("Close"); // TODO: Revert removal of close translation and use
     formatdoc!(r#"
-        <div id="browser">
-            <div class="page">
-                <div class="page_center">
-                    <div>
-                        <input type="search"> {close_icon}
-                    </div>
-                </div>
+        <div id="browser" data-root-prefix="{root_prefix}">
+            <div>
+                <input autocomplete="off" placeholder="{t_search}" type="search">
+                <div role="status"></div>
+                <div id="results"></div>
             </div>
+            <button>
+                {close_icon}
+            </button>
         </div>
     "#)
 }
@@ -236,19 +221,6 @@ fn cover_image(
     }
 }
 
-fn cover_image_micro(release_prefix: &str, release: &Release) -> String {
-    match &release.cover {
-        Some(described_image) => {
-            let image_ref = described_image.image.borrow();
-            let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-            let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
-
-            format!(r#"<img src="{src}">"#)
-        }
-        None => String::from(r#"<span class="cover_placeholder"></span>"#)
-    }
-}
-
 fn cover_tile_image(
     build: &Build,
     index_suffix: &str,
@@ -360,13 +332,13 @@ fn layout(
     body: &str,
     build: &Build,
     catalog: &Catalog,
-    scripts: Scripts,
+    extra_scripts: Scripts,
     theme: &Theme,
     title: &str,
     crawler_meta: CrawlerMeta,
     breadcrumb_option: Option<String>
 ) -> String {
-    let r_browser = browser(catalog);
+    let r_browser = browser(build, root_prefix);
 
     let feed_meta_link = match build.base_url.is_some() && catalog.feed_enabled {
         true => {
@@ -430,18 +402,19 @@ fn layout(
         include_str!("templates/layout.html"),
         body = body,
         breadcrumb = breadcrumb,
+        browse_icon = icons::browse(),
         browser = r_browser,
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
+        extra_scripts = extra_scripts.header_tags(root_prefix),
         faircamp_icon = icons::faircamp(),
         favicon_links = catalog.favicon.header_tags(root_prefix),
         feed_meta_link = feed_meta_link,
-        grid_icon = icons::grid(),
         index_suffix = if build.clean_urls { "/" } else { "/index.html" },
         lang = &build.locale.language,
         root_prefix = root_prefix,
-        scripts = scripts.header_tags(root_prefix),
+        t_browse = &build.locale.translations.browse,
         theme_stylesheet_filename = theme.stylesheet_filename(),
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)

@@ -146,6 +146,7 @@ impl Theme {
             false => String::new()
         };
         let bg_1 = oklch(background_1_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_1_lightness), self.base_hue);
+        let bg_1_90 = oklcha(background_1_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_1_lightness), self.base_hue, 90.0);
         let bg_1_overlay = oklcha(background_1_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_1_lightness), self.base_hue, 80.0);
         let bg_2 = oklch(background_2_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_2_lightness), self.base_hue);
         let bg_2_overlay = oklcha(background_2_lightness, self.base_chroma as f32 * ThemeVarsOklch::chroma_attenuator(background_2_lightness), self.base_hue, 80.0);
@@ -169,6 +170,7 @@ impl Theme {
             :root {{
                 {bg_overlay}
                 --bg-1: {bg_1};
+                --bg-1-90: {bg_1_90};
                 --bg-1-overlay: {bg_1_overlay};
                 --bg-2: {bg_2};
                 --bg-2-overlay: {bg_2_overlay};
@@ -263,6 +265,7 @@ impl ThemeVarsHsl {
             :root {{
                 {bg_overlay}
                 --bg-1: hsl(0 0% {background_1_lightness}%);
+                --bg-1-90: hsl(0 0% {background_1_lightness}% / 90%);
                 --bg-1-overlay: hsl(0 0% {background_1_lightness}% / 80%);
                 --bg-2: hsl(0 0% {background_2_lightness}%);
                 --bg-2-overlay: hsl(0 0% {background_2_lightness}% / 80%);

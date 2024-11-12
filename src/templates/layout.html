@@ -10,7 +10,8 @@
         {feed_meta_link}
         <link href="{root_prefix}{theme_stylesheet_filename}" rel="stylesheet">
         <link href="{root_prefix}site.css" rel="stylesheet">
-        {scripts}
+        <script defer src="{root_prefix}browser.js"></script>
+        {extra_scripts}
     </head>
     <body>
         <script>document.body.classList.add('js_enabled');</script>
@@ -23,8 +24,8 @@
                 {breadcrumb}
             </div>
             <button id="browse">
-                Browse
-                {grid_icon}
+                {t_browse}
+                {browse_icon}
             </button>
         </header>
         {body}

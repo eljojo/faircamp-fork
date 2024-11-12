@@ -60,7 +60,7 @@ async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
     dockedPlayer.container.classList.add('active');
-    dockedPlayer.status.setAttribute('aria-label', T.playerOpenPlayingXxx(track.title.textContent));
+    dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenPlayingXxx(track.title.textContent));
     dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
 
@@ -87,7 +87,7 @@ async function mountAndPlay(track, seekTo) {
     track.playbackButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
     dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
     listenButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
-    listenButtonLabel.textContent = T.pause;
+    listenButtonLabel.textContent = PLAYER_JS_T.pause;
 
     if (track.audio.preload !== 'auto') {
         track.audio.preload = 'auto';
@@ -145,7 +145,7 @@ async function mountAndPlay(track, seekTo) {
             track.container.classList.remove('active');
             track.playbackButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
             listenButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
-            listenButtonLabel.textContent = T.listen;
+            listenButtonLabel.textContent = PLAYER_JS_T.listen;
         };
 
         // We expose both `abortSeeking` and `seek` on this seeking object,
@@ -224,7 +224,7 @@ function togglePlayback(track, seekTo = null) {
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
-    const valueText = `${T.playbackPosition} ${formatTime(dockedPlayer.timelineInput.value)}`;
+    const valueText = `${PLAYER_JS_T.playbackPosition} ${formatTime(dockedPlayer.timelineInput.value)}`;
 
     dockedPlayer.timelineInput.setAttribute('aria-valuetext', valueText);
 
@@ -295,15 +295,15 @@ function updateVolume(restoreLevel = null) {
     };
 
     if (volume.level === 1) {
-        dockedPlayer.volumeSvgTitle.textContent = T.mute;
+        dockedPlayer.volumeSvgTitle.textContent = PLAYER_JS_T.mute;
         document.querySelector('.volume_hint.dimmed').classList.remove('active');
         document.querySelector('.volume_hint.muted').classList.remove('active');
     } else if (volume.level == 0) {
-        dockedPlayer.volumeSvgTitle.textContent = T.unmute;
+        dockedPlayer.volumeSvgTitle.textContent = PLAYER_JS_T.unmute;
         document.querySelector('.volume_hint.dimmed').classList.remove('active');
         document.querySelector('.volume_hint.muted').classList.add('active');
     } else {
-        dockedPlayer.volumeSvgTitle.textContent = T.mute;
+        dockedPlayer.volumeSvgTitle.textContent = PLAYER_JS_T.mute;
         document.querySelector('.volume_hint.dimmed').classList.add('active');
         document.querySelector('.volume_hint.muted').classList.remove('active');
     }
@@ -322,7 +322,7 @@ function updateVolume(restoreLevel = null) {
 
     const percent = volume.level * 100;
     const percentFormatted = percent % 1 > 0.1 ? (Math.trunc(percent * 10) / 10) : Math.trunc(percent);
-    dockedPlayer.volumeInput.setAttribute('aria-valuetext', `${T.volume} ${percentFormatted}%`);
+    dockedPlayer.volumeInput.setAttribute('aria-valuetext', `${PLAYER_JS_T.volume} ${percentFormatted}%`);
     dockedPlayer.volumeInput.value = volume.level;
 
     if (restoreLevel === null) {
@@ -520,7 +520,7 @@ for (const container of document.querySelectorAll('.track')) {
         } else {
             activeTrack = null;
             dockedPlayer.container.classList.remove('active');
-            dockedPlayer.status.setAttribute('aria-label', T.playerClosed);
+            dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerClosed);
         }
     });
 
@@ -530,7 +530,7 @@ for (const container of document.querySelectorAll('.track')) {
         container.classList.remove('playing');
         dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
         listenButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
-        listenButtonLabel.textContent = T.listen;
+        listenButtonLabel.textContent = PLAYER_JS_T.listen;
         track.playbackButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
 
         if (track.onPause) {
@@ -546,7 +546,7 @@ for (const container of document.querySelectorAll('.track')) {
         container.classList.add('active', 'playing');
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
-        listenButtonLabel.textContent = T.pause;
+        listenButtonLabel.textContent = PLAYER_JS_T.pause;
         track.playbackButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
 
         globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 1000 / 24);
@@ -557,7 +557,7 @@ for (const container of document.querySelectorAll('.track')) {
     audio.addEventListener('playing', event => {
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
-        listenButtonLabel.textContent = T.pause;
+        listenButtonLabel.textContent = PLAYER_JS_T.pause;
         track.playbackButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
     });
 
@@ -566,7 +566,7 @@ for (const container of document.querySelectorAll('.track')) {
         //       indicate the loading state too
         dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
         listenButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
-        listenButtonLabel.textContent = T.pause;
+        listenButtonLabel.textContent = PLAYER_JS_T.pause;
         track.playbackButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
     });
 

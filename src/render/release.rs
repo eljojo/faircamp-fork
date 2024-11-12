@@ -15,7 +15,6 @@ use crate::{
 use crate::render::{
     copy_button,
     cover_image,
-    cover_image_micro,
     cover_image_tiny_decorative,
     layout,
     list_release_artists,
@@ -179,7 +178,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 false => String::new()
             };
 
-            let r_cover_micro = cover_image_micro("", release);
+            let r_cover_micro = match release.cover_image_micro_src() {
+                Some(src) => format!(r#"<img src="{src}">"#),
+                None => String::from(r#"<span class="cover_placeholder"></span>"#)
+            };
+
             let r_more = if track.text.is_some() {
                 format!(r#"<a href="">More</a>&nbsp;&nbsp;"#)
             } else {

@@ -43,7 +43,7 @@ updateVolume();
 // trigger screenreader announcements when it makes sense - e.g. when
 // focusing the range input, when seeking, when playback ends etc.
 function announcePlayhead(track) {
-    const valueText = `${T.playbackPosition} ${formatTime(track.input.value)}`;
+    const valueText = `${EMBEDS_JS_T.playbackPosition} ${formatTime(track.input.value)}`;
     player.timelineInput.setAttribute('aria-valuetext', valueText);
 }
 
@@ -280,15 +280,15 @@ function updateVolume(restoreLevel = null) {
     };
 
     if (volume.level === 1) {
-        player.volumeSvgTitle.textContent = T.mute;
+        player.volumeSvgTitle.textContent = EMBEDS_JS_T.mute;
         document.querySelector('.volume_hint.dimmed').classList.remove('active');
         document.querySelector('.volume_hint.muted').classList.remove('active');
     } else if (volume.level == 0) {
-        player.volumeSvgTitle.textContent = T.unmute;
+        player.volumeSvgTitle.textContent = EMBEDS_JS_T.unmute;
         document.querySelector('.volume_hint.dimmed').classList.remove('active');
         document.querySelector('.volume_hint.muted').classList.add('active');
     } else {
-        player.volumeSvgTitle.textContent = T.mute;
+        player.volumeSvgTitle.textContent = EMBEDS_JS_T.mute;
         document.querySelector('.volume_hint.dimmed').classList.add('active');
         document.querySelector('.volume_hint.muted').classList.remove('active');
     }
@@ -307,7 +307,7 @@ function updateVolume(restoreLevel = null) {
 
     const percent = volume.level * 100;
     const percentFormatted = percent % 1 > 0.1 ? (Math.trunc(percent * 10) / 10) : Math.trunc(percent);
-    player.volumeInput.setAttribute('aria-valuetext', `${T.volume} ${percentFormatted}%`);
+    player.volumeInput.setAttribute('aria-valuetext', `${EMBEDS_JS_T.volume} ${percentFormatted}%`);
     player.volumeInput.value = volume.level;
 
     if (restoreLevel === null) {

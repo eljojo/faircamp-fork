@@ -17,7 +17,6 @@ use crate::icons;
 use crate::render::{
     copy_button,
     cover_image,
-    cover_image_micro,
     layout,
     list_track_artists,
     player_icon_templates,
@@ -153,7 +152,10 @@ pub fn track_html(
         r_waveform = String::new();
     };
 
-    let r_cover_micro = cover_image_micro("../", release);
+    let r_cover_micro = match release.cover_image_micro_src() {
+        Some(src) => format!(r#"<img src="../{src}">"#),
+        None => String::from(r#"<span class="cover_placeholder"></span>"#)
+    };
     let r_more = if track.text.is_some() {
         format!(r#"<a href="">More</a>&nbsp;&nbsp;"#)
     } else {
