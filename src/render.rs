@@ -169,7 +169,7 @@ fn cover_image(
             let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(release_prefix);
             let thumbnail = formatdoc!(
                 r##"
-                    <a class="image" href="#overlay">
+                    <a class="image" href="{src}" target="_blank">
                         <img
                             {alt}
                             sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
@@ -186,16 +186,33 @@ fn cover_image(
             let largest_edge_size = cover_ref.largest().edge_size;
             let overlay = formatdoc!(
                 r##"
-                    <a id="overlay" href="#">
-                        <img
-                            {alt}
-                            height="{largest_edge_size}"
-                            loading="lazy"
-                            sizes="calc(100vmin - 4rem)"
-                            src="{src}"
-                            srcset="{srcset}"
-                            width="{largest_edge_size}">
-                    </a>
+                    <dialog id="overlay">
+                        <form method="dialog">
+                            <button>
+                                <img
+                                    {alt}
+                                    height="{largest_edge_size}"
+                                    loading="lazy"
+                                    sizes="calc(100vmin - 4rem)"
+                                    src="{src}"
+                                    srcset="{srcset}"
+                                    width="{largest_edge_size}">
+                            </button>
+                        </form>
+                    </dialog>
+                    <script>
+                        const overlay = document.querySelector('dialog#overlay');
+                        const thumbnailButton = document.querySelector('a.image');
+
+                        overlay.addEventListener('click', () => {{
+                            overlay.close();
+                        }});
+
+                        thumbnailButton.addEventListener('click', event => {{
+                            overlay.showModal();
+                            event.preventDefault();
+                        }});
+                    </script>
                 "##,
                 src = overlay_img.src,
                 srcset = overlay_img.srcset

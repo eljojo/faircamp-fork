@@ -96,6 +96,7 @@ body {
     min-height: 100vh;
 }
 #browser {
+    -webkit-backdrop-filter: blur(3px) brightness(60%);
     backdrop-filter: blur(3px) brightness(60%);
     background: var(--bg-1-90);
     bottom: 0;
@@ -524,20 +525,19 @@ path.loading_right {
     }
 }
 #overlay {
-    align-items: center;
-    background-color: var(--bg-1-overlay);
-    bottom: 0;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    left: 0;
-    position: fixed;
-    right: 0;
-    row-gap: .2rem;
-    top: 0;
-    z-index: 999;
+    border: none;
+    padding: 0;
 }
-#overlay:target { display: flex; }
+#overlay::backdrop {
+    background: var(--bg-1-90);
+    -webkit-backdrop-filter: blur(3px) brightness(60%);
+    backdrop-filter: blur(3px) brightness(60%);
+}
+#overlay button {
+    border-radius: 0;
+    outline: none;
+    padding: 0;
+}
 #overlay img {
     max-height: calc(100vh - 4rem);
     max-width: calc(100vw - 4rem);
