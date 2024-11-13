@@ -151,9 +151,9 @@ function updateSubmission() {
                 } else {
                     escapedValue = `"${value}"`;
                 }
-                strings.push(`    ${translationKey}: reviewed!(${escapedValue})`);
+                strings.push(`    ${translationKey}: Reviewed(${escapedValue}),\n`);
             }
-            language += strings.join(',\n') + '\n';
+            language += strings.join('');
 
             language += '};\n';
 

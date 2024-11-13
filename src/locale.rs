@@ -51,7 +51,7 @@ impl Locale {
     }
 
     pub fn keys() -> Locale {
-        Locale::new("en", Translations::keys(), TextDirection::Ltr)
+        Locale::new("en", Translations::KEYS, TextDirection::Ltr)
     }
 
     fn new(
