@@ -80,7 +80,6 @@ form button:hover {
     background: var(--fg-2);
     color: var(--fg-acc);
 }
-.additional { background-color: var(--fg-1-veil); }
 .artist {
     align-items: center;
     display: flex;
@@ -355,11 +354,8 @@ button svg { display: inline-block; }
 .embed_syntax_special { color: var(--mg); }
 .embed_syntax_value { color: var(--fg-3); }
 .faircamp_notice {
-    bottom: 3rem;
     color: var(--mg);
-    left: 0;
-    position: absolute;
-    right: 0;
+    margin: 2rem;
     text-align: center;
 }
 .faircamp_notice a {
@@ -579,6 +575,14 @@ path.loading_right {
     gap: 3rem;
     grid-template-columns: 1fr;
 }
+.page_more {
+    background: var(--fg-1-veil);
+    border-radius: .3rem;
+    box-sizing: border-box;
+    flex-grow: 1;
+    max-width: 49rem;
+    padding: 5rem;
+}
 .page_split {
     align-items: center;
     display: flex;
@@ -619,14 +623,7 @@ pre { margin: 0; }
     max-width: 100%;
 }
 .release_compact img { border-radius: var(--cover-border-radius); }
-.release_info {
-    align-items: center;
-    column-gap: 1rem;
-    display: flex;
-    font-size: 1.14rem;
-    margin-bottom: 3rem;
-    margin-top: 3rem;
-}
+.release_info { font-size: 1.14rem; }
 .release_info img { border-radius: var(--cover-border-radius); }
 svg {
     display: block;

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 use indoc::formatdoc;
 
@@ -33,12 +34,31 @@ pub enum CrawlerMeta {
     NoIndexNoFollow,
 }
 
+struct TruncatedList {
+    pub html: String,
+    pub truncated: bool
+}
+
+enum Truncation {
+    Pass,
+    Truncate {
+        max_chars: usize,
+        others_link: String
+    }
+}
+
 impl CrawlerMeta {
     pub fn tag(&self) -> &str {
         match self {
             CrawlerMeta::None => "",
             CrawlerMeta::NoIndexNoFollow => r#"<meta name="robots" content="noindex, nofollow">"#
         }
+    }
+}
+
+impl Display for TruncatedList {
+    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        write!(formatter, "{}", self.html)
     }
 }
 
@@ -116,7 +136,10 @@ fn compact_release_identifier(
     release_prefix: &str,
     root_prefix: &str
 ) -> String {
-    let artists_truncation = Some((40, format!("{release_prefix}#description")));
+    let artists_truncation = Truncation::Truncate {
+        max_chars: 40,
+        others_link: format!("{release_prefix}#more")
+    };
     let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
     let cover = cover_image_tiny_decorative(release_prefix, release, Some(release_link));
@@ -450,9 +473,9 @@ fn list_release_artists(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    truncation: Option<(usize, String)>,
+    truncation: Truncation,
     release: &Release
-) -> String {
+) -> TruncatedList {
     // .1 is the char count of the name, .2 is either the plain name or a link to the artist
     let mut items: Vec<(usize, String)> = Vec::new();
 
@@ -530,9 +553,9 @@ fn list_track_artists(
     index_suffix: &str,
     root_prefix: &str,
     catalog: &Catalog,
-    truncation: Option<(usize, String)>,
+    truncation: Truncation,
     track: &Track
-) -> String {
+) -> TruncatedList {
     // .1 is the char count of the name, .2 is either the plain name or a link to the artist
     let mut items: Vec<(usize, String)> = Vec::new();
 
@@ -617,7 +640,10 @@ fn releases(
             let href = format!("{root_prefix}{permalink}{index_suffix}");
 
             let artists = if catalog.label_mode {
-                let artists_truncation = Some((40, format!("{href}#description")));
+                let artists_truncation = Truncation::Truncate {
+                    max_chars: 40,
+                    others_link: format!("{href}#more")
+                };
                 let list = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, &release_ref);
                 format!(r#"<div class="release_artists">{list}</div>"#)
             } else {
@@ -651,17 +677,16 @@ fn releases(
 }
 
 /// Pass in a Vec holding tuples containing the char count and plain name or
-/// link to an artist each, alongside a possible truncation option
-/// (character limit and a link that can be followed to see the truncated
-/// artists). The list then gets truncated (if needed) and joined with ", ".
+/// link to an artist each, alongside truncation settings. The list then gets
+/// truncated (if needed) and joined with ", ".
 fn truncate_artist_list(
     build: &Build,
     catalog: &Catalog,
     items: Vec<(usize, String)>,
-    truncation: Option<(usize, String)>
-) -> String {
+    truncation: Truncation
+) -> TruncatedList {
     if items.len() > 2 {
-        if let Some((max_chars, others_link)) = truncation {
+        if let Truncation::Truncate { max_chars, others_link } = truncation {
             let name_chars: usize = items.iter().map(|item| item.0).sum();
             let separator_chars = (items.len() - 1) * 2; // All separating ", " between the artists
 
@@ -688,18 +713,28 @@ fn truncate_artist_list(
                         });
 
                     let r_items = truncated_items.into_iter().map(|item| item.1).collect::<Vec<String>>().join(", ");
-                    return build.locale.translations.xxx_and_others(&r_items, &others_link)
+
+                    return TruncatedList {
+                        html: build.locale.translations.xxx_and_others(&r_items, &others_link),
+                        truncated: true
+                    };
                 }
 
                 // In artist mode we show only "[catalog artist] and others".
                 // Our sorting ensures the catalog artist is the first one,
                 // so we can just take that.
-                return build.locale.translations.xxx_and_others(&items[0].1, &others_link)
+                return TruncatedList {
+                    html: build.locale.translations.xxx_and_others(&items[0].1, &others_link),
+                    truncated: true
+                };
             }
         }
     }
 
-    items.into_iter().map(|item| item.1).collect::<Vec<String>>().join(", ")
+    TruncatedList {
+        html: items.into_iter().map(|item| item.1).collect::<Vec<String>>().join(", "),
+        truncated: false
+    }
 }
 
 pub fn unlisted_badge(build: &Build) -> String {

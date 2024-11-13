@@ -8,7 +8,8 @@ use crate::icons;
 use crate::render::{
     embed_layout,
     list_track_artists,
-    player_icon_templates
+    player_icon_templates,
+    Truncation
 };
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
@@ -65,7 +66,10 @@ pub fn embed_release_html(
 
             let track_artists = match varying_track_artists {
                 true => {
-                    let artists_truncation = Some((80, format!("{track_number}/")));
+                    let artists_truncation = Truncation::Truncate {
+                        max_chars: 80,
+                        others_link: format!("{track_number}/")
+                    };
                     let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
                     format!(r#"&nbsp;&nbsp;/&nbsp;&nbsp;<span class="artists">{artists_truncated}</span>"#)
                 }

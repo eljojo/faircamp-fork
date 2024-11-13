@@ -20,6 +20,7 @@ use crate::render::{
     layout,
     list_track_artists,
     player_icon_templates,
+    Truncation,
     waveform
 };
 use crate::util::{format_time, html_escape_outside_attribute};
@@ -93,14 +94,6 @@ pub fn track_html(
         }
     };
 
-    let track_text = match &track.text {
-        Some(html_and_stripped) => format!(
-            r#"<div class="vpad" style="margin-top: 1.5rem;">{}</div>"#,
-            &html_and_stripped.html
-        ),
-        None => String::new()
-    };
-
     let audio_sources = release.streaming_quality
         .formats()
         .iter()
@@ -162,7 +155,6 @@ pub fn track_html(
         String::new()
     };
 
-    let more_icon = icons::more(&build.locale.translations.more);
     let play_icon = icons::play(&build.locale.translations.play);
     let r_track = formatdoc!(r#"
         <div class="track" data-duration="{duration_seconds}">
@@ -204,21 +196,60 @@ pub fn track_html(
         primary_actions.push(download_link);
     }
 
-    let t_more = &build.locale.translations.more;
-    let more_link = formatdoc!(r##"
-        <a class="more" href="#description">
-            {more_icon} {t_more}
-        </a>
-    "##);
+    let artists = list_track_artists(build, index_suffix, root_prefix, catalog, Truncation::Pass, track);
+    let artists_truncation = Truncation::Truncate {
+        max_chars: 80,
+        others_link: String::from("#more")
+    };
+    let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
 
-    primary_actions.push(more_link);
+    let r_more = if track.text.is_some() || artists_truncated.truncated {
+        let t_more = &build.locale.translations.more;
+        let more_icon = icons::more(&build.locale.translations.more);
+        let more_link = formatdoc!(r##"
+            <a class="more" href="#more">
+                {more_icon} {t_more}
+            </a>
+        "##);
+
+        primary_actions.push(more_link);
+
+        let release_year = match release.date {
+            Some(naive_date) => format!("({})", naive_date.year()),
+            None => String::new()
+        };
+
+        let r_text = match &track.text {
+            Some(html_and_stripped) => format!(
+                r#"<div class="text">{}</div>"#,
+                html_and_stripped.html
+            ),
+            None => String::new()
+        };
+        formatdoc!(r#"
+            <a class="scroll_target" id="more"></a>
+            <div class="page">
+                <div class="page_center page_50vh">
+                    <div class="page_more">
+                        <div class="release_info">
+                            <h1>{track_title_escaped} {release_year}</h1>
+                            <div class="release_artists">{artists}</div>
+                        </div>
+                        {r_text}
+                    </div>
+                </div>
+            </div>
+        "#)
+    } else {
+        String::new()
+    };
 
     let failed_icon = icons::failure(&build.locale.translations.failed);
     let success_icon = icons::success(&build.locale.translations.copied);
     let mut templates = format!(r#"
         <template id="failed_icon">
             {failed_icon}
-        </template>>
+        </template>
         <template id="success_icon">
             {success_icon}
         </template>
@@ -309,16 +340,8 @@ pub fn track_html(
 
     templates.push_str(&player_icon_templates(build));
 
-    let artists = list_track_artists(build, index_suffix, root_prefix, catalog, None, track);
-    let artists_truncation = Some((80, "#description".to_string()));
-    let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
     // TODO: Track-level cover support
     let cover = cover_image(build, index_suffix, "../", root_prefix, release);
-
-    let release_year = match release.date {
-        Some(naive_date) => format!("({})", naive_date.year()),
-        None => String::new()
-    };
 
     let track_synopsis: Option<String> = None; // TODO: Think through/unmock/implement
     let synopsis = match track_synopsis {
@@ -355,22 +378,7 @@ pub fn track_html(
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="description"></a>
-        <div class="page">
-            <div class="page_center page_50vh">
-                <div style="max-width: 32rem;">
-                    <div class="release_info">
-                        <div>
-                            <div style="font-size: 1.4rem;">
-                                {track_title_escaped} {release_year}
-                            </div>
-                            <div class="release_artists">{artists}</div>
-                        </div>
-                    </div>
-                    {track_text}
-                </div>
-            </div>
-        </div>
+        {r_more}
         <div class="docked_player">
             <div class="timeline">
                 <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">

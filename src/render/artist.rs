@@ -18,33 +18,42 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
 
-    let artist_text = match &artist.text {
-        Some(html_and_stripped) => format!(
-            r#"<div class="text padded">{}</div>"#,
-            &html_and_stripped.html
-        ),
-        None => String::new()
-    };
-
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
 
     let mut actions = Vec::new();
 
-    let more_icon = icons::more(&build.locale.translations.more);
-    let t_more = &build.locale.translations.more;
-    // TODO: Implement for artists (?)
-    // let more_label = match &catalog.more_label {
-    //     Some(label) => label,
-    //     None => &build.locale.translations.more
-    // };
+    let r_more = match &artist.text {
+        Some(html_and_stripped) => {
+            let more_icon = icons::more(&build.locale.translations.more);
+            // TODO: Implement for artists
+            // let more_label = match &catalog.more_label {
+            //     Some(label) => label,
+            //     None => &build.locale.translations.more
+            // };
+            let t_more = &build.locale.translations.more;
+            let more_link = format!(r##"
+                <a class="more" href="#more">
+                    {more_icon} {t_more}
+                </a>
+            "##);
 
-    let more_link = format!(r##"
-        <a class="more" href="#description">
-            {more_icon} {t_more}
-        </a>
-    "##);
+            actions.push(more_link);
 
-    actions.push(more_link);
+            let artist_text = &html_and_stripped.html;
+            formatdoc!(r#"
+                <a class="scroll_target" id="more"></a>
+                <div class="page">
+                    <div class="page_center page_50vh">
+                        <div class="page_more">
+                            <h1>{artist_name_escaped}</h1>
+                            <div class="text">{artist_text}</div>
+                        </div>
+                    </div>
+                </div>
+            "#)
+        }
+        None => String::new()
+    };
 
     let templates;
     if artist.copy_link {
@@ -149,22 +158,14 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                 </div>
             </div>
         </div>
-        <div class="additional page">
+        <div class="page">
             <div class="page_grid page_50vh">
                 <div>
                     {r_releases}
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="description"></a>
-        <div class="page">
-            <div class="page_center page_50vh">
-                <div style="max-width: 32rem;">
-                    <h2>{artist_name_escaped}</div>
-                    {artist_text}
-                </div>
-            </div>
-        </div>
+        {r_more}
         {templates}
     "##);
 

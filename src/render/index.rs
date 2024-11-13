@@ -19,14 +19,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     
     let catalog_title = catalog.title();
 
-    let catalog_text = match &catalog.text {
-        Some(html_and_stripped) => format!(
-            r#"<div class="text padded">{}</div>"#,
-            &html_and_stripped.html
-        ),
-        None => String::new()
-    };
-
     let title_escaped = html_escape_outside_attribute(&catalog_title);
 
     let home_image = match &catalog.home_image {
@@ -43,19 +35,37 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let mut actions = Vec::new();
     let mut templates = String::new();
 
-    let more_icon = icons::more(&build.locale.translations.more);
-    let more_label = match &catalog.more_label {
-        Some(label) => label,
-        None => *build.locale.translations.more
+    let r_more = match &catalog.text {
+        Some(html_and_stripped) => {
+            let more_icon = icons::more(&build.locale.translations.more);
+            let more_label = match &catalog.more_label {
+                Some(label) => label,
+                None => *build.locale.translations.more
+            };
+            let more_link = format!(r##"
+                <a class="more" href="#more">
+                    {more_icon} {more_label}
+                </a>
+            "##);
+
+            actions.push(more_link);
+
+            let catalog_text = &html_and_stripped.html;
+            format!(r#"
+                <a class="scroll_target" id="more"></a>
+                <div class="page">
+                    <div class="page_center page_50vh">
+                        <div class="page_more">
+                            <h1>{title_escaped}</h1>
+                            <div class="text">{catalog_text}</div>
+                        </div>
+                    </div>
+                </div>
+            "#)
+        }
+        None => String::new()
     };
 
-    let more_link = format!(r##"
-        <a class="more" href="#description">
-            {more_icon} {more_label}
-        </a>
-    "##);
-
-    actions.push(more_link);
 
     if catalog.copy_link {
         let (content_key, content_value) = match &build.base_url {
@@ -166,7 +176,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         String::new()
     };
 
-    let body = formatdoc!(r##"
+    let body = formatdoc!(r#"
         <div class="page">
             <div class="page_split page_60vh">
                 {home_image}
@@ -177,25 +187,17 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 </div>
             </div>
         </div>
-        <div class="additional page">
+        <div class="page">
             <div class="page_grid page_50vh">
                 <div>
                     {r_releases}
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="description"></a>
-        <div class="page">
-            <div class="page_center page_50vh">
-                <div style="max-width: 32rem;">
-                    <h2>{title_escaped}</h2>
-                    {catalog_text}
-                </div>
-            </div>
-            {faircamp_notice}
-        </div>
+        {r_more}
+        {faircamp_notice}
         {templates}
-    "##);
+    "#);
 
     layout(
         root_prefix,

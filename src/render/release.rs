@@ -15,11 +15,11 @@ use crate::{
 use crate::render::{
     copy_button,
     cover_image,
-    cover_image_tiny_decorative,
     layout,
     list_release_artists,
     list_track_artists,
     player_icon_templates,
+    Truncation,
     unlisted_badge,
     waveform
 };
@@ -94,18 +94,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
     };
 
-    let release_text = match &release.text {
-        Some(html_and_stripped) => {
-            let html = &html_and_stripped.html;
-            formatdoc!(r#"
-                <div class="text padded">
-                    {html}
-                </div>
-            "#)
-        }
-        None => String::new()
-    };
-
     let longest_track_duration = release.longest_track_duration();
 
     let t_play = &build.locale.translations.play;
@@ -171,7 +159,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             let track_artists = match varying_track_artists {
                 true => {
-                    let artists_truncation = Some((80, format!("{track_number}/")));
+                    let artists_truncation = Truncation::Truncate {
+                        max_chars: 80,
+                        others_link: format!("{track_number}/")
+                    };
                     let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
                     format!(r#"<div class="artists">{artists_truncated}</div>"#)
                 }
@@ -183,8 +174,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 None => String::from(r#"<span class="cover_placeholder"></span>"#)
             };
 
+            // TODO: Implement and use track-level more_label
             let r_more = if track.text.is_some() {
-                format!(r#"<a href="">More</a>&nbsp;&nbsp;"#)
+                format!(r#"<a href="track_number{index_suffix}#more">More</a>&nbsp;&nbsp;"#)
             } else {
                 String::new()
             };
@@ -236,17 +228,56 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         primary_actions.push(download_link);
     }
 
-    let more_label = match &release.more_label {
-        Some(label) => label,
-        None => *build.locale.translations.more
+    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, Truncation::Pass, release);
+    let artists_truncation = Truncation::Truncate {
+        max_chars: 80,
+        others_link: String::from("#more")
     };
-    let more_link = formatdoc!(r##"
-        <a class="more" href="#description">
-            {more_icon} {more_label}
-        </a>
-    "##);
+    let artists_truncated = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
 
-    primary_actions.push(more_link);
+    let r_more = if release.text.is_some() || artists_truncated.truncated {
+        let more_label = match &release.more_label {
+            Some(label) => label,
+            None => *build.locale.translations.more
+        };
+        let more_link = formatdoc!(r##"
+            <a class="more" href="#more">
+                {more_icon} {more_label}
+            </a>
+        "##);
+
+        primary_actions.push(more_link);
+
+        let release_year = match release.date {
+            Some(naive_date) => format!("({})", naive_date.year()),
+            None => String::new()
+        };
+
+        let r_text = match &release.text {
+            Some(html_and_stripped) => format!(
+                r#"<div class="text">{}</div>"#,
+                html_and_stripped.html
+            ),
+            None => String::new()
+        };
+        formatdoc!(r#"
+            <a class="scroll_target" id="more"></a>
+            <div class="page">
+                <div class="page_center page_50vh">
+                    <div class="page_more">
+                        <div class="release_info">
+                            <h1>{release_title_escaped} {release_year}</h1>
+                            <div class="release_artists">{artists}</div>
+                        </div>
+                        {r_text}
+                    </div>
+                </div>
+            </div>
+        "#)
+    } else {
+        String::new()
+    };
+
 
     let r_primary_actions = if primary_actions.is_empty() {
         String::new()
@@ -363,9 +394,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     templates.push_str(&player_icon_templates(build));
 
-    let artists = list_release_artists(build, index_suffix, root_prefix, catalog, None, release);
-    let artists_truncation = Some((80, "#description".to_string()));
-    let artists_truncated = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let cover = cover_image(build, index_suffix, "", root_prefix, release);
 
     let synopsis = match &release.synopsis {
@@ -380,8 +408,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let tall = if varying_track_artists { "tall" } else { "" };
-
-    let tiny_cover = cover_image_tiny_decorative("", release, None);
 
     let compact_tall = match (release.theme.waveforms, varying_track_artists) {
         (true, true) => "tall",
@@ -413,23 +439,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 </div>
             </div>
         </div>
-        <a class="scroll_target" id="description"></a>
-        <div class="page">
-            <div class="page_center page_50vh">
-                <div style="max-width: 32rem;">
-                    <div class="release_info">
-                        <div>
-                            {tiny_cover}
-                        </div>
-                        <div>
-                            <h2>{release_title_escaped}</h2>
-                            <div class="release_artists">{artists}</div>
-                        </div>
-                    </div>
-                    {release_text}
-                </div>
-            </div>
-        </div>
+        {r_more}
         <div class="docked_player {tall}">
             <div class="timeline">
                 <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
