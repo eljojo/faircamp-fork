@@ -234,6 +234,8 @@ button svg { display: inline-block; }
 }
 .docked_player .elements {
     align-items: center;
+    -webkit-backdrop-filter: blur(3px) brightness(60%);
+    backdrop-filter: blur(3px) brightness(60%);
     background: var(--bg-1-overlay);
     display: flex;
     padding-bottom: env(safe-area-inset-bottom, 0);
