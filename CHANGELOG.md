@@ -5,6 +5,43 @@
 
 # Changelog
 
+## 0.20.0
+
+- Introduce global browse/search feature (23b7c68, 061391c)
+- Introduce external downloads (9f17493)
+- Implement catalog/release manifest option for enabling/disabling M3U playlists (c3f76fd)
+- Merge custom payment options into payment_text option (dd04650)
+- Link and render "more" sections only when extended content is present (0f42bcf)
+- Restore missing border-radius declarations for round_corners theme option (ef2a4f3)
+- Fix layout regressions and improve readability for single file downloads (ef88fff)
+- Add lithuanian translations (abe8d67)
+- Add serbian (cyrillic and latin) translations (022ef22, d2eb3b7)
+- Extend/improve french, italian, turkish and spanish translations (c67c399, 762bab0, fc573a0)
+- Resolve subtle issues around hardcoded left/right spacing in RTL layouts (d354f50)
+- Display advanced theming spectrum/swatch widget by default (4f5a56b)
+- Prevent seeking during left/right arrow key interaction with the volume slider (4094c1a)
+- Differentiate page titles for release download/embed/purchase/unlock pages (befae3f)
+- Differentiate track title styles between release and track page (dbe0ee6)
+- Escape html in synopsis fields (d5dd67f)
+- Use a single, generic iframe title for both release and track embeds (7b4dbfc)
+- Semantically tag reprise headers, emphasize artist links on release page (3c64737)
+- Accessibly label invisible close button and fix background for cover overlay (8cd9a3b)
+- Reimplement cover overlay as modal dialog with href fallback for disabled js (9dfef6b)
+- Accessibly announce playback position using localized, written out format (25b88d9)
+- Hide images from screenreaders where left undescribed by site operator (d33a7bb)
+- Announce open/closed status of docked player to screenreaders (ed70730)
+- Visually indicate player seekbar keyboard focus, strengthen hover emphasis (76340ef)
+- Explicitly style visible focus on titles in track list (8941f3d)
+- Scroll elements into view from below docked player when focused with keyboard (e619b9f)
+- Provide textual playback position slider context label for screenreaders (ee2cf6e)
+- Treat tiny cover images as decorative elements with limited interactivity (85f7a01)
+- Increase internal spacing and tall playback button variant in track list (b337935)
+- Correct price input pattern to allow any number of decimal places (fd90d67)
+- Explicitly style visible focus on catalog/release title in header (ae52b9d)
+- Provide textual volume slider context label for screenreaders (e4ebfde)
+- Dynamically toggle textual mute/unmute label for volume button at runtime (817d446)
+- Apply blur/darkening to docked player backdrop (529cff2)
+
 ## 0.19.0
 
 - Introduce M3U playlists for releases (b5ecf9f)
