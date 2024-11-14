@@ -5,6 +5,10 @@
 
 # Changelog
 
+## 0.20.1
+
+- Exclude featured but unlisted artists from browsing/searching (b298804)
+
 ## 0.20.0
 
 - Introduce global browse/search feature (23b7c68, 061391c)
