@@ -139,6 +139,7 @@ pub fn generate_browser_js(build: &Build, catalog: &Catalog) {
         true => {
             catalog.featured_artists
                 .iter()
+                .filter(|artist| !artist.borrow().unlisted)
                 .map(|artist| {
                     let artist_ref = artist.borrow();
                     let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
