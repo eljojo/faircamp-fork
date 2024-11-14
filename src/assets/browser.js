@@ -8,10 +8,65 @@ const statusField = browser.querySelector('[role="status"]');
 
 const rootPrefix = browser.dataset.rootPrefix;
 
+function truncateArtistList(artists, othersLink)  {
+    const MAX_CHARS = 40;
+
+    if (artists.length > 2) {
+        const nameChars = artists.reduce((sum, artist) => sum + artist.name.length, 0);
+        const separatorChars = (artists.length - 1) * 2; // All separating ", " between the artists
+
+        if (nameChars + separatorChars > MAX_CHARS) {
+            // Here we have more than two artists, we have a char limit,
+            // and we cannot fit all artists within the limit, thus
+            // we truncate the list.
+
+            if (LABEL_MODE) {
+                // In label mode we show at least one artist, then as many
+                // additional ones as fit, e.g. "[artist],[artist] and
+                // more"
+                let charsUsed = 0;
+                const truncatedArtists = artists
+                    .filter(artist => {
+                        if (charsUsed === 0) {
+                            charsUsed += artist.name.length;
+                            return true;
+                        }
+
+                        charsUsed += artist.name.length;
+                        return charsUsed < MAX_CHARS;
+                    });
+
+                const rArtists = truncatedArtists
+                    .map(artist => `<a href="${rootPrefix}${artist.url}">${artist.name}</a>`)
+                    .join(", ");
+
+                return BROWSER_JS_T.xxxAndOthers(rArtists, othersLink);
+            }
+
+            // In artist mode we show only "[catalog artist] and others".
+            // Our sorting ensures the catalog artist is the first one,
+            // so we can just take that.
+            const rArtists = `<a href="${rootPrefix}${artists[0].url}">${artists[0].name}</a>`;
+
+            return BROWSER_JS_T.xxxAndOthers(rArtists, othersLink);
+        }
+    }
+
+    return rArtists = artists
+        .map(artist => `<a href="${rootPrefix}${artist.url}">${artist.name}</a>`)
+        .join(", ");
+}
+
 for (const release of RELEASES) {
-    const img = document.createElement('img');
+    let img;
+    if (release.cover) {
+        img = document.createElement('img');
+        img.src = rootPrefix + release.url + release.cover;
+    } else {
+        img = document.createElement('span');
+        img.classList.add('placeholder');
+    }
     img.ariaHidden = 'true';
-    img.src = rootPrefix + release.url + release.cover;
 
     const a = document.createElement('a');
     a.href = rootPrefix + release.url;
@@ -22,16 +77,8 @@ for (const release of RELEASES) {
 
     if (release.artists) {
         const artists = document.createElement('div');
-
         artists.classList.add('artists');
-
-        for (const artist of release.artists) {
-            const a = document.createElement('a');
-            a.href = rootPrefix + artist.url;
-            a.textContent = artist.name;
-            artists.appendChild(a);
-        }
-
+        artists.innerHTML = truncateArtistList(release.artists, `${rootPrefix}${release.url}`);
         details.appendChild(artists);
     }
 
@@ -41,10 +88,6 @@ for (const release of RELEASES) {
     browseResults.appendChild(row);
 
     for (const track of release.tracks) {
-        const img = document.createElement('img');
-        img.ariaHidden = 'true';
-        img.src = rootPrefix + release.url + release.cover;
-
         const number = document.createElement('span');
         number.classList.add('number');
         number.textContent = track.number;
@@ -59,21 +102,13 @@ for (const release of RELEASES) {
 
         if (track.artists) {
             const artists = document.createElement('div');
-
             artists.classList.add('artists');
-
-            for (const artist of track.artists) {
-                const a = document.createElement('a');
-                a.href = rootPrefix + artist.url;
-                a.textContent = artist.name;
-                artists.appendChild(a);
-            }
-
+            artists.innerHTML = truncateArtistList(track.artists, `${rootPrefix}${track.url}`);
             details.appendChild(artists);
         }
 
         const row = document.createElement('div');
-        row.appendChild(img);
+        row.appendChild(img.cloneNode(true));
         row.appendChild(details);
         row.dataset.track = '';
         row.style.setProperty('display', 'none');

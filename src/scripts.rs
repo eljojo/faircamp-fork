@@ -157,15 +157,21 @@ pub fn generate_browser_js(build: &Build, catalog: &Catalog) {
         false => String::new()
     };
 
+    let label_mode_bool = if catalog.label_mode { "true" } else { "false" };
+
     let t_nothing_found_for_xxx = js_escape_inside_single_quoted_string(&build.locale.translations.nothing_found_for_xxx);
     let t_showing_featured_items = &build.locale.translations.showing_featured_items;
     let t_showing_xxx_results_for_xxx = js_escape_inside_single_quoted_string(&build.locale.translations.showing_xxx_results_for_xxx);
+    let t_xxx_and_others = &build.locale.translations.xxx_and_others;
     let mut js = formatdoc!(r#"
         const BROWSER_JS_T = {{
             nothingFoundForXxx: query => '{t_nothing_found_for_xxx}'.replace('{{query}}', query),
             showingFeaturedItems: '{t_showing_featured_items}',
-            showingXxxResultsForXxx: (count, query) => '{t_showing_xxx_results_for_xxx}'.replace('{{count}}', count).replace('{{query}}', query)
+            showingXxxResultsForXxx: (count, query) => '{t_showing_xxx_results_for_xxx}'.replace('{{count}}', count).replace('{{query}}', query),
+            xxxAndOthers: (xxx, othersLink) => '{t_xxx_and_others}'.replace('{{xxx}}', xxx).replace('{{others_link}}', othersLink)
         }};
+
+        const LABEL_MODE = {label_mode_bool};
 
         const ARTISTS = [
             {r_artists}
