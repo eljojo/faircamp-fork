@@ -18,11 +18,11 @@ provided.
 
 Install [faircamp](https://aur.archlinux.org/packages/faircamp) from the [AUR](https://aur.archlinux.org/)
 
-**Debian 12, Ubuntu 23.04 - 24.04**
+**Debian 12, elementary OS 8, Linux Mint 22, Ubuntu 23.04 - 24.10**
 
 Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_0.20.1-1+deb12_amd64.deb)
 
-**Debian 11, elementary OS, Linux Mint, Ubuntu 22.04 LTS - 22.10**
+**Debian 11, elementary OS 7, Linux Mint 21, Ubuntu 22.04 LTS - 22.10**
 
 Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_0.20.1-1+deb11_amd64.deb)
 
