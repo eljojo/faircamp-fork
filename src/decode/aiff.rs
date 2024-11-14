@@ -14,7 +14,10 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
         Err(err) => return Err(err.to_string())
     };
 
-    let reader = PcmReader::new(&buffer);
+    let reader = match PcmReader::new(&buffer) {
+        Ok(reader) => reader,
+        Err(err) => return Err(err.to_string())
+    };
 
     let specs = reader.get_pcm_specs();
 
@@ -32,7 +35,7 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
 
     for sample in 0..specs.num_samples {
         for channel in 0..specs.num_channels {
-            let sample_value = reader.read_sample(channel as u32, sample).unwrap();
+            let sample_value = reader.read_sample(channel, sample).unwrap();
             result.samples.push(sample_value);
         }
     }
