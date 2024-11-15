@@ -7,4 +7,5 @@ edition = "2021"
 name = "translations"
 
 [dependencies]
+base64 = "0.22.1"
 indoc = "2.0.5"

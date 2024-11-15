@@ -1,14 +1,18 @@
 // SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::env;
+use std::fs::{self, DirEntry};
+use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Deref;
+use std::path::{Path, PathBuf};
+
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use enolib::HtmlPrinter;
 use indoc::formatdoc;
 use pulldown_cmark::{CodeBlockKind, Event, html, Parser, Tag, TagEnd};
 use slug::slugify;
-use std::env;
-use std::fs::{self, DirEntry};
-use std::ops::Deref;
-use std::path::{Path, PathBuf};
 
 struct Docs {
     examples: Vec<Page>,
@@ -172,6 +176,11 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
 
     let title = &active_page.title;
 
+    let favicon_svg_hash = url_safe_hash_base64(include_bytes!("../../src/assets/favicon.svg"));
+    let favicon_light_png_hash = url_safe_hash_base64(include_bytes!("../../src/assets/favicon_light.png"));
+    let favicon_dark_png_hash = url_safe_hash_base64(include_bytes!("../../src/assets/favicon_dark.png"));
+    let styles_css_hash = url_safe_hash_base64(include_bytes!("../assets/styles.css"));
+
     formatdoc!(r##"
         <!doctype html>
         <html>
@@ -180,10 +189,10 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
                 <meta charset="utf-8">
                 <meta name="description" content="{title}">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
-                <link href="favicon.svg" rel="icon" type="image/svg+xml">
-                <link href="favicon_light.png" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
-                <link href="favicon_dark.png" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
-                <link href="styles.css?1" rel="stylesheet">
+                <link href="favicon.svg?{favicon_svg_hash}" rel="icon" type="image/svg+xml">
+                <link href="favicon_light.png?{favicon_light_png_hash}" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
+                <link href="favicon_dark.png?{favicon_dark_png_hash}" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
+                <link href="styles.css?{styles_css_hash}" rel="stylesheet">
             </head>
             <body>
                 <header>
@@ -304,4 +313,11 @@ fn render_page(
     let out_path = manual_out_dir.join(&page.slug).with_extension("html");
 
     fs::write(out_path, html).unwrap();
+}
+
+pub fn url_safe_hash_base64(hashable: &impl Hash) -> String {
+    let mut hasher = DefaultHasher::new();
+    hashable.hash(&mut hasher);
+    let hash = hasher.finish();
+    URL_SAFE_NO_PAD.encode(hash.to_le_bytes())
 }

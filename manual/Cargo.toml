@@ -7,6 +7,7 @@ edition = "2021"
 name = "manual"
 
 [dependencies]
+base64 = "0.22.1"
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs", tag = "0.4.2" }
 indoc = "2.0.5"
 pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.12.2" }
