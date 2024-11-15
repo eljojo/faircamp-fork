@@ -146,8 +146,6 @@ pub fn url_safe_base64(hash: u64) -> String {
 
 pub fn url_safe_hash_base64(hashable: &impl Hash) -> String {
     let mut hasher = DefaultHasher::new();
-
     hashable.hash(&mut hasher);
-
-   url_safe_base64(hasher.finish())
+    url_safe_base64(hasher.finish())
 }

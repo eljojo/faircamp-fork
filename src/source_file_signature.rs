@@ -9,6 +9,7 @@ use std::time::SystemTime;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::Build;
+use crate::util::url_safe_hash_base64;
 
 /// This stores relevant metadata for checking whether files we are processing
 /// in the current build match files we were processing in a previous build.
@@ -49,6 +50,12 @@ impl SourceHash {
     /// Increment when our hashing algorithm changes, that way the hashes
     /// can be invalidated and recomputed for the cache.
     const HASHING_ALGORITHM_VERSION: usize = 1;
+
+    /// Takes the wrapped `value` (the computed hash itself) and encodes
+    /// and returns it as a url-safe base64 string.
+    pub fn as_url_safe_base64(&self) -> String {
+        url_safe_hash_base64(&self.value)
+    }
 
     pub fn incompatible_version(&self) -> bool {
         self.version != SourceHash::HASHING_ALGORITHM_VERSION

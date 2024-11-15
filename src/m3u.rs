@@ -59,8 +59,9 @@ pub fn generate(base_url: &Url, build: &Build, release: &Release) -> String {
             let image_ref = described_image.image.borrow();
             let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
             let file_url = release_url.join(&file_name).unwrap();
+            let hash = image_ref.hash.as_url_safe_base64();
 
-            format!("#EXTIMG:{file_url}")
+            format!("#EXTIMG:{file_url}?{hash}")
         }
         None => {
             String::new()

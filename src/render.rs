@@ -76,31 +76,31 @@ fn artist_image(
         None => String::new()
     };
 
-    let poster_fixed_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fixed(permalink, root_prefix);
-    let poster_fluid_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fluid(permalink, root_prefix);
-    let poster = formatdoc!(
-        r##"
-            <span class="home_image">
-                <picture>
-                    <source media="(min-width: 60rem)"
-                            sizes="27rem"
-                            srcset="{srcset_fixed}" />
-                    <source media="(min-width: 30rem)"
-                            sizes="100vw"
-                            srcset="{srcset_fluid}" />
-                    <img
-                        {alt}
-                        class="home_image"
+    let hash = image_ref.hash.as_url_safe_base64();
+    let poster_fixed_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fixed(&hash, permalink, root_prefix);
+    let poster_fluid_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fluid(&hash, permalink, root_prefix);
+
+    let src_fixed = poster_fixed_img.src;
+    let srcset_fixed = poster_fixed_img.srcset;
+    let srcset_fluid = poster_fluid_img.srcset;
+    let poster = formatdoc!(r#"
+        <span class="home_image">
+            <picture>
+                <source media="(min-width: 60rem)"
+                        sizes="27rem"
+                        srcset="{srcset_fixed}" />
+                <source media="(min-width: 30rem)"
                         sizes="100vw"
-                        src="{src_fixed}"
-                        srcset="{srcset_fixed}">
-                </picture>
-            </span>
-        "##,
-        src_fixed = poster_fixed_img.src,
-        srcset_fixed = poster_fixed_img.srcset,
-        srcset_fluid = poster_fluid_img.srcset
-    );
+                        srcset="{srcset_fluid}" />
+                <img
+                    {alt}
+                    class="home_image"
+                    sizes="100vw"
+                    src="{src_fixed}"
+                    srcset="{srcset_fixed}">
+            </picture>
+        </span>
+    "#);
 
     if described_image.description.is_some() {
         poster
@@ -189,57 +189,55 @@ fn cover_image(
                 None => String::new()
             };
 
-            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(release_prefix);
-            let thumbnail = formatdoc!(
-                r##"
-                    <a class="image" href="{src}" target="_blank">
-                        <img
-                            {alt}
-                            sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
-                            src="{src}"
-                            srcset="{srcset}">
-                    </a>
-                "##,
-                src = thumbnail_img.src,
-                srcset = thumbnail_img.srcset
-            );
+            let hash = image_ref.hash.as_url_safe_base64();
+
+            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(&hash, release_prefix);
+            let thumbnail_src = thumbnail_img.src;
+            let thumbnail_srcset = thumbnail_img.srcset;
+            let thumbnail = formatdoc!(r#"
+                <a class="image" href="{thumbnail_src}" target="_blank">
+                    <img
+                        {alt}
+                        sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
+                        src="{thumbnail_src}"
+                        srcset="{thumbnail_srcset}">
+                </a>
+            "#);
 
             let cover_ref = image_ref.cover_assets.as_ref().unwrap();
-            let overlay_img = cover_ref.img_attributes_up_to_1280(release_prefix);
+            let overlay_img = cover_ref.img_attributes_up_to_1280(&hash, release_prefix);
+            let overlay_src = overlay_img.src;
+            let overlay_srcset = overlay_img.srcset;
             let largest_edge_size = cover_ref.largest().edge_size;
             let t_close = &build.locale.translations.close;
-            let overlay = formatdoc!(
-                r##"
-                    <dialog id="overlay">
-                        <form method="dialog">
-                            <button aria-label="{t_close}"></button>
-                        </form>
-                        <img
-                            {alt}
-                            height="{largest_edge_size}"
-                            loading="lazy"
-                            sizes="calc(100vmin - 4rem)"
-                            src="{src}"
-                            srcset="{srcset}"
-                            width="{largest_edge_size}">
-                    </dialog>
-                    <script>
-                        const overlay = document.querySelector('dialog#overlay');
-                        const thumbnailButton = document.querySelector('a.image');
+            let overlay = formatdoc!(r#"
+                <dialog id="overlay">
+                    <form method="dialog">
+                        <button aria-label="{t_close}"></button>
+                    </form>
+                    <img
+                        {alt}
+                        height="{largest_edge_size}"
+                        loading="lazy"
+                        sizes="calc(100vmin - 4rem)"
+                        src="{overlay_src}"
+                        srcset="{overlay_srcset}"
+                        width="{largest_edge_size}">
+                </dialog>
+                <script>
+                    const overlay = document.querySelector('dialog#overlay');
+                    const thumbnailButton = document.querySelector('a.image');
 
-                        overlay.addEventListener('click', () => {{
-                            overlay.close();
-                        }});
+                    overlay.addEventListener('click', () => {{
+                        overlay.close();
+                    }});
 
-                        thumbnailButton.addEventListener('click', event => {{
-                            overlay.showModal();
-                            event.preventDefault();
-                        }});
-                    </script>
-                "##,
-                src = overlay_img.src,
-                srcset = overlay_img.srcset
-            );
+                    thumbnailButton.addEventListener('click', event => {{
+                        overlay.showModal();
+                        event.preventDefault();
+                    }});
+                </script>
+            "#);
 
             if described_image.description.is_some() {
                 formatdoc!("
@@ -278,26 +276,26 @@ fn cover_tile_image(
                 None => String::new()
             };
 
-            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_320(release_prefix);
-            let thumbnail = formatdoc!(
-                r##"
-                    <a href="{href}">
-                        <img
-                            {alt}
-                            loading="lazy"
-                            sizes="
-                                (min-width: 60rem) 20rem,
-                                (min-width: 30rem) calc((100vw - 4rem) * 0.333),
-                                (min-width: 15rem) calc((100vw - 3rem) * 0.5),
-                                calc(100vw - 2rem)
-                            "
-                            src="{src}"
-                            srcset="{srcset}">
-                    </a>
-                "##,
-                src = thumbnail_img.src,
-                srcset = thumbnail_img.srcset
-            );
+            let hash = image_ref.hash.as_url_safe_base64();
+
+            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_320(&hash, release_prefix);
+            let thumbnail_src = thumbnail_img.src;
+            let thumbnail_srcset = thumbnail_img.srcset;
+            let thumbnail = formatdoc!(r#"
+                <a href="{href}">
+                    <img
+                        {alt}
+                        loading="lazy"
+                        sizes="
+                            (min-width: 60rem) 20rem,
+                            (min-width: 30rem) calc((100vw - 4rem) * 0.333),
+                            (min-width: 15rem) calc((100vw - 3rem) * 0.5),
+                            calc(100vw - 2rem)
+                        "
+                        src="{thumbnail_src}"
+                        srcset="{thumbnail_srcset}">
+                </a>
+            "#);
 
             if described_image.description.is_some() {
                 thumbnail
@@ -325,7 +323,9 @@ fn cover_image_tiny_decorative(
         Some(described_image) => {
             let image_ref = described_image.image.borrow();
             let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-            let src = format!("{release_prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
+            let edge_size = asset.edge_size;
+            let hash = image_ref.hash.as_url_safe_base64();
+            let src = format!("{release_prefix}cover_{edge_size}.jpg?{hash}");
 
             format!(r#"<img loading="lazy" src="{src}">"#)
         }
@@ -358,8 +358,11 @@ fn embed_layout(
         body = body,
         crawler_meta = CrawlerMeta::NoIndexNoFollow.tag(),
         dir_attribute = dir_attribute,
+        embeds_css_hash = build.asset_hashes.embeds_css.as_ref().unwrap(),
+        embeds_js_hash = build.asset_hashes.embeds_js.as_ref().unwrap(),
         lang = &build.locale.language,
         root_prefix = root_prefix,
+        theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap(),
         theme_stylesheet_filename = theme.stylesheet_filename(),
         title = html_escape_outside_attribute(title)
     )
@@ -444,17 +447,20 @@ fn layout(
         breadcrumb = breadcrumb,
         browse_icon = icons::browse(),
         browser = r_browser,
+        browser_js_hash = build.asset_hashes.browser_js.as_ref().unwrap(),
         catalog_title = html_escape_outside_attribute(&catalog.title()),
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
-        extra_scripts = extra_scripts.header_tags(root_prefix),
+        extra_scripts = extra_scripts.header_tags(build, root_prefix),
         faircamp_icon = icons::faircamp(),
-        favicon_links = catalog.favicon.header_tags(root_prefix),
+        favicon_links = catalog.favicon.header_tags(build, root_prefix),
         feed_meta_link = feed_meta_link,
-        index_suffix = if build.clean_urls { "/" } else { "/index.html" },
+        index_suffix = build.index_suffix(),
         lang = &build.locale.language,
         root_prefix = root_prefix,
+        site_css_hash = build.asset_hashes.site_css.as_ref().unwrap(),
         t_browse = &build.locale.translations.browse,
+        theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap(),
         theme_stylesheet_filename = theme.stylesheet_filename(),
         theming_widget = theming_widget,
         title = html_escape_outside_attribute(title)

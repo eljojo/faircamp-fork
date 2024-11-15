@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::hash_map::DefaultHasher;
+use std::collections::hash_map::{DefaultHasher, HashMap};
 use std::env;
 use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
@@ -14,7 +14,27 @@ use url::Url;
 use crate::{Args, ImageProcessor, Locale};
 use crate::util::format_bytes;
 
+/// When we link to assets on the rendered pages, we append a unique asset
+/// hash to each path (e.g. "player.js?g1VVfPoEjUw"), which is derived from
+/// the file content of the asset. We do this in order to prompt browsers to
+/// fetch new, uncached assets when their content has changed. This struct
+/// groups together those hashes for all assets we use.
+pub struct AssetHashes {
+    pub browser_js: Option<String>,
+    pub clipboard_js: Option<String>,
+    pub embeds_css: Option<String>,
+    pub embeds_js: Option<String>,
+    pub favicon_custom: Option<String>,
+    pub favicon_dark_png: Option<String>,
+    pub favicon_light_png: Option<String>,
+    pub favicon_svg: Option<String>,
+    pub player_js: Option<String>,
+    pub site_css: Option<String>,
+    pub theme_css: HashMap<String, String>
+}
+
 pub struct Build {
+    pub asset_hashes: AssetHashes,
     pub base_url: Option<Url>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
@@ -61,6 +81,24 @@ pub struct Stats {
     num_extras: u32,
     num_images: u32,
     num_tracks: u32
+}
+
+impl AssetHashes {
+    pub fn new() -> AssetHashes {
+        AssetHashes {
+            browser_js: None,
+            clipboard_js: None,
+            embeds_css: None,
+            embeds_js: None,
+            favicon_custom: None,
+            favicon_dark_png: None,
+            favicon_light_png: None,
+            favicon_svg: None,
+            player_js: None,
+            site_css: None,
+            theme_css: HashMap::default()
+        }
+    }
 }
 
 impl Build {
@@ -138,6 +176,7 @@ impl Build {
         let locale = if args.debug_translations { Locale::keys() } else { Locale::default() };
 
         Build {
+            asset_hashes: AssetHashes::new(),
             base_url: None,
             build_begin: Utc::now(),
             build_dir,

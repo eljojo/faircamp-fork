@@ -2838,6 +2838,7 @@ dependencies = [
 name = "translations"
 version = "0.0.0"
 dependencies = [
+ "base64",
  "indoc",
 ]
 

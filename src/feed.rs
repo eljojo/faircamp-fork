@@ -77,10 +77,12 @@ pub fn generate(build: &Build, catalog: &Catalog) {
             false => base_url.join("index.html").unwrap()
         };
 
-        let channel_image = if catalog.home_image.is_some() {
+        let channel_image = if let Some(home_image) = &catalog.home_image {
+            let hash = home_image.image.borrow().hash.as_url_safe_base64();
+
             format!(
                 include_str!("templates/feed/image.xml"),
-                image_url = base_url.join("feed.jpg").unwrap(),
+                image_url = base_url.join(&format!("feed.jpg?{hash}")).unwrap(),
                 link = link,
                 title = html_escape_outside_attribute(&channel_title)
             )

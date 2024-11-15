@@ -17,7 +17,7 @@ use crate::util::url_safe_hash_base64;
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
 const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
 
-pub fn generate(build: &Build, catalog: &Catalog) {
+pub fn generate(build: &mut Build, catalog: &Catalog) {
     if build.embeds_requested {
         generate_embeds_css(build);
     }
@@ -41,12 +41,13 @@ pub fn generate(build: &Build, catalog: &Catalog) {
     }
 }
 
-fn generate_embeds_css(build: &Build) {
+fn generate_embeds_css(build: &mut Build) {
     let css = include_str!("assets/embeds.css");
+    build.asset_hashes.embeds_css = Some(url_safe_hash_base64(&css));
     fs::write(build.build_dir.join("embeds.css"), css).unwrap();
 }
 
-fn generate_site_css(build: &Build) {
+fn generate_site_css(build: &mut Build) {
     let mut css = String::from(include_str!("assets/site.css"));
 
     if build.missing_image_descriptions {
@@ -57,14 +58,14 @@ fn generate_site_css(build: &Build) {
         css.push_str(include_str!("assets/theming_widget.css"));
     }
 
+    build.asset_hashes.site_css = Some(url_safe_hash_base64(&css));
     fs::write(build.build_dir.join("site.css"), css).unwrap();
 }
 
-fn generate_theme_css(build: &Build, theme: &Theme) {
+fn generate_theme_css(build: &mut Build, theme: &Theme) {
     let stylesheet_filename = theme.stylesheet_filename();
-    let stylesheet_path = build.build_dir.join(stylesheet_filename);
 
-    if stylesheet_path.exists() {
+    if build.asset_hashes.theme_css.contains_key(&stylesheet_filename) {
         return;
     }
 
@@ -144,7 +145,9 @@ fn generate_theme_css(build: &Build, theme: &Theme) {
         css.push_str(&background_override);
     }
     
-    fs::write(stylesheet_path, css).unwrap();
+    build.asset_hashes.theme_css.insert(stylesheet_filename.clone(), url_safe_hash_base64(&css));
+
+    fs::write(build.build_dir.join(stylesheet_filename), css).unwrap();
 }
 
 fn generate_vars(theme: &Theme) -> String {

@@ -133,24 +133,34 @@ impl ArtistAssets {
         result
     }
 
-    pub fn img_attributes_fixed(&self, permalink: &str, prefix: &str) -> ImgAttributes {
+    pub fn img_attributes_fixed(
+        &self,
+        hash: &str,
+        permalink: &str,
+        prefix: &str
+    ) -> ImgAttributes {
         let mut assets = Vec::with_capacity(4);
 
         assets.push(&self.fixed_max_320);
         if let Some(asset) = &self.fixed_max_480 { assets.push(asset); }
         if let Some(asset) = &self.fixed_max_640 { assets.push(asset); }
 
-        ImgAttributes::new_for_artist(assets, permalink, prefix)
+        ImgAttributes::new_for_artist(assets, hash, permalink, prefix)
     }
 
-    pub fn img_attributes_fluid(&self, permalink: &str, prefix: &str) -> ImgAttributes {
+    pub fn img_attributes_fluid(
+        &self,
+        hash: &str,
+        permalink: &str,
+        prefix: &str
+    ) -> ImgAttributes {
         let mut assets = Vec::with_capacity(4);
 
         assets.push(&self.fluid_max_640);
         if let Some(asset) = &self.fluid_max_960 { assets.push(asset); }
         if let Some(asset) = &self.fluid_max_1280 { assets.push(asset); }
 
-        ImgAttributes::new_for_artist(assets, permalink, prefix)
+        ImgAttributes::new_for_artist(assets, hash, permalink, prefix)
     }
 
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
@@ -181,16 +191,16 @@ impl CoverAssets {
         result
     }
 
-    pub fn img_attributes_up_to_320(&self, prefix: &str) -> ImgAttributes {
+    pub fn img_attributes_up_to_320(&self, hash: &str, prefix: &str) -> ImgAttributes {
         let assets = match &self.max_320 {
             Some(max_320) => vec![&self.max_160, max_320],
             None => vec![&self.max_160]
         };
 
-        ImgAttributes::new_for_cover(assets, prefix)
+        ImgAttributes::new_for_cover(assets, hash, prefix)
     }
 
-    pub fn img_attributes_up_to_480(&self, prefix: &str) -> ImgAttributes {
+    pub fn img_attributes_up_to_480(&self, hash: &str, prefix: &str) -> ImgAttributes {
         let assets = match &self.max_320 {
             Some(max_320) => match &self.max_480 {
                 Some(max_480) => vec![&self.max_160, max_320, max_480],
@@ -199,10 +209,10 @@ impl CoverAssets {
             None => vec![&self.max_160]
         };
 
-        ImgAttributes::new_for_cover(assets, prefix)
+        ImgAttributes::new_for_cover(assets, hash, prefix)
     }
 
-    pub fn img_attributes_up_to_1280(&self, prefix: &str) -> ImgAttributes {
+    pub fn img_attributes_up_to_1280(&self, hash: &str, prefix: &str) -> ImgAttributes {
         let mut assets = Vec::with_capacity(4);
 
         assets.push(&self.max_160);
@@ -211,7 +221,7 @@ impl CoverAssets {
         if let Some(asset) = &self.max_800 { assets.push(asset); }
         if let Some(asset) = &self.max_1280 { assets.push(asset); }
 
-        ImgAttributes::new_for_cover(assets, prefix)
+        ImgAttributes::new_for_cover(assets, hash, prefix)
     }
 
     pub fn is_stale(&self) -> bool {
@@ -644,6 +654,7 @@ impl ImgAttributes {
     /// Assets MUST be passed in ascending size
     pub fn new_for_artist(
         assets_ascending_by_size: Vec<&ArtistAsset>,
+        hash: &str,
         permalink: &str,
         prefix: &str
     ) -> ImgAttributes {
@@ -653,10 +664,13 @@ impl ImgAttributes {
         let mut asset_peek_iter = assets_ascending_by_size.iter().peekable();
 
         while let Some(asset) = asset_peek_iter.next() {
-            srcset.push(format!("{}{}_{}_{}x{}.jpg {}w", prefix, permalink, asset.format, asset.width, asset.height, asset.width));
+            let format = &asset.format;
+            let height = asset.height;
+            let width = asset.width;
+            srcset.push(format!("{prefix}{permalink}_{format}_{width}x{height}.jpg?{hash} {width}w"));
 
             if asset_peek_iter.peek().is_none() {
-                src = format!("{}{}_{}_{}x{}.jpg", prefix, permalink, asset.format, asset.width, asset.height);
+                src = format!("{prefix}{permalink}_{format}_{width}x{height}.jpg?{hash}");
             }
         }
 
@@ -667,17 +681,22 @@ impl ImgAttributes {
     }
 
     /// Assets MUST be passed in ascending size
-    pub fn new_for_cover(assets_ascending_by_size: Vec<&CoverAsset>, prefix: &str) -> ImgAttributes {
+    pub fn new_for_cover(
+        assets_ascending_by_size: Vec<&CoverAsset>,
+        hash: &str,
+        prefix: &str
+    ) -> ImgAttributes {
         let mut src = String::new();
         let mut srcset = Vec::new();
 
         let mut asset_peek_iter = assets_ascending_by_size.iter().peekable();
 
         while let Some(asset) = asset_peek_iter.next() {
-            srcset.push(format!("{}cover_{}.jpg {}w", prefix, asset.edge_size, asset.edge_size));
+            let edge_size = asset.edge_size;
+            srcset.push(format!("{prefix}cover_{edge_size}.jpg?{hash} {edge_size}w"));
 
             if asset_peek_iter.peek().is_none() {
-                src = format!("{prefix}cover_{edge_size}.jpg", edge_size = asset.edge_size);
+                src = format!("{prefix}cover_{edge_size}.jpg?{hash}");
             }
         }
 

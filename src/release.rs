@@ -152,7 +152,9 @@ impl Release {
             .map(|described_image| {
                 let image_ref = described_image.image.borrow();
                 let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-                format!("cover_{edge_size}.jpg", edge_size = asset.edge_size)
+                let edge_size = asset.edge_size;
+                let hash = image_ref.hash.as_url_safe_base64();
+                format!("cover_{edge_size}.jpg?{hash}")
             })
     }
 
@@ -630,11 +632,6 @@ impl Release {
                     );
                 }
             }
-        }
-        
-        if self.cover.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
-            warn_discouraged!("The cover image for release '{}' is missing an image description.", self.title);
-            build.missing_image_descriptions = true;
         }
 
         let release_dir = build.build_dir.join(&self.permalink.slug);

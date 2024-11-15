@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use indoc::formatdoc;
 use std::fs;
 
+use indoc::formatdoc;
+
 use crate::{Build, Catalog};
+use crate::util::url_safe_hash_base64;
 
 pub enum Scripts {
     Clipboard,
@@ -13,22 +15,27 @@ pub enum Scripts {
 }
 
 impl Scripts {
-    pub fn header_tags(&self, root_prefix: &str) -> String {
-        let file_names = match self {
-            Scripts::Clipboard => vec!["clipboard.js"],
-            Scripts::ClipboardAndPlayer => vec!["clipboard.js", "player.js"],
-            Scripts::None => vec![]
-        };
+    pub fn header_tags(&self, build: &Build, root_prefix: &str) -> String {
+        match self {
+            Scripts::Clipboard => {
+                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
+                format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#)
+            }
+            Scripts::ClipboardAndPlayer => {
+                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
+                let player_js_hash = build.asset_hashes.player_js.as_ref().unwrap();
 
-        file_names
-            .iter()
-            .map(|file_name| format!(r#"<script defer src="{root_prefix}{file_name}"></script>"#))
-            .collect::<Vec<String>>()
-            .join("\n")
+                formatdoc!(r#"
+                    <script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>
+                    <script defer src="{root_prefix}player.js?{player_js_hash}"></script>
+                "#)
+            }
+            Scripts::None => String::new()
+        }
     }
 }
 
-pub fn generate(build: &Build, catalog: &Catalog) {
+pub fn generate(build: &mut Build, catalog: &Catalog) {
     generate_browser_js(build, catalog);
     generate_clipboard_js(build);
     generate_player_js(build);
@@ -38,7 +45,7 @@ pub fn generate(build: &Build, catalog: &Catalog) {
     }
 }
 
-pub fn generate_browser_js(build: &Build, catalog: &Catalog) {
+pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
     let index_suffix = build.index_suffix();
 
     let mut releases_desc_by_date = catalog.public_releases();
@@ -185,15 +192,18 @@ pub fn generate_browser_js(build: &Build, catalog: &Catalog) {
 
     js.push_str(include_str!("assets/browser.js"));
 
+    build.asset_hashes.browser_js = Some(url_safe_hash_base64(&js));
+
     fs::write(build.build_dir.join("browser.js"), js).unwrap();
 }
 
-pub fn generate_clipboard_js(build: &Build) {
+pub fn generate_clipboard_js(build: &mut Build) {
     let js = include_str!("assets/clipboard.js");
+    build.asset_hashes.clipboard_js = Some(url_safe_hash_base64(&js));
     fs::write(build.build_dir.join("clipboard.js"), js).unwrap();
 }
 
-pub fn generate_embeds_js(build: &Build) {
+pub fn generate_embeds_js(build: &mut Build) {
     let t_mute = &build.locale.translations.mute;
     let t_playback_position = &build.locale.translations.playback_position;
     let t_unmute = &build.locale.translations.unmute;
@@ -215,10 +225,12 @@ pub fn generate_embeds_js(build: &Build) {
 
     js.push_str(include_str!("assets/embeds.js"));
 
+    build.asset_hashes.embeds_js = Some(url_safe_hash_base64(&js));
+
     fs::write(build.build_dir.join("embeds.js"), js).unwrap();
 }
 
-pub fn generate_player_js(build: &Build) {
+pub fn generate_player_js(build: &mut Build) {
     let t_listen = &build.locale.translations.listen;
     let t_mute = &build.locale.translations.mute;
     let t_pause = &build.locale.translations.pause;
@@ -247,6 +259,8 @@ pub fn generate_player_js(build: &Build) {
     ");
 
     js.push_str(include_str!("assets/player.js"));
+
+    build.asset_hashes.player_js = Some(url_safe_hash_base64(&js));
 
     fs::write(build.build_dir.join("player.js"), js).unwrap();
 }

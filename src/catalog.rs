@@ -341,6 +341,11 @@ impl Catalog {
         
         catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default()).unwrap();
 
+        if catalog.home_image.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
+            warn_discouraged!("The catalog home image is missing an image description.");
+            build.missing_image_descriptions = true;
+        }
+
         catalog.map_artists();
 
         if catalog.label_mode {
@@ -357,6 +362,14 @@ impl Catalog {
             }
 
             catalog.featured_artists.sort_unstable_by_key(|artist| artist.borrow().name.to_lowercase());
+
+            for artist in &catalog.featured_artists {
+                let artist_ref = artist.borrow();
+                if artist_ref.image.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
+                    warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
+                    build.missing_image_descriptions = true;
+                }
+            }
         } else {
             catalog.set_artist();
         }
@@ -368,7 +381,7 @@ impl Catalog {
         catalog.compute_asset_basenames();
 
         catalog.unlist_artists();
-        
+
         Ok(catalog)
     }
     
@@ -687,6 +700,11 @@ impl Catalog {
                     Some(described_image) => Some(described_image.clone()),
                     None => pick_best_cover_image(&images)
                 };
+
+                if cover.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
+                    warn_discouraged!("The cover image for release '{}' is missing an image description.", title);
+                    build.missing_image_descriptions = true;
+                }
 
                 let mut extras = Vec::new();
                 if merged_overrides.include_extras {

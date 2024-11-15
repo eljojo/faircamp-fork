@@ -141,8 +141,11 @@ fn main() {
 
     util::ensure_empty_dir(&build.build_dir);
 
+    scripts::generate(&mut build, &catalog);
+    styles::generate(&mut build, &catalog);
+    catalog.favicon.write(&mut build);
     catalog.write_assets(&mut build);
-    
+
     // Render homepage (page for all releases)
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
@@ -152,26 +155,10 @@ fn main() {
         release.borrow_mut().write_files(&mut build, &catalog);
     }
 
-    if let Some(described_image) = &catalog.home_image {
-        if described_image.description.is_none() {
-            warn_discouraged!("The catalog home image is missing an image description.");
-            build.missing_image_descriptions = true;
-        }
-    }
-
     // Render pages for featured artists (these are populated only in label mode)
     for artist in &catalog.featured_artists {
         let artist_ref = artist.borrow();
-        if let Some(described_image) = &artist_ref.image {
-            if described_image.description.is_none() {
-                warn_discouraged!("The image for artist '{}' is missing an image description.", artist_ref.name);
-                build.missing_image_descriptions = true;
-            }
-        }
-
         let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
-        let artist_ref = artist.borrow();
-
         fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
         fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
     }
@@ -184,15 +171,10 @@ fn main() {
         fs::create_dir(&image_descriptions_dir).unwrap();
         fs::write(image_descriptions_dir.join("index.html"), image_descriptions_html).unwrap();
     }
-    
-    scripts::generate(&build, &catalog);
-    styles::generate(&build, &catalog);
 
     if catalog.feed_enabled {
         feed::generate(&build, &catalog);
     }
-
-    catalog.favicon.write(&build);
 
     if build.base_url.is_none() {
         if build.embeds_requested {
