@@ -141,10 +141,17 @@ fn main() {
 
     util::ensure_empty_dir(&build.build_dir);
 
+    // Generation of scripts depends on final image assets and paths being
+    // available, hence the assets (audio and image files) are the first
+    // thing we compute.
+    catalog.write_assets(&mut build);
+
+    // Rendering of the actual pages (html) depends on assets hashes
+    // (for css/favicon/js assets) being available, hence these are the
+    // second thing we compute.
     scripts::generate(&mut build, &catalog);
     styles::generate(&mut build, &catalog);
     catalog.favicon.write(&mut build);
-    catalog.write_assets(&mut build);
 
     // Render homepage (page for all releases)
     let index_html = render::index::index_html(&build, &catalog);
