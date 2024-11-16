@@ -172,7 +172,7 @@ function showBrowser() {
 }
 
 browser.addEventListener('focusout', event => {
-    if (!event.relatedTarget || !browser.contains(event.relatedTarget)) {
+    if (event.relatedTarget && !browser.contains(event.relatedTarget)) {
         hideBrowser();
     }
 });
