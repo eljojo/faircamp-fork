@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2024 n3wjack
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Translations, Unreviewed};
+use super::{Reviewed, Translations};
 
 pub const NL: Translations = Translations {
     audio_format_alac: Reviewed("Verliesloos en gecomprimeerd, als je uitsluitend Apple-producten gebruikt, kies dan dit i.p.v. FLAC"),
@@ -20,7 +20,7 @@ pub const NL: Translations = Translations {
     buy: Reviewed("Koop"),
     close: Reviewed("Sluiten"),
     confirm: Reviewed("Bevestigen"),
-    continue: Reviewed("Doorgaan"),
+    r#continue: Reviewed("Doorgaan"),
     copied: Reviewed("Gekopieerd"),
     copy: Reviewed("Kopiëren"),
     copy_link: Reviewed("Kopieer link"),
