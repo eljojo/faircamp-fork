@@ -66,14 +66,19 @@ for (const release of RELEASES) {
         img = document.createElement('span');
         img.classList.add('placeholder');
     }
-    img.ariaHidden = 'true';
 
-    const a = document.createElement('a');
-    a.href = rootPrefix + release.url;
-    a.textContent = release.title;
+    const aText = document.createElement('a');
+    aText.href = rootPrefix + release.url;
+
+    const aImage = aText.cloneNode(true);
+    aImage.tabIndex = -1;
+    aImage.appendChild(img);
+
+    aText.dataset.searchable = 'true';
+    aText.textContent = release.title;
 
     const details = document.createElement('div');
-    details.appendChild(a);
+    details.appendChild(aText);
 
     if (release.artists) {
         const artists = document.createElement('div');
@@ -83,7 +88,7 @@ for (const release of RELEASES) {
     }
 
     const row = document.createElement('div');
-    row.appendChild(img);
+    row.appendChild(aImage);
     row.appendChild(details);
     browseResults.appendChild(row);
 
@@ -92,13 +97,19 @@ for (const release of RELEASES) {
         number.classList.add('number');
         number.textContent = track.number;
 
-        const title = document.createElement('a');
-        title.href = rootPrefix + track.url;
-        title.textContent = track.title;
+        const aTitle = document.createElement('a');
+        aTitle.href = rootPrefix + track.url;
+
+        const aImage = aTitle.cloneNode(true);
+        aImage.tabIndex = -1;
+        aImage.appendChild(img.cloneNode(true));
+
+        aTitle.dataset.searchable = 'true';
+        aTitle.textContent = track.title;
 
         const details = document.createElement('div');
         details.appendChild(number);
-        details.appendChild(title);
+        details.appendChild(aTitle);
 
         if (track.artists) {
             const artists = document.createElement('div');
@@ -108,7 +119,7 @@ for (const release of RELEASES) {
         }
 
         const row = document.createElement('div');
-        row.appendChild(img.cloneNode(true));
+        row.appendChild(aImage);
         row.appendChild(details);
         row.dataset.track = '';
         row.style.setProperty('display', 'none');
@@ -117,19 +128,24 @@ for (const release of RELEASES) {
 }
 
 for (const artist of ARTISTS) {
+    const aText = document.createElement('a');
+    aText.href = rootPrefix + artist.url;
+
     const imgPlaceholder = document.createElement('span');
-    imgPlaceholder.ariaHidden = 'true';
     imgPlaceholder.classList.add('placeholder');
 
-    const a = document.createElement('a');
-    a.href = rootPrefix + artist.url;
-    a.textContent = artist.name;
+    const aImage = aText.cloneNode(true);
+    aImage.tabIndex = -1;
+    aImage.appendChild(imgPlaceholder);
+
+    aText.dataset.searchable = 'true';
+    aText.textContent = artist.name;
 
     const details = document.createElement('div');
-    details.appendChild(a);
+    details.appendChild(aText);
 
     const row = document.createElement('div');
-    row.appendChild(imgPlaceholder);
+    row.appendChild(aImage);
     row.appendChild(details);
     browseResults.appendChild(row);
 }
@@ -186,7 +202,8 @@ searchField.addEventListener('input', () => {
         let shown = 0;
 
         for (const element of browseResults.children) {
-            const display = regexp.test(element.querySelector('a').textContent);
+            const title = element.querySelector('[data-searchable]').textContent;
+            const display = regexp.test(title);
             element.style.setProperty('display', display ? null : 'none');
             if (display) { shown += 1; }
         }

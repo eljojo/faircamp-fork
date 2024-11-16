@@ -146,13 +146,14 @@ body {
     flex-direction: column;
     max-height: 60vh;
     overflow-y: auto;
-    row-gap: .5rem;
+    row-gap: .8rem;
 }
 #browser #results > div {
     align-items: center;
     column-gap: .6rem;
     display: flex;
 }
+#browser #results > div > :first-child { flex-shrink: 0; }
 #browser #results img,
 #browser #results .placeholder {
     border-radius: calc(var(--cover-border-radius) * 0.2);
