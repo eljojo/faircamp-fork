@@ -641,7 +641,7 @@ impl Release {
         if let Some(base_url) = &build.base_url {
             // Render m3u playlist
             if self.m3u {
-                let r_m3u = m3u::generate(base_url, build, self);
+                let r_m3u = m3u::generate_for_release(base_url, build, self);
                 fs::write(release_dir.join("playlist.m3u"), r_m3u).unwrap();
             }
 

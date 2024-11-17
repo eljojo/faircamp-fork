@@ -58,6 +58,8 @@ pub struct Catalog {
     pub home_image: Option<DescribedImage>,
     pub label_mode: bool,
     pub links: Vec<Link>,
+    /// Whether an m3u playlist should be generated and provided for the entire catalog
+    pub m3u: bool,
     pub main_artists: Vec<ArtistRc>,
     /// Optional override label for the button that (by default) says "More" on the
     /// catalog homepage and points to the long-form catalog text on the homepage.
@@ -312,6 +314,7 @@ impl Catalog {
             home_image: None,
             label_mode: false,
             links: Vec::new(),
+            m3u: true,
             main_artists: Vec::new(),
             more_label: None,
             releases: Vec::new(),

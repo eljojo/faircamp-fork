@@ -92,7 +92,8 @@ m3u: disabled
 
 By default, [M3U](https://en.wikipedia.org/wiki/M3U) playlists are generated
 and provided for each release, but this can be controlled with the `m3u`
-option by setting it to `enabled` or `disabled`.
+option by setting it to `enabled` or `disabled`. This behavior can also be
+globally configured (for all releases) in the catalog manifest.
 
 ## `more_label`
 

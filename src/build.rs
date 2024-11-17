@@ -42,6 +42,10 @@ pub struct Build {
     pub catalog_dir: PathBuf,
     pub clean_urls: bool,
     pub deploy_destination: Option<String>,
+    /// Whether at least one embed was requested to be generated somewhere.
+    /// This lets us know to generate some css/js used in embeds only, and/or
+    /// to print a warning in case the base_url is missing and we hence
+    /// couldn't generate any embeds in spite of them being requested.
     pub embeds_requested: bool,
     pub exclude_patterns: Vec<String>,
     pub image_processor: ImageProcessor,

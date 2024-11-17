@@ -153,6 +153,19 @@ fn main() {
     styles::generate(&mut build, &catalog);
     catalog.favicon.write(&mut build);
 
+    if let Some(base_url) = &build.base_url {
+        // Render M3U playlist
+        if catalog.m3u {
+            let r_m3u = m3u::generate_for_catalog(base_url, &build, &catalog);
+            fs::write(build.build_dir.join("playlist.m3u"), r_m3u).unwrap();
+        }
+
+        // Render RSS feed
+        if catalog.feed_enabled {
+            feed::generate(base_url, &build, &catalog);
+        }
+    }
+
     // Render homepage (page for all releases)
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
@@ -179,15 +192,18 @@ fn main() {
         fs::write(image_descriptions_dir.join("index.html"), image_descriptions_html).unwrap();
     }
 
-    if catalog.feed_enabled {
-        feed::generate(&build, &catalog);
-    }
-
     if build.base_url.is_none() {
-        if build.embeds_requested {
-            warn!("No catalog.base_url specified, embeds for releases and the RSS feed were not generated");
-        } else {
-            warn!("No catalog.base_url specified, RSS feed was not generated");
+        let mut not_generated = Vec::new();
+
+        if build.embeds_requested { not_generated.push("Embeds"); }
+        if catalog.feed_enabled { not_generated.push("RSS Feed"); }
+        if catalog.m3u || catalog.releases.iter().any(|release| release.borrow().m3u) {
+            not_generated.push("M3U playlists");
+        }
+
+        if !not_generated.is_empty() {
+            let r_not_generated = not_generated.join(", ");
+            warn!("No catalog.base_url specified, therefore the following could not be generated: {}", r_not_generated);
         }
     }
     

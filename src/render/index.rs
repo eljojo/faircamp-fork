@@ -96,19 +96,35 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         "#));
     };
 
-    if build.base_url.is_some() && catalog.feed_enabled {
-        let t_feed = &build.locale.translations.feed;
-        let feed_icon = icons::feed(&build.locale.translations.rss_feed);
+    if build.base_url.is_some() {
+        if catalog.feed_enabled {
+            let t_feed = &build.locale.translations.feed;
+            let feed_icon = icons::feed(&build.locale.translations.rss_feed);
 
-        let feed_link = format!(r#"
-            <a href="{root_prefix}feed.rss">
-                {feed_icon}
-                <span>{t_feed}</span>
-            </a>
-        "#);
+            let feed_link = format!(r#"
+                <a href="{root_prefix}feed.rss">
+                    {feed_icon}
+                    <span>{t_feed}</span>
+                </a>
+            "#);
 
-        actions.push(feed_link);
-    };
+            actions.push(feed_link);
+        }
+
+        if catalog.m3u  {
+            let t_m3u_playlist = &build.locale.translations.m3u_playlist;
+            let stream_icon = icons::stream();
+
+            let m3u_playlist_link = formatdoc!(r#"
+                <a href="playlist.m3u">
+                    {stream_icon}
+                    <span>{t_m3u_playlist}</span>
+                </a>
+            "#);
+
+            actions.push(m3u_playlist_link);
+        }
+    }
 
     for link in &catalog.links {
         let external_icon = icons::external(&build.locale.translations.external_link);

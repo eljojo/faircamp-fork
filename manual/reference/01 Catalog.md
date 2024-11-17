@@ -146,10 +146,14 @@ on the page, thus serving only for verification purposes.
 m3u: disabled
 ```
 
-By default, [M3U](https://en.wikipedia.org/wiki/M3U) playlists are generated
-and provided for all releases, but this can be disabled by setting the `m3u`
-option to `disabled`. Note that this setting can also be granularly enabled
-or disabled per release.
+By default, an [M3U](https://en.wikipedia.org/wiki/M3U) playlist is generated
+for the entire catalog (provided on the landing page), as well as for each
+release (provided on each release page). By setting `m3u` to `disabled` in the
+catalog manifest, M3U playlists are disabled both for the catalog and for all
+releases. By setting `m3u` to `catalog`, solely the playlist for the entire
+catalog is generated. By setting `m3u` to `releases`, only the playlists at
+the release level are generated. You can granularly enable/disable M3U playlist
+generation for single releases as well (in the release manifests).
 
 ## `more_label`
 

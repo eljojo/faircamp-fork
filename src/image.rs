@@ -173,6 +173,18 @@ impl ArtistAssets {
         self.marked_stale.is_some()
     }
 
+    pub fn playlist_image(&self) -> String {
+        let artist_asset = match &self.fixed_max_480 {
+            Some(fixed_max_480) => fixed_max_480,
+            None => &self.fixed_max_320
+        };
+
+        let format = &artist_asset.format;
+        let height = artist_asset.height;
+        let width = artist_asset.width;
+        format!("__home___{format}_{width}x{height}.jpg")
+    }
+
     pub fn unmark_stale(&mut self) {
         self.marked_stale = None;
     }

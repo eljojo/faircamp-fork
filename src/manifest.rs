@@ -522,9 +522,23 @@ pub fn apply_options(
 
             if let Some((value, line)) = optional_field_value_with_line(section, "m3u") {
                 match value.as_str() {
-                    "disabled" => overrides.m3u_enabled = false,
-                    "enabled" => overrides.m3u_enabled = true,
-                    value => error!("Ignoring unsupported catalog.m3u setting value '{}' (supported values are 'enabled' and 'disabled') in {}:{}", value, path.display(), line)
+                    "catalog" => {
+                        catalog.m3u = true;
+                        overrides.m3u_enabled = false;
+                    }
+                    "disabled" => {
+                        catalog.m3u = false;
+                        overrides.m3u_enabled = false;
+                    }
+                    "enabled" => {
+                        catalog.m3u = true;
+                        overrides.m3u_enabled = true;
+                    }
+                    "releases" => {
+                        catalog.m3u = false;
+                        overrides.m3u_enabled = true;
+                    }
+                    value => error!("Ignoring unsupported catalog.m3u setting value '{}' (supported values are 'catalog', 'enabled', 'disabled' and 'releases') in {}:{}", value, path.display(), line)
                 }
             }
 
