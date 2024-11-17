@@ -151,13 +151,24 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
 }
 
 fn generate_vars(theme: &Theme) -> String {
-    let cover_border_radius = if theme.round_corners { ".8rem" } else { "0" };
+    let cover_border_radius;
+    let ul_list_style_type;
+
+    if theme.round_corners {
+        cover_border_radius = ".8rem";
+        ul_list_style_type = "disc";
+    } else {
+        cover_border_radius = "0";
+        ul_list_style_type = "square";
+    };
+
     let vars_hsl = ThemeVarsHsl::print_vars(theme);
     let vars_oklch = &theme.print_vars();
 
     formatdoc!(r#"
         :root {{
             --cover-border-radius: {cover_border_radius};
+            --ul-list-style-type: {ul_list_style_type};
         }}
         {vars_hsl}
         @supports (color: oklch(0% 0% 0)) {{

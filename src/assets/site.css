@@ -648,13 +648,14 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .text ol,
 .text ul {
+    list-style-position: inside;
     padding-left: 0;
 }
 .text ol li::marker,
 .text ul li::marker {
     color: var(--fg-3);
 }
-.text ul { list-style: circle; }
+.text ul { list-style-type: var(--ul-list-style-type); }
 .track {
     align-items: center;
     column-gap: 1rem;
