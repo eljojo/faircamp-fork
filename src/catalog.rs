@@ -352,6 +352,9 @@ impl Catalog {
         catalog.map_artists();
 
         if catalog.label_mode {
+            for main_artist in &catalog.main_artists {
+                main_artist.borrow_mut().featured = true;
+            }
             catalog.featured_artists.extend(catalog.main_artists.iter().cloned());
 
             if catalog.feature_support_artists {
@@ -359,6 +362,7 @@ impl Catalog {
                     // Only assign support artist to catalog's featured artists if
                     // it hasn't already been assigned to them as a main artist
                     if !catalog.featured_artists.iter().any(|featured_artist| ArtistRc::ptr_eq(featured_artist, support_artist)) {
+                        support_artist.borrow_mut().featured = true;
                         catalog.featured_artists.push(support_artist.clone());
                     }
                 }

@@ -23,6 +23,7 @@ use crate::markdown;
 pub struct Artist {
     pub aliases: Vec<String>,
     pub copy_link: bool,
+    pub featured: bool,
     pub image: Option<DescribedImage>,
     pub name: String,
     pub permalink: Permalink,
@@ -44,6 +45,7 @@ impl Artist {
         Artist {
             aliases: Vec::new(),
             copy_link,
+            featured: false,
             image: None,
             name: name.to_string(),
             permalink,

@@ -92,6 +92,7 @@ form button:hover {
     aspect-ratio: 1;
     width: 4rem;
 }
+.artists { color: var(--fg-3); }
 .artists a { color: var(--fg-3); }
 .artists a:hover { color: var(--fg-3-focus); }
 body {

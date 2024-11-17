@@ -550,10 +550,10 @@ fn list_release_artists(
 
 /// Render the artists of a track in the style of "Alice, Bob", where each
 /// (Alice, Bob) can be a link too, depending on the track and catalog.
-/// In *label mode*, all artists of a track are shown and linked to
-/// their artist page. In *artist mode*, only the catalog artist is ever
-/// linked (to the site's homepage in this case). The catalog artist is
-/// always sorted first.
+/// In *label mode*, all artists of a track are shown and linked to their
+/// artist page, if they have one. In *artist mode*, only the catalog artist
+/// is ever linked (to the site's homepage in this case). The catalog artist
+/// is always sorted first.
 fn list_track_artists(
     build: &Build,
     index_suffix: &str,
@@ -568,13 +568,17 @@ fn list_track_artists(
     let mut track_artists_sorted: Vec<ArtistRc> = track.artists.clone();
 
     // Sort so the catalog artist comes first
-    track_artists_sorted.sort_by(|a, b| {
-        if let Some(catalog_artist) = &catalog.artist {
-            if ArtistRc::ptr_eq(a, catalog_artist) { return Ordering::Less; }
-            if ArtistRc::ptr_eq(b, catalog_artist) { return Ordering::Greater; }
-        }
-        Ordering::Equal
-    });
+    if let Some(catalog_artist) = &catalog.artist {
+        track_artists_sorted.sort_by(|a, b| {
+            if ArtistRc::ptr_eq(a, catalog_artist) {
+                Ordering::Less
+            } else if ArtistRc::ptr_eq(b, catalog_artist) {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        });
+    }
 
     for artist in &track_artists_sorted {
         let artist_ref = artist.borrow();
@@ -583,7 +587,7 @@ fn list_track_artists(
         let name_escaped = html_escape_outside_attribute(&artist_ref.name);
 
         if !artist_ref.unlisted {
-            if catalog.label_mode {
+            if artist_ref.featured {
                 let permalink = &artist_ref.permalink.slug;
                 let artist_link = format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
                 items.push((name_chars, artist_link));
