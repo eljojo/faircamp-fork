@@ -5,6 +5,19 @@
 
 # Changelog
 
+# 0.21.0
+
+- Introduce configurable M3U playlist option for the entire catalog (0cebc42)
+- Add hash-based cache invalidation for all linked assets and images (041cf4f, 482f9ba)
+- Allow navigating to browse/search items by clicking their thumbnails (29ffa6e)
+- Fix browse/search overlay closing too easily when focus is lost (375f8c5)
+- Fix linking to non-existent artist pages when releases have varying but non-featured artists (1562d64)
+- Left-align list markers inside margin, use disc or square style based on theme (aeffbf5)
+- Update dutch translations (n3wjack, 1101b94, f5e3beb)
+- Update french translations (Vincent Knobil, 1511536)
+- Update italian translations (Tommaso Croce, b510376)
+- Update lithuanian translations (Vac, 3cff359)
+
 ## 0.20.1
 
 - Exclude featured but unlisted artists from browsing/searching (b298804)
@@ -18,9 +31,9 @@
 - Link and render "more" sections only when extended content is present (0f42bcf)
 - Restore missing border-radius declarations for round_corners theme option (ef2a4f3)
 - Fix layout regressions and improve readability for single file downloads (ef88fff)
-- Add lithuanian translations (abe8d67)
-- Add serbian (cyrillic and latin) translations (022ef22, d2eb3b7)
-- Extend/improve french, italian, turkish and spanish translations (c67c399, 762bab0, fc573a0)
+- Add lithuanian translations (Vac, abe8d67)
+- Add serbian (cyrillic and latin) translations (DURAD, 022ef22, d2eb3b7)
+- Extend/improve french, italian, turkish and spanish translations (sknob, Tommaso Croce, atomkarinca, c67c399, 762bab0, fc573a0)
 - Resolve subtle issues around hardcoded left/right spacing in RTL layouts (d354f50)
 - Display advanced theming spectrum/swatch widget by default (4f5a56b)
 - Prevent seeking during left/right arrow key interaction with the volume slider (4094c1a)
