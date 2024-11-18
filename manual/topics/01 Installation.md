@@ -5,53 +5,50 @@
 
 # Installation
 
-On debian-based Linux faircamp can already be installed via packages
-(amd64). On Arch Linux and Manjaro faircamp is available through the AUR. For
-RPM-based distros and FreeBSD, copy/paste build and install instructions are
-available. On macOS faircamp can be installed using Homebrew. Windows users
-have so far used WSL or docker to run faircamp - there are no known native
-build attempts for Windows yet, but there should be no hard blockers for
-building faircamp there either, general build instructions for this are
-provided.
+## Windows
+
+1. Download the [latest windows build](https://simonrepp.com/faircamp/packages/faircamp-0.21.0-windows-x64.zip)
+2. **IMPORTANT**: Follow the installation instructions inside the included `README.txt`
+
+Alternatively, you can also run faircamp non-natively via [Docker](https://github.com/n3wjack/faircamp-docker) or via
+[WSL](https://www.meljoann.com/posts/faircamp/), or build it yourself using the
+general build instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
+
+## macOS
+
+1. Install [Homebrew](https://brew.sh/)
+2. Run `brew install faircamp` to install the [faircamp formula](https://formulae.brew.sh/formula/faircamp)
+
+## Linux
 
 **Arch Linux, Manjaro**
 
-Install [faircamp](https://aur.archlinux.org/packages/faircamp) from the [AUR](https://aur.archlinux.org/)
+Install the [faircamp AUR package](https://aur.archlinux.org/packages/faircamp)
 
 **Debian 12, elementary OS 8, Linux Mint 22, Ubuntu 23.04 - 24.10**
 
-Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_0.21.0-1+deb12_amd64.deb)
+Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_0.21.0-1+deb12_amd64.deb) (amd64)
 
 **Debian 11, elementary OS 7, Linux Mint 21, Ubuntu 22.04 LTS - 22.10**
 
-Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_0.21.0-1+deb11_amd64.deb)
+Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_0.21.0-1+deb11_amd64.deb) (amd64)
 
 **Fedora, CentOS, RHEL**
 
 See copy/paste instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
 
-**FreeBSD**
+**Nix/NixOS**
+
+Install the [faircamp package](https://search.nixos.org/packages?show=faircamp&type=packages&query=faircamp)
+
+## FreeBSD
 
 See copy/paste instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
 
-**macOS**
-
-Install [faircamp](https://formulae.brew.sh/formula/faircamp) using [Homebrew](https://brew.sh/)
-
-**Nix/NixOS**
-
-Install the [faircamp](https://search.nixos.org/packages?show=faircamp&type=packages&query=faircamp) package
-
-**Windows**
-
-Non-natively via [Docker](https://github.com/n3wjack/faircamp-docker) or via
-[WSL](https://www.meljoann.com/posts/faircamp/), or to attempt a native build
-with the general build instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)
-
-**YunoHost**
+## YunoHost
 
 Install the [faircamp](https://apps.yunohost.org/app/faircamp) app
 
-**Other platforms**
+## Other platforms
 
 See general build instructions in [Building from source](https://codeberg.org/simonrepp/faircamp/src/branch/main/BUILD.md)

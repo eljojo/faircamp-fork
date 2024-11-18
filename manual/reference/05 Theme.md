@@ -10,7 +10,7 @@ With this you can adjust the visual appearance of your faircamp site.
 Theme customizations can be made in a top-level manifest at the root of the
 catalog (setting the theme for the homepage and all release pages), but
 they can also be made locally for a group of releases or for each release
-on its own (added in 0.15.0).
+on its own.
 
 > Tip: There is a `--theming-widget` CLI option that lets you interactively
 > explore color-related theme settings. Just build your catalog with the option enabled and
