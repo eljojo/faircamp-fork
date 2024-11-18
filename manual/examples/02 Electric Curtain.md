@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -73,6 +73,10 @@ title: Electric Curtain
 
 base_url: https://curtain.electric/
 
+> To save bandwidth and storage, the artist here reduces the
+> streaming quality a little bit.
+streaming_quality: frugal
+
 -- text
 Hailing from the small town of Welkenraedt, Electric Curtain sucks you into
 a gigantesque dystopian world of hard and harsh bass-driven synth.
@@ -88,29 +92,19 @@ Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 > in each of the .eno files alongside the releases.
 format: flac
 
-# payment
-
 > For each release these two payment options will be shown,
 > as the settings here apply to all releases
+-- payment_text
+Option 1: Pay via [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 
--- custom
-Pay via [ko-fi](https://ko-fi.com/electriccurtainisfiction)
--- custom
-
--- custom
-Pay via [paypal](https://paypal.me/electriccurtainisfiction)
--- custom
-
-# streaming
-
-> To save bandwidth and storage, the artist here reduces the
-> streaming quality a little bit.
-quality: frugal
+Option 2: Pay via [paypal](https://paypal.me/electriccurtainisfiction)
+-- payment_text
 
 # theme
 
-> The black theme nicely fits the darkness of the music
-base: black
+> The dark theme with high dynamic range (= deep black) nicely fits the darkness of the music
+base: dark
+dynamic_range: 100
 
 background_alpha: 36
 background_image: abstractsyntaxthreat.png
