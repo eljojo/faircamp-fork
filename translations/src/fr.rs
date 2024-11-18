@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Vincent Knobil
 // SPDX-FileCopyrightText: 2024 sknob
 // SPDX-FileCopyrightText: 2023 Florian Antoine
 // SPDX-FileCopyrightText: 2023 Deborah Pickett

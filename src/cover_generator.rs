@@ -150,7 +150,7 @@ impl CoverGenerator {
         "#)
     }
 
-	fn generate_looney_tunes(label: &str, release: &Release, max_tracks_in_release: usize) -> String {
+    fn generate_looney_tunes(label: &str, release: &Release, max_tracks_in_release: usize) -> String {
         let edge = 64.0;
         let radius = edge / 2.0;
 

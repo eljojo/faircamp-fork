@@ -14,7 +14,7 @@
 - Fix linking to non-existent artist pages when releases have varying but non-featured artists (1562d64)
 - Left-align list markers inside margin, use disc or square style based on theme (aeffbf5)
 - Update dutch translations (n3wjack, 1101b94, f5e3beb)
-- Update french translations (Vincent Knobil, 1511536)
+- Update french translations (sknob, 1511536)
 - Update italian translations (Tommaso Croce, b510376)
 - Update lithuanian translations (Vac, 3cff359)
 

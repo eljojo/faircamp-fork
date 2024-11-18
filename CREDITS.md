@@ -69,7 +69,6 @@ Damian Szetela<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
 [Vac](https://crumb.lt/Vac)<br>
 [Venya](https://venya.soundslike.pro/)<br>
-Vincent Knobil<br>
 [Yonder](https://spacey.space/@yonder)<br>
 [Wesley Sinks](https://linuxcreative.com)<br>
 [Wolfgang Dorninger](https://dorninger.servus.at)<br>
