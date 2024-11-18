@@ -23,9 +23,21 @@
     --background: #fafafa;
     --code: #eef0e6;
     --divider: #d0d0d0;
+    --fg-1: #000;
     --header: #222;
     --link: #02749f;
     --text: #222;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #222;
+        --code: #2b2b2b;
+        --divider: #424242;
+        --fg-1: #fff;
+        --header: #181818;
+        --link: #00b9ff;
+        --text: #dcdcdc;
+    }
 }
 a { color: var(--link); }
 blockquote {
@@ -52,16 +64,14 @@ body {
     top: 1rem;
 }
 code, pre { font-family: 'Fira Mono', monospace; }
-h1 {
-    font-size: 1.4rem;
-    font-weight: 400;
-    margin-top: 2rem;
-}
+h1,
 h2 {
-    font-size: 1.2rem;
+    color: var(--fg-1);
     font-weight: 400;
     margin-top: 2rem;
 }
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.2rem; }
 header {
     align-items: center;
     background-color: var(--header);
@@ -114,6 +124,9 @@ nav a.active {
     text-align: right;
     width: 1.5rem;
 }
+ol { list-style-position: inside; }
+ol { padding-left: 0; }
+ol li::marker { color: var(--fg-1); }
 p, ul {
     box-sizing: border-box;
     max-width: 33rem;
@@ -145,6 +158,7 @@ pre {
     display: flex;
     height: calc(100vh - 3rem);
 }
+strong { color: var(--fg-1); }
 svg { fill: currentColor; }
 .title {
     align-items: center;
@@ -155,7 +169,7 @@ svg { fill: currentColor; }
     height: 2.5rem;
     width: 2.5rem;
 }
-
+ul { padding-left: 2rem; }
 @media (max-width: 50rem) {
     header { padding: 0 1rem; }
     main {
@@ -185,7 +199,6 @@ svg { fill: currentColor; }
         padding: 1rem;
     }
 }
-
 @media (min-width: 50.0001rem) {
     .close_nav { display: none; }
     nav {
@@ -194,16 +207,7 @@ svg { fill: currentColor; }
     }
     .open_nav { display: none; }
 }
-
 @media (prefers-color-scheme: dark) {
-    :root {
-        --background: #222;
-        --code: #2b2b2b;
-        --divider: #424242;
-        --header: #181818;
-        --link: #00b9ff;
-        --text: #dcdcdc;
-    }
     .language-eno .comment { color: #5c6370; }
     .language-eno .key { color: #fb626e; }
     .language-eno .operator { color: #4fd3e3; }
