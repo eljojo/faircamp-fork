@@ -97,12 +97,7 @@ main {
     overflow-y: auto;
     padding: 0 1.8rem;
 }
-nav {
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    padding: 0 1.8rem;
-}
+nav { overflow-y: auto; }
 nav a { text-decoration: none; }
 nav a.active {
     align-self: normal;
@@ -114,9 +109,11 @@ nav a.active {
     align-items: flex-start;
     display: flex;
     flex-direction: column;
+    margin: 1.8rem;
 }
 .nav_inner a { white-space: nowrap; }
-.nav_inner span { margin: 2rem 0 .2rem 0; }
+.nav_inner span { margin: 1rem 0 .2rem 0; }
+.nav_inner > :last-child { margin-bottom: 0; }
 .next_page { margin: 3rem 0 2rem 0; }
 .number {
     display: inline-block;
@@ -130,7 +127,6 @@ ol li::marker { color: var(--fg-1); }
 p, ul {
     box-sizing: border-box;
     max-width: 33rem;
-    text-align: justify;
 }
 p code,
 h2 code,
@@ -178,14 +174,11 @@ ul { padding-left: 2rem; }
         overflow-y: auto;
         padding: 0 1rem;
     }
-    nav {
-        display: none;
-    }
+    nav { display: none; }
     nav:target {
-        align-items: center;
         background-color: var(--background);
         bottom: 0;
-        display: flex;
+        display: block;
         left: 0;
         position: absolute;
         right: 0;

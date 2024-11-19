@@ -181,6 +181,8 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
     let favicon_dark_png_hash = url_safe_hash_base64(include_bytes!("../../src/assets/favicon_dark.png"));
     let styles_css_hash = url_safe_hash_base64(include_bytes!("../assets/styles.css"));
 
+    let index_class_active = if active_page == &docs.index { r#"class="active""# } else { "" };
+
     formatdoc!(r##"
         <!doctype html>
         <html>
@@ -211,6 +213,8 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
                         <div class="nav_inner">
                             <a class="close_nav" href="#">✕</a>
 
+                            <a {index_class_active} href="index.html">Overview</a>
+
                             <span>Topics</span>
                             {topics}
 
@@ -219,6 +223,10 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
 
                             <span>Reference</span>
                             {reference}
+
+                            <span>More Resources</span>
+                            <a href="https://simonrepp.com/faircamp/" target="_blank">Website</a>
+                            <a href="https://codeberg.org/simonrepp/faircamp/" target="_blank">Source Code</a>
                         </div>
                     </nav>
                     <main>

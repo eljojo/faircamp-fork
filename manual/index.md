@@ -26,7 +26,7 @@ picture.
 The reference pages explain all available options and metadata that you can
 set in your manifests, giving detailed info for each setting.
 
-## Other resources
+## More resources
 
 See the [website](https://simonrepp.com/faircamp) for further community
 resources, a feature overview, screenshots, and a list of faircamp sites to
