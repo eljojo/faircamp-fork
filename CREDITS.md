@@ -5,10 +5,18 @@
 
 # Credits
 
-An incomplete listing of people who have contributed to faircamp
-in one way or another, in no particular order (thus alphabetical).
-If someone is missing please let it be known, same if you would
-rather not be listed here, no problem, just say the word.
+In a perfect world, the list below would include everyone that ever spread the
+word about faircamp, built sites, helped friends, and a thousand other things
+that made a difference. In this real world, overwhelmingly complex and often
+rushed, this is still an attempt to give credit to an extent that is
+pragmatically feasible.
+
+If you're among the countless people that contributed in some small or not so
+small way, even if you are not listed here, thank you so much as well! If you notice
+someone missing that absolutely should be on the list, or if you would rather
+not be listed, please do let me know!
+
+The list is in no particular order (thus alphabetical).
 
 Thanks everyone for your support.
 
@@ -38,8 +46,10 @@ Damian Szetela<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
 [fREW Schmidt](https://blog.afoolishmanifesto.com/)<br>
 [Friedrich](https://codeberg.org/Friedrich)<br>
+[Fugue State Audio](https://www.fstateaudio.com/)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [Harald Eilertsen](https://volse.net/)<br>
+[James](https://strangetextures.com)<br>
 [James Fenn](https://jfenn.me/)<br>
 [jd42](https://codeberg.org/jd42)<br>
 [keef](https://key13.uk)<br>
