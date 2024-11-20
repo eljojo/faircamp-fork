@@ -79,7 +79,7 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
                 @font-face {{
                     font-family: 'Custom';
                     font-style: normal;
-                    font-weight: 400;
+                    font-weight: 1 1000;
                     src: url('{filename}') format('{extension}');
                 }}
                 {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Custom'; }}
