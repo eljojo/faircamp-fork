@@ -6,6 +6,7 @@ authors = ["Simon Repp"]
 edition = "2021"
 name = "faircamp"
 publish = false
+rust-version = "1.76.0"
 version = "0.21.0"
 
 [dependencies]
@@ -31,7 +32,7 @@ nanoid = "0.4.0"
 ogg = "0.9.1"
 opus = "0.3.0"
 opus_headers = "0.1.2"
-pacmog = "0.5.0"
+pacmog = "0.4.1"
 pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.12.2" }
 rmp3 = { features = ["float", "simd"], version = "0.3.1" }
 sanitize-filename = "0.6.0"

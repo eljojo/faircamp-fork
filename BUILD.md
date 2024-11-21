@@ -161,7 +161,7 @@ report about it in the [issue tracker](https://codeberg.org/simonrepp/faircamp/i
 so we can resolve it for everyone - thank you!
 
 What you need to have installed to build and run faircamp:
-- Rust 1.64.0 or later
+- Rust 1.76.0 or later
 - ffmpeg (any somewhat recent version should work)
 - libopus (often already provided by ffmpeg)
 - libvips 8.13.3 or later (optional)

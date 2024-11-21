@@ -12,9 +12,9 @@ rushed, this is still an attempt to give credit to an extent that is
 pragmatically feasible.
 
 If you're among the countless people that contributed in some small or not so
-small way, even if you are not listed here, thank you so much as well! If you notice
-someone missing that absolutely should be on the list, or if you would rather
-not be listed, please do let me know!
+small way, even if you are not listed here, thank you so much as well! If you
+notice someone missing that absolutely should be on the list, or if you would
+rather be listed differently, or not listed at all, please do let me know!
 
 The list is in no particular order (thus alphabetical).
 
@@ -75,6 +75,7 @@ Damian Szetela<br>
 [session](https://codeberg.org/session)<br>
 [sknob](https://sknob.fr/)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
+[thirdwheel](https://codeberg.org/thirdwheel)<br>
 [Tommaso Croce](https://mastodon.uno/@toctoc)<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
 [Vac](https://crumb.lt/Vac)<br>
