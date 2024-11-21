@@ -162,6 +162,7 @@ pub fn transcode(
                             command.arg("-map").arg("0:a");
                             command.arg("-map").arg("1");
                             // TODO: Can/should we put the image description in here or is this a "special" string to help players/converters classify the payload?
+                            command.arg("-id3v2_version").arg("3"); // for increased embedded album art compatibility
                             command.arg("-metadata:s:v").arg("title=\"Album cover\"");
                             command.arg("-metadata:s:v").arg("comment=\"Cover (Front)\"");
                         }
