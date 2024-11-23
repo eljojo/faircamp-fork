@@ -580,12 +580,9 @@ path.loading_right {
     grid-template-columns: 1fr;
 }
 .page_more {
+    backdrop-filter: blur(.5rem);
     background: var(--fg-1-veil);
-    border-radius: .3rem;
-    box-sizing: border-box;
     flex-grow: 1;
-    max-width: 49rem;
-    padding: 5rem;
 }
 .page_split {
     align-items: center;
@@ -885,11 +882,21 @@ input[type="text"].disabled,
 @media (max-width: 39.999rem) {
     .text ol { padding-left: 1rem; }
     .text ul { padding-left: .7rem; }
+    .page_more {
+        margin: 0 0 3rem 0;
+        padding: 3rem var(--page-margin-h);
+    }
 }
 @media (min-width: 40rem) {
     .actions.primary { font-size: 1.2rem; }
     h1 { font-size: 2rem; }
     .page_grid > div { grid-template-columns: 1fr 1fr; }
+    .page_more {
+        border-radius: var(--cover-border-radius);
+        box-sizing: border-box;
+        max-width: 49rem;
+        padding: 5rem;
+    }
 }
 @media (max-width: 49.999rem) {
     .abstract {
