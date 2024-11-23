@@ -629,11 +629,23 @@ impl Catalog {
                 let mut main_artists_to_map: Vec<String> = Vec::new();
                 let mut support_artists_to_map: Vec<String> = Vec::new();
 
-                // This sets main_artists_to_map in one of three ways, see comments in branches
+                // This sets main_artists_to_map and support_artists_to_map in
+                // one of three ways, see comments in branches
                 if let Some(artist_names) = &merged_overrides.release_artists {
-                    // Here, main_artists_to_map is set manually through manifest metadata
+                    // Here, main_artists_to_map is set manually through manifest metadata.
                     for artist_name in artist_names {
                         main_artists_to_map.push(artist_name.to_string());
+                    }
+
+                    // All artists that were associated with a track but not
+                    // manually set as main_artists_to_map are now added as
+                    // support_artists_to_map.
+                    for release_track in &release_tracks {
+                        for track_artist_to_map in &release_track.artists_to_map {
+                            if !main_artists_to_map.contains(track_artist_to_map) && !support_artists_to_map.contains(track_artist_to_map) {
+                                support_artists_to_map.push(track_artist_to_map.clone());
+                            }
+                        }
                     }
                 } else if release_tracks
                     .iter()
@@ -645,6 +657,17 @@ impl Catalog {
                         for artist in album_artists {
                             if !main_artists_to_map.contains(artist) {
                                 main_artists_to_map.push(artist.clone());
+                            }
+                        }
+                    }
+
+                    // All artists that were associated with a track but not
+                    // set as "album artist" on any of them are now added as
+                    // support_artists_to_map.
+                    for release_track in &release_tracks {
+                        for track_artist_to_map in &release_track.artists_to_map {
+                            if !main_artists_to_map.contains(track_artist_to_map) && !support_artists_to_map.contains(track_artist_to_map) {
+                                support_artists_to_map.push(track_artist_to_map.clone());
                             }
                         }
                     }
