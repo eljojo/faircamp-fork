@@ -7,59 +7,14 @@
 
 A static site generator for audio producers
 
-<img src="https://simonrepp.com/faircamp/readme.png?1" alt="Three faircamp site screenshots"/>
+<img src="https://simonrepp.com/faircamp/readme.jpg?2" alt="Screenshot of a pink/violet-colored website presenting an album called 'Valedictions EP' by artist 'Turnus'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Extra info', a short synopsis text, smaller buttons labelled 'Copy link' and 'M3U Playlist', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Distances'."/>
 
-For more screenshots and a feature overview see the [website](https://simonrepp.com/faircamp).
+Point Faircamp to a folder hierarchy containing your audio files. Within
+minutes, Faircamp builds a complete website presenting your work. The
+resulting site requires no database, no programming, no maintenance, and is
+compatible with virtually every webhost on this planet.
 
-Already set on using faircamp? Then jump right into the [manual](https://simonrepp.com/faircamp/manual).
-
-Faircamp adheres to these principles: Personal, plain, small, simple, light, fast, reduced, elegant, stable, low/no-maintenance, free, independent, privacy-respecting, standards-conforming, no-nonsense
-
-Curious? Read on!
-
-## Overview
-
-Point Faircamp to a folder hierarchy on your disk which contains your audio
-files. Within minutes, Faircamp builds a complete, static website that
-presents your music to your audience. You can view the site on your computer
-or upload it to any webhost - no database, no php or such required.
-
-By default, visitors can browse and stream your music. You can enable more
-features: Downloads, Embeds, Soft Paycurtain, Unlock codes for Downloads, RSS
-Feed, etc.. You can also provide text descriptions for your releases, adjust
-the theme of your site and so on, this is all done in *manifests*, simple
-text files you place next to your audio files.
-
-If your webspace supports SSH access, faircamp can be configured to upload
-your website for you automatically, otherwise you can use FTP or whichever
-means you prefer to do that manually.
-
-### The Catalog
-
-Your *catalog* is a set of directories with a structure of your choosing, the
-only convention you need to follow is that directories that directly contain
-audio files will  be presented as *releases* (think albums, singles and
-playlists) with their own page. Faircamp will automatically gather metadata from
-your audio files and make good use of it - if your audio files are properly
-tagged and there are cover images within each release directory you will likely
-get an end result that is pretty much spot-on the first time you run faircamp.
-
-### Configuration
-
-Besides the audio and image files in your catalog faircamp allows you to put
-simple text files - so called *manifests* - inside your directories. In these
-manifests you can set and override options (e.g. which download formats a
-release should have) that are applied to all files within the same directory
-and below (\*). So by putting a manifest in the top level directory of your
-catalog you can at once set an option for *all* of your releases, and by
-placing manifests further down in the directory structure, you can make
-specific adjustments all the way down to the *release* (single, album,
-playlist) level - and within the manifest itself also down to the *track*
-(single song or recording within a release) level.
-
-(\*) Note that a few select options do not propagate to other folders as it
-would make no sense, e.g. a release's permalink must be unique and therefore
-makes no sense to propagate.
+Visit the [website](https://simonrepp.com/faircamp) for more information, screenshots, links, etc.
 
 ## Faircamp 1.0
 
@@ -77,9 +32,7 @@ and temporary development glitches. Throughout late 2024 expect plenty of flux i
 [Faircamp 1.0 NGI0 grant](https://nlnet.nl/project/Faircamp/). Technically
 nothing about the catalog format is set in stone, but practically speaking
 actual changes are rare and only made for significant
-reasons. Note that faircamp already powers over
-a hundred artist and label websites, i.e. it is not beta in the sense of
-lacking stability, but rather to denote it is not yet at 1.0 (but will be in a few weeks).
+reasons.
 
 ## Documentation
 
@@ -87,7 +40,10 @@ See faircamp's comprehensive [Manual](https://simonrepp.com/faircamp/manual).
 
 ## Build/Install
 
-See the [Installation](https://simonrepp.com/faircamp/manual/installation.html) page in the [Manual](https://simonrepp.com/faircamp/manual). If the online version of the manual should be inaccessible, the same information is also available in the repository itself, in [01 Installation.md](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/manual/topics/01%20Installation.md).
+See the [Installation](https://simonrepp.com/faircamp/manual/installation.html) page in the
+[Manual](https://simonrepp.com/faircamp/manual). If the online version of the manual should
+be inaccessible, the same information is also available in the repository itself, in
+[01 Installation.md](https://codeberg.org/simonrepp/faircamp/src/branch/main/src/manual/topics/01%20Installation.md).
 
 ## Licensing
 
@@ -95,6 +51,9 @@ Faircamp is licensed under the [AGPL-3.0-or-later](https://spdx.org/licenses/AGP
 
 Documentation is licensed under the [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 
-Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fonts/barlow/) font, licensed under the [OFL-1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
+Builds generated with faircamp re-distribute the [Barlow](https://tribby.com/fonts/barlow/) font,
+licensed under the [OFL-1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
 
-The faircamp manual re-distributes the [Fira Mono](https://github.com/mozilla/Fira) and [Titillium Web](http://nta.accademiadiurbino.it/titillium/) fonts, licensed under the [OFL-1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
+The faircamp manual re-distributes the [Fira Mono](https://github.com/mozilla/Fira) and
+[Titillium Web](http://nta.accademiadiurbino.it/titillium/) fonts, licensed under the
+[OFL-1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
