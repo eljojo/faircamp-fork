@@ -31,6 +31,15 @@ pub fn purchase_html(
     let currency_code = currency.code();
     let currency_symbol = currency.symbol();
 
+    let price_display = |text: &str| {
+        formatdoc!(r#"
+            <div style="align-items: center; column-gap: .5rem; display: flex; position: relative;">
+                {currency_symbol} {text} {currency_code}
+            </div>
+            <br>
+        "#)
+    };
+
     let price_input = |range: &Range<f32>, placeholder: &str| {
         let data_max = if range.end == f32::INFINITY {
             String::new()
@@ -58,28 +67,27 @@ pub fn purchase_html(
         "#)
     };
 
-    let price_input_rendered = if range.end == f32::INFINITY {
-        price_input(
-            range,
-            &build.locale.translations.xxx_or_more(&range.start.to_string())
-        )
+    let r_price_display;
+    let r_price_input;
+    if range.end == f32::INFINITY {
+        let placeholder = &build.locale.translations.xxx_or_more(&range.start.to_string());
+        r_price_display = price_display(&placeholder);
+        r_price_input = price_input(range, &placeholder);
     } else if range.start == range.end {
         let t_fixed_price = &build.locale.translations.fixed_price;
-        format!(
-            "{t_fixed_price} {currency_symbol}{price} {currency_code}",
-            price = &range.start
-        )
+        let price = &range.start;
+        let text = format!("{t_fixed_price} {currency_symbol}{price} {currency_code}");
+        r_price_display = price_display(&text);
+        r_price_input = text;
     } else if range.start > 0.0 {
-        price_input(
-            range,
-            &format!("{}-{}", range.start, range.end)
-        )
+        let placeholder = format!("{}-{}", range.start, range.end);
+        r_price_display = price_display(&placeholder);
+        r_price_input = price_input(range, &placeholder);
     } else {
-        price_input(
-            range,
-            &build.locale.translations.up_to_xxx(&range.end.to_string())
-        )
-    };
+        let placeholder = build.locale.translations.up_to_xxx(&range.end.to_string());
+        r_price_display = price_display(&placeholder);
+        r_price_input = price_input(range, &placeholder);
+    }
 
     let t_downloads_permalink = &build.locale.translations.downloads_permalink;
     let download_page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
@@ -95,17 +103,41 @@ pub fn purchase_html(
     let t_continue = &build.locale.translations.r#continue;
     let t_made_or_arranged_payment = &build.locale.translations.made_or_arranged_payment;
     let content = formatdoc!(r#"
-        <form action="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}"
-              id="confirm">
-            {price_input_rendered}
-            <button>{t_confirm}</button>
+        <div id="confirm_price">
+            <div class="interactive">
+                <form action="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}">
+                    {r_price_input}
+                    <button>{t_confirm}</button>
+                </form>
+            </div>
+            <div class="non_interactive">
+                {r_price_display}
+            </div>
             <div style="font-size: .9rem; margin: 1rem 0;">
                 {t_available_formats} {formats}
             </div>
-        </form>
+        </div>
+        <div class="payment">
+            <div class="text">
+                {payment_text}
+            </div>
 
+            <form action="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}">
+                <input autocomplete="off" id="confirm_payment" required type="checkbox">
+                <label for="confirm_payment">{t_made_or_arranged_payment}</label>
+                <br><br>
+                <button id="continue">
+                    {t_continue}
+                </button>
+            </form>
+        </div>
         <script>
-            document.querySelector('#confirm').addEventListener('submit', event => {{
+            document.querySelector('#continue').classList.add('disabled');
+            document.querySelector('#continue').addEventListener('click', () => {{
+                if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}
+            }});
+
+            document.querySelector('#confirm_price form').addEventListener('submit', event => {{
                 event.preventDefault();
 
                 const priceField = event.target.price;
@@ -113,6 +145,13 @@ pub fn purchase_html(
                     const max = priceField.dataset.max ? parseFloat(priceField.dataset.max) : null;
                     const min = priceField.dataset.min ? parseFloat(priceField.dataset.min) : null;
                     const price = parseFloat(priceField.value.replace(',', '.'));
+
+                    if (isNaN(price)) {{
+                        // TODO: Localize (or preferably find way to avoid text)
+                        // TODO: Render in interface itself (no alert)
+                        alert('Please enter a price');
+                        return;
+                    }}
 
                     if (min !== null && price < min) {{
                         // TODO: Localize (or preferably find way to avoid text)
@@ -134,27 +173,14 @@ pub fn purchase_html(
                     }}
                 }}
 
-                document.querySelector('#confirm').style.display = 'none';
+                document.querySelector('#confirm_price').style.display = 'none';
                 document.querySelector('.payment').classList.add('active');
             }});
+
+            document.querySelector('#confirm_payment').addEventListener('change', () => {{
+                document.querySelector('#continue').classList.toggle('disabled', !document.querySelector('#confirm_payment').checked)
+            }});
         </script>
-
-        <div class="payment">
-            <div class="text">
-                {payment_text}
-            </div>
-
-            <input autocomplete="off" id="confirm_payment" onchange="document.querySelector('#continue').classList.toggle('disabled', !this.checked)" type="checkbox"> <label for="confirm_payment">{t_made_or_arranged_payment}</label>
-
-            <br><br>
-
-            <a class="button disabled"
-               href="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}"
-               id="continue"
-               onclick="if (!document.querySelector('#confirm_payment').checked) {{ event.preventDefault() }}">
-                {t_continue}
-            </a>
-        </div>
     "#);
 
     let release_link = format!("../..{index_suffix}");

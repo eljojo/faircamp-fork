@@ -98,7 +98,7 @@ und folge den Instruktionen erneut und ganz genau.\
 <br><br>\
 Ersetze den letzten Abschnitt der Adresse - \
 /{unlock_permalink}/{page_hash}{index_suffix} - \
-mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} and drücke dann Enter."),
+mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} und drücke dann Enter."),
     unmute: Reviewed("Lautschalten"),
     up_to_xxx: Reviewed("Bis zu {xxx}"),
     visual_impairment: Reviewed("Visuelle Beeinträchtigung"),

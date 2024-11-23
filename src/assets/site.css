@@ -863,11 +863,13 @@ input[type="text"].disabled,
 /* In js-enabled browsers we put .js_enabled on the body on each page load */
 body:not(.js_enabled) .track_playback { cursor: default; }
 body:not(.js_enabled) .waveform { display: none; }
-.js_enabled audio { display: none; }
-.js_enabled .payment,
-.js_enabled .unlock_manual { display: none; }
-.js_enabled .unlock_scripted { display: unset; }
-.js_enabled .payment.active { display: unset; }
+body.js_enabled audio { display: none; }
+body.js_enabled .payment,
+body.js_enabled .unlock_manual { display: none; }
+body.js_enabled .unlock_scripted { display: unset; }
+body.js_enabled .payment.active { display: unset; }
+body:not(.js_enabled) #confirm_price .interactive { display: none; }
+body.js_enabled #confirm_price .non_interactive { display: none; }
 .js_notice {
     align-items: center;
     -webkit-backdrop-filter: blur(3px) brightness(60%);
