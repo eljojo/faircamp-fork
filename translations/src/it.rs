@@ -102,5 +102,6 @@ con /{downloads_permalink}/[il-tuo-codice-di-sblocco]{index_suffix} e poi premi 
     xxx_hours: Reviewed("{xxx} ore"),
     xxx_minutes: Reviewed("{xxx} minuti"),
     xxx_or_more: Reviewed("{xxx} o più"),
-    xxx_seconds: Reviewed("{xxx} secondi")
+    xxx_seconds: Reviewed("{xxx} secondi"),
+    ..Translations::UNTRANSLATED
 };

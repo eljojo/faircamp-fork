@@ -81,5 +81,6 @@ pub const FR: Translations = Translations {
     xxx_hours: Reviewed("{xxx} heures"),
     xxx_minutes: Reviewed("{xxx} minutes"),
     xxx_or_more: Reviewed("{xxx} ou plus"),
-    xxx_seconds: Reviewed("{xxx} secondes")
+    xxx_seconds: Reviewed("{xxx} secondes"),
+    ..Translations::UNTRANSLATED
 };

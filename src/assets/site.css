@@ -95,6 +95,12 @@ form button:hover {
 .artists { color: var(--fg-3); }
 .artists a { color: var(--fg-3); }
 .artists a:hover { color: var(--fg-3-focus); }
+audio {
+    border: 1px solid var(--bg-3);
+    border-radius: .5rem;
+    margin-top: .5rem;
+    width: 100%;
+}
 body {
     background-color: var(--bg-1);
     color: var(--fg-2);
@@ -672,20 +678,22 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .track .time { margin-left: .2rem; }
 .track .track_playback {
-    align-items: center;
-    background: var(--bg-1-overlay);
     border-radius: .3rem;
-    color: var(--bg-2);
     display: flex;
     flex-shrink: 0;
     font-size: 1.3rem;
     height: 3rem;
-    justify-content: center;
     position: relative;
     width: 3rem;
 }
-.track .track_playback:focus-visible,
-.track .track_playback:hover {
+.js_enabled .track_playback {
+    align-items: center;
+    background: var(--bg-1-overlay);
+    color: var(--bg-2);
+    justify-content: center;
+}
+.js_enabled .track .track_playback:focus-visible,
+.js_enabled .track .track_playback:hover {
     background: var(--bg-2-overlay);
     color: var(--fg-1);
 }
@@ -703,10 +711,12 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     border-radius: .3rem;
     bottom: 0;
     left: 0;
-    opacity: .5;
     position: absolute;
     right: 0;
     top: 0;
+}
+.js_enabled .track_playback img {
+    opacity: .5;
     z-index: -1;
 }
 .track .track_playback svg { display: block; }
@@ -851,11 +861,35 @@ input[type="text"].disabled,
     top: -.1em;
 }
 /* In js-enabled browsers we put .js_enabled on the body on each page load */
+body:not(.js_enabled) .track_playback { cursor: default; }
+body:not(.js_enabled) .waveform { display: none; }
 .js_enabled audio { display: none; }
 .js_enabled .payment,
 .js_enabled .unlock_manual { display: none; }
 .js_enabled .unlock_scripted { display: unset; }
 .js_enabled .payment.active { display: unset; }
+.js_notice {
+    align-items: center;
+    -webkit-backdrop-filter: blur(3px) brightness(60%);
+    backdrop-filter: blur(3px) brightness(60%);
+    background: var(--bg-acc-overlay);
+    bottom: 0;
+    color: var(--fg-acc);
+    display: flex;
+    font-size: 1.1rem;
+    justify-content: center;
+    left: 0;
+    min-height: 2rem;
+    padding: 1rem;
+    position: fixed;
+    right: 0;
+}
+body.js_enabled .js_notice { display: none; }
+body:not(.js_enabled) button.browse,
+body:not(.js_enabled) button[data-copy],
+body:not(.js_enabled) button.listen {
+    display: none !important;
+}
 @media (max-width: 20rem) {
     .track .number { display: none; }
 }
@@ -890,6 +924,7 @@ input[type="text"].disabled,
 @media (min-width: 40rem) {
     .actions.primary { font-size: 1.2rem; }
     h1 { font-size: 2rem; }
+    .js_notice { padding: .5rem; }
     .page_grid > div { grid-template-columns: 1fr 1fr; }
     .page_more {
         border-radius: var(--cover-border-radius);

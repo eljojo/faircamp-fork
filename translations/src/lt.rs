@@ -79,5 +79,6 @@ pub const LT: Translations = Translations {
     xxx_hours: Reviewed("{xxx} valandų"),
     xxx_minutes: Reviewed("{xxx} minučių"),
     xxx_or_more: Reviewed("{xxx} ar daugiau"),
-    xxx_seconds: Reviewed("{xxx} sekundžių")
+    xxx_seconds: Reviewed("{xxx} sekundžių"),
+    ..Translations::UNTRANSLATED
 };

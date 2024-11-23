@@ -56,6 +56,7 @@ Here are some tips for writing good image descriptions:<br>\
 - Don't interpret. Describe what is there and relevant for its understanding, don't analyze beyond that.<br>\
 - You can use colors where it makes sense - many people only lost their sight later on and understand and appreciate colors."),
     image_descriptions_permalink: Reviewed("image-descriptions"),
+    javascript_is_disabled_text: Reviewed("JavaScript is disabled – Some features are not available"),
     listen: Reviewed("Listen"),
     loading: Reviewed("Loading"),
     m3u_playlist: Reviewed("M3U Playlist"),

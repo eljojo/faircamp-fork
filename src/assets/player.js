@@ -504,6 +504,12 @@ for (const container of document.querySelectorAll('.track')) {
         };
     }
 
+    // Playback buttons start off with tabindex="-1" because if the visitor
+    // has JavaScript disabled the element should not be interacted with at
+    // all. When JavaScript is available we revert to making the button
+    // reachable by keyboard.
+    playbackButton.tabindex = 0;
+
     if (firstTrack === null) {
         firstTrack = track;
         preselectedTrack = track;

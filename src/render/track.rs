@@ -158,7 +158,7 @@ pub fn track_html(
     let play_icon = icons::play(&build.locale.translations.play);
     let r_track = formatdoc!(r#"
         <div class="track" data-duration="{duration_seconds}">
-            <button class="track_playback">
+            <button class="track_playback" tabindex="-1">
                 <span class="icon">
                     {play_icon}
                 </span>
@@ -169,14 +169,14 @@ pub fn track_html(
                     <span class="title" href="{track_number}{index_suffix}">{track_title_escaped}</span>
                 </div>
                 {r_waveform}
+                <audio controls preload="none">
+                    {audio_sources}
+                </audio>
             </div>
             </span>
             <div>
                 {r_more} <span class="time">{track_duration_formatted}</span>
             </div>
-            <audio controls preload="none">
-                {audio_sources}
-            </audio>
         </div>
     "#);
 

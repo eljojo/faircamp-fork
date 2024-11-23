@@ -1,5 +1,5 @@
 const browser = document.querySelector('#browser');
-const browseButton = document.querySelector('button#browse');
+const browseButton = document.querySelector('button.browse');
 
 const browseResults = browser.querySelector('#results');
 const closeButton = browser.querySelector('button');

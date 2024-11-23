@@ -183,7 +183,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
             formatdoc!(r#"
                 <div class="track" data-duration="{duration_seconds}">
-                    <button class="track_playback">
+                    <button class="track_playback" tabindex="-1">
                         <span class="icon">
                             {play_icon}
                         </span>
@@ -196,13 +196,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         </div>
                         {track_artists}
                         {r_waveform}
+                        <audio controls preload="none">
+                            {audio_sources}
+                        </audio>
                     </div>
                     <div>
                         {r_more} <span class="time">{track_duration_formatted}</span>
                     </div>
-                    <audio controls preload="none">
-                        {audio_sources}
-                    </audio>
                 </div>
             "#)
         })
