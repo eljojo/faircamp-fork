@@ -161,6 +161,7 @@ pub struct Translations {
     pub image_descriptions_guide: Translation,
     /// Must be unique and only contain url-safe characters
     pub image_descriptions_permalink: Translation,
+    pub javascript_is_disabled_listen_at_xxx: Translation,
     pub javascript_is_disabled_text: Translation,
     pub listen: Translation,
     pub loading: Translation,
@@ -244,6 +245,7 @@ impl Translations {
         image_descriptions: Reviewed("image_descriptions"),
         image_descriptions_guide: Reviewed("image_descriptions_guide"),
         image_descriptions_permalink: Reviewed("image_descriptions_permalink"),
+        javascript_is_disabled_listen_at_xxx: Reviewed("javascript_is_disabled_listen_at_xxx"),
         javascript_is_disabled_text: Reviewed("javascript_is_disabled_text"),
         listen: Reviewed("listen"),
         loading: Reviewed("loading"),
@@ -324,6 +326,7 @@ impl Translations {
         image_descriptions: EN.image_descriptions.as_untranslated(),
         image_descriptions_guide: EN.image_descriptions_guide.as_untranslated(),
         image_descriptions_permalink: EN.image_descriptions_permalink.as_untranslated(),
+        javascript_is_disabled_listen_at_xxx: EN.javascript_is_disabled_listen_at_xxx.as_untranslated(),
         javascript_is_disabled_text: EN.javascript_is_disabled_text.as_untranslated(),
         listen: EN.listen.as_untranslated(),
         loading: EN.loading.as_untranslated(),
@@ -406,6 +409,7 @@ impl Translations {
             ("image_descriptions", &self.image_descriptions, false),
             ("image_descriptions_guide", &self.image_descriptions_guide, true),
             ("image_descriptions_permalink", &self.image_descriptions_permalink, false),
+            ("javascript_is_disabled_listen_at_xxx", &self.javascript_is_disabled_listen_at_xxx, false),
             ("javascript_is_disabled_text", &self.javascript_is_disabled_text, false),
             ("listen", &self.listen, false),
             ("loading", &self.loading, false),
@@ -470,6 +474,10 @@ impl Translations {
                 if let Unreviewed(_) = string.1 { true } else { false }
             )
             .count()
+    }
+
+    pub fn javascript_is_disabled_listen_at_xxx(&self, link: &str) -> String {
+        self.javascript_is_disabled_listen_at_xxx.replace("{link}", link)
     }
 
     pub fn percent_reviewed(&self) -> f32 {
@@ -547,6 +555,7 @@ fn check_translations() {
 
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));
+        assert!(&translations.javascript_is_disabled_listen_at_xxx.contains("{link}"));
         assert!(&translations.nothing_found_for_xxx.contains("{query}"));
         assert!(&translations.player_open_playing_xxx.contains("{title}"));
         assert!(&translations.showing_xxx_results_for_xxx.contains("{count}"));

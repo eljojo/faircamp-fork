@@ -119,3 +119,20 @@ using.
 - A visitor that views an unlisted thing (release or artist) is made aware
   of it through an "Unlisted" badge next to the title or name, hinting at
   the fact that it is unwanted for the thing to be publicly shared
+
+## JavaScript-free functionality
+
+On all pages, the first thing appearing within the `body` element is an inline
+script appending the `.js_enabled` class to the `body` element:
+
+```js
+<script>document.body.classList.add('js_enabled');</script>
+```
+
+Browser JS engines immediately execute this *before* further parsing the
+document, hence we can make alterations based on whether JS is available or
+not without introducing any flicker or jumping on the page during the initial
+load phase. At the time of writing this mechanism is also likely to be more
+robust than the `@media (scripting)` feature (which is not yet sufficiently
+available in all browsers and also misses JavaScript being blocked by way
+of plugins sometimes).

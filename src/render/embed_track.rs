@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
+use url::Url;
 
 use crate::{Build, Release, Track};
 use crate::icons;
@@ -9,10 +10,13 @@ use crate::render::{embed_layout, player_icon_templates};
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 pub fn embed_track_html(
+    base_url: &Url,
     build: &Build,
     release: &Release,
-    track: &Track
+    track: &Track,
+    track_number: usize
 ) -> String {
+    let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
@@ -96,12 +100,14 @@ pub fn embed_track_html(
         {templates}
     "##);
 
-    // TODO: Maybe reuse "Listen to everything at <a href="{root_prefix}.{index_suffix}">{base_url}</a>"
+    let release_slug = &release.permalink.slug;
+    let link_url = base_url.join(&format!("{release_slug}/{track_number}{index_suffix}")).unwrap();
 
     embed_layout(
         root_prefix,
         &body,
         build,
+        &link_url,
         &release.theme,
         &release.title
     )

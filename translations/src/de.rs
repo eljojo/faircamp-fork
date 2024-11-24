@@ -56,6 +56,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
 - Beschreib was da ist und wichtig fürs Verständnis, aber analysiere und interpretiere darüber hinaus nicht.<br>\
 - Du kannst Farbbeschreibungen verwenden wo es Sinn macht - viele Menschen verlieren ihre Sehkraft erst spät im Leben und verstehen und schätzen Farben."),
     image_descriptions_permalink: Reviewed("bildbeschreibungen"),
+    javascript_is_disabled_listen_at_xxx: Reviewed("JavaScript ist deaktiviert – Anhören auf {link}"),
     javascript_is_disabled_text: Reviewed("JavaScript ist deaktiviert – Manche Features sind nicht verfügbar"),
     listen: Reviewed("Anhören"),
     loading: Reviewed("Lädt"),

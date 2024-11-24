@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
+use url::Url;
 
 use crate::{Build, Catalog, Release};
 use crate::icons;
@@ -14,6 +15,7 @@ use crate::render::{
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 pub fn embed_release_html(
+    base_url: &Url,
     build: &Build,
     catalog: &Catalog,
     release: &Release
@@ -142,10 +144,14 @@ pub fn embed_release_html(
         {templates}
     "##);
 
+    let release_slug = &release.permalink.slug;
+    let link_url = base_url.join(&format!("{release_slug}{index_suffix}")).unwrap();
+
     embed_layout(
         root_prefix,
         &body,
         build,
+        &link_url,
         &release.theme,
         &release.title
     )

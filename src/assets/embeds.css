@@ -302,6 +302,24 @@ button:not(.link).disabled,
     margin-right: .6rem;
     width: 6rem;
 }
+.js_notice {
+    align-items: center;
+    background: var(--bg-1);
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    left: 0;
+    padding: 1rem;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+.js_notice a {
+    align-items: center;
+    column-gap: .2em;
+    display: inline-flex;
+}
+body.js_enabled .js_notice { display: none; }
 @media (min-width: 30rem) {
     .player { font-size: 1.14rem;  }
 }

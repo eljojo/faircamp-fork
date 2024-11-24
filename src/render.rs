@@ -6,6 +6,7 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 use indoc::formatdoc;
+use url::{Position, Url};
 
 use crate::{
     ArtistRc,
@@ -348,11 +349,16 @@ fn embed_layout(
     root_prefix: &str,
     body: &str,
     build: &Build,
+    link_url: &Url,
     theme: &Theme,
     title: &str
 ) -> String {
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
+    let display_url = &link_url[Position::BeforeHost..];
+    let external_icon = icons::external(&build.locale.translations.external_link);
+    let full_url = link_url.to_string();
+    let t_javascript_is_disabled_listen_at_xxx = build.locale.translations.javascript_is_disabled_listen_at_xxx(&format!(r#"<a href="{full_url}">{external_icon} {display_url}</a>"#));
     format!(
         include_str!("templates/embed.html"),
         body = body,
@@ -362,6 +368,7 @@ fn embed_layout(
         embeds_js_hash = build.asset_hashes.embeds_js.as_ref().unwrap(),
         lang = &build.locale.language,
         root_prefix = root_prefix,
+        t_javascript_is_disabled_listen_at_xxx = t_javascript_is_disabled_listen_at_xxx,
         theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap(),
         theme_stylesheet_filename = theme.stylesheet_filename(),
         title = html_escape_outside_attribute(title)
