@@ -5,6 +5,10 @@
 
 # Changelog
 
+# 0.22.1
+
+- Fix critical build issue related to accidental commit of a subcrate versioning change (31a4b0f)
+
 # 0.22.0
 
 - Reimplement handling of disabled js for player, browser and copy link buttons (099272c)
