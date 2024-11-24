@@ -5,6 +5,14 @@
 
 # Changelog
 
+# 0.22.0
+
+- Reimplement handling of disabled js for player, browser and copy link buttons (099272c)
+- Reimplement handling of disabled js for purchase/unlock flows (f04687f)
+- Implement handling of disabled js for embeds (7639162)
+- Expand "more" section to full width on narrow viewports (bfef577)
+- Map support artists also when main artists are explicitly set (91c5f26)
+
 # 0.21.0
 
 - Introduce configurable M3U playlist option for the entire catalog (0cebc42)

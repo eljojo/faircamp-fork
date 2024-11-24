@@ -5,14 +5,16 @@
 
 # Faircamp
 
-A static site generator for audio producers
-
-<img src="https://simonrepp.com/faircamp/readme.jpg?2" alt="Screenshot of a pink/violet-colored website presenting an album called 'Valedictions EP' by artist 'Turnus'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Extra info', a short synopsis text, smaller buttons labelled 'Copy link' and 'M3U Playlist', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Distances'."/>
+**A static site generator for audio producers**
 
 Point Faircamp to a folder hierarchy containing your audio files. Within
 minutes, Faircamp builds a complete website presenting your work. The
 resulting site requires no database, no programming, no maintenance, and is
 compatible with virtually every webhost on this planet.
+
+Latest Release: **`0.22.0`** [Download](https://simonrepp.com/faircamp/manual/installation.html) [Changelog](https://codeberg.org/simonrepp/faircamp/src/branch/main/CHANGELOG.md)
+
+<img src="https://simonrepp.com/faircamp/readme.jpg?2" alt="Screenshot of a pink/violet-colored website presenting an album called 'Valedictions EP' by artist 'Turnus'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Extra info', a short synopsis text, smaller buttons labelled 'Copy link' and 'M3U Playlist', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Distances'."/>
 
 Visit the [website](https://simonrepp.com/faircamp) for more information, screenshots, links, etc.
 
