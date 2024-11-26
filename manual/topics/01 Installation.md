@@ -7,8 +7,7 @@
 
 ## Windows
 
-1. Download the [latest windows build](https://simonrepp.com/faircamp/packages/faircamp-0.21.0-windows-x64.zip)
-2. **IMPORTANT**: Follow the installation instructions inside the included `README.txt`
+Download and run the [Windows Installer](https://simonrepp.com/faircamp/packages/faircamp-0.22.1-windows-x64.exe) (64-bit)
 
 Alternatively, you can also run faircamp non-natively via [Docker](https://github.com/n3wjack/faircamp-docker) or via
 [WSL](https://www.meljoann.com/posts/faircamp/), or build it yourself using the
