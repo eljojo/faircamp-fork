@@ -5,9 +5,10 @@
 
 # Tags
 
-This is an attempt to document which tags (in terms of low-level technical specification)
-faircamp supports/uses for its own fields, which ones it writes, etc. Note that this
-documentation might not necessarily be 100% complete or accurate (yet).
+This is an attempt to document which tags (in terms of low-level technical
+specification) faircamp supports/uses for its own fields, which ones it
+writes, etc. Note that this documentation might not always be 100% complete
+or accurate, as tags and their standardisation tend to be messy.
 
 ## AAC
 
@@ -53,6 +54,11 @@ Track title: TIT2 (Title)
 ## MP3
 
 Embedded cover images: Supported
+
+When transcoding to MP3, faircamp writes tags as ID3v2.3 rather than the latest
+ID3v2.4. This is done to achieve greater compatibility with players and operating
+systems (e.g. Windows and its media player have a long history of not supporting
+ID3v2.4 tags).
 
 Same tags as AIFF and WAV - see ID3.
 
