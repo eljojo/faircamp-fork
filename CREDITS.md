@@ -76,6 +76,7 @@ Damian Szetela<br>
 [sknob](https://sknob.fr/)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
 [thirdwheel](https://codeberg.org/thirdwheel)<br>
+[thurti](https://t3000.uber.space)<br>
 [Tommaso Croce](https://mastodon.uno/@toctoc)<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
 [Vac](https://crumb.lt/Vac)<br>

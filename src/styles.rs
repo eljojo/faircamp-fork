@@ -87,8 +87,8 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
         }
         ThemeFont::Default => {
             fs::write(
-                build.build_dir.join("barlow-v5-latin-regular.woff2"),
-                include_bytes!("assets/barlow-v5-latin-regular.woff2")
+                build.build_dir.join("barlow-v12-latin-regular.woff2"),
+                include_bytes!("assets/barlow-v12-latin-regular.woff2")
             ).unwrap();
             
             formatdoc!(r#"
@@ -97,7 +97,7 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
                     font-family: 'Barlow';
                     font-style: normal;
                     font-weight: 400;
-                    src: local('Barlow'), url('barlow-v5-latin-regular.woff2') format('woff2');
+                    src: local('Barlow'), url('barlow-v12-latin-regular.woff2') format('woff2');
                 }}
                 {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow', {FALLBACK_FONT_STACK_SANS}; }}
             "#)

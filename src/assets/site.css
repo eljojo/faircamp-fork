@@ -250,6 +250,10 @@ button svg { display: inline-block; }
 }
 .docked_player .number { margin-inline-end: .5rem; }
 .docked_player .playback { margin-inline-start: .4rem; }
+.docked_player .time {
+    font-size: 1.1rem;
+    font-variant: tabular-nums;
+}
 .docked_player .timeline {
     cursor: pointer;
     height: .8rem;

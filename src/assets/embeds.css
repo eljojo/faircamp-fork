@@ -94,6 +94,10 @@ button svg { display: inline-block; }
 }
 .player .number { margin-right: .5rem; }
 .player .previous_track { margin-left: .4rem; }
+.player .time {
+    font-size: 1.1rem;
+    font-variant: tabular-nums;
+}
 .player .timeline {
     cursor: pointer;
     height: .8rem;
