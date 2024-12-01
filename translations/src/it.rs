@@ -54,6 +54,8 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
 - Non dare un'interpretazione. Descrivi semplicemente ciò che è presente e rilevante per la sua comprensione, non analizzare oltre.<br>\
 - Puoi usare i colori dove ha senso - molte persone hanno perso la vista più tardi nella vita e comprendono e apprezzano i colori."),
     image_descriptions_permalink: Reviewed("descrizioni-immagini"),
+    javascript_is_disabled_listen_at_xxx: Reviewed("JavaScript è disabilitato – Ascolta su {link}"),
+    javascript_is_disabled_text: Reviewed("JavaScript è disabilitato – Alcune funzionalità non sono disponibili."),
     listen: Reviewed("Ascolta"),
     loading: Reviewed("Caricamento"),
     m3u_playlist: Reviewed("Elenco di riproduzione M3U"),
