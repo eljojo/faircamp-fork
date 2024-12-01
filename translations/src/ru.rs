@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2024 wileyfoxyx
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pub const ..: Translations = Translations {
+use super::{Reviewed, Translations};
+
+pub const RU: Translations = Translations {
     audio_format_alac: Reviewed("Сжатый файл без потери качества. Если вы используете продукты Apple, выберите этот формат вместо FLAC"),
     audio_format_average: Reviewed("Среднее сжатие. Подходит, если ваш плеер не поддерживает лучшие форматы"),
     audio_format_flac: Reviewed("Сжатый файл без потери качества. Лучший вариант для архивации"),
@@ -17,7 +19,7 @@ pub const ..: Translations = Translations {
     buy: Reviewed("Купить"),
     close: Reviewed("Закрыть"),
     confirm: Reviewed("Подтвердить"),
-    continue: Reviewed("Продолжить"),
+    r#continue: Reviewed("Продолжить"),
     copied: Reviewed("Скопировано"),
     copy: Reviewed("Копировать"),
     copy_link: Reviewed("Копировать ссылку"),
@@ -79,4 +81,5 @@ pub const ..: Translations = Translations {
     xxx_minutes: Reviewed("{xxx} минут"),
     xxx_or_more: Reviewed("{xxx} или более"),
     xxx_seconds: Reviewed("{xxx} секунд"),
+    ..Translations::UNTRANSLATED
 };

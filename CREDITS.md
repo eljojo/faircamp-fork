@@ -83,5 +83,6 @@ Damian Szetela<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
 [Wesley Sinks](https://linuxcreative.com)<br>
+[wileyfoxyx](https://codeberg.org/wileyfoxyx)<br>
 [Wolfgang Dorninger](https://dorninger.servus.at)<br>
 [zzkt](https://fo.am/people/nik)

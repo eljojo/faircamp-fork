@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use translations::{DE, EN, ES, FR, HE, IT, LT, NB, NL, PL, SR_CYRL, SR_LATN, SV, TR, UK};
+use translations::{DE, EN, ES, FR, HE, IT, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR, UK};
 use translations::Translations;
 
 pub struct Locale {
@@ -41,6 +41,7 @@ impl Locale {
             "nb" => Locale::new("nb", NB, TextDirection::Ltr),
             "nl" => Locale::new("nl", NL, TextDirection::Ltr),
             "pl" => Locale::new("pl", PL, TextDirection::Ltr),
+            "ru" => Locale::new("ru", RU, TextDirection::Ltr),
             "sr-cyrl" => Locale::new("sr-cyrl", SR_CYRL, TextDirection::Ltr),
             "sr-latn" => Locale::new("sr-latn", SR_LATN, TextDirection::Ltr),
             "sv" => Locale::new("sv", SV, TextDirection::Ltr),
