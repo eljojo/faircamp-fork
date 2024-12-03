@@ -639,7 +639,7 @@ pre { margin: 0; }
 .skip_to_content {
     background: var(--fg-3);
     border-radius: .3rem;
-    color: var(--bg-1);
+    color: var(--bg-1) !important;
     left: 50%;
     padding: .5rem 1rem;
     position: fixed;
@@ -760,7 +760,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     margin-top: .2rem;
     outline: none;
 }
-.track a.title:hover { color: var(--fg-1-focus); }
+.track a.title:not(:focus-visible):hover { color: var(--fg-1-focus); }
 .tracks { flex-grow: 1; }
 .tracks.compact .track { column-gap: .5rem; }
 .tracks.compact .track:not(:first-child) { margin-top: .5rem; }
