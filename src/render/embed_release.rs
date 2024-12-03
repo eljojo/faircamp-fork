@@ -89,7 +89,7 @@ pub fn embed_release_html(
                     <audio controls preload="none">
                         {audio_sources}
                     </audio>
-                    <input aria-valuetext="" autocomplete="off" max="{track_duration_seconds}" min="0" step="any" type="range" value="0">
+                    <input autocomplete="off" max="{track_duration_seconds}" min="0" step="any" type="range" value="0">
                 </div>
             "#)
         })
@@ -106,11 +106,13 @@ pub fn embed_release_html(
     let volume_icon = icons::volume();
     let t_dimmed = &build.locale.translations.dimmed;
     let t_muted = &build.locale.translations.muted;
+    let t_playback_position = &build.locale.translations.playback_position;
+    let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
         {tracks_rendered}
         <div class="player {tall}">
             <div class="timeline">
-                <input aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
+                <input aria-label="{t_playback_position}" aria-valuetext="" autocomplete="off" max="" min="0" step="any" type="range" value="0">
                 <div class="base"></div>
                 <div class="progress" style="width: 0%;"></div>
             </div>
@@ -129,7 +131,7 @@ pub fn embed_release_html(
                         {volume_icon}
                     </button>
                     <span class="slider">
-                        <input aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                        <input aria-label="{t_volume}" aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
                     </span>
                 </div>
                 <span class="track_info">
