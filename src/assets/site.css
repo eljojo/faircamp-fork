@@ -775,6 +775,10 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     height: 4rem;
     width: 4rem;
 }
+input::placeholder {
+    color: var(--mg);
+    opacity: 1;
+}
 input[type="number"],
 input[type="text"] {
     background-color: var(--bg-1-overlay);
