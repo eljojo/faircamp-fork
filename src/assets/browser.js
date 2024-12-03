@@ -171,6 +171,16 @@ function showBrowser() {
     statusField.textContent = '';
 }
 
+// When the browse/search modal is open and focus moves outside the page
+// entirely (e.g. to the addressbar) but then re-enters the page, we need
+// to make sure that it returns back to the browse/search modal (instead of
+// to an obscured element in the main body)
+document.body.addEventListener('focusin', event => {
+    if (browser.classList.contains('active') && !browser.contains(event.target)) {
+        searchField.focus();
+    }
+});
+
 browser.addEventListener('focusout', event => {
     if (event.relatedTarget && !browser.contains(event.relatedTarget)) {
         hideBrowser();
