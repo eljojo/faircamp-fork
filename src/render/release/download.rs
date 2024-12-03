@@ -238,7 +238,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
     let body = formatdoc!(
         r##"
             <div class="page">
-                <div class="page_center page_100vh">
+                <div class="page_center page_90vh">
                     <div style="max-width: 28rem;">
                         <h1>{t_downloads}</h1>
 

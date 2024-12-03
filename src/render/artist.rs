@@ -149,7 +149,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_60vh">
+            <div class="page_split page_50vh">
                 {r_artist_image}
                 <div class="abstract">
                     <h1>{name_unlisted}</h1>

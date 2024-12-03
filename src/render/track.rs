@@ -360,7 +360,7 @@ pub fn track_html(
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_60vh">
+            <div class="page_split page_50vh">
                 <div class="cover">{cover}</div>
                 <div class="abstract">
                     <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->

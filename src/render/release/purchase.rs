@@ -198,7 +198,7 @@ pub fn purchase_html(
     let t_purchase_downloads = &build.locale.translations.purchase_downloads;
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_center page_100vh">
+            <div class="page_center page_90vh">
                 <div style="max-width: 28rem;">
                     <h1>{t_purchase_downloads}</h1>
                     {compact_release_identifier_rendered}

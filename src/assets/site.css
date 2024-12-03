@@ -146,7 +146,7 @@ body {
 #browser input:focus-visible { outline: none; }
 #browser .number {
     color: var(--fg-3);
-    padding-right: .4rem;
+    padding-inline-end: .4rem;
 }
 #browser #results {
     display: flex;
@@ -296,15 +296,10 @@ button svg { display: inline-block; }
 .docked_player .track_info {
     align-items: center;
     display: flex;
-    margin-inline-start: .2em;
-    margin-inline-end: .6em;
-    overflow-x: hidden;
+    margin-inline: .2em .6em;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-.docked_player .volume_hint {
-    margin-inline-start: .2em;
-    margin-inline-end: 1.2em;
 }
 .docked_player.tall .elements { height: 3.8rem; }
 .docked_player.tall .number { margin-inline-end: .8rem; }
@@ -400,38 +395,23 @@ h2 {
     margin: 0;
 }
 .hcenter_unconstrained { margin: 0 auto; }
-.hcenter_wide {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 33rem;
-}
 header {
-    align-items: center;
-    box-sizing: border-box;
+    align-items: flex-start;
     display: flex;
-    height: 2.5rem;
     justify-content: space-between;
-    padding-inline-start: .3rem;
-    padding-inline-end: .8rem;
-    position: absolute;
-    width: 100%;
-    z-index: 1;
+    padding-block: .4em;
+    padding-inline: .3em .8em;
 }
-header > div {
-    align-items: center;
-    display: flex;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-header > button,
-header > div a {
-    align-items: center;
-    column-gap: .3rem;
-    display: flex;
+header a,
+header button {
     padding: .4rem;
 }
-#browse:focus-visible,
+header button {
+    align-items: center;
+    column-gap: .3rem;
+    display: inline-flex;
+}
+.browse:focus-visible,
 header > div a:focus-visible {
     background: var(--fg-3);
     color: var(--bg-1);
@@ -442,9 +422,16 @@ header > div a:focus-visible {
     outline: none;
 }
 header > div > span { margin-inline: .2rem; }
-header #browse { color: var(--fg-3); }
-header #browse:hover {
+header .browse { color: var(--fg-3); }
+header .browse:not(:focus-visible):hover {
     color: var(--fg-3-focus);
+}
+header #logo svg {
+    display: inline-block;
+    height: 1.4em;
+    margin-inline-end: .1rem;
+    top: .4em;
+    width: 1.4em;
 }
 header svg {
     position: relative;
@@ -473,16 +460,7 @@ img {
 }
 .image svg { height: 100%; }
 .large_type { font-size: 1.4rem; }
-#logo { flex-shrink: 0; }
-#logo svg {
-    height: 1.4em;
-    width: 1.4em;
-}
 main { box-sizing: border-box; }
-.mobile_hpadding {
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
 path.loading_left {
     /* The loading icon is at first the pause icon, but after about 500ms
        (400ms delay + ~100ms until first tweening occurs) the loading
@@ -564,9 +542,8 @@ path.loading_right {
     --page-margin-h: 1rem;
     position: relative;
 }
-.page_100vh { min-height: 100vh; }
+.page_90vh { min-height: 90vh; }
 .page_50vh { min-height: 50vh; }
-.page_60vh { min-height: 60vh; }
 .page_center {
     align-items: center;
     display: flex;
@@ -690,7 +667,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track button { padding: 0; }
 .track > :nth-child(2) {
     flex-grow: 1;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 .track .number {
     color: var(--fg-3);
@@ -799,7 +776,7 @@ input[type="text"].disabled,
     display: flex;
     margin-bottom: 2rem;
 }
-.unlock_code { margin-right: .3rem; }
+.unlock_code { margin-inline-end: .3rem; }
 .volume {
     align-items: center;
     display: flex;
@@ -807,7 +784,7 @@ input[type="text"].disabled,
 .volume input {
     opacity: 0;
     margin-inline-end: 0;
-    transition: opacity 200ms ease, margin-right 200ms ease, width 200ms ease;
+    transition: opacity 200ms ease, margin-inline-end 200ms ease, width 200ms ease;
     width: 0;
 }
 .volume button { color: var(--fg-1); }
@@ -816,11 +793,12 @@ input[type="text"].disabled,
     background: var(--fg-1);
     border-radius: .2rem;
     color: var(--bg-1);
+    display: none;
     font-size: .8rem;
     font-weight: 600;
+    margin-inline: .2em 1.2em;
     padding: .3rem .4rem;
 }
-.volume_hint:not(.active) { display: none; }
 .volume:hover input,
 .volume input:focus-visible,
 .volume button:focus-visible + .slider input {
@@ -926,18 +904,12 @@ body:not(.js_enabled) button.listen {
     .actions.primary { font-size: 1.1rem; }
     h1 { font-size: 1.8rem; }
     .page { --page-margin-h: 2rem; }
+    .volume_hint.active { display: initial; }
 }
 @media (min-width: 30rem) {
     .docked_player { font-size: 1.14rem;  }
-    header {
-        font-size: 1.14rem;
-        height: 3.2rem;
-    }
+    header { font-size: 1.14rem; }
     .home_image { height: 12rem; }
-    .mobile_hpadding {
-        padding-left: 0;
-        padding-right: 0;
-    }
 }
 @media (max-width: 39.999rem) {
     .text ol { padding-left: 1rem; }

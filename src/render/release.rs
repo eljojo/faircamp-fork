@@ -421,7 +421,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let t_muted = &build.locale.translations.muted;
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_60vh">
+            <div class="page_split page_50vh">
                 <div class="cover">{cover}</div>
                 <div class="abstract">
                     <h1>{release_title_with_unlisted_badge}</h1>

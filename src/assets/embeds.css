@@ -158,11 +158,6 @@ button svg { display: inline-block; }
 }
 .player.tall .title_wrapper { margin-right: .9rem; }
 .hcenter_unconstrained { margin: 0 auto; }
-.hcenter_wide {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 33rem;
-}
 img {
     display: block;
     max-width: 100%;
@@ -185,10 +180,6 @@ img {
     width: 1.4em;
 }
 main { box-sizing: border-box; }
-.mobile_hpadding {
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
 path.loading_left {
     /* The loading icon is at first the pause icon, but after about 500ms
        (400ms delay + ~100ms until first tweening occurs) the loading
