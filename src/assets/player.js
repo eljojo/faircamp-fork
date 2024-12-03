@@ -508,7 +508,7 @@ for (const container of document.querySelectorAll('.track')) {
     // has JavaScript disabled the element should not be interacted with at
     // all. When JavaScript is available we revert to making the button
     // reachable by keyboard.
-    playbackButton.tabindex = 0;
+    playbackButton.tabIndex = 0;
 
     if (firstTrack === null) {
         firstTrack = track;

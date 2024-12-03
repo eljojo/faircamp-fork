@@ -146,7 +146,7 @@ pub fn track_html(
     };
 
     let r_cover_micro = match release.cover_image_micro_src() {
-        Some(src) => format!(r#"<img src="../{src}">"#),
+        Some(src) => format!(r#"<img aria-hidden="true" src="../{src}">"#),
         None => String::from(r#"<span class="cover_placeholder"></span>"#)
     };
     let r_more = if track.text.is_some() {

@@ -170,7 +170,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             };
 
             let r_cover_micro = match release.cover_image_micro_src() {
-                Some(src) => format!(r#"<img src="{src}">"#),
+                Some(src) => format!(r#"<img aria-hidden="true" src="{src}">"#),
                 None => String::from(r#"<span class="cover_placeholder"></span>"#)
             };
 
