@@ -82,6 +82,7 @@ Here are some tips for writing good image descriptions:<br>\
     search: Reviewed("Search"),
     showing_featured_items: Reviewed("Showing featured items"),
     showing_xxx_results_for_xxx: Reviewed("Showing {count} results for '{query}'"),
+    skip_to_main_content: Reviewed("Skip to main content"),
     this_site_was_created_with_faircamp: Reviewed("This site was created with {faircamp_link}"),
     unlisted: Reviewed("Unlisted"),
     unlock: Reviewed("Unlock"),

@@ -15,6 +15,7 @@
     </head>
     <body>
         <script>document.body.classList.add('js_enabled');</script>
+        <a class="skip_to_content" href="#content">{t_skip_to_main_content}</a>
         <header>
             <div>
                 <a id="logo" href="{root_prefix}.{index_suffix}">
@@ -28,7 +29,9 @@
                 {browse_icon}
             </button>
         </header>
-        {body}
+        <main id="content">
+            {body}
+        </main>
         {browser}
         {theming_widget}
         <aside class="js_notice">{t_javascript_is_disabled_text}</aside>

@@ -468,6 +468,7 @@ fn layout(
         site_css_hash = build.asset_hashes.site_css.as_ref().unwrap(),
         t_browse = &build.locale.translations.browse,
         t_javascript_is_disabled_text = &build.locale.translations.javascript_is_disabled_text,
+        t_skip_to_main_content = &build.locale.translations.skip_to_main_content,
         theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap(),
         theme_stylesheet_filename = theme.stylesheet_filename(),
         theming_widget = theming_widget,
