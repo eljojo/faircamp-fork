@@ -217,6 +217,7 @@ button svg { display: inline-block; }
 }
 .docked_player {
     bottom: 0;
+    direction: ltr;
     left: 0;
     position: fixed;
     right: 0;
@@ -253,6 +254,7 @@ button svg { display: inline-block; }
 .docked_player .time {
     font-size: 1.1rem;
     font-variant: tabular-nums;
+    margin-inline-start: .2rem;
 }
 .docked_player .timeline {
     cursor: pointer;
@@ -291,7 +293,6 @@ button svg { display: inline-block; }
 .docked_player .title_wrapper {
     display: inline-flex;
     flex-direction: column;
-    margin-inline-end: .6rem;
 }
 .docked_player .track_info {
     align-items: center;
@@ -673,7 +674,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     color: var(--fg-3);
     margin-inline-end: .2rem;
 }
-.track .time { margin-left: .2rem; }
+.track .time { margin-inline-start: .2rem; }
 .track .track_playback {
     border-radius: .3rem;
     display: flex;
@@ -886,10 +887,18 @@ body:not(.js_enabled) button[data-copy],
 body:not(.js_enabled) button.listen {
     display: none !important;
 }
+html[dir="rtl"] .docked_player .track_info {
+    direction: rtl;
+    flex-grow: 1;
+    margin-inline-start: 1.2rem;
+    order: 1;
+}
 @media (max-width: 20rem) {
+    .docked_player .time { display: none; }
     .track .number { display: none; }
 }
 @media (max-width: 24.999rem) {
+    .docked_player .time > :not(.current) { display: none; }
     .track .time { display: none; }
 }
 @media (min-width: 25rem) {

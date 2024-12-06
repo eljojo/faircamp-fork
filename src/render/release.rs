@@ -464,7 +464,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <span class="track_info">
                     <span class="number"></span>
                     <span class="title_wrapper"></span>
-                    <span class="time"></span>
+                </span>
+                <span class="time">
+                    <span class="current"></span>
+                    <span>/</span>
+                    <span class="total"></span>
                 </span>
             </div>
         </div>

@@ -13,15 +13,16 @@ let preselectedTrack = null;
 const dockedPlayerContainer = document.querySelector('.docked_player');
 const dockedPlayer = {
     container: dockedPlayerContainer,
+    currentTime: dockedPlayerContainer.querySelector('.time .current'),
     nextTrackButton: dockedPlayerContainer.querySelector('button.next_track'),
     number: dockedPlayerContainer.querySelector('.number'),
     playbackButton: dockedPlayerContainer.querySelector('button.playback'),
     progress: dockedPlayerContainer.querySelector('.progress'),
     status: document.querySelector('.docked_player_status'),
-    time: dockedPlayerContainer.querySelector('.time'),
     timeline: dockedPlayerContainer.querySelector('.timeline'),
     timelineInput: dockedPlayerContainer.querySelector('.timeline input'),
     titleWrapper: dockedPlayerContainer.querySelector('.title_wrapper'),
+    totalTime: dockedPlayerContainer.querySelector('.time .total'),
     volumeButton: dockedPlayerContainer.querySelector('.volume button'),
     volumeInput: dockedPlayerContainer.querySelector('.volume input'),
     volumeSvgTitle: dockedPlayerContainer.querySelector('.volume svg title')
@@ -74,7 +75,8 @@ async function mountAndPlay(track, seekTo) {
 
     dockedPlayer.container.classList.add('active');
     dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenPlayingXxx(track.title.textContent));
-    dockedPlayer.time.textContent = `0:00 / ${formatTime(activeTrack.duration)}`;
+    dockedPlayer.currentTime.textContent = '0:00';
+    dockedPlayer.totalTime.textContent = formatTime(activeTrack.duration);
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
 
     if (track.artists) {
@@ -251,7 +253,7 @@ function updatePlayhead(track, reset = false) {
     const factor = reset ? 0 : audio.currentTime / track.duration;
 
     dockedPlayer.progress.style.setProperty('width', `${factor * 100}%`);
-    dockedPlayer.time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
+    dockedPlayer.currentTime.textContent = formatTime(audio.currentTime);
     dockedPlayer.timelineInput.value = audio.currentTime;
 
     if (track.waveform) {
