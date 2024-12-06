@@ -712,11 +712,9 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
     position: absolute;
     right: 0;
     top: 0;
-}
-.js_enabled .track_playback img {
-    opacity: .5;
     z-index: -1;
 }
+.js_enabled .track_playback img { opacity: .5; }
 .track .track_playback svg { display: block; }
 .track_download_option { position: relative; }
 .docked_player .number,
