@@ -8,15 +8,16 @@ let firstTrack = null;
 const container = document.querySelector('.player');
 const player = {
     container,
+    currentTime: container.querySelector('.time .current'),
     nextTrackButton: container.querySelector('button.next_track'),
     number: container.querySelector('.number'),
     playbackButton: container.querySelector('button.playback'),
     previousTrackButton: container.querySelector('button.previous_track'),
     progress: container.querySelector('.progress'),
-    time: container.querySelector('.time'),
     timeline: container.querySelector('.timeline'),
     timelineInput: container.querySelector('.timeline input'),
     titleWrapper: container.querySelector('.title_wrapper'),
+    totalTime: container.querySelector('.time .total'),
     volumeButton: container.querySelector('.volume button'),
     volumeInput: container.querySelector('.volume input'),
     volumeSvgTitle: container.querySelector('.volume svg title')
@@ -77,7 +78,8 @@ function mount(track) {
     activeTrack = track;
 
     player.container.classList.add('active');
-    player.time.textContent = `0:00 / ${formatTime(track.duration)}`;
+    player.currentTime.textContent = '0:00';
+    player.totalTime.textContent = formatTime(track.duration);
     player.timelineInput.max = track.container.dataset.duration;
 
     if (track.artists) {
@@ -95,7 +97,8 @@ async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
     player.container.classList.add('active');
-    player.time.textContent = `0:00 / ${formatTime(track.duration)}`;
+    player.currentTime.textContent = '0:00';
+    player.totalTime.textContent = formatTime(track.duration);
     player.timelineInput.max = track.container.dataset.duration;
 
     if (track.artists) {
@@ -243,7 +246,7 @@ function updatePlayhead(track, reset = false) {
     const factor = reset ? 0 : audio.currentTime / track.duration;
 
     player.progress.style.setProperty('width', `${factor * 100}%`);
-    player.time.textContent = `${formatTime(audio.currentTime)} / ${formatTime(track.duration)}`;
+    player.currentTime.textContent = formatTime(audio.currentTime);
 }
 
 function updateVolume(restoreLevel = null) {
@@ -292,6 +295,7 @@ function updateVolume(restoreLevel = null) {
         `;
     };
 
+    player.volumeButton.classList.toggle('muted', volume.level === 0);
     player.volumeSvgTitle.textContent = volume.level > 0 ? EMBEDS_JS_T.mute : EMBEDS_JS_T.unmute;
 
     const beginAngle = -135;

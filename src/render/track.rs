@@ -399,7 +399,11 @@ pub fn track_html(
                 </div>
                 <span class="track_info">
                     <span class="title_wrapper"></span>
-                    <span class="time"></span>
+                </span>
+                <span class="time">
+                    <span class="current"></span>
+                    <span>/</span>
+                    <span class="total"></span>
                 </span>
             </div>
         </div>
