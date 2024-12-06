@@ -307,19 +307,8 @@ function updateVolume(restoreLevel = null) {
         `;
     };
 
-    if (volume.level === 1) {
-        dockedPlayer.volumeSvgTitle.textContent = PLAYER_JS_T.mute;
-        document.querySelector('.volume_hint.dimmed').classList.remove('active');
-        document.querySelector('.volume_hint.muted').classList.remove('active');
-    } else if (volume.level == 0) {
-        dockedPlayer.volumeSvgTitle.textContent = PLAYER_JS_T.unmute;
-        document.querySelector('.volume_hint.dimmed').classList.remove('active');
-        document.querySelector('.volume_hint.muted').classList.add('active');
-    } else {
-        dockedPlayer.volumeSvgTitle.textContent = PLAYER_JS_T.mute;
-        document.querySelector('.volume_hint.dimmed').classList.add('active');
-        document.querySelector('.volume_hint.muted').classList.remove('active');
-    }
+    dockedPlayer.volumeButton.classList.toggle('muted', volume.level === 0);
+    dockedPlayer.volumeSvgTitle.textContent = volume.level > 0 ? PLAYER_JS_T.mute : PLAYER_JS_T.unmute;
 
     const beginAngle = -135;
     const arcAngle = volume.level * 270;

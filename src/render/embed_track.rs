@@ -67,8 +67,6 @@ pub fn embed_track_html(
 
     let play_icon = icons::play(&build.locale.translations.play);
     let volume_icon = icons::volume();
-    let t_dimmed = &build.locale.translations.dimmed;
-    let t_muted = &build.locale.translations.muted;
     let t_playback_position = &build.locale.translations.playback_position;
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
@@ -95,8 +93,6 @@ pub fn embed_track_html(
                     <span class="title_wrapper"></span>
                     <span class="time"></span>
                 </span>
-                <span class="volume_hint dimmed">{t_dimmed}</span>
-                <span class="volume_hint muted">{t_muted}</span>
             </div>
         </div>
         {templates}

@@ -788,17 +788,9 @@ input[type="text"].disabled,
     width: 0;
 }
 .volume button { color: var(--fg-1); }
-.volume button path.inactive_range { color: var(--bg-2); }
-.volume_hint {
-    background: var(--fg-1);
-    border-radius: .2rem;
-    color: var(--bg-1);
-    display: none;
-    font-size: .8rem;
-    font-weight: 600;
-    margin-inline: .2em 1.2em;
-    padding: .3rem .4rem;
-}
+.volume button path.inactive_range { color: var(--bg-3); }
+.volume button.muted path.knob { display: none; }
+.volume button:not(.muted) path.strike_out { display: none; }
 .volume:hover input,
 .volume input:focus-visible,
 .volume button:focus-visible + .slider input {
@@ -904,7 +896,6 @@ body:not(.js_enabled) button.listen {
     .actions.primary { font-size: 1.1rem; }
     h1 { font-size: 1.8rem; }
     .page { --page-margin-h: 2rem; }
-    .volume_hint.active { display: initial; }
 }
 @media (min-width: 30rem) {
     .docked_player { font-size: 1.14rem;  }

@@ -146,10 +146,6 @@ button svg { display: inline-block; }
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.player .volume_hint {
-    margin-left: .2em;
-    margin-right: 1.2em;
-}
 .player.tall .elements { height: 3.8rem; }
 .player.tall .number { margin-right: .8rem; }
 .player.tall .timeline .base,
@@ -281,15 +277,6 @@ button:not(.link).disabled,
 }
 .volume button { color: var(--fg-1); }
 .volume button path.inactive_range { color: var(--bg-2); }
-.volume_hint {
-    background: var(--fg-1);
-    border-radius: .2rem;
-    color: var(--bg-1);
-    font-size: .8rem;
-    font-weight: 600;
-    padding: .3rem .4rem;
-}
-.volume_hint:not(.active) { display: none; }
 .volume:hover input,
 .volume input:focus-visible,
 .volume button:focus-visible + .slider input {

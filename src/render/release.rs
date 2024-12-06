@@ -418,8 +418,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let volume_icon = icons::volume();
-    let t_dimmed = &build.locale.translations.dimmed;
-    let t_muted = &build.locale.translations.muted;
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
@@ -468,8 +466,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <span class="title_wrapper"></span>
                     <span class="time"></span>
                 </span>
-                <span class="volume_hint dimmed">{t_dimmed}</span>
-                <span class="volume_hint muted">{t_muted}</span>
             </div>
         </div>
         <div aria-label="" class="docked_player_status" role="status"></div>

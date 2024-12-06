@@ -48,7 +48,6 @@ pub const RU: Translations = Translations {
     missing_image_description_note: Reviewed("Отсутствует описание изображения<br>Нажмите, чтобы узнать подробнее"),
     more: Reviewed("Подробнее"),
     mute: Reviewed("Выключить звук"),
-    muted: Reviewed("Звук выключен"),
     name_your_price: Reviewed("Укажите свою цену"),
     next_track: Reviewed("Следующий трек"),
     nothing_found_for_xxx: Reviewed(r#"Нет результатов по запросу "{query}""#),
