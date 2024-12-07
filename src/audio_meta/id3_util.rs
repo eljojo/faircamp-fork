@@ -38,7 +38,7 @@ impl<'a> Id3Util<'a> {
     }
 
 
-    pub fn new(tag: &'a Tag) -> Id3Util {
+    pub fn new(tag: &Tag) -> Id3Util {
         Id3Util {
             tag
         }
