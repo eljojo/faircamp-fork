@@ -5,6 +5,25 @@
 
 # Changelog
 
+# 0.23.0
+
+- Implement hybrid ltr/rtl layouting and better space usage for docked and embedded players (8f8b3c4, 0198081)
+- Communicate muted state through the volume icon, remove dimmed volume hint (242e289)
+- Provide a way to skip to main content in keyboard-based navigation (fd72feb)
+- Add accessible labels to all focusable playback position and volume sliders (0a99254)
+- Improve responsive behavior, extend direction-agnostic spacing, drop stale css (c93e14c)
+- Focus browse/search modal when it is open and we regain focus on the page (b777dbd)
+- Fix dynamic restoration of keyboard interaction on track playback buttons (6578a2e)
+- Improve input placeholder text readability (f927e8c)
+- Fix focus/hover style conflicts on track titles (b7728ec)
+- Fix track playback button icons being obscured by cover placeholder (cdab466)
+- Use more broadly supported ID3v2.3 tags when transcoding to MP3 (Andy Berdan, c3a3752)
+- Allow arbitrary font-weights for custom fonts (thurti, d7efd8d)
+- Update bundled Barlow font, use tabular numbers for dynamic track time display (thurti, James Fenn, 501083d)
+- Add russian translations (wileyfoxyx, ef7f45e, a852932)
+- Update italian translations (Tommaso Croce, efe02fa)
+- Update lithuanian translations (Vac, b2e4547)
+
 # 0.22.1
 
 - Fix critical build issue related to accidental commit of a subcrate versioning change (31a4b0f)
