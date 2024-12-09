@@ -5,6 +5,7 @@
 authors = ["Simon Repp"]
 edition = "2021"
 name = "translations"
+version = "0.23.0"
 
 [dependencies]
 base64 = "0.22.1"
