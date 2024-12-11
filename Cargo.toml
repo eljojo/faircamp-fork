@@ -25,7 +25,11 @@ image = { optional = true, version = "0.25.5" }
 indoc = "2.0.5"
 iso_currency = "0.5.1"
 lewton = "0.10.2"
-libvips = { optional = true, version = "1.5.1" }
+# We intentionally pin and keep libvips at an old version because
+# newer versions significantly limit the range of systems on which
+# we can build faircamp with libvips support (due to higher system
+# libvips version requirements).
+libvips = { optional = true, version = "=1.5.1" }
 metaflac = "0.2.7"
 mp4parse = "0.17.0"
 nanoid = "0.4.0"
