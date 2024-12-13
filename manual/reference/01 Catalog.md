@@ -493,24 +493,6 @@ default) to `frugal`. This uses considerably less bandwidth, reduces
 emissions and improves load times for listeners, especially on slow
 connections.
 
-## Verifying yourself as the owner (e.g. Mastodon)
-
-Some social media platforms - Mastodon, in particular - support website
-verification using a link with a `rel="me"` attribute whose `href` attribute
-value points to the social media profile that should be verified as the
-owner of the site.
-
-On a faircamp site you can use raw html inside the catalog text to place
-an (invisible) link that verifies you as the owner, like this:
-
-```eno
-# catalog
-
--- text
-<a rel="me" href="https://instance.example/@username" style="display: none;">Mastodon</a>
--- text
-````
-
 ## How to ensure certain content in a home_image always is visible
 
 The catalog's `home_image` is shown in different ways depending on the screen
