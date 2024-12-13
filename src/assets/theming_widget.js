@@ -245,8 +245,8 @@ function updateTextarea() {
         message += '- Middle-click the area that contains this text for advanced tooling\n'
     } else {
         message += '> Copy these customizations to a manifest in your catalog\n';
-        message += '# theme\n'
-        message += customized.map(option => `${option.key}: ${option.value}`).join('\n');
+        message += 'theme:\n'
+        message += customized.map(option => `${option.key} = ${option.value}`).join('\n');
     }
     customizations.value = message;
 }

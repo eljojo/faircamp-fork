@@ -84,6 +84,13 @@ a gigantesque dystopian world of hard and harsh bass-driven synth.
 Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 -- text
 
+theme:
+background_alpha = 36
+background_image = abstractsyntaxthreat.png
+> The dark theme with high dynamic range (= deep black) nicely fits the darkness of the music
+base = dark
+dynamic_range = 100
+
 # download
 
 > These settings apply to all releases, here we just set
@@ -99,15 +106,6 @@ Option 1: Pay via [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 
 Option 2: Pay via [paypal](https://paypal.me/electriccurtainisfiction)
 -- payment_text
-
-# theme
-
-> The dark theme with high dynamic range (= deep black) nicely fits the darkness of the music
-base: dark
-dynamic_range: 100
-
-background_alpha: 36
-background_image: abstractsyntaxthreat.png
 ```
 
 Inside the file `Electric Curtain/2023/Enter the Maze/release.eno`:

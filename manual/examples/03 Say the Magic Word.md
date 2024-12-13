@@ -42,17 +42,14 @@ The *Say the Magic Word EP* is out. Stream here and for downloads get your
 unlock code by [becoming a patron](https://tinyurl.com/say-support)!
 -- text
 
-# theme
-
-base: light
-
-custom_font: MagicSansV1.3-Book.woff2
-
-accent_brightening: 13
-accent_chroma: 20
-accent_hue: 163
-base_chroma: 14
-base_hue: 116
+theme:
+accent_brightening = 13
+accent_chroma = 20
+accent_hue = 163
+base = light
+base_chroma = 14
+base_hue = 116
+custom_font = MagicSansV1.3-Book.woff2
 ```
 
 Inside the file `saythemagicword/saythemagicword-ep/ep.eno`:
