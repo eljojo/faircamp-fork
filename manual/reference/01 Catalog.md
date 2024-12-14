@@ -135,6 +135,14 @@ assets after each build and lets you use `faircamp --optimize-cache`
 and/or `faircamp --wipe-cache` accordingly whenever you're done with
 your changes and e.g. don't expect to generate any new builds for a while.
 
+## `copy_link`
+
+To disable the "Copy link" button (by default it's enabled) you can use the `copy_link` option, with either `enabled` or `disabled` as value. This is also inherited by all releases, but can be changed on a granular basis for single releases or groups of releases in their manifests.
+
+```eno
+copy_link: disabled
+```
+
 ## `download_code(s)`
 
 To set a single download code that can be entered to access downloads:
@@ -710,14 +718,6 @@ To disable RSS feed generation you can use the `disable_feed` option:
 
 ```eno
 disable_feed
-```
-
-To disable "Copy link" button (by default it's enabled) you can use the `copy_link` option,
-with either `enabled` or `disabled` as value. This is also inherited by all releases, but can
-be changed on a granular basis for single releases or groups of releases in their manifests.
-
-```eno
-copy_link: disabled
 ```
 
 ## Main & Support artists

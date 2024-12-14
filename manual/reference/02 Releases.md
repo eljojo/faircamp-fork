@@ -59,6 +59,11 @@ The `text` field allows the use of [Markdown](https://commonmark.org/help/).
 For an explanation what a `permalink` is please see the "Concepts Explained" page,
 unter "Topics".
 
+Tracks are sorted by the track numbers found in the audio file metadata,
+otherwise they are alphabetically sorted. Tracks with track numbers in
+metadata are sorted before those without them, if you happen to have such
+mixed material.
+
 Note that if there are multiple images in the release directory and you
 don't explicitly choose which of them is the cover in your manifest, faircamp
 will use a simple heuristic to choose which of them it picks as the
@@ -114,6 +119,28 @@ All currently available formats:
 In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
+
+## `copy_link`
+
+To disable the "Copy link" button (by default it's enabled) you can use the
+`copy_link` option, with either `enabled` or `disabled` as value.
+
+```eno
+copy_link: disabled
+```
+
+## `date`
+
+The `date` field is used for sorting only. Both on the homepage, as well as on
+artist pages (in label mode), releases that have the most recent date are
+displayed on top, followed by older ones and lastly followed by those that
+have no date specified at all (those will follow no intentional order).
+
+Dates must be supplied strictly in the format `YYYY-MM-DD`, for instance:
+
+```eno
+date: 1999-12-31
+```
 
 ## `download_code(s)`
 
@@ -577,24 +604,6 @@ used, offering the following choices:
 - `hexadecimal-padded` (0x01 0x02 0x03 …)
 - `roman` (I II III …)
 - `roman-dotted` (I. II. III. …)
-
-Tracks are sorted by the track numbers found in the audio file metadata,
-otherwise they are alphabetically sorted. Tracks with track numbers in
-metadata are sorted before those without them, if you happen to have such
-mixed material.
-
-Note that the `date` is used for sorting only: Both on the homepage, as well
-as on artist pages (label mode) releases that have the most recent date are
-displayed on top, followed by older ones and lastly followed by those that
-have no date specified at all (those will follow no intentional order).
-Dates must be supplied strictly in the format `YYYY-MM-DD`.
-
-To disable the "Copy link" button (by default it's enabled) you can use the `copy_link` option,
-with either `enabled` or `disabled` as value.
-
-```eno
-copy_link: disabled
-```
 
 ## `unlock_info`
 
