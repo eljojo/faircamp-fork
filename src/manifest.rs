@@ -80,11 +80,11 @@ pub struct Overrides {
     pub release_cover: Option<DescribedImage>,
     pub release_synopsis: Option<String>,
     pub release_text: Option<HtmlAndStripped>,
-    pub release_track_numbering: TrackNumbering,
     pub streaming_quality: StreamingQuality,
     pub tag_agenda: TagAgenda,
     pub theme: Theme,
     pub track_artists: Option<Vec<String>>,
+    pub track_numbering: TrackNumbering,
     pub unlock_info: Option<String>
 }
 
@@ -116,11 +116,11 @@ impl Overrides {
             release_cover: None,
             release_synopsis: None,
             release_text: None,
-            release_track_numbering: TrackNumbering::ArabicPadded,
             streaming_quality: StreamingQuality::Standard,
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
             track_artists: None,
+            track_numbering: TrackNumbering::ArabicPadded,
             unlock_info: None
         }
     }
@@ -951,6 +951,13 @@ pub fn apply_options(
 
                 catalog.text = Some(new_text);
             }
+
+            if let Some((value, line)) = optional_field_value_with_line(section, "track_numbering", path) {
+                match TrackNumbering::from_manifest_key(value.as_str()) {
+                    Some(variant) => overrides.track_numbering = variant,
+                    None => error!("Ignoring unsupported value '{}' for 'catalog.track_numbering' option (supported values are 'arabic', 'arabic-dotted', 'arabic-padded', 'disabled', 'hexadecimal', 'hexadecimal-padded', 'roman' and 'roman-dotted') in {}:{}", value, path.display(), line)
+                }
+            }
         }
     }
 
@@ -1174,8 +1181,8 @@ pub fn apply_options(
 
         if let Some((value, line)) = optional_field_value_with_line(section, "track_numbering", path) {
             match TrackNumbering::from_manifest_key(value.as_str()) {
-                Some(variant) => overrides.release_track_numbering = variant,
-                None => error!("Ignoring unsupported value '{}' for global 'release.track_numbering' (supported values are 'disabled', 'arabic', 'roman' and 'hexadecimal') in {}:{}", value, path.display(), line)
+                Some(variant) => overrides.track_numbering = variant,
+                None => error!("Ignoring unsupported value '{}' for 'release.track_numbering' option (supported values are 'arabic', 'arabic-dotted', 'arabic-padded', 'disabled', 'hexadecimal', 'hexadecimal-padded', 'roman' and 'roman-dotted') in {}:{}", value, path.display(), line)
             }
         }
 

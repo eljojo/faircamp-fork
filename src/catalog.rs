@@ -803,7 +803,7 @@ impl Catalog {
                     merged_overrides.release_text.clone(),
                     merged_overrides.theme.clone(),
                     title.to_string(),
-                    merged_overrides.release_track_numbering.clone(),
+                    merged_overrides.track_numbering.clone(),
                     release_tracks,
                     local_options.unlisted_release
                 );

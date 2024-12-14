@@ -26,7 +26,7 @@ archive_downloads:
 
 m3u: disabled
 more_label: Liner Notes
-track_numbering: disabled
+track_numbering: arabic-dotted
 
 cover:
 description = An ink drawing of a barren tree with monkeys in its branches
@@ -570,8 +570,8 @@ track_numbering: arabic-dotted
 used, offering the following choices:
 
 - `arabic` (1 2 3 …)
-- `arabic-padded` (01 02 03 …) (default)
 - `arabic-dotted` (1. 2. 3. …)
+- `arabic-padded` (01 02 03 …) (default)
 - `disabled` (Don't display track numbers)
 - `hexadecimal` (0x1 0x2 0x3 …)
 - `hexadecimal-padded` (0x01 0x02 0x03 …)

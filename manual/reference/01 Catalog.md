@@ -654,6 +654,24 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
+## `track_numbering`
+
+```eno
+track_numbering: arabic-dotted
+```
+
+`track_numbering` allows configuration of the numbering style
+used, offering the following choices:
+
+- `arabic` (1 2 3 …)
+- `arabic-dotted` (1. 2. 3. …)
+- `arabic-padded` (01 02 03 …) (default)
+- `disabled` (Don't display track numbers)
+- `hexadecimal` (0x1 0x2 0x3 …)
+- `hexadecimal-padded` (0x01 0x02 0x03 …)
+- `roman` (I II III …)
+- `roman-dotted` (I. II. III. …)
+
 ## `unlock_info`
 
 In combination with `downloads: code` and `download_code(s)`, this option
