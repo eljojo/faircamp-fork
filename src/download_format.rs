@@ -25,8 +25,6 @@ pub enum DownloadFormat {
 }
 
 impl DownloadFormat {
-    pub const DEFAULT: DownloadFormat = DownloadFormat::Opus128Kbps;
-
     /// DownloadFormat is a more user-facing abstraction over AudioFormat,
     /// but when we go towards transcoding etc. we "downcast" it into the
     /// more generic, internal AudioFormat representation.
@@ -109,30 +107,6 @@ impl DownloadFormat {
         }
     }
 
-    /// Returns the download formats sorted by relevance for a non-expert listener, as a tuple ...
-    /// - .0 => the respective format
-    /// - .1 => boolean saying whether the format is recommended
-    /// Careful this does not support being called with an empty list of formats.
-    pub fn prioritized_for_download(download_formats: &[DownloadFormat]) -> Vec<(DownloadFormat, bool)> {
-        let mut sorted_formats = download_formats.to_owned();
-
-        sorted_formats.sort_by_key(|format| format.download_rank());
-
-        let mut recommendation_given = false;
-
-        sorted_formats
-            .iter()
-            .map(|format| {
-                if !recommendation_given && format.recommended_download() {
-                    recommendation_given = true;
-                    (*format, true)
-                } else {
-                    (*format, false)
-                }
-            })
-            .collect()
-    }
-
     pub fn recommended_download(&self) -> bool {
         match self {
             DownloadFormat::Aac |        // non-free technology
@@ -164,6 +138,26 @@ impl DownloadFormat {
             DownloadFormat::Opus128Kbps => "Opus 128Kbps",
             DownloadFormat::Wav => "WAV"
         }
+    }
+
+    /// Maps a Vec of download formats to a tuple ...
+    /// - .0 => the original format
+    /// - .1 => boolean saying whether the format is recommended
+    /// Careful this does not support being called with an empty list of formats.
+    pub fn with_recommendation(download_formats: &[DownloadFormat]) -> Vec<(DownloadFormat, bool)> {
+        let mut recommendation_given = false;
+
+        download_formats
+            .iter()
+            .map(|format| {
+                if !recommendation_given && format.recommended_download() {
+                    recommendation_given = true;
+                    (*format, true)
+                } else {
+                    (*format, false)
+                }
+            })
+            .collect()
     }
 }
 

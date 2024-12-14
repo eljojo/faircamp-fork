@@ -16,14 +16,16 @@ use crate::{
     CoverGenerator,
     DescribedImage,
     DownloadFormat,
-    DownloadGranularity,
+    DownloadsConfig,
     DownloadOption,
+    ExtraDownloads,
     Favicon,
     HtmlAndStripped,
     Link,
     Locale,
     markdown,
     Permalink,
+    Price,
     StreamingQuality,
     TagAgenda,
     Theme,
@@ -66,14 +68,14 @@ pub struct LocalOptions {
 #[derive(Clone)]
 pub struct Overrides {
     pub copy_link: bool,
-    pub download_formats: Vec<DownloadFormat>,
-    pub download_granularity: DownloadGranularity,
-    pub download_option: DownloadOption,
+    pub download_codes: Vec<String>,
+    pub downloads: DownloadOption,
+    pub downloads_config: DownloadsConfig,
     pub embedding: bool,
-    pub include_extras: bool,
     pub m3u_enabled: bool,
     pub more_label: Option<String>,
-    pub payment_text: Option<String>,
+    pub payment_info: Option<String>,
+    pub price: Price,
     pub release_artists: Option<Vec<String>>,
     pub release_cover: Option<DescribedImage>,
     pub release_synopsis: Option<String>,
@@ -83,7 +85,7 @@ pub struct Overrides {
     pub tag_agenda: TagAgenda,
     pub theme: Theme,
     pub track_artists: Option<Vec<String>>,
-    pub unlock_text: Option<String>
+    pub unlock_info: Option<String>
 }
 
 impl LocalOptions {
@@ -102,14 +104,14 @@ impl Overrides {
     pub fn default() -> Overrides {
         Overrides {
             copy_link: true,
-            download_formats: vec![DownloadFormat::DEFAULT],
-            download_granularity: DownloadGranularity::EntireRelease,
-            download_option: DownloadOption::Disabled,
+            download_codes: Vec::new(),
+            downloads: DownloadOption::Free,
+            downloads_config: DownloadsConfig::default(),
             embedding: false,
-            include_extras: true,
             m3u_enabled: true,
             more_label: None,
-            payment_text: None,
+            payment_info: None,
+            price: Price::default(),
             release_artists: None,
             release_cover: None,
             release_synopsis: None,
@@ -119,8 +121,177 @@ impl Overrides {
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
             track_artists: None,
-            unlock_text: None
+            unlock_info: None
         }
+    }
+}
+
+fn apply_downloads(
+    build: &Build,
+    section: &Section,
+    overrides: &mut Overrides,
+    path: &Path
+) {
+    if let Ok(Some(field)) = section.optional_field("archive_downloads") {
+        field.touch();
+        if let Ok(key) = field.value() {
+            // TODO: Implement via FromStr
+            match DownloadFormat::from_manifest_key(&key) {
+                Some(format) => overrides.downloads_config.archive_formats = vec![format],
+                None => error!("Ignoring invalid archive_downloads format specifier '{}' in {}:{}", key, path.display(), field.line_number)
+            }
+        } else if let Ok(items) = field.items() {
+            overrides.downloads_config.archive_formats = items
+                .iter()
+                .filter_map(|item| {
+                    item.touch();
+                    match item.value() {
+                        Ok(key) => {
+                            match DownloadFormat::from_manifest_key(&key) {
+                                Some(format) => Some(format),
+                                None => {
+                                    error!("Ignoring invalid archive_downloads format specifier '{}' in {}:{}", key, path.display(), item.line_number);
+                                    None
+                                }
+                            }
+                        }
+                        Err(()) => None
+                    }
+                })
+                .collect();
+        }
+    }
+
+    if let Some(value) = optional_field_value(section, "download_code", path) {
+        match Permalink::new(&value) {
+            Ok(_) => {
+                overrides.download_codes = vec![value];
+            }
+            Err(err) => {
+                error!("Ignoring invalid download_code value '{}' ({}) in {}", value, err, path.display())
+            }
+        };
+    }
+
+    optional_field_with_items(section, "download_codes", path, &mut |items: &[Item]| {
+        overrides.download_codes = items
+                .iter()
+                .filter_map(|item| {
+                    item.touch();
+                    if let Ok(value) = item.required_value::<String>() {
+                        match Permalink::new(&value) {
+                            Ok(_) => Some(value),
+                            Err(err) => {
+                                error!("Ignoring invalid download_codes value '{}' ({}) in {}", value, err, path.display());
+                                None
+                            }
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+    });
+
+    if let Ok(Some(field)) = section.optional_field("downloads") {
+        field.touch();
+        if let Ok(value) = field.value() {
+            match value {
+                "code" => overrides.downloads = DownloadOption::Code,
+                "disabled" => overrides.downloads = DownloadOption::Disabled,
+                "free" => overrides.downloads = DownloadOption::Free,
+                "paycurtain" => overrides.downloads = DownloadOption::Paycurtain,
+                other if other.starts_with("http://") || other.starts_with("https://") => {
+                    match Url::parse(value) {
+                        Ok(_) => {
+                            overrides.downloads = DownloadOption::External { link: value.to_string() };
+                        }
+                        Err(err) => error!("Ignoring invalid external downloads url '{}' in {}:{} ({})", value, path.display(), field.line_number, err)
+                    }
+                }
+                _ => error!("Ignoring invalid downloads setting value '{}' in {}:{} (allowed options are 'code', 'curtain', 'disabled', 'free', or an external link like 'https://example.com')", value, path.display(), field.line_number)
+            }
+        } else {
+            error!("Ignoring invalid downloads field (only a single value is supported and required) in {}:{}", path.display(), field.line_number);
+        }
+    }
+
+    if let Ok(Some(field)) = section.optional_field("extra_downloads") {
+        field.touch();
+        if let Ok(value) = field.value() {
+            match value {
+                "bundled" => overrides.downloads_config.extra_downloads = ExtraDownloads::BUNDLED,
+                "disabled" => overrides.downloads_config.extra_downloads = ExtraDownloads::DISABLED,
+                "separate" => overrides.downloads_config.extra_downloads = ExtraDownloads::SEPARATE,
+                other => error!("Ignoring invalid extra_downloads value '{}' (allowed are either 'bundled', 'disabled' or 'separate') in {}:{}", other, path.display(), field.line_number)
+            }
+        } else if let Ok(items) = field.items() {
+            overrides.downloads_config.extra_downloads = ExtraDownloads::DISABLED;
+
+            for item in items {
+                item.touch();
+                match item.value() {
+                    Ok("bundled") => overrides.downloads_config.extra_downloads.bundled = true,
+                    Ok("disabled") => overrides.downloads_config.extra_downloads = ExtraDownloads::DISABLED,
+                    Ok("separate") => overrides.downloads_config.extra_downloads.separate = true,
+                    Ok(other) => error!("Ignoring invalid extra_downloads value '{}' (allowed are either 'bundled', 'disabled' or 'separate') in {}:{}", other, path.display(), field.line_number),
+                    Err(()) => ()
+                }
+            }
+        } else {
+            error!("Ignoring invalid extra_downloads field (supports only a single value or items) in {}:{}", path.display(), field.line_number);
+        }
+    }
+
+    if let Some(text_markdown) = optional_embed_value(section, "payment_info", path) {
+        overrides.payment_info = Some(markdown::to_html(&build.base_url, &text_markdown));
+    }
+
+    if let Some((value, line)) = optional_field_value_with_line(section, "price", path) {
+         match Price::new_from_price_string(&value) {
+            Ok(price) => overrides.price = price,
+            Err(err) => error!(
+                "Ignoring price option '{}' ({}) in {}:{}",
+                value,
+                err,
+                path.display(),
+                line
+            )
+        };
+    }
+
+    if let Ok(Some(field)) = section.optional_field("track_downloads") {
+        field.touch();
+        if let Ok(key) = field.value() {
+            // TODO: Implement via FromStr
+            match DownloadFormat::from_manifest_key(&key) {
+                Some(format) => overrides.downloads_config.track_formats = vec![format],
+                None => error!("Ignoring invalid track_downloads format specifier '{}' in {}:{}", key, path.display(), field.line_number)
+            }
+        } else if let Ok(items) = field.items() {
+            overrides.downloads_config.track_formats = items
+                .iter()
+                .filter_map(|item| {
+                    item.touch();
+                    match item.value() {
+                        Ok(key) => {
+                            match DownloadFormat::from_manifest_key(&key) {
+                                Some(format) => Some(format),
+                                None => {
+                                    error!("Ignoring invalid track_downloads format specifier '{}' in {}:{}", key, path.display(), item.line_number);
+                                    None
+                                }
+                            }
+                        }
+                        Err(()) => None
+                    }
+                })
+                .collect();
+        }
+    }
+
+    if let Some(text_markdown) = optional_embed_value(section, "unlock_info", path) {
+        overrides.unlock_info = Some(markdown::to_html(&build.base_url, &text_markdown));
     }
 }
 
@@ -130,29 +301,37 @@ fn apply_link(
     path: &Path
 ) {
     if element.key() == "link" {
+        element.touch();
         if let Some(field) = element.as_field() {
             match field.required_attribute("url") {
                 Ok(attribute) => {
+                    attribute.touch();
                     match attribute.required_value::<String>() {
                         Ok(value) => match Url::parse(&value) {
                             Ok(url) => {
                                 // TODO: Errors, optional_attribute does not exist in enolib?
                                 let label = match field.required_attribute("label") {
-                                    Ok(attribute) => match attribute.required_value() {
-                                        Ok(label) => Some(label),
-                                        Err(_) => None
+                                    Ok(attribute) => {
+                                        attribute.touch();
+                                        match attribute.required_value() {
+                                            Ok(label) => Some(label),
+                                            Err(_) => None
+                                        }
                                     }
                                     Err(_) => None
                                 };
 
                                 let (hidden, rel_me) = match field.required_attribute("verification") {
-                                    Ok(attribute) => match attribute.required_value::<String>() {
-                                        Ok(value) => match value.as_str() {
-                                            "rel-me" => (false, true),
-                                            "rel-me-hidden" => (true, true),
-                                            _ => (false, false)
+                                    Ok(attribute) => {
+                                        attribute.touch();
+                                        match attribute.required_value::<String>() {
+                                            Ok(value) => match value.as_str() {
+                                                "rel-me" => (false, true),
+                                                "rel-me-hidden" => (true, true),
+                                                _ => (false, false)
+                                            }
+                                            Err(_) => (false, false)
                                         }
-                                        Err(_) => (false, false)
                                     }
                                     Err(_) => (false, false)
                                 };
@@ -183,8 +362,10 @@ fn apply_theme(
 ) {
     // TODO: Errors, clean up
     if let Ok(Some(field)) = section.optional_field("theme") {
+        field.touch();
         if let Ok(attributes) = field.attributes() {
             for attribute in attributes {
+                attribute.touch();
                 match attribute.key() {
                     "accent_brightening" => {
                         if let Some(Ok(value)) = attribute.optional_value::<String>() {
@@ -383,23 +564,10 @@ pub fn apply_options(
         }
     };
 
-    let optional_field_value = |section: &Section, key: &str| -> Option<String> {
-        match section.optional_field(key) {
-            Ok(Some(field)) => {
-                match field.required_value() {
-                    Ok(value) => return Some(value),
-                    Err(err) => error!("{} {}", err.message, err_line!(path, err))
-                }
-            }
-            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
-            _ => ()
-        }
-        None
-    };
-
     let optional_field_value_in_document = |document: &Document, key: &str| -> Option<String> {
         match document.optional_field(key) {
             Ok(Some(field)) => {
+                field.touch();
                 match field.required_value() {
                     Ok(value) => return Some(value),
                     Err(err) => error!("{} {}", err.message, err_line!(path, err))
@@ -409,61 +577,12 @@ pub fn apply_options(
             _ => ()
         }
         None
-    };
-
-    let optional_field_value_with_line = |section: &Section, key: &str| -> Option<(String, u32)> {
-        match section.optional_field(key) {
-            Ok(Some(field)) => {
-                match field.required_value() {
-                    Ok(value) => return Some((value, field.line_number)),
-                    Err(err) => error!("{} {}", err.message, err_line!(path, err))
-                }
-            }
-            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
-            _ => ()
-        }
-        None
-    };
-
-    let optional_embed_value = |section: &Section, key: &str| -> Option<String> {
-        match section.optional_embed(key) {
-            Ok(Some(embed)) => {
-                match embed.required_value() {
-                    Ok(value) => return Some(value),
-                    Err(err) => error!("{} {}", err.message, err_line!(path, err))
-                }
-            }
-            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
-            _ => ()
-        }
-        None
-    };
-
-    let optional_flag_present = |section: &Section, key: &str| -> bool {
-        match section.optional_flag(key) {
-            Ok(Some(_)) => return true,
-            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
-            _ => ()
-        }
-        false
-    };
-
-    let optional_field_with_items = |section: &Section, key: &str, callback: &mut dyn FnMut(&[Item])| {
-        match section.optional_field(key) {
-            Ok(Some(field)) => {
-                match field.items() {
-                    Ok(items) => callback(items),
-                    Err(err) => error!("{} {}", err.message, err_line!(path, err))
-                }
-            }
-            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
-            _ => ()
-        }
     };
 
     let optional_field_with_items_in_document = |document: &Document, key: &str, callback: &mut dyn FnMut(&[Item])| {
         match document.optional_field(key) {
             Ok(Some(field)) => {
+                field.touch();
                 match field.items() {
                     Ok(items) => callback(items),
                     Err(err) => error!("{} {}", err.message, err_line!(path, err))
@@ -472,6 +591,18 @@ pub fn apply_options(
             Err(err) => error!("{} {}", err.message, err_line!(path, err)),
             _ => ()
         }
+    };
+
+    let optional_flag_present = |section: &Section, key: &str| -> bool {
+        match section.optional_flag(key) {
+            Ok(Some(flag)) => {
+                flag.touch();
+                return true;
+            }
+            Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+            _ => ()
+        }
+        false
     };
 
     fn optional_section<'a>(document: &'a Document, key: &str, path: &Path) -> Option<&'a Section> {
@@ -487,6 +618,7 @@ pub fn apply_options(
     let required_attribute_value_with_line = |field: &Field, key: &str| -> Option<(String, u32)> {
         match field.required_attribute(key) {
             Ok(attribute) => {
+                attribute.touch();
                 match attribute.required_value() {
                     Ok(value) => return Some((value, attribute.line_number)),
                     Err(err) => error!("{} {}", err.message, err_line!(path, err))
@@ -498,14 +630,19 @@ pub fn apply_options(
     };
 
     if let Some(section) = optional_section(&document, "artist", path) {
+        section.touch();
+
         apply_theme(build, cache, section, overrides, path);
 
-        match section.field("name").and_then(|field| field.required_value::<String>()) {
+        match section.field("name").and_then(|field| {
+            field.touch();
+            field.required_value::<String>()
+        }) {
             Ok(name) => {
                 let artist = catalog.create_artist(overrides.copy_link, &name, overrides.theme.clone());
                 let mut artist_mut = artist.borrow_mut();
 
-                optional_field_with_items(section, "aliases", &mut |items: &[Item]| {
+                optional_field_with_items(section, "aliases", path, &mut |items: &[Item]| {
                     artist_mut.aliases = items
                             .iter()
                             .filter_map(|item| {
@@ -521,15 +658,19 @@ pub fn apply_options(
                 });
 
                 if let Some(field) = optional_field(section, "image", path) {
+                    field.touch();
                     match required_attribute_value_with_line(field, "file") {
                         Some((path_relative_to_manifest, line)) => {
                             let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
                             if absolute_path.exists() {
                                 // TODO: Print errors, refactor
                                 let description = match field.required_attribute("description") {
-                                    Ok(attribute) => match attribute.required_value() {
-                                        Ok(description) => Some(description),
-                                        _ => None
+                                    Ok(attribute) => {
+                                        attribute.touch();
+                                        match attribute.required_value() {
+                                            Ok(description) => Some(description),
+                                            _ => None
+                                        }
                                     }
                                     _ => None
                                 };
@@ -546,14 +687,14 @@ pub fn apply_options(
                     }
                 }
 
-                if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {
+                if let Some((slug, line)) = optional_field_value_with_line(section, "permalink", path) {
                     match Permalink::new(&slug) {
                         Ok(permalink) => artist_mut.permalink = permalink,
                         Err(err) => error!("Ignoring invalid artist.permalink value '{}' in {}:{} ({})", slug, path.display(), line, err)
                     }
                 }
 
-                if let Some(text_markdown) = optional_embed_value(section, "text") {
+                if let Some(text_markdown) = optional_embed_value(section, "text", path) {
                     artist_mut.text = Some(markdown::to_html_and_stripped(&build.base_url, &text_markdown));
                 }
             }
@@ -562,16 +703,20 @@ pub fn apply_options(
     }
 
     if let Some(section) = optional_section(&document, "cache", path) {
+        section.touch();
         error!(r##"From faircamp 0.16.0 onwards, the "# cache ... " section was merged into "# catalog ..." as the "cache_optimization: delayed|immediate|wipe|manual" option, please move and adapt the current definiton in {}:{} accordingly."##, path.display(), section.line_number);
     }
 
     if let Some(section) = optional_section(&document, "catalog", path) {
+        section.touch();
+
         if path.parent().unwrap() != build.catalog_dir {
             error!("From faircamp 0.16.0 onwards, \"# catalog ...\" may only be specified from a manifest placed in the catalog root directory, please move the catalog section specified in {}:{} to a manifest in the catalog root directory.", path.display(), section.line_number);
         } else {
+            apply_downloads(build, section, overrides, path);
             apply_theme(build, cache, section, overrides, path);
 
-            if let Some((mut value, line)) = optional_field_value_with_line(section, "base_url") {
+            if let Some((mut value, line)) = optional_field_value_with_line(section, "base_url", path) {
                 // Ensure the value has a trailing slash. Without one, Url::parse below
                 // would interpret the final path segment as a file, which would lead to
                 // incorrect url construction at a later point.
@@ -590,21 +735,24 @@ pub fn apply_options(
             }
 
             match section.optional_field("cache_optimization") {
-                Ok(Some(field)) => match field.optional_value() {
-                    Ok(Some(value)) => {
-                        match CacheOptimization::from_manifest_key(value.as_str()) {
-                            Some(strategy) => {
-                                if cache.optimization != CacheOptimization::Default {
-                                    warn_global_set_repeatedly!("cache.optimization", cache.optimization, strategy);
-                                }
+                Ok(Some(field)) => {
+                    field.touch();
+                    match field.optional_value() {
+                        Ok(Some(value)) => {
+                            match CacheOptimization::from_manifest_key(value.as_str()) {
+                                Some(strategy) => {
+                                    if cache.optimization != CacheOptimization::Default {
+                                        warn_global_set_repeatedly!("cache.optimization", cache.optimization, strategy);
+                                    }
 
-                                cache.optimization = strategy;
+                                    cache.optimization = strategy;
+                                }
+                                None => error!("Ignoring invalid catalog.cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}:{}", value, path.display(), field.line_number)
                             }
-                            None => error!("Ignoring invalid catalog.cache_optimization setting '{}' (available: delayed, immediate, manual, wipe) in {}:{}", value, path.display(), field.line_number)
                         }
+                        Ok(None) => (),
+                        Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
                     }
-                    Ok(None) => (),
-                    Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
                 }
                 Ok(None) => (),
                 Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
@@ -614,7 +762,7 @@ pub fn apply_options(
                 catalog.feed_enabled = false;
             }
 
-            if let Some((value, line)) = optional_field_value_with_line(section, "embedding") {
+            if let Some((value, line)) = optional_field_value_with_line(section, "embedding", path) {
                 match value.as_str() {
                     "disabled" => overrides.embedding = false,
                     "enabled" => overrides.embedding = true,
@@ -622,7 +770,7 @@ pub fn apply_options(
                 }
             }
 
-            if let Some((value, line)) = optional_field_value_with_line(section, "favicon"){
+            if let Some((value, line)) = optional_field_value_with_line(section, "favicon", path){
                 if let Favicon::Custom { absolute_path, .. } = &catalog.favicon {
                     warn_global_set_repeatedly!("catalog.favicon", absolute_path.display(), value);
                 } else if let Favicon::None = &catalog.favicon {
@@ -648,25 +796,29 @@ pub fn apply_options(
                 catalog.feature_support_artists = true;
             }
 
-            if let Some(value) = optional_field_value(section, "freeze_download_urls") {
+            if let Some(value) = optional_field_value(section, "freeze_download_urls", path) {
                 build.url_salt = value;
             }
 
             // TODO: Remove this deprecation notice with/around the 1.0 release (introduced feb 2024)
-            if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image") {
+            if let Some((path_relative_to_manifest, line)) = optional_field_value_with_line(section, "feed_image", path) {
                 info!("From faircamp 0.13.0 onwards, feed images are auto-generated - catalog.feed_image '{}' specified in {}:{} can be removed, it won't be used anymore.", path_relative_to_manifest, path.display(), line);
             }
 
             if let Some(field) = optional_field(section, "home_image", path) {
+                field.touch();
                 match required_attribute_value_with_line(field, "file") {
                     Some((path_relative_to_manifest, line)) => {
                         let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
                         if absolute_path.exists() {
                             // TODO: Print errors, refactor
                             let description = match field.required_attribute("description") {
-                                Ok(attribute) => match attribute.required_value() {
-                                    Ok(description) => Some(description),
-                                    _ => None
+                                Ok(attribute) => {
+                                    attribute.touch();
+                                    match attribute.required_value() {
+                                        Ok(description) => Some(description),
+                                        _ => None
+                                    }
                                 }
                                 _ => None
                             };
@@ -687,7 +839,7 @@ pub fn apply_options(
                 catalog.label_mode = true;
             }
 
-            if let Some(value) = optional_field_value(section, "language") {
+            if let Some(value) = optional_field_value(section, "language", path) {
                 build.locale = Locale::from_code(&value);
             }
 
@@ -695,7 +847,7 @@ pub fn apply_options(
                 apply_link(element, local_options, path);
             }
 
-            if let Some((value, line)) = optional_field_value_with_line(section, "m3u") {
+            if let Some((value, line)) = optional_field_value_with_line(section, "m3u", path) {
                 match value.as_str() {
                     "catalog" => {
                         catalog.m3u = true;
@@ -717,7 +869,7 @@ pub fn apply_options(
                 }
             }
 
-            if let Some(value) = optional_field_value(section, "more_label") {
+            if let Some(value) = optional_field_value(section, "more_label", path) {
                 catalog.more_label = Some(value);
             }
 
@@ -729,7 +881,7 @@ pub fn apply_options(
                 build.url_salt = uid();
             }
 
-            if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
+            if let Some((value, line)) = optional_field_value_with_line(section, "copy_link", path) {
                 match value.as_str() {
                     "enabled" => {
                         catalog.copy_link = true;
@@ -748,24 +900,27 @@ pub fn apply_options(
             }
 
             match section.optional_field("streaming_quality") {
-                Ok(Some(field)) => match field.optional_value() {
-                    Ok(Some(key)) => {
-                        match StreamingQuality::from_key(&key) {
-                            Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
-                            Err(err) => {
-                                error!("Ignoring invalid catalog.streaming_quality value '{}' in {}:{} ({})", key, path.display(), field.line_number, err);
-                                println!("{}", field.snippet());
+                Ok(Some(field)) => {
+                    field.touch();
+                    match field.optional_value() {
+                        Ok(Some(key)) => {
+                            match StreamingQuality::from_key(&key) {
+                                Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
+                                Err(err) => {
+                                    error!("Ignoring invalid catalog.streaming_quality value '{}' in {}:{} ({})", key, path.display(), field.line_number, err);
+                                    println!("{}", field.snippet());
+                                }
                             }
                         }
+                        Ok(None) => (),
+                        Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
                     }
-                    Ok(None) => (),
-                    Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
                 }
                 Ok(None) => (),
                 Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
             }
 
-            if let Some(synopsis) = optional_embed_value(section, "synopsis") {
+            if let Some(synopsis) = optional_embed_value(section, "synopsis", path) {
                 let synopsis_chars = synopsis.chars().count();
 
                 if synopsis_chars <= MAX_SYNOPSIS_CHARS {
@@ -781,13 +936,13 @@ pub fn apply_options(
                 }
             }
 
-            if let Some(value) = optional_field_value(section, "title") {
+            if let Some(value) = optional_field_value(section, "title", path) {
                 if let Some(previous) = catalog.set_title(value.clone()) {
                     warn_global_set_repeatedly!("catalog.title", previous, value);
                 }
             }
 
-            if let Some(text_markdown) = optional_embed_value(section, "text") {
+            if let Some(text_markdown) = optional_embed_value(section, "text", path) {
                 let new_text = markdown::to_html_and_stripped(&build.base_url, &text_markdown);
 
                 if let Some(previous_text) = &catalog.text {
@@ -799,123 +954,14 @@ pub fn apply_options(
         }
     }
 
-    if let Some(section) = optional_section(&document, "download", path) {
-        if let Some(value) = optional_field_value(section, "code") {
-            match Permalink::new(&value) {
-                Ok(_) => {
-                    overrides.download_option = DownloadOption::Codes {
-                        codes: vec![value],
-                        unlock_text: None
-                    };
-                }
-                Err(err) => {
-                    error!("Ignoring invalid download.code value '{}' ({}) in {}", value, err, path.display())
-                }
-            };
-        }
-
-        optional_field_with_items(section, "codes", &mut |items: &[Item]| {
-            let codes: Vec<String> = items
-                    .iter()
-                    .filter_map(|item| {
-                        if let Ok(value) = item.required_value::<String>() {
-                            match Permalink::new(&value) {
-                                Ok(_) => Some(value),
-                                Err(err) => {
-                                    error!("Ignoring invalid download.codes value '{}' ({}) in {}", value, err, path.display());
-                                    None
-                                }
-                            }
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-
-            if !codes.is_empty() {
-                overrides.download_option = DownloadOption::Codes {
-                    codes,
-                    unlock_text: None
-                };
-            }
-        });
-
-        if optional_flag_present(section, "disabled") {
-            overrides.download_option = DownloadOption::Disabled;
-        }
-
-        if let Some(value) = optional_field_value(section, "format") {
-            // TODO: Implement via FromStr
-            match DownloadFormat::from_manifest_key(value.as_str()) {
-                Some(format) => overrides.download_formats = vec![format],
-                // TODO: Missing line number (no element access)
-                None => error!("Ignoring invalid download.format setting value '{}' in {}", value, path.display())
-            }
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "external") {
-            match Url::parse(&value) {
-                Ok(_) => {
-                    overrides.download_option = DownloadOption::External { link: value };
-                }
-                Err(err) => error!("Ignoring invalid download.external setting value '{}' in {}:{} ({})", value, path.display(), line, err)
-            }
-        }
-
-        optional_field_with_items(section, "formats", &mut |items: &[Item]| {
-            overrides.download_formats = items
-                    .iter()
-                    .filter_map(|item| {
-                        let key = item.required_value().unwrap_or(String::new());
-                        // TODO: Implement via FromStr
-                        match DownloadFormat::from_manifest_key(&key) {
-                            None => {
-                                error!("Ignoring invalid download.formats format specifier '{}' in {}:{}", key, path.display(), item.line_number);
-                                None
-                            }
-                            some_format => some_format
-                        }
-                    })
-                    .collect();
-        });
-
-        if optional_flag_present(section, "free") {
-            overrides.download_option = DownloadOption::Free;
-        }
-
-        if let Some(text_markdown) = optional_embed_value(section, "payment_text") {
-            overrides.payment_text = Some(markdown::to_html(&build.base_url, &text_markdown));
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "price") {
-             match DownloadOption::new_from_price_string(&value) {
-                Ok(download_option) => overrides.download_option = download_option,
-                Err(err) => error!(
-                    "Ignoring download.price option '{}' ({}) in {}:{}",
-                    value,
-                    err,
-                    path.display(),
-                    line
-                )
-            };
-        }
-
-        if let Some((value, line)) = optional_field_value_with_line(section, "single_files") {
-            match value.as_str() {
-                "enabled" => overrides.download_granularity = DownloadGranularity::AllOptions,
-                "disabled" => overrides.download_granularity = DownloadGranularity::EntireRelease,
-                "only" => overrides.download_granularity = DownloadGranularity::SingleFiles,
-                value => error!("Ignoring unsupported download.single_files setting value '{}' (supported values are 'enabled', 'disabled' and 'only') in {}:{}", value, path.display(), line)
-            }
-        }
-
-        if let Some(text_markdown) = optional_embed_value(section, "unlock_text") {
-            overrides.unlock_text = Some(markdown::to_html(&build.base_url, &text_markdown));
-        }
+    if let Ok(Some(section)) = document.optional_section("download") {
+        section.touch();
+        error!(r##"From faircamp 1.0 onwards, the '# download' section is obsolete and its options can/must now be put directly into the "catalog.eno" and "release.eno" files, please move and adapt the current options starting at {}:{} accordingly."##, path.display(), section.line_number);
     }
 
-    if let Some(section) = optional_section(&document, "embedding", path) {
-        error!(r##"From faircamp 0.16.0 onwards, the embedding option must be specified as "embedding: enabled|disabled" either in a "# catalog ..." or "# release ..." section, please move and adapt the current definiton in {}:{} accordingly."##, path.display(), section.line_number);
+    if let Ok(Some(section)) = document.optional_section("embedding") {
+        section.touch();
+        error!(r##"The embedding option must be specified as "embedding: enabled|disabled" (since faircamp 0.16.0) either inside the "catalog.eno" manifest (since faircamp 1.0) or a "# release ..." section, please move and adapt the current definiton in {}:{} accordingly."##, path.display(), section.line_number);
     }
 
     for element in document.elements() {
@@ -923,60 +969,38 @@ pub fn apply_options(
     }
 
     if let Some(section) = optional_section(&document, "localization", path) {
+        section.touch();
         error!(r##"From faircamp 0.16.0 onwards, specify the language directly in "# catalog ..." using e.g. "language: fr" (the writing direction is determined from language automatically now). The localization section specified in {}:{} should be removed, it's not supported anymore."##, path.display(), section.line_number);
     }
 
     if let Some(section) = optional_section(&document, "payment", path) {
-        error!(r##"From faircamp 0.20.0 onwards, specify payment options directly in "# download ..." using the single "payment_text" field. The payment section specified in {}:{} should be removed, it will soon not be supported anymore."##, path.display(), section.line_number());
-        for element in section.elements() {
-            match element.key() {
-                "custom" => if let Some(embed) = element.as_embed() {
-                    if let Some(Ok(value)) = embed.optional_value::<String>() {
-                        let html = markdown::to_html(&build.base_url, &value);
-                        // This is just a temporary hack to allow the old payment options to stil be recognized and used
-                        if let Some(payment_text) = &mut overrides.payment_text {
-                            payment_text.push_str(&html);
-                        } else {
-                            overrides.payment_text = Some(html);
-                        }
-                    }
-                } else if let Some(field) = element.as_field() {
-                    if let Ok(Some(value)) = field.optional_value() {
-                        let html = markdown::to_html(&build.base_url, &value);
-                        // This is just a temporary hack to allow the old payment options to stil be recognized and used
-                        if let Some(payment_text) = &mut overrides.payment_text {
-                            payment_text.push_str(&html);
-                        } else {
-                            overrides.payment_text = Some(html);
-                        }
-                    }
-                } else {
-                    error!("Ignoring invalid payment.custom option (can only be an embed or field containing a value) in {}:{}", path.display(), element.line_number());
-                }
-                "liberapay" => error!("The payment.liberapay option has been discontinued - please supply the link through the payment_text field in the # download section (encountered in {}:{})", path.display(), element.line_number()),
-                key => error!("Ignoring unsupported payment option '{}' in {}:{}", key, path.display(), element.line_number())
-            }
-
-        }
+        section.touch();
+        error!(r##"From faircamp 1.0 onwards, specify payment options directly in catalog.eno or release.eno using the single "payment_info" field. The payment section specified in {}:{} is not supporte anymore."##, path.display(), section.line_number());
     }
 
     if let Some(section) = optional_section(&document, "release", path) {
+        section.touch();
+
+        apply_downloads(build, section, overrides, path);
         apply_theme(build, cache, section, overrides, path);
 
-        if let Some(value) = optional_field_value(section, "artist") {
+        if let Some(value) = optional_field_value(section, "artist", path) {
             overrides.release_artists = Some(vec![value]);
         }
 
-        optional_field_with_items(section, "artists", &mut |items: &[Item]| {
+        optional_field_with_items(section, "artists", path, &mut |items: &[Item]| {
             overrides.release_artists = Some(
                 items
                     .iter()
-                    .filter_map(|item| item.optional_value().ok().flatten())
+                    .filter_map(|item| {
+                        item.touch();
+                        item.optional_value().ok().flatten()
+                    })
                     .collect()
             );
         });
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "copy_link", path) {
             match value.as_str() {
                 "enabled" => overrides.copy_link = true,
                 "disabled" => overrides.copy_link = false,
@@ -985,15 +1009,19 @@ pub fn apply_options(
         }
 
         if let Some(field) = optional_field(section, "cover", path) {
+            field.touch();
             match required_attribute_value_with_line(field, "file") {
                 Some((path_relative_to_manifest, line)) => {
                     let absolute_path = path.parent().unwrap().join(&path_relative_to_manifest);
                     if absolute_path.exists() {
                         // TODO: Print errors, refactor
                         let description = match field.required_attribute("description") {
-                            Ok(attribute) => match attribute.required_value() {
-                                Ok(description) => Some(description),
-                                _ => None
+                            Ok(attribute) => {
+                                attribute.touch();
+                                match attribute.required_value() {
+                                    Ok(description) => Some(description),
+                                    _ => None
+                                }
                             }
                             _ => None
                         };
@@ -1010,7 +1038,7 @@ pub fn apply_options(
             }
         }
 
-        if let Some((date_str, line)) = optional_field_value_with_line(section, "date") {
+        if let Some((date_str, line)) = optional_field_value_with_line(section, "date", path) {
             match NaiveDate::parse_from_str(&date_str, "%Y-%m-%d") {
                 Ok(date) => {
                     if let Some(previous) = &local_options.release_date {
@@ -1022,7 +1050,7 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "embedding") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "embedding", path) {
             match value.as_str() {
                 "disabled" => overrides.embedding = false,
                 "enabled" => overrides.embedding = true,
@@ -1030,19 +1058,11 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "include_extras") {
-            match value.as_str() {
-                "yes" => overrides.include_extras = true,
-                "no" => overrides.include_extras = false,
-                other => error!("Ignoring invalid release.include_extras value '{}' (allowed are either 'yes or 'no') in {}:{}", other, path.display(), line)
-            }
-        }
-
         for element in section.elements() {
             apply_link(element, local_options, path);
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "m3u") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "m3u", path) {
             match value.as_str() {
                 "disabled" => overrides.m3u_enabled = false,
                 "enabled" => overrides.m3u_enabled = true,
@@ -1050,11 +1070,11 @@ pub fn apply_options(
             }
         }
 
-        if let Some(value) = optional_field_value(section, "more_label") {
+        if let Some(value) = optional_field_value(section, "more_label", path) {
             overrides.more_label = Some(value);
         }
 
-        if let Some((slug, line)) = optional_field_value_with_line(section, "permalink") {
+        if let Some((slug, line)) = optional_field_value_with_line(section, "permalink", path) {
             match Permalink::new(&slug) {
                 Ok(permalink) => {
                     if let Some(previous) = &local_options.release_permalink {
@@ -1066,7 +1086,7 @@ pub fn apply_options(
             }
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "rewrite_tags") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "rewrite_tags", path) {
             match value.as_str() {
                 "no" => {
                     info!("From faircamp 0.15.0 onwards, 'rewrite_tags: no' should be specified as 'tags: copy' - this will eventually become mandatory (seen in {}:{}).", path.display(), line);
@@ -1081,24 +1101,27 @@ pub fn apply_options(
         }
 
         match section.optional_field("streaming_quality") {
-            Ok(Some(field)) => match field.optional_value() {
-                Ok(Some(key)) => {
-                    match StreamingQuality::from_key(&key) {
-                        Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
-                        Err(err) => {
-                            error!("Ignoring invalid release.streaming_quality value '{}' in {}:{} ({})", key, path.display(), field.line_number, err);
-                            println!("{}", field.snippet());
+            Ok(Some(field)) => {
+                field.touch();
+                match field.optional_value() {
+                    Ok(Some(key)) => {
+                        match StreamingQuality::from_key(&key) {
+                            Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
+                            Err(err) => {
+                                error!("Ignoring invalid release.streaming_quality value '{}' in {}:{} ({})", key, path.display(), field.line_number, err);
+                                println!("{}", field.snippet());
+                            }
                         }
                     }
+                    Ok(None) => (),
+                    Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
                 }
-                Ok(None) => (),
-                Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
             }
             Ok(None) => (),
             Err(err) => error!("{} {}:{}", err.message, path.display(), err.line)
         }
 
-        if let Some(synopsis) = optional_embed_value(section, "synopsis") {
+        if let Some(synopsis) = optional_embed_value(section, "synopsis", path) {
             let synopsis_chars = synopsis.chars().count();
 
             if synopsis_chars <= MAX_SYNOPSIS_CHARS {
@@ -1111,10 +1134,12 @@ pub fn apply_options(
 
         match section.optional_field("tags") {
             Ok(Some(field)) => {
+                field.touch();
                 if let Ok(attributes) = field.attributes() {
                     overrides.tag_agenda = TagAgenda::Remove;
 
                     for attribute in attributes {
+                        attribute.touch();
                         match attribute.required_value::<String>() {
                             Ok(value) => {
                                 if let Err(err) = overrides.tag_agenda.set(attribute.key(), &value) {
@@ -1139,15 +1164,15 @@ pub fn apply_options(
             _ => ()
         }
 
-        if let Some(text_markdown) = optional_embed_value(section, "text") {
+        if let Some(text_markdown) = optional_embed_value(section, "text", path) {
             overrides.release_text = Some(markdown::to_html_and_stripped(&build.base_url, &text_markdown));
         }
 
-        if let Some(value) = optional_field_value(section, "title") {
+        if let Some(value) = optional_field_value(section, "title", path) {
             local_options.release_title = Some(value);
         }
 
-        if let Some((value, line)) = optional_field_value_with_line(section, "track_numbering") {
+        if let Some((value, line)) = optional_field_value_with_line(section, "track_numbering", path) {
             match TrackNumbering::from_manifest_key(value.as_str()) {
                 Some(variant) => overrides.release_track_numbering = variant,
                 None => error!("Ignoring unsupported value '{}' for global 'release.track_numbering' (supported values are 'disabled', 'arabic', 'roman' and 'hexadecimal') in {}:{}", value, path.display(), line)
@@ -1160,6 +1185,7 @@ pub fn apply_options(
     }
 
     if let Some(section) = optional_section(&document, "streaming", path) {
+        section.touch();
         error!(r##"From faircamp 0.16.0 onwards, "# streaming ..." has been merged into "# catalog ..." and "# release ..." as the 'streaming_quality: frugal|standard' option, please adapt and move the setting currently located in {}:{} accordingly."##, path.display(), section.line_number);
     }
 
@@ -1172,7 +1198,10 @@ pub fn apply_options(
         overrides.track_artists = Some(
             items
                 .iter()
-                .filter_map(|item| item.optional_value().ok().flatten())
+                .filter_map(|item| {
+                    item.touch();
+                    item.optional_value().ok().flatten()
+                })
                 .collect()
         );
     });
@@ -1200,6 +1229,21 @@ pub fn apply_options(
     }
 }
 
+fn optional_embed_value(section: &Section, key: &str, path: &Path) -> Option<String> {
+    match section.optional_embed(key) {
+        Ok(Some(embed)) => {
+            embed.touch();
+            match embed.required_value() {
+                Ok(value) => return Some(value),
+                Err(err) => error!("{} {}", err.message, err_line!(path, err))
+            }
+        }
+        Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+        _ => ()
+    }
+    None
+}
+
 fn optional_field<'a>(section: &'a Section, key: &str, path: &Path) -> Option<&'a Field> {
     match section.optional_field(key) {
         Ok(field_option) => field_option,
@@ -1208,4 +1252,48 @@ fn optional_field<'a>(section: &'a Section, key: &str, path: &Path) -> Option<&'
             None
         }
     }
+}
+
+fn optional_field_value(section: &Section, key: &str, path: &Path) -> Option<String> {
+    match section.optional_field(key) {
+        Ok(Some(field)) => {
+            field.touch();
+            match field.required_value() {
+                Ok(value) => return Some(value),
+                Err(err) => error!("{} {}", err.message, err_line!(path, err))
+            }
+        }
+        Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+        _ => ()
+    }
+    None
+}
+
+fn optional_field_with_items(section: &Section, key: &str, path: &Path, callback: &mut dyn FnMut(&[Item])) {
+    match section.optional_field(key) {
+        Ok(Some(field)) => {
+            field.touch();
+            match field.items() {
+                Ok(items) => callback(items),
+                Err(err) => error!("{} {}", err.message, err_line!(path, err))
+            }
+        }
+        Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+        _ => ()
+    }
+}
+
+fn optional_field_value_with_line(section: &Section, key: &str, path: &Path) -> Option<(String, u32)> {
+    match section.optional_field(key) {
+        Ok(Some(field)) => {
+            field.touch();
+            match field.required_value() {
+                Ok(value) => return Some((value, field.line_number)),
+                Err(err) => error!("{} {}", err.message, err_line!(path, err))
+            }
+        }
+        Err(err) => error!("{} {}", err.message, err_line!(path, err)),
+        _ => ()
+    }
+    None
 }

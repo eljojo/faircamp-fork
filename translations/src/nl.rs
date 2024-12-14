@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const NL: Translations = Translations {
     audio_format_alac: Reviewed("Verliesloos en gecomprimeerd, als je uitsluitend Apple-producten gebruikt, kies dan dit i.p.v. FLAC"),
@@ -25,8 +25,9 @@ pub const NL: Translations = Translations {
     copy: Reviewed("Kopiëren"),
     copy_link: Reviewed("Kopieer link"),
     cover_image: Reviewed("Hoesafbeelding"),
-    default_unlock_text: Reviewed("Jij moet een code invullen om deze downloads te ontsluiten. Vraag de websitebeheerder hoe je er een kan verkrijgen."),
+    default_unlock_info: Reviewed("Jij moet een code invullen om deze downloads te ontsluiten. Vraag de websitebeheerder hoe je er een kan verkrijgen."),
     download: Reviewed("Downloaden"),
+    download_code_seems_incorrect: Unreviewed("De ontgrendelingscode lijkt onjuist te zijn. Controleer op typefouten."),
     downloads: Reviewed("Downloads"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Invoegen"),
@@ -66,7 +67,6 @@ pub const NL: Translations = Translations {
     this_site_was_created_with_faircamp: Reviewed("Deze site werd gemaakt met {faircamp_link}"),
     unlisted: Reviewed("Niet vermeld"),
     unlock: Reviewed("Ontsluiten"),
-    unlock_code_seems_incorrect: Reviewed("De ontgrendelingscode lijkt onjuist te zijn. Controleer op typefouten."),
     unlock_downloads: Reviewed("Downloads ontsluiten"),
     unlock_manual_instructions: Reviewed("Om de download te ontgrendelen, breng je de hieronder beschreven wijzigingen aan in het adres in de adresbalk van je browser.<br><br>Voordat je dat doet, hou er rekening mee dat verkeerde codes of adreswijzigingen u naar een 404-pagina leiden. In dit geval gebruik je de terugknop en volg de voorschriften nauwkeurig opnieuw.<br><br>Vervang het laatste deel van het adres - /{unlock_permalink}/{page_hash}{index_suffix} - met /{downloads_permalink}/[your-unlock-code]{index_suffix} en druk vervolgens op Enter."),
     unlock_permalink: Reviewed("ontsluiten"),

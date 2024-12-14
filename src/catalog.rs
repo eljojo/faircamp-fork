@@ -14,7 +14,9 @@ use crate::{
     Build,
     Cache,
     DescribedImage,
+    DownloadAccess,
     DownloadOption,
+    Downloads,
     Extra,
     Favicon,
     FileMeta,
@@ -737,44 +739,47 @@ impl Catalog {
                 }
 
                 let mut extras = Vec::new();
-                if merged_overrides.include_extras {
-                    for image in images {
-                        if let Some(ref described_image) = cover {
-                            // If the image we're iterating is the cover image for this release
-                            // we don't include it as an extra (that would be redundant).
-                            if image.file_meta.path ==
-                                described_image.image.file_meta.path {
-                                continue
-                            }
+                for image in images {
+                    if let Some(ref described_image) = cover {
+                        // If the image we're iterating is the cover image for this release
+                        // we don't include it as an extra (as it would be redundant).
+                        if image.file_meta.path == described_image.image.file_meta.path {
+                            continue
                         }
-
-                        let extra = Extra::new(image.file_meta.clone());
-                        extras.push(extra);
                     }
 
-                    for extra_path in extra_paths {
-                        let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
-                        let file_meta = FileMeta::new(build, path_relative_to_catalog);
-                        extras.push(Extra::new(file_meta));
-                    }
+                    let extra = Extra::new(image.file_meta.clone());
+                    extras.push(extra);
                 }
 
-                let mut download_option = merged_overrides.download_option.clone();
-                match &mut download_option {
-                    DownloadOption::Codes { unlock_text, .. } => {
-                        if let Some(custom_unlock_text) = &merged_overrides.unlock_text {
-                            unlock_text.replace(custom_unlock_text.clone());
-                        }
-                    }
-                    DownloadOption::Disabled |
-                    DownloadOption::External { .. } |
-                    DownloadOption::Free => (),
-                    DownloadOption::Paid { payment_text, .. } => {
-                        if let Some(custom_payment_text) = &merged_overrides.payment_text {
-                            payment_text.replace(custom_payment_text.clone());
-                        }
-                    }
+                for extra_path in extra_paths {
+                    let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
+                    let file_meta = FileMeta::new(build, path_relative_to_catalog);
+                    extras.push(Extra::new(file_meta));
                 }
+
+                let downloads = match &merged_overrides.downloads {
+                    DownloadOption::Code => Downloads::Enabled {
+                        download_access: DownloadAccess::Code {
+                            download_codes: merged_overrides.download_codes.clone(),
+                            unlock_info: merged_overrides.unlock_info.clone()
+                        },
+                        downloads_config: merged_overrides.downloads_config.clone()
+                    },
+                    DownloadOption::Disabled => Downloads::Disabled,
+                    DownloadOption::External { link } => Downloads::External { link: link.clone() },
+                    DownloadOption::Free => Downloads::Enabled {
+                        download_access: DownloadAccess::Free,
+                        downloads_config: merged_overrides.downloads_config.clone()
+                    },
+                    DownloadOption::Paycurtain => Downloads::Enabled {
+                        download_access: DownloadAccess::Paycurtain {
+                            payment_info: merged_overrides.payment_info.clone(),
+                            price: merged_overrides.price.clone()
+                        },
+                        downloads_config: merged_overrides.downloads_config.clone()
+                    }
+                };
 
                 let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
 
@@ -782,12 +787,9 @@ impl Catalog {
                     merged_overrides.copy_link,
                     cover,
                     local_options.release_date.take(),
-                    merged_overrides.download_formats.clone(),
-                    merged_overrides.download_granularity.clone(),
-                    download_option,
+                    downloads,
                     merged_overrides.embedding,
                     extras,
-                    merged_overrides.include_extras,
                     mem::take(&mut local_options.links),
                     merged_overrides.m3u_enabled,
                     main_artists_to_map,
@@ -1156,9 +1158,7 @@ impl Catalog {
                 }
             }
 
-            if release_mut.download_option.requires_writing_files() {
-                release_mut.write_downloadable_files(build);
-            }
+            release_mut.write_downloadable_files(build);
         }
     }
 }

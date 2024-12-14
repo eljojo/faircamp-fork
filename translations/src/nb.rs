@@ -21,7 +21,8 @@ pub const NB: Translations = Translations {
     confirm: Reviewed("Bekreft"),
     r#continue: Reviewed("Fortsett"),
     cover_image: Reviewed("Omslagsbilde"),
-    default_unlock_text: Reviewed("Du må skrive inn en kode for å få lastet ned disse filene. Spør sidens administratorer for hvordan du kan få en."),
+    default_unlock_info: Reviewed("Du må skrive inn en kode for å få lastet ned disse filene. Spør sidens administratorer for hvordan du kan få en."),
+    download_code_seems_incorrect: Unreviewed("Koden for å låse opp er ikke riktig, sjekk om du har noen skrivefeil."),
     downloads: Reviewed("Nedlastinger"),
     downloads_permalink: Reviewed("nedlastinger"),
     embed: Reviewed("Bygg inn"),
@@ -59,8 +60,6 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
     rss_feed: Reviewed("RSS-Strøm"),
     unlock: Reviewed("Lås opp"),
     unlock_downloads: Reviewed("Lås opp nedlastinger"),
-    unlock_permalink: Reviewed("las-opp"),
-    unlock_code_seems_incorrect: Reviewed("Koden for å låse opp er ikke riktig, sjekk om du har noen skrivefeil."),
     unlock_manual_instructions: Reviewed("\
 For å låse opp nedlastingen må du gjøre følgende endringer \
 til addressen i nettleserens addressefelt.\
@@ -71,6 +70,7 @@ skjer, bruk tilbake-knappen og prøv å følge instruksjonene nøye igjen.\
 <br><br>\
 Erstatt den siste delen av addressen - /{unlock_permalink}/{page_hash}{index_suffix} - \
 med /{downloads_permalink}/[your-unlock-code]{index_suffix} og trykk ENTER."),
+    unlock_permalink: Reviewed("las-opp"),
     up_to_xxx: Reviewed("Opp til {xxx}"),
     xxx_and_others: Reviewed(r#"{xxx} og <a href="{others_link}">mer</a>"#),
     xxx_or_more: Reviewed("{xxx} eller mer"),

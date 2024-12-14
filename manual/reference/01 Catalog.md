@@ -5,21 +5,33 @@
 
 # Catalog
 
-Site-wide metadata and settings, such as the title and site URL.
+This is where you set global options for the site itself (such as the title,
+URL, language, etc.), options that globally affect all pages (such as the
+design/theme), as well as options that are only passed on to the releases
+(such as whether they can be downloaded and in which formats). In general,
+any option that is set at the catalog level can be overwritten at the release
+level by specifying override settings in its own manifest.
+
+An example configuration to give an overview (not all options are shown):
 
 ```eno
 # catalog
 
+title: My awesome music
 base_url: https://example.com/my-music/
-cache_optimization: delayed
-favicon: my_favicon.png
-embedding: disabled
-label_mode
 language: en
+
+label_mode
+show_support_artists
+
+embedding: disabled
 m3u: disabled
 more_label: About
-show_support_artists
-title: My awesome music
+
+archive_downloads:
+- flac
+- mp3
+- opus
 
 home_image:
 description = Me in my studio
@@ -48,6 +60,44 @@ base = light
 base_chroma = 34
 base_hue = 180
 ```
+
+## `archive_downloads`
+
+Sets the formats in which entire releases can be downloaded
+as a (zip) archive. By default none are specified, so this needs
+to be set in order to enable downloads for the entire release.
+
+To set a single download format:
+
+```eno
+archive_downloads: flac
+```
+
+To set multiple download formats:
+
+```eno
+archive_downloads:
+- flac
+- mp3
+- opus
+```
+
+All currently available formats:
+- `aac`
+- `aiff`
+- `alac`
+- `flac`
+- `mp3`
+- `ogg_vorbis`
+- `opus` (this is an alias for `opus_128`)
+- `opus_48`
+- `opus_96`
+- `opus_128`
+- `wav`
+
+In practice a minimal combination of a lossy state of the art format
+(e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
+lossless format (e.g. `flac`) is recommended.
 
 ## `cache_optimization`
 
@@ -85,6 +135,96 @@ assets after each build and lets you use `faircamp --optimize-cache`
 and/or `faircamp --wipe-cache` accordingly whenever you're done with
 your changes and e.g. don't expect to generate any new builds for a while.
 
+## `download_code(s)`
+
+To set a single download code that can be entered to access downloads:
+
+```eno
+download_code: crowdfunding2023!
+```
+
+To set multiple download codes that can be entered to access downloads:
+
+```eno
+download_codes:
+- GOLDsupporter
+- SILVERsupporter
+```
+
+Note that you also need to use the `downloads: code` option to activate
+download codes. In addition it is highly recommended to use `unlock_info` to
+provide a text that is displayed alongside the code input prompt.
+
+## `downloads`
+
+By default your visitors can only stream your releases.
+
+To enable simple free downloads all you need to do is set one or more download
+formats with the `archive_downloads` and/or `track_downloads` option.
+
+The `downloads` option gives you further control over the general download
+mode, which by default is free downloads, but can be changed to external
+downloads, downloads accessible through download codes, or downloads placed
+behind a soft paycurtain, and you can also disable downloads here.
+
+### Free downloads
+
+This is the default (you don't need to set it yourself), but in case you want
+to re-enable it in a manifest:
+
+```eno
+downloads: free
+```
+
+### External downloads
+
+If you want to use your faircamp site purely to let people stream your audio,
+but there is another place on the web where your release(s) can be
+downloaded, external downloads allow you to display a download button that
+merely takes people to the external download page.
+
+For example, to display a download button that takes people to `https://example.com/artist/purchase/`, simply use that url as the setting value:
+
+```eno
+downloads: https://example.com/artist/purchase/
+```
+
+### Download code(s)
+
+A download code (like a coupon/token) needs to be entered to access downloads.
+
+To protect downloads with a code:
+
+```eno
+downloads: code
+```
+
+In combination with this use the `download_code` or `download_codes` option to
+set the codes for accessing downloads and the `download_info` option to
+provide a text that is displayed with the code input field (to give your
+audience directions on how to obtain an download code).
+
+### Soft Paycurtain
+
+A soft (i.e. not technically enforced) paycurtain needs to be passed before downloading.
+
+To provide downloads behind a soft paycurtain:
+
+```eno
+downloads: paycurtain
+```
+
+In combination with this option, use the `price` and `payment_info` options
+to set a price and give instructions for where the payment can be made.
+
+### Disable downloads
+
+Downloads can also be disabled explicitly (e.g. if you quickly want to take them offline at some point):
+
+```eno
+downloads: disabled
+```
+
 ## `embedding`
 
 This allows external sites to embed a widget that presents music from your site.
@@ -99,6 +239,33 @@ releases. If you set it `enabled` at the catalog level, you can also use
 
 ```eno
 embedding: enabled
+```
+
+## `extra_downloads`
+
+Any additional files in a release directory besides the audio files, cover
+image and manifests (.eno files) are considered "extras" and by default
+`bundled` with archive downloads (think artwork, liner notes, lyrics,
+etc.).
+
+To turn this off and entirely omit extra files:
+
+```eno
+extra_downloads: disabled
+```
+
+To provide extra files as separate downloads only:
+
+```eno
+extra_downloads: separate
+```
+
+To provide extra files both as separately downloadable and bundled with archive downloads:
+
+```eno
+extra_downloads:
+- bundled
+- separate
 ```
 
 ## `label_mode`
@@ -116,6 +283,46 @@ make the catalog description the description of that artist, etc..
 The `label_mode` flag can be used if one wants to present multiple artists
 on a single faircamp site. This adds an additional layer of information to the
 page that differentiates the artists, gives them each their own page, etc.
+
+## `language`
+
+```eno
+language: fr
+```
+
+### Available languages
+
+Faircamp currently ships with these languages:
+
+- Dutch `nl`
+- English `en` (default)
+- French `fr`
+- German `de`
+- Italian `it`
+- Lithuanian `lt`
+- Norwegian Bokmål `nb`
+- Polish `pl`
+- Russian `ru`
+- Spanish `es`
+- Serbian (Cyrillic) `sr-cyrl`
+- Serbian (Latin) `sr-latn`
+- Swedish `sv`
+- Turkish `tr`
+- Ukrainian `uk`
+
+You can easily contribute additional or improved language translations by
+going to the [translation website](https://simonrepp.com/faircamp/translate/)
+and following the instructions. No account and no special knowledge is needed,
+all that is required is a little bit of your time and your will to help out.
+
+If there are no translations for your language yet, you can still set the
+language code, this is used to auto-determine the text direction (LTR/RTL)
+and declare the language for your content on the site and in RSS feed metadata -
+the interface texts will still be in english then of course.
+
+```eno
+language: ar
+```
 
 ## `link`
 
@@ -177,6 +384,63 @@ specifically refers to the type of content you are providing there, the
 `more_label` field allows you to do that. Some typical examples of custom
 `more_label`s one might use for the catalog text: "About", "Biography",
 "Artist Statement", "Read on", "Artist roster" etc.
+
+## `payment_info`
+
+This is used together with `downloads: paycurtain` to set the text that is
+displayed before downloads are accessed.
+
+The general idea here is to provide external links to one or more payment,
+donation or patronage platforms that you use, be it liberapay, ko-fi, paypal,
+stripe, etc. You can use [Markdown](https://commonmark.org/help/) to place
+links, bullet points, etc. in the text.
+
+```eno
+-- payment_info
+Most easily you can transfer the money for your purchase
+via my [liberapay account](https://liberapay.com/somewhatsynthwave)
+
+Another option is supporting me through my [ko-fi page](https://ko-fi.com/satanclaus92)
+
+If you're in europe you can send the money via SEPA, contact me at
+[lila@thatawesomeartist42.com](mailto:lila@thatawesomeartist42.com) and I'll
+send you the account details.
+
+On Dec 19th I'm playing a show at *Substage Indenhoven* - you can get the
+digital album now and meet me at the merch stand in december in person to give
+me the money yourself as well, make sure to make a note of it though! :)
+-- payment_info
+```
+
+## `price`
+
+This is used together with `downloads: paycurtain` to set the price that is
+displayed before downloads are accessed.
+
+For example in order to ask for 4€ for accessing the downloads of a release:
+
+```eno
+price: EUR 4+
+```
+
+The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+
+- `USD 0+` (Name your price, including zero dollars as a valid option)
+- `3.50 GBP` (Exactly 3.50 Pounds)
+- `KRW 9080` (Exactly 9080 south korean won)
+- `INR 230+` (230 indian rupees or more)
+- `JPY 400-800` (Between 400 and 800 japanese yen)
+
+## `streaming_quality`
+
+```eno
+streaming_quality: frugal
+```
+
+You can set the encoding quality for streaming from `standard` (the
+default) to `frugal`. This uses considerably less bandwidth, reduces
+emissions and improves load times for listeners, especially on slow
+connections.
 
 ## `synopsis`
 
@@ -352,6 +616,59 @@ theme:
 custom_font = MyCustomSans.woff2
 ```
 
+## `track_downloads`
+
+Sets the formats in which single tracks can be separately downloaded.
+By default none are specified, so this needs to be set in order to
+enable separate downloads for single tracks.
+
+To set a single download format:
+
+```eno
+track_downloads: flac
+```
+
+To set multiple download formats:
+
+```eno
+track_downloads:
+- flac
+- mp3
+- opus
+```
+
+All currently available formats:
+- `aac`
+- `aiff`
+- `alac`
+- `flac`
+- `mp3`
+- `ogg_vorbis`
+- `opus` (this is an alias for `opus_128`)
+- `opus_48`
+- `opus_96`
+- `opus_128`
+- `wav`
+
+In practice a minimal combination of a lossy state of the art format
+(e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
+lossless format (e.g. `flac`) is recommended.
+
+## `unlock_info`
+
+In combination with `downloads: code` and `download_code(s)`, this option
+lets you set the text that is displayed to your visitors when they are prompted
+for a download code. Usually you will want to put instructions in the text that
+tell your visitors how they can obtain a download code.
+
+```eno
+-- unlock_info
+You should have received a download code in your confirmation mail
+for this year's crowdfunding. Stay tuned in case you missed it,
+we're currently planning the next run!
+-- unlock_info
+```
+
 ## General settings
 
 To enable embeds, M3U playlists and RSS feed generation you have to set `base_url`. The value
@@ -411,46 +728,6 @@ artist page (the catalog artist's page).
 feature_support_artists
 ```
 
-## `language`
-
-```eno
-language: fr
-```
-
-### Available languages
-
-Faircamp currently ships with these languages:
-
-- Dutch `nl`
-- English `en` (default)
-- French `fr`
-- German `de`
-- Italian `it`
-- Lithuanian `lt`
-- Norwegian Bokmål `nb`
-- Polish `pl`
-- Russian `ru`
-- Spanish `es`
-- Serbian (Cyrillic) `sr-cyrl`
-- Serbian (Latin) `sr-latn`
-- Swedish `sv`
-- Turkish `tr`
-- Ukrainian `uk`
-
-You can easily contribute additional or improved language translations by
-going to the [translation website](https://simonrepp.com/faircamp/translate/)
-and following the instructions. No account and no special knowledge is needed,
-all that is required is a little bit of your time and your will to help out.
-
-If there are no translations for your language yet, you can still set the
-language code, this is used to auto-determine the text direction (LTR/RTL)
-and declare the language for your content on the site and in RSS feed metadata -
-the interface texts will still be in english then of course.
-
-```eno
-language: ar
-```
-
 ## Dealing with malicious behavior
 
 When third parties hotlink to your site's resources, or when you discover that
@@ -481,17 +758,6 @@ the right, for instance `freeze_download_urls: 1 April 2022` could tell you
 that your current download urls have been valid since that day. You could
 also use "2022-04", "Spring 2022" or such, given that one usually will not
 manually invalidate the urls on a daily basis.
-
-## `streaming_quality`
-
-```eno
-streaming_quality: frugal
-```
-
-You can set the encoding quality for streaming from `standard` (the
-default) to `frugal`. This uses considerably less bandwidth, reduces
-emissions and improves load times for listeners, especially on slow
-connections.
 
 ## How to ensure certain content in a home_image always is visible
 

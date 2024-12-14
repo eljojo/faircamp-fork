@@ -8,7 +8,7 @@ use crate::{
     Catalog,
     CrawlerMeta,
     DownloadFormat,
-    DownloadGranularity,
+    DownloadsConfig,
     Release,
     Scripts,
     TagMapping
@@ -33,28 +33,36 @@ fn download_entry(href: String, label: &str, size: u64) -> String {
 
 /// The download page itself, providing direct links to the (zip) archive
 /// files and/or individual tracks download links.
-pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
+pub fn download_html(
+    build: &Build,
+    catalog: &Catalog,
+    downloads_config: &DownloadsConfig,
+    release: &Release
+) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
+    let mut archive_formats_sorted = downloads_config.archive_formats.clone();
+    archive_formats_sorted.sort_by_key(|format| format.download_rank());
+
+    let mut track_formats_sorted = downloads_config.track_formats.clone();
+    track_formats_sorted.sort_by_key(|format| format.download_rank());
+
+    let all_formats_sorted = downloads_config.all_formats_sorted();
+
     let t_recommended_format =  &build.locale.translations.recommended_format;
-
-    let sorted_formats = DownloadFormat::prioritized_for_download(&release.download_formats);
-
-    let download_hints = sorted_formats
+    let download_hints = DownloadFormat::with_recommendation(&all_formats_sorted)
         .iter()
-        .map(|(format, recommended)|
-            formatdoc!(
-                r"
-                    <div>
-                        {user_label}: <span>{description}{recommendation}</span>
-                    </div>
-                ",
-                description = format.description(build),
-                user_label = format.user_label(),
-                recommendation = if *recommended { format!(" ({t_recommended_format})") } else { String::new() }
-            )
-        )
+        .map(|(format, recommended)| {
+            let description = format.description(build);
+            let user_label = format.user_label();
+            let recommendation = if *recommended { format!(" ({t_recommended_format})") } else { String::new() };
+            formatdoc!("
+                <div>
+                    {user_label}: <span>{description}{recommendation}</span>
+                </div>
+            ")
+        })
         .collect::<Vec<String>>()
         .join("\n");
 
@@ -71,10 +79,10 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         root_prefix,
     );
 
-    let entire_release_downloads = if release.download_granularity != DownloadGranularity::SingleFiles {
-        let release_downloads = sorted_formats
+    let archive_downloads = if !archive_formats_sorted.is_empty() {
+        let release_downloads = archive_formats_sorted
             .iter()
-            .map(|(download_format, _recommended)| {
+            .map(|download_format| {
                 let release_slug = &release.permalink.slug;
 
                 let archive_filename = format!("{}.zip", release.asset_basename.as_ref().unwrap());
@@ -112,74 +120,74 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
         String::new()
     };
 
-    let single_file_downloads = if release.download_granularity != DownloadGranularity::EntireRelease {
-        let extra_downloads = if release.cover.is_some() || !release.extras.is_empty() {
-            let cover_entry = if let Some(described_image) = &release.cover {
-                let image_ref = described_image.image.borrow();
-                let largest_cover_asset = image_ref.cover_assets.as_ref().unwrap().largest();
-                download_entry(
-                    format!(
-                        "{root_prefix}{permalink}/cover_{edge_size}.jpg",
-                        edge_size = largest_cover_asset.edge_size,
-                        permalink = &release.permalink.slug
-                    ),
-                    &build.locale.translations.cover_image,
-                    largest_cover_asset.filesize_bytes
-                )
-            } else {
-                String::new()
-            };
-
-            let extra_entries = if !release.extras.is_empty() {
-                let release_slug = &release.permalink.slug;
-
-                release.extras
-                    .iter()
-                    .map(|extra| {
-                        let extra_hash = build.hash_path_with_salt(
-                            release_slug,
-                            "extras",
-                            &extra.sanitized_filename
-                        );
-
-                        let extra_filename_urlencoded = urlencoding::encode(&extra.sanitized_filename);
-
-                        download_entry(
-                            format!("{root_prefix}{release_slug}/extras/{extra_hash}/{extra_filename_urlencoded}"),
-                            &extra.sanitized_filename,
-                            extra.file_meta.size
-                        )
-                    })
-                    .collect::<Vec<String>>()
-                    .join("")
-            } else {
-                String::new()
-            };
-
-            let t_extras = &build.locale.translations.extras;
-            formatdoc!(
-                r#"
-                    <div class="download_group">{t_extras}</div>
-
-                    <div class="download_formats" style="margin-bottom: 1rem;">
-                        {cover_entry}
-                        {extra_entries}
-                    </div>
-                "#
+    let extra_downloads = if downloads_config.extra_downloads.separate && (release.cover.is_some() || !release.extras.is_empty()) {
+        let cover_entry = if let Some(described_image) = &release.cover {
+            let image_ref = described_image.image.borrow();
+            let largest_cover_asset = image_ref.cover_assets.as_ref().unwrap().largest();
+            download_entry(
+                format!(
+                    "{root_prefix}{permalink}/cover_{edge_size}.jpg",
+                    edge_size = largest_cover_asset.edge_size,
+                    permalink = &release.permalink.slug
+                ),
+                &build.locale.translations.cover_image,
+                largest_cover_asset.filesize_bytes
             )
         } else {
             String::new()
         };
 
-        let track_downloads = release.tracks
+        let extra_entries = if !release.extras.is_empty() {
+            let release_slug = &release.permalink.slug;
+
+            release.extras
+                .iter()
+                .map(|extra| {
+                    let extra_hash = build.hash_path_with_salt(
+                        release_slug,
+                        "extras",
+                        &extra.sanitized_filename
+                    );
+
+                    let extra_filename_urlencoded = urlencoding::encode(&extra.sanitized_filename);
+
+                    download_entry(
+                        format!("{root_prefix}{release_slug}/extras/{extra_hash}/{extra_filename_urlencoded}"),
+                        &extra.sanitized_filename,
+                        extra.file_meta.size
+                    )
+                })
+                .collect::<Vec<String>>()
+                .join("")
+        } else {
+            String::new()
+        };
+
+        let t_extras = &build.locale.translations.extras;
+        formatdoc!(
+            r#"
+                <div class="download_group">{t_extras}</div>
+
+                <div class="download_formats" style="margin-bottom: 1rem;">
+                    {cover_entry}
+                    {extra_entries}
+                </div>
+            "#
+        )
+    } else {
+        String::new()
+    };
+
+    let track_downloads = if !track_formats_sorted.is_empty() {
+        release.tracks
             .iter()
             .enumerate()
             .map(|(track_index, track)| {
                 let tag_mapping = TagMapping::new(release, track, track_index + 1);
 
-                let track_download_columns = sorted_formats
+                let track_download_columns = track_formats_sorted
                     .iter()
-                    .map(|(download_format, _annotation)| {
+                    .map(|download_format| {
                         let release_slug = &release.permalink.slug;
 
                         let track_filename = format!(
@@ -222,14 +230,7 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                 "#)
             })
             .collect::<Vec<String>>()
-            .join("\n");
-
-        formatdoc!(
-            r#"
-                {track_downloads}
-                {extra_downloads}
-            "#
-        )
+            .join("\n")
     } else {
         String::new()
     };
@@ -243,8 +244,9 @@ pub fn download_html(build: &Build, catalog: &Catalog, release: &Release) -> Str
                         <h1>{t_downloads}</h1>
 
                         {compact_release_identifier_rendered}
-                        {entire_release_downloads}
-                        {single_file_downloads}
+                        {archive_downloads}
+                        {track_downloads}
+                        {extra_downloads}
 
                         <div class="download_hints" id="hints">
                             {download_hints}

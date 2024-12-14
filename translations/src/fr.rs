@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const FR: Translations = Translations {
     audio_format_alac: Reviewed("Sans perte et compacté. Préférer à FLAC si vous n’utilisez que des produits Apple."),
@@ -26,8 +26,9 @@ pub const FR: Translations = Translations {
     confirm: Reviewed("Confirmer"),
     r#continue: Reviewed("Continuer"),
     cover_image: Reviewed("Image de couverture"),
-    default_unlock_text: Reviewed("Vous devez entrer un code pour déverrouiller ces téléchargements. Demandez au gestionnaire du site comment en obtenir un."),
+    default_unlock_info: Reviewed("Vous devez entrer un code pour déverrouiller ces téléchargements. Demandez au gestionnaire du site comment en obtenir un."),
     download: Reviewed("Télécharger"),
+    download_code_seems_incorrect: Unreviewed("Le code de déverrouillage semble être incorrect, veuillez vérifier les fautes de frappe."),
     downloads: Reviewed("Téléchargements"),
     downloads_permalink: Reviewed("telechargements"),
     embed: Reviewed("Intégrer"),
@@ -68,9 +69,8 @@ pub const FR: Translations = Translations {
     unlisted: Reviewed("Non répertorié"),
     unlock: Reviewed("Déverouiller"),
     unlock_downloads: Reviewed("Déverouiller les téléchargements"),
-    unlock_permalink: Reviewed("deverouiller"),
-    unlock_code_seems_incorrect: Reviewed("Le code de déverrouillage semble être incorrect, veuillez vérifier les fautes de frappe."),
     unlock_manual_instructions: Reviewed("Pour déverrouiller le téléchargement, veuillez effectuer les modifications décrites ci-dessous dans la barre d'adresse de votre navigateur. <br><br>Avant de commencer, sachez que des codes ou les erreurs d’adresse vous renvoient à une page 404. Dans ce cas, utilisez le bouton Retour et suivez à nouveau attentivement les instructions. <br><br>Remplacez la dernière partie de l'adresse - /{unlock_permalink}/{page_hash}{index_suffix} - avec /{downloads_permalink}/[votre-code-de-deverrouillage]{index_suffix} et appuyez sur Entrée."),
+    unlock_permalink: Reviewed("deverouiller"),
     unmute: Reviewed("Rétablir"),
     up_to_xxx: Reviewed("Jusqu'à {xxx}"),
     visual_impairment: Reviewed("Déficience visuelle"),

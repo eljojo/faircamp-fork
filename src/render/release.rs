@@ -8,7 +8,8 @@ use crate::{
     Build,
     Catalog,
     CrawlerMeta,
-    DownloadOption,
+    DownloadAccess,
+    Downloads,
     Release,
     Scripts
 };
@@ -37,22 +38,56 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
 
-    let download_link = match &release.download_option {
-        DownloadOption::Codes { .. } => {
-            let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-            let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
+    let download_link = match &release.downloads {
+        Downloads::Disabled => String::new(),
+        Downloads::Enabled { download_access, .. } => {
+            match download_access {
+                DownloadAccess::Code { .. } => {
+                    let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
 
-            let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-            let t_download = &build.locale.translations.download;
-            formatdoc!(r#"
-                <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
-                    {unlock_icon}
-                    <span>{t_download}</span>
-                </a>
-            "#)
+                    let unlock_icon = icons::unlock(&build.locale.translations.unlock);
+                    let t_download = &build.locale.translations.download;
+                    formatdoc!(r#"
+                        <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
+                            {unlock_icon}
+                            <span>{t_download}</span>
+                        </a>
+                    "#)
+                }
+                DownloadAccess::Free => {
+                    let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
+
+                    let download_icon = icons::download();
+                    let t_download = &build.locale.translations.download;
+                    formatdoc!(r#"
+                        <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
+                            {download_icon}
+                            <span>{t_download}</span>
+                        </a>
+                    "#)
+                }
+                DownloadAccess::Paycurtain { payment_info, .. } => {
+                    if payment_info.is_none() {
+                        String::new()
+                    } else {
+                        let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                        let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_purchase_permalink]);
+
+                        let buy_icon = icons::buy(&build.locale.translations.buy);
+                        let t_download = &build.locale.translations.download;
+                        formatdoc!(r#"
+                            <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
+                                {buy_icon}
+                                <span>{t_download}</span>
+                            </a>
+                        "#)
+                    }
+                }
+            }
         }
-        DownloadOption::Disabled => String::new(),
-        DownloadOption::External { link } => {
+        Downloads::External { link } => {
             let external_icon = icons::external(&build.locale.translations.external_link);
             let t_download = &build.locale.translations.download;
             formatdoc!(r#"
@@ -61,36 +96,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <span>{t_download}</span>
                 </a>
             "#)
-        }
-        DownloadOption::Free => {
-            let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-            let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
-
-            let download_icon = icons::download();
-            let t_download = &build.locale.translations.download;
-            formatdoc!(r#"
-                <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
-                    {download_icon}
-                    <span>{t_download}</span>
-                </a>
-            "#)
-        }
-        DownloadOption::Paid { payment_text, .. } => {
-            if payment_text.is_none() {
-                String::new()
-            } else {
-                let t_purchase_permalink = &build.locale.translations.purchase_permalink;
-                let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_purchase_permalink]);
-
-                let buy_icon = icons::buy(&build.locale.translations.buy);
-                let t_download = &build.locale.translations.download;
-                formatdoc!(r#"
-                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
-                        {buy_icon}
-                        <span>{t_download}</span>
-                    </a>
-                "#)
-            }
         }
     };
 

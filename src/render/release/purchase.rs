@@ -4,12 +4,13 @@
 use std::ops::Range;
 
 use indoc::formatdoc;
-use iso_currency::Currency;
 
 use crate::{
     Build,
     Catalog,
     CrawlerMeta,
+    DownloadsConfig,
+    Price,
     Release,
     Scripts
 };
@@ -19,17 +20,17 @@ use crate::util::html_escape_outside_attribute;
 pub fn purchase_html(
     build: &Build,
     catalog: &Catalog,
-    currency: &Currency,
-    payment_text: &str,
-    range: &Range<f32>,
+    downloads_config: &DownloadsConfig,
+    payment_info: &str,
+    price: &Price,
     release: &Release
 ) -> String {
     let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
-    let currency_code = currency.code();
-    let currency_symbol = currency.symbol();
+    let currency_code = price.currency.code();
+    let currency_symbol = price.currency.symbol();
 
     let price_display = |text: &str| {
         formatdoc!(r#"
@@ -69,30 +70,30 @@ pub fn purchase_html(
 
     let r_price_display;
     let r_price_input;
-    if range.end == f32::INFINITY {
-        let placeholder = &build.locale.translations.xxx_or_more(&range.start.to_string());
+    if price.range.end == f32::INFINITY {
+        let placeholder = &build.locale.translations.xxx_or_more(&price.range.start.to_string());
         r_price_display = price_display(&placeholder);
-        r_price_input = price_input(range, &placeholder);
-    } else if range.start == range.end {
+        r_price_input = price_input(&price.range, &placeholder);
+    } else if price.range.start == price.range.end {
         let t_fixed_price = &build.locale.translations.fixed_price;
-        let price = &range.start;
+        let price = &price.range.start;
         let text = format!("{t_fixed_price} {currency_symbol}{price} {currency_code}");
         r_price_display = price_display(&text);
         r_price_input = text;
-    } else if range.start > 0.0 {
-        let placeholder = format!("{}-{}", range.start, range.end);
+    } else if price.range.start > 0.0 {
+        let placeholder = format!("{}-{}", price.range.start, price.range.end);
         r_price_display = price_display(&placeholder);
-        r_price_input = price_input(range, &placeholder);
+        r_price_input = price_input(&price.range, &placeholder);
     } else {
-        let placeholder = build.locale.translations.up_to_xxx(&range.end.to_string());
+        let placeholder = build.locale.translations.up_to_xxx(&price.range.end.to_string());
         r_price_display = price_display(&placeholder);
-        r_price_input = price_input(range, &placeholder);
+        r_price_input = price_input(&price.range, &placeholder);
     }
 
     let t_downloads_permalink = &build.locale.translations.downloads_permalink;
     let download_page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
 
-    let formats = release.download_formats
+    let r_formats = downloads_config.all_formats_sorted()
         .iter()
         .map(|audio_format| audio_format.user_label())
         .collect::<Vec<&str>>()
@@ -114,12 +115,12 @@ pub fn purchase_html(
                 {r_price_display}
             </div>
             <div style="font-size: .9rem; margin: 1rem 0;">
-                {t_available_formats} {formats}
+                {t_available_formats} {r_formats}
             </div>
         </div>
         <div class="payment">
             <div class="text">
-                {payment_text}
+                {payment_info}
             </div>
 
             <form action="{release_prefix}{t_downloads_permalink}/{download_page_hash}{index_suffix}">

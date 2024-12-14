@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 wileyfoxyx
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const RU: Translations = Translations {
     audio_format_alac: Reviewed("Сжатый файл без потери качества. Если вы используете продукты Apple, выберите этот формат вместо FLAC"),
@@ -24,8 +24,9 @@ pub const RU: Translations = Translations {
     copy: Reviewed("Копировать"),
     copy_link: Reviewed("Копировать ссылку"),
     cover_image: Reviewed("Обложка"),
-    default_unlock_text: Reviewed("Введите код, чтобы разблокировать загрузки. Узнайте у операторов сайта, как его получить."),
+    default_unlock_info: Reviewed("Введите код, чтобы разблокировать загрузки. Узнайте у операторов сайта, как его получить."),
     download: Reviewed("Загрузить"),
+    download_code_seems_incorrect: Unreviewed("Похоже, что код открытия неверен. Пожалуйста, проверьте его корректность."),
     downloads: Reviewed("Загрузки"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Эмбед"),
@@ -67,7 +68,6 @@ pub const RU: Translations = Translations {
     this_site_was_created_with_faircamp: Reviewed("Сайт создан с использованием {faircamp_link}"),
     unlisted: Reviewed("Доступ по ссылке"),
     unlock: Reviewed("Открыть"),
-    unlock_code_seems_incorrect: Reviewed("Похоже, что код открытия неверен. Пожалуйста, проверьте его корректность."),
     unlock_downloads: Reviewed("Открыть загрузки"),
     unlock_manual_instructions: Reviewed("Чтобы открыть загрузку, внесите описанные ниже изменения в адрес в строке вашего браузера.<br><br>Прежде чем приступить к работе, пожалуйста, учтите, что неправильные коды или модификации адресов приведут вас на страницу 404. В этом случае воспользуйтесь кнопкой «Назад» и снова внимательно следуйте инструкциям.<br><br>Замените последнюю часть адреса - /{unlock_permalink}/{page_hash}{index_suffix} - на /{downloads_permalink}/[your-unlock-code]{index_suffix} и нажмите Enter."),
     unlock_permalink: Reviewed("unlock"),

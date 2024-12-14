@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 atomkarinca
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const TR: Translations = Translations {
     audio_format_alac: Reviewed("Kayıpsız ve sıkıştırılmış, eğer yalnızca Apple ürünleri kullanıyorsanız FLAC yerine bunu seçin"),
@@ -23,8 +23,9 @@ pub const TR: Translations = Translations {
     confirm: Reviewed("Onayla"),
     r#continue: Reviewed("Devam et"),
     cover_image: Reviewed("Albüm Kapağı"),
-    default_unlock_text: Reviewed("Bu indirmelere ulaşmak için kod girişi yapmanız gerekiyor. Site yöneticilerine danışarak buna ulaşabilirsiniz."),
+    default_unlock_info: Reviewed("Bu indirmelere ulaşmak için kod girişi yapmanız gerekiyor. Site yöneticilerine danışarak buna ulaşabilirsiniz."),
     download: Reviewed("İndir"),
+    download_code_seems_incorrect: Unreviewed("Kilit açma kodu yanlış görünüyor, lütfen yazım hatası olup olmadığını kontrol edin."),
     downloads: Reviewed("İndirelenler"),
     downloads_permalink: Reviewed("indirilenler"),
     embed: Reviewed("Sayfaya göm"),
@@ -78,8 +79,6 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     unlisted: Reviewed("Yayınlanmamış"),
     unlock: Reviewed("Kilidi aç"),
     unlock_downloads: Reviewed("İndirmelerin kilidini aç"),
-    unlock_permalink: Reviewed("kilidi-ac"),
-    unlock_code_seems_incorrect: Reviewed("Kilit açma kodu yanlış görünüyor, lütfen yazım hatası olup olmadığını kontrol edin."),
     unlock_manual_instructions: Reviewed("\
 İndirmenin kilidini açmak için lütfen tarayıcınızın adres \
 satırında aşağıda tarif edilen değişiklikleri yapın.\
@@ -92,6 +91,7 @@ dikkatli bir şekilde tekrar takip edin.\
 Adresin son kısmındaki /{unlock_permalink}/{page_hash}{index_suffix} - \
 ibaresini  /{downloads_permalink}/[your-unlock-code]{index_suffix} ile değiştirerek \
 Enter tuşuna basın."),
+    unlock_permalink: Reviewed("kilidi-ac"),
     unmute: Reviewed("Sesi aç"),
     up_to_xxx: Reviewed("{xxx} öğesine kadar"),
     visual_impairment: Reviewed("Görme Bozukluğu"),

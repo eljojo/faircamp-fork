@@ -25,8 +25,9 @@ pub const DE: Translations = Translations {
     confirm: Reviewed("Bestätigen"),
     r#continue: Reviewed("Fortfahren"),
     cover_image: Reviewed("Cover Bild"),
-    default_unlock_text: Reviewed("Du musst einen Code eingeben um diese Downloads freizuschalten. Frag bei den Seitenbetreiber*innen nach wie du einen bekommst."),
+    default_unlock_info: Reviewed("Du musst einen Code eingeben um diese Downloads freizuschalten. Frag bei den Seitenbetreiber*innen nach wie du einen bekommst."),
     download: Reviewed("Downloaden"),
+    download_code_seems_incorrect: Reviewed("Der Downloadcode scheint nicht korrekt zu sein, überprüfe ihn bitte auf Tippfehler."),
     downloads: Reviewed("Downloads"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Einbetten"),
@@ -85,8 +86,6 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     unlisted: Reviewed("Ungelistet"),
     unlock: Reviewed("Freischalten"),
     unlock_downloads: Reviewed("Downloads freischalten"),
-    unlock_permalink: Reviewed("freischalten"),
-    unlock_code_seems_incorrect: Reviewed("Der Freischaltecode scheint nicht korrekt zu sein, überprüfe ihn bitte auf Tippfehler."),
     unlock_manual_instructions: Reviewed("\
 Um die Downloads freizuschalten, führe bitte die unten beschriebenen \
 Änderungen in der Adressleiste deines Browsers durch.\
@@ -98,7 +97,8 @@ und folge den Instruktionen erneut und ganz genau.\
 <br><br>\
 Ersetze den letzten Abschnitt der Adresse - \
 /{unlock_permalink}/{page_hash}{index_suffix} - \
-mit /{downloads_permalink}/[dein-freischaltecode]{index_suffix} und drücke dann Enter."),
+mit /{downloads_permalink}/[dein-downloadcode]{index_suffix} und drücke dann Enter."),
+    unlock_permalink: Reviewed("freischalten"),
     unmute: Reviewed("Lautschalten"),
     up_to_xxx: Reviewed("Bis zu {xxx}"),
     visual_impairment: Reviewed("Visuelle Beeinträchtigung"),

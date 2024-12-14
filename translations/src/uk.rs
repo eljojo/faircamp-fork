@@ -22,8 +22,9 @@ pub const UK: Translations = Translations {
     confirm: Reviewed("Підтвердити"),
     r#continue: Reviewed("Далі"),
     cover_image: Reviewed("Зображення обкладинки"),
-    default_unlock_text: Reviewed("Щоб дістатися цих завантажень, вам потрібно ввести код. Запитайте в операторів сайту, як його отримати."),
+    default_unlock_info: Reviewed("Щоб дістатися цих завантажень, вам потрібно ввести код. Запитайте в операторів сайту, як його отримати."),
     download: Reviewed("Завантажити"),
+    download_code_seems_incorrect: Unreviewed("Код розблокування виглядає хибним. Перевірте, чи нема одруку."),
     downloads: Reviewed("Завантаження"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Вбудувати"),
@@ -70,8 +71,6 @@ pub const UK: Translations = Translations {
     unlisted: Reviewed("Поза списком"),
     unlock: Reviewed("Розблокувати"),
     unlock_downloads: Reviewed("Розблокувати завантаження"),
-    unlock_permalink: Reviewed("unlock"),
-    unlock_code_seems_incorrect: Reviewed("Код розблокування виглядає хибним. Перевірте, чи нема одруку."),
     unlock_manual_instructions: Reviewed("\
 Щоб розблокувати завантаження, змініть адресу в браузері так, \
 як описано внизу.\
@@ -82,6 +81,7 @@ pub const UK: Translations = Translations {
 <br><br>\
 Замініть кінець адреси — /{unlock_permalink}/{page_hash}{index_suffix} — \
 на /{downloads_permalink}/[your-unlock-code]{index_suffix} і тоді натисніть Enter."),
+    unlock_permalink: Reviewed("unlock"),
     up_to_xxx: Reviewed("До {xxx}"),
     visual_impairment: Reviewed("Вади зору"),
     volume: Reviewed("Гучність"),

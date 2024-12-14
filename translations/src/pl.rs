@@ -21,7 +21,8 @@ pub const PL: Translations = Translations {
     confirm: Reviewed("Potwierdź"),
     r#continue: Reviewed("Kontynuuj"),
     cover_image: Reviewed("Okładka"),
-    default_unlock_text: Reviewed("Musisz podać kod aby odblokować pobieranie. Spytaj administratora strony jak dostać jeden."),
+    default_unlock_info: Reviewed("Musisz podać kod aby odblokować pobieranie. Spytaj administratora strony jak dostać jeden."),
+    download_code_seems_incorrect: Unreviewed("Kod do odblokowania nie jest prawidłowy, sprawdź literówki."),
     downloads: Reviewed("Pobieranie"),
     downloads_permalink: Reviewed("pobieranie"),
     embed: Reviewed("Osadź"),
@@ -58,8 +59,6 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
     rss_feed: Reviewed("Źródło RSS"),
     unlock: Reviewed("Odblokuj"),
     unlock_downloads: Reviewed("Odblokuj pobieranie"),
-    unlock_permalink: Reviewed("odblokuj"),
-    unlock_code_seems_incorrect: Reviewed("Kod do odblokowania nie jest prawidłowy, sprawdź literówki."),
     unlock_manual_instructions: Reviewed("\
 Aby odblokować pobieranie, proszę dokonać poniższych \
 zmian w pasku adresu przeglądarki.\
@@ -70,6 +69,7 @@ użyj guzika Wstecz i precyzyjnie podążaj za instrukcjami.\
 <br><br>\
 Zamień ostatnią część adresu - /{unlock_permalink}/{page_hash}{index_suffix} - \
 na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij Enter."),
+    unlock_permalink: Reviewed("odblokuj"),
     up_to_xxx: Reviewed("Aż do {xxx}"),
     xxx_or_more: Reviewed("{xxx} i więcej"),
     ..Translations::UNTRANSLATED

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Tommaso Croce
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const IT: Translations = Translations {
     audio_format_alac: Reviewed("Lossless e compresso, se utilizzi esclusivamente prodotti Apple scegli questo invece di FLAC"),
@@ -24,8 +24,9 @@ pub const IT: Translations = Translations {
     confirm: Reviewed("Conferma"),
     r#continue: Reviewed("Continua"),
     cover_image: Reviewed("Immagine di copertina"),
-    default_unlock_text: Reviewed("Devi inserire un codice per sbloccare questi download. Chiedi ai gestori del sito come ottenerne uno."),
+    default_unlock_info: Reviewed("Devi inserire un codice per sbloccare questi download. Chiedi ai gestori del sito come ottenerne uno."),
     download: Reviewed("Scarica"),
+    download_code_seems_incorrect: Unreviewed("Il codice di sblocco sembra essere errato, controlla eventuali errori di battitura."),
     downloads: Reviewed("Download"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Incorpora"),
@@ -82,8 +83,6 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     unlisted: Reviewed("Non elencato"),
     unlock: Reviewed("Sblocca"),
     unlock_downloads: Reviewed("Sblocca download"),
-    unlock_permalink: Reviewed("sblocca"),
-    unlock_code_seems_incorrect: Reviewed("Il codice di sblocco sembra essere errato, controlla eventuali errori di battitura."),
     unlock_manual_instructions: Reviewed("\
 Per sbloccare il download, apporta le modifiche descritte di seguito \
 all'indirizzo nella barra degli indirizzi del tuo browser.\
@@ -94,6 +93,7 @@ usa il pulsante Indietro e segui nuovamente attentamente le istruzioni.\
 <br><br>\
 Sostituisci la parte finale dell'indirizzo - /{unlock_permalink}/{page_hash}{index_suffix} - \
 con /{downloads_permalink}/[il-tuo-codice-di-sblocco]{index_suffix} e poi premi Invio."),
+    unlock_permalink: Reviewed("sblocca"),
     unmute: Reviewed("Riattiva audio"),
     up_to_xxx: Reviewed("Fino a {xxx}"),
     visual_impairment: Reviewed("Disabilità visiva"),

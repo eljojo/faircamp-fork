@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 DURAD
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const SR_CYRL: Translations = Translations {
     audio_format_alac: Reviewed("Без губитака и компресовано, одаберите уместо FLAC формата уколико користите искључиво Apple производе"),
@@ -23,8 +23,9 @@ pub const SR_CYRL: Translations = Translations {
     copy: Reviewed("Копирајте"),
     copy_link: Reviewed("Копирајте адресу"),
     cover_image: Reviewed("Слика омота"),
-    default_unlock_text: Reviewed("Морате да унесете код зарад откључавања могућности за преузимање. Консултујте власнике презентације да сазнате како."),
+    default_unlock_info: Reviewed("Морате да унесете код зарад откључавања могућности за преузимање. Консултујте власнике презентације да сазнате како."),
     download: Reviewed("Преузимања"),
+    download_code_seems_incorrect: Unreviewed("Код за откључавање није исправан, проверите уписани код"),
     downloads: Reviewed("Преузимања"),
     downloads_permalink: Reviewed("preuzimanja"),
     embed: Reviewed("Интеграција"),
@@ -61,7 +62,6 @@ pub const SR_CYRL: Translations = Translations {
     this_site_was_created_with_faircamp: Reviewed("Ова интернет презентација је направљена са {faircamp_link}"),
     unlisted: Reviewed("Није улистано"),
     unlock: Reviewed("Откључај"),
-    unlock_code_seems_incorrect: Reviewed("Код за откључавање није исправан, проверите уписани код"),
     unlock_downloads: Reviewed("Откључај преузимања"),
     unlock_manual_instructions: Reviewed("Да бисте откључали преузимања, молимо вас да промените адресу у адресној траци вашег прегледача као што је описано у наставку.<br><br>Пре него што наставите, обавештавамо Вас да неправилни кодови или модификације адресе могу довести до странице 404 (садржај није нађен). <br><br>У том случају користите дугме за повратак и пажљиво поново следите упутства. Замените последњи део адресе у адресној траци вашег прегледача - /{unlock_permalink}/{page_hash}{index_suffix} - са /{downloads_permalink}/[ваш-код-за-откључавање]{index_suffix} и потврдите притиском на тастер Enter."),
     unlock_permalink: Reviewed("otkljucaj"),

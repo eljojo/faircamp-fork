@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Vac
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const LT: Translations = Translations {
     audio_format_alac: Reviewed("Nenuostolingas ir suglaudintas. Jei naudojate tik „Apple“ produktus, rinkitės šį, o ne FLAC."),
@@ -24,8 +24,9 @@ pub const LT: Translations = Translations {
     copy_link: Reviewed("Kopijuoti nuorodą"),
     copied: Reviewed("Nukopijuota"),
     cover_image: Reviewed("Viršelio vaizdas"),
-    default_unlock_text: Reviewed("Reikia įvesti kodą, kad atrakintumėte šiuos atsisiuntimus. Klauskite svetainės operatorių, kaip jį gauti."),
+    default_unlock_info: Reviewed("Reikia įvesti kodą, kad atrakintumėte šiuos atsisiuntimus. Klauskite svetainės operatorių, kaip jį gauti."),
     download: Reviewed("Atsisiųsti"),
+    download_code_seems_incorrect: Unreviewed("Atrodo, kad atrakinimo kodas neteisingas. Patikrinkite, ar nėra rašybos klaidų."),
     downloads: Reviewed("Atsisiuntimai"),
     downloads_permalink: Reviewed("atsisiuntimai"),
     embed: Reviewed("Įterpti"),
@@ -68,7 +69,6 @@ pub const LT: Translations = Translations {
     this_site_was_created_with_faircamp: Reviewed("Ši svetainė buvo sukurta su „{faircamp_link}“"),
     unlisted: Reviewed("Neįtrauktas į sąrašą"),
     unlock: Reviewed("Atrakinti"),
-    unlock_code_seems_incorrect: Reviewed("Atrodo, kad atrakinimo kodas neteisingas. Patikrinkite, ar nėra rašybos klaidų."),
     unlock_downloads: Reviewed("Atrakinti atsisiuntimus"),
     unlock_manual_instructions: Reviewed("Kad atrakintumėte atsisiuntimą, atlikite toliau apibūdintus adreso pakeitimus naršyklės adresų juostoje.<br><br>Prieš pradėdami tai daryti, turėkite omenyje, kad neteisingi kodai arba adreso pakeitimai nuves į 404 puslapį. Tokiu atveju naudokite mygtuką Atgal ir dar kartą atidžiai sekite instrukcijas.<br><br>Pakeiskite paskutinę adreso dalį – /{unlock_permalink}/{page_hash}{index_suffix} – į /{downloads_permalink}/[your-unlock-code]{index_suffix} ir paspauskite Įvesti."),
     unlock_permalink: Reviewed("atrakinti"),

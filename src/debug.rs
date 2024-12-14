@@ -3,7 +3,7 @@
 
 use indoc::formatdoc;
 
-use crate::Catalog;
+use crate::{Catalog, DownloadAccess, Downloads};
 
 /// Prints debug information, e.g. to gain an understanding of how the catalog
 /// files map to faircamp's internally generated data model.
@@ -37,6 +37,23 @@ pub fn debug_catalog(catalog: &Catalog) {
             .iter()
             .map(|release| {
                 let release_ref = release.borrow();
+
+                let r_downloads = match &release_ref.downloads {
+                    Downloads::Disabled => String::from("Disabled"),
+                    Downloads::Enabled { download_access, downloads_config } => {
+                        let r_access = match download_access {
+                            DownloadAccess::Code { .. } => "Code",
+                            DownloadAccess::Free => "Free",
+                            DownloadAccess::Paycurtain { .. } => "Paycurtain"
+                        };
+
+                        let r_formats = format!("({} archive formats/{} track formats)", downloads_config.archive_formats.len(), downloads_config.track_formats.len());
+
+                        format!("{r_access} {r_formats}")
+                    }
+                    Downloads::External { link } => format!("External ({link})")
+                };
+
                 let r_main_artists = match release_ref.main_artists.is_empty() {
                     true => String::from("Empty"),
                     false => release_ref.main_artists
@@ -54,7 +71,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                         .join(", ")
                 };
 
-                format!("\n- Title: {}\n  Main Artists: {r_main_artists}\n  Support Artists: {r_support_artists}", release_ref.title)
+                format!("\n- Title: {}\n  Main Artists: {r_main_artists}\n  Support Artists: {r_support_artists}\n  Downloads: {r_downloads}", release_ref.title)
             })
             .collect::<Vec<String>>()
             .join("")

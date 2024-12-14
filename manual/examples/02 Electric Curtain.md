@@ -70,7 +70,6 @@ alias: Electric Curtain × Die Arbeit der Nacht
 # catalog
 
 title: Electric Curtain
-
 base_url: https://curtain.electric/
 
 > To save bandwidth and storage, the artist here reduces the
@@ -84,41 +83,39 @@ a gigantesque dystopian world of hard and harsh bass-driven synth.
 Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 -- text
 
+downloads: paycurtain
+
+> These settings apply to all releases, here we just set
+> the download format for all of them. As each of them
+> has a different price, that setting is individually set
+> in each of the .eno files alongside the releases.
+archive_downloads: flac
+
+> For each release these two payment options will be shown,
+> as the settings here apply to all releases
+-- payment_info
+Option 1: Pay via [ko-fi](https://ko-fi.com/electriccurtainisfiction)
+
+Option 2: Pay via [paypal](https://paypal.me/electriccurtainisfiction)
+-- payment_info
+
 theme:
 background_alpha = 36
 background_image = abstractsyntaxthreat.png
 > The dark theme with high dynamic range (= deep black) nicely fits the darkness of the music
 base = dark
 dynamic_range = 100
-
-# download
-
-> These settings apply to all releases, here we just set
-> the download format for all of them. As each of them
-> has a different price, that setting is individually set
-> in each of the .eno files alongside the releases.
-format: flac
-
-> For each release these two payment options will be shown,
-> as the settings here apply to all releases
--- payment_text
-Option 1: Pay via [ko-fi](https://ko-fi.com/electriccurtainisfiction)
-
-Option 2: Pay via [paypal](https://paypal.me/electriccurtainisfiction)
--- payment_text
 ```
 
 Inside the file `Electric Curtain/2023/Enter the Maze/release.eno`:
 
 ```eno
-# download
-
-price: 4+ USD
-
 # release
 
 permalink: enter-the-maze
 date: 2023-05-15
+
+price: 4+ USD
 
 cover:
 description = Enter the maze
@@ -128,14 +125,12 @@ file = enterthemaze.png
 Inside the file `Electric Curtain/2022/Network Angst/release.eno`:
 
 ```eno
-# download
-
-price: 0+ USD
-
 # release
 
 permalink: network-angst
 date: 2022-12-20
+
+price: 0+ USD
 
 cover:
 description = A 56k modem in neon colors
@@ -145,14 +140,12 @@ file = networkangst.png
 Inside the file `Electric Curtain/2022/Dark Cybernetic Beings/release.eno`:
 
 ```eno
-# download
-
-price: 0+ USD
-
 # release
 
 permalink: network-angst
 date: 2022-09-02
+
+price: 0+ USD
 
 cover:
 description = An abstract depiction of a crowd of people in a backalley, like in matrix, but more sinister

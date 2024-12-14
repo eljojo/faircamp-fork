@@ -24,8 +24,9 @@ pub const ES: Translations = Translations {
     confirm: Unreviewed("Confirmar"),
     r#continue: Unreviewed("Continuar"),
     cover_image: Unreviewed("Imagen de tapa"),
-    default_unlock_text: Unreviewed("Tienes que ingresar un código para desbloquear estas descargas. Pregunta a los operadores del sitio cómo obtener uno."),
+    default_unlock_info: Unreviewed("Tienes que ingresar un código para desbloquear estas descargas. Pregunta a los operadores del sitio cómo obtener uno."),
     download: Reviewed("Descargar"),
+    download_code_seems_incorrect: Unreviewed("El código de desbloqueo entrado parece ser incorrecto, por favor revise si hay errores tipográficos."),
     downloads: Unreviewed("Descargas"),
     downloads_permalink: Unreviewed("descargas"),
     embed: Unreviewed("Incrustar"),
@@ -72,8 +73,6 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     unlisted: Unreviewed("No listado"),
     unlock: Unreviewed("Desbloquear"),
     unlock_downloads: Unreviewed("Desbloquear descargas"),
-    unlock_permalink: Unreviewed("desbloquear"),
-    unlock_code_seems_incorrect: Unreviewed("El código de desbloqueo entrado parece ser incorrecto, por favor revise si hay errores tipográficos."),
     unlock_manual_instructions: Unreviewed("\
 Para desbloquear la descarga, por favor haz los cambios \
 descritos abajo en la barra de direcciones del navegador. \
@@ -85,6 +84,7 @@ instrucciones de nuevo. \
 <br><br>\
 Reemplaza el parte final de la direccion - /{unlock_permalink}/{page_hash}{index_suffix} - \
 con /{downloads_permalink}/[tu-código-de-desbloqueo]{index_suffix} y presiona Enter."),
+    unlock_permalink: Unreviewed("desbloquear"),
     up_to_xxx: Unreviewed("Hasta {xxx}"),
     volume: Reviewed("Volumen"),
     xxx_and_others: Unreviewed(r#"{xxx} y <a href="{others_link}">otros</a>"#),

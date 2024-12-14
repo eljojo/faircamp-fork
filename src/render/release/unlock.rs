@@ -17,39 +17,39 @@ pub fn unlock_html(
     build: &Build,
     catalog: &Catalog,
     release: &Release,
-    unlock_text: &Option<String>
+    unlock_info: &Option<String>
 ) -> String {
     let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
-    let custom_or_default_unlock_text = unlock_text
+    let custom_or_default_unlock_info = unlock_info
         .as_ref()
         .map(|text| text.to_string())
-        .unwrap_or(build.locale.translations.default_unlock_text.to_string());
+        .unwrap_or(build.locale.translations.default_unlock_info.to_string());
 
     let t_unlock_permalink = &build.locale.translations.unlock_permalink;
     let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
 
+    let t_download_code_seems_incorrect = &build.locale.translations.download_code_seems_incorrect;
     let t_downloads_permalink = &build.locale.translations.downloads_permalink;
     let t_enter_code_here = &build.locale.translations.enter_code_here;
     let t_unlock = &build.locale.translations.unlock;
-    let t_unlock_code_seems_incorrect = &build.locale.translations.unlock_code_seems_incorrect;
     let t_unlock_manual_instructions = &build.locale.translations.unlock_manual_instructions(&page_hash, index_suffix);
     let content = formatdoc!(r#"
         <div class="unlock_scripted">
-            {custom_or_default_unlock_text}
+            {custom_or_default_unlock_info}
 
             <br><br>
 
             <form id="unlock">
-                <input class="unlock_code" placeholder="{t_enter_code_here}" type="text">
+                <input class="download_code" placeholder="{t_enter_code_here}" type="text">
                 <button name="unlock">{t_unlock}</button>
             </form>
             <script>
                 document.querySelector('#unlock').addEventListener('submit', event => {{
                     event.preventDefault();
-                    const code = document.querySelector('.unlock_code').value;
+                    const code = document.querySelector('.download_code').value;
                     const url = `../../{t_downloads_permalink}/${{code}}{index_suffix}`;
                     // TODO: Is this a problem in local-only viewing (file://...)? Test/follow up.
                     fetch(url, {{ method: 'HEAD', mode: 'no-cors' }})
@@ -57,11 +57,11 @@ pub fn unlock_html(
                             if (response.ok) {{
                                 window.location = url;
                             }} else {{
-                                alert('{t_unlock_code_seems_incorrect}');
+                                alert('{t_download_code_seems_incorrect}');
                             }}
                         }})
                         .catch(error => {{
-                            alert('{t_unlock_code_seems_incorrect}');
+                            alert('{t_download_code_seems_incorrect}');
                         }});
                 }});
             </script>

@@ -22,8 +22,9 @@ pub const SV: Translations = Translations {
     confirm: Reviewed("Bekräfta"),
     r#continue: Reviewed("Fortsätt"),
     cover_image: Reviewed("Omslagsbild"),
-    default_unlock_text: Reviewed("Du behöver ange en kod för att ha tillgång till nedladdningar. Fråga sidutvecklarna om hur en sådan erhålles."),
+    default_unlock_info: Reviewed("Du behöver ange en kod för att ha tillgång till nedladdningar. Fråga sidutvecklarna om hur en sådan erhålles."),
     download: Reviewed("Ladda ned"),
+    download_code_seems_incorrect: Unreviewed("Upplåsningskoden verkar vara felaktig, var vänlig kontrollera stavfel."),
     downloads: Reviewed("Nedladdningar"),
     downloads_permalink: Reviewed("nedladdningar"),
     embed: Reviewed("Bädda in"),
@@ -68,8 +69,6 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
     unlisted: Reviewed("Olistade"),
     unlock: Reviewed("Lås upp"),
     unlock_downloads: Reviewed("Lås upp nedladdningar"),
-    unlock_permalink: Reviewed("las-upp"),
-    unlock_code_seems_incorrect: Reviewed("Upplåsningskoden verkar vara felaktig, var vänlig kontrollera stavfel."),
     unlock_manual_instructions: Reviewed("\
 För att låsa upp nedladdningen, vänligen ändra på \
 din webbläsares adressfält med hjälp av nedanstående instruktioner.\
@@ -80,6 +79,7 @@ Om detta sker, använd bakåtknappen och följ noggrant instruktionerna igen.\
 <br><br>\
 Ersätt den sista delen av adressen - /{unlock_permalink}/{page_hash}{index_suffix} - \
 med /{downloads_permalink}/[din-upplåsningskod]{index_suffix} och tryck sedan på Retur-tangenten."),
+    unlock_permalink: Reviewed("las-upp"),
     up_to_xxx: Reviewed("Upp till {xxx}"),
     visual_impairment: Reviewed("Synnedsättning"),
     xxx_and_others: Reviewed(r#"{xxx} med <a href="{others_link}">flera</a>"#),

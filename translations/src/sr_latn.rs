@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 DURAD
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const SR_LATN: Translations = Translations {
     audio_format_alac: Reviewed("Bez gubitaka i kompresovano, odaberite umesto FLAC formata ukoliko koristite isključivo Apple proizvode"),
@@ -23,8 +23,9 @@ pub const SR_LATN: Translations = Translations {
     copy: Reviewed("Kopirajte"),
     copy_link: Reviewed("Kopirajte adresu"),
     cover_image: Reviewed("Slika omota"),
-    default_unlock_text: Reviewed("Morate da unesete kod zarad otključavanja mogućnosti za preuzimanje. Konsultujte vlasnike prezentacije da saznate kako."),
+    default_unlock_info: Reviewed("Morate da unesete kod zarad otključavanja mogućnosti za preuzimanje. Konsultujte vlasnike prezentacije da saznate kako."),
     download: Reviewed("Preuzimanja"),
+    download_code_seems_incorrect: Unreviewed("Kod za otključavanje nije ispravan, proverite upisani kod"),
     downloads: Reviewed("Preuzimanja"),
     downloads_permalink: Reviewed("preuzimanja"),
     embed: Reviewed("Integracija"),
@@ -61,7 +62,6 @@ pub const SR_LATN: Translations = Translations {
     this_site_was_created_with_faircamp: Reviewed("Ova internet prezentacija je napravljena sa {faircamp_link}"),
     unlisted: Reviewed("Nije ulistano"),
     unlock: Reviewed("Otključaj"),
-    unlock_code_seems_incorrect: Reviewed("Kod za otključavanje nije ispravan, proverite upisani kod"),
     unlock_downloads: Reviewed("Otključaj preuzimanja"),
     unlock_manual_instructions: Reviewed("Da biste otključali preuzimanja, molimo vas da promenite adresu u adresnoj traci vašeg pregledača kao što je opisano u nastavku.<br><br>Pre nego što nastavite, obaveštavamo Vas da nepravilni kodovi ili modifikacije adrese mogu dovesti do stranice 404 (sadržaj nije nađen). <br><br>U tom slučaju koristite dugme za povratak i pažljivo ponovo sledite uputstva. Zamenite poslednji deo adrese u adresnoj traci vašeg pregledača - /{unlock_permalink}/{page_hash}{index_suffix} - sa /{downloads_permalink}/[vaš-kod-za-otključavanje]{index_suffix} i potvrdite pritiskom na taster Enter."),
     unlock_permalink: Reviewed("otkljucaj"),

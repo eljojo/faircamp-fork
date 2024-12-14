@@ -309,6 +309,7 @@ button svg { display: inline-block; }
     height: .2rem;
 }
 .docked_player.tall .title_wrapper { margin-inline-end: .9rem; }
+.download_code { margin-inline-end: .3rem; }
 .download_entry { display: flex; }
 .download_entry a { color: var(--fg-3); }
 .download_entry a:hover { color: var(--fg-3-focus); }
@@ -775,7 +776,6 @@ input[type="text"].disabled,
     display: flex;
     margin-bottom: 2rem;
 }
-.unlock_code { margin-inline-end: .3rem; }
 .volume {
     align-items: center;
     display: flex;

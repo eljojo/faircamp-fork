@@ -25,8 +25,9 @@ pub const EN: Translations = Translations {
     confirm: Reviewed("Confirm"),
     r#continue: Reviewed("Continue"),
     cover_image: Reviewed("Cover Image"),
-    default_unlock_text: Reviewed("You need to enter a code to unlock these downloads. Ask the site operators for how to obtain one."),
+    default_unlock_info: Reviewed("You need to enter a code to unlock these downloads. Ask the site operators for how to obtain one."),
     download: Reviewed("Download"),
+    download_code_seems_incorrect: Reviewed("The download code seems to be incorrect, please check for typos."),
     downloads: Reviewed("Downloads"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Embed"),
@@ -85,8 +86,6 @@ Here are some tips for writing good image descriptions:<br>\
     unlisted: Reviewed("Unlisted"),
     unlock: Reviewed("Unlock"),
     unlock_downloads: Reviewed("Unlock downloads"),
-    unlock_permalink: Reviewed("unlock"),
-    unlock_code_seems_incorrect: Reviewed("The unlock code seems to be incorrect, please check for typos."),
     unlock_manual_instructions: Reviewed("\
 To unlock the download, please make the below described \
 changes to the address in your browser's adress bar.\
@@ -96,7 +95,8 @@ address modifications take you to a 404 page. In this case \
 use the Back button and closely follow the instructions again.\
 <br><br>\
 Replace the final part of the address - /{unlock_permalink}/{page_hash}{index_suffix} - \
-with /{downloads_permalink}/[your-unlock-code]{index_suffix} and then press Enter."),
+with /{downloads_permalink}/[your-download-code]{index_suffix} and then press Enter."),
+    unlock_permalink: Reviewed("unlock"),
     unmute: Reviewed("Unmute"),
     up_to_xxx: Reviewed("Up to {xxx}"),
     visual_impairment: Reviewed("Visual Impairment"),
