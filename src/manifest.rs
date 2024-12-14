@@ -120,7 +120,7 @@ impl Overrides {
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
             track_artists: None,
-            track_numbering: TrackNumbering::ArabicPadded,
+            track_numbering: TrackNumbering::ArabicDotted,
             unlock_info: None
         }
     }
