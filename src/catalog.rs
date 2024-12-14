@@ -316,7 +316,7 @@ impl Catalog {
             home_image: None,
             label_mode: false,
             links: Vec::new(),
-            m3u: true,
+            m3u: false,
             main_artists: Vec::new(),
             more_label: None,
             releases: Vec::new(),

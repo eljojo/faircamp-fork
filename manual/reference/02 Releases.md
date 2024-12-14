@@ -293,14 +293,23 @@ displayed instead of the `url`, when given.
 
 ## `m3u`
 
+This controls the generation of an [M3U](https://en.wikipedia.org/wiki/M3U) playlist
+for the release (provided on the release page) - it is disabled by default.
+
+To enable the M3U playlist for a release:
+
+```eno
+m3u: enabled
+```
+
+To disable the M3U playlist for a release:
+
 ```eno
 m3u: disabled
 ```
 
-By default, [M3U](https://en.wikipedia.org/wiki/M3U) playlists are generated
-and provided for each release, but this can be controlled with the `m3u`
-option by setting it to `enabled` or `disabled`. This behavior can also be
-globally configured (for all releases) in the catalog manifest.
+This behavior can also be globally configured (for all releases) in the
+catalog manifest.
 
 ## `more_label`
 

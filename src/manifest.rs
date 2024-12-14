@@ -108,7 +108,7 @@ impl Overrides {
             downloads: DownloadOption::Free,
             downloads_config: DownloadsConfig::default(),
             embedding: false,
-            m3u_enabled: true,
+            m3u_enabled: false,
             more_label: None,
             payment_info: None,
             price: Price::default(),
