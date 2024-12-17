@@ -229,7 +229,22 @@ pub fn read_artist_catalog_release_option(
         }
         "link" => 'link: {
             if let Ok(field) = element.as_field() {
-                if let Ok(attributes) = field.attributes() {
+                if let Ok(result) = field.value() {
+                    if let Some(value) = result {
+                        match Url::parse(value) {
+                            Ok(url) => {
+                                let link = Link::new(false, None, false, url);
+                                local_options.links.push(link);
+                            }
+                            Err(err) => {
+                                let error = format!("The url supplied for the link seems to be malformed ({err})");
+                                element_error_with_snippet(element, &manifest_path, &error);
+                            }
+                        }
+                    }
+
+                    break 'link;
+                } else if let Ok(attributes) = field.attributes() {
                     let mut hidden = false;
                     let mut label = None;
                     let mut rel_me = false;
@@ -245,7 +260,7 @@ pub fn read_artist_catalog_release_option(
                             "url" => {
                                 if let Some(value) = attribute.value() {
                                     match Url::parse(value) {
-                                        Ok(parsed) => url = Some(parsed),
+                                        Ok(parsed_url) => url = Some(parsed_url),
                                         Err(err) => {
                                             let error = format!("The url supplied for the link seems to be malformed ({err})");
                                             attribute_error_with_snippet(attribute, &manifest_path, &error);
@@ -290,7 +305,7 @@ pub fn read_artist_catalog_release_option(
                 }
             }
 
-            let error = "link must be provided as a field with attributes, e.g.:\n\nlink:\nurl = https://example.com\nlabel = Example";
+            let error = "link must be provided as a basic field with a value (e.g. 'link: https://example.com') or in its extended form as a field with attributes, e.g.:\n\nlink:\nurl = https://example.com\nlabel = Example";
             element_error_with_snippet(element, &manifest_path, error);
         }
         "more_label" => 'more_label: {

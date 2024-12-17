@@ -71,6 +71,25 @@ manifest is in (so if the image "example.jpg" is in the same folder, just
 write "example.jpg", if it's in the parent folder write "../example.jpg", and
 so on). Make sure to include a `description` for non-sighted people too.
 
+## `link`
+
+```eno
+link: https://example.com/this/artist/elsewhere/
+
+link:
+url = https://example.com/this/artist/elsewhere/
+
+link:
+label = A review of the artist
+url = https://example.com/some-blog/some-review/
+```
+
+You can supply any number of `link` fields, these are prominently displayed in
+the header/landing area of your artist page. A `link` must at least
+provide a url, either as a simple value or as an `url` attribute. Optionally
+you can also supply a `label` which is what is visibly displayed instead of
+the `url`, when given.
+
 ## `name`
 
 ```eno

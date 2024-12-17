@@ -281,6 +281,8 @@ extra_downloads:
 ## `link`
 
 ```eno
+link: https://example.com/this/release/elsewhere/
+
 link:
 url = https://example.com/this/release/elsewhere/
 
@@ -289,10 +291,11 @@ label = An Album review
 url = https://example.com/some-blog/some-review/
 ```
 
-You can supply any number of `link` fields, these are prominently displayed in the
-header/landing area of your release page. A `link` must have at least a `url`
-attribute. Optionally you can also supply a `label` which is what is visibly
-displayed instead of the `url`, when given.
+You can supply any number of `link` fields, these are prominently displayed in
+the header/landing area of your release page. A `link` must at least
+provide a url, either as a simple value or as an `url` attribute. Optionally
+you can also supply a `label` which is what is visibly displayed instead of
+the `url`, when given.
 
 ## `m3u`
 

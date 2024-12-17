@@ -340,6 +340,8 @@ language: ar
 ## `link`
 
 ```eno
+link: https://example.com/my/music/elsewhere/
+
 link:
 url = https://example.com/my/music/elsewhere/
 
@@ -356,12 +358,13 @@ url = https://social.example.com/@account-b
 verification = rel-me-hidden
 ```
 
-You can supply any number of `link` fields, these are prominently displayed in the
-header/landing area of your catalog homepage. A `link` must have at least a `url`
-attribute. Optionally you can also supply a `label` which is what is visibly
-displayed instead of the `url`, when given.
+You can supply any number of `link` fields, these are prominently displayed in
+the header/landing area of your catalog homepage. A `link` must at least
+provide a url, either as a simple value or as an `url` attribute. Optionally
+you can also supply a `label` which is what is visibly displayed instead of
+the `url`, when given.
 
-Even more optionally, you can configure [rel="me"](https://microformats.org/wiki/rel-me)
+Additionally, you can configure [rel="me"](https://microformats.org/wiki/rel-me)
 linking, by supplying the attribute `verification = rel-me`. This allows you
 to verify yourself as the site owner when you place a link to your faircamp
 site from (e.g.) a fediverse profile. With `verification = rel-me-hidden` you
