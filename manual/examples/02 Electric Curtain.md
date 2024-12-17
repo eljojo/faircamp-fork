@@ -15,20 +15,20 @@ This is how their catalog directory looks like:
 
 ```
 Electric Curtain/             <--- Catalog
-├─ catalog.eno                  <--- Manifest (applies to all releases)
+├─ catalog.eno                  <--- Catalog manifest
 ├─ abstractsyntaxthreat.png     <--- Background image
 ├─ 2023/                        <--- Extra Nesting (just for organizing)
 │  └─ Enter the Maze/             <--- Release
-│     ├─ release.eno                <--- Manifest (only for this release)
+│     ├─ release.eno                <--- Release manifest
 │     ├─ enterthemaze.png           <--- Release cover
 │     └─ enterthemaze.wav           <--- Track
 ├─ 2022/                        <--- Extra Nesting (just for organizing)
 │  ├─ Network Angst/              <--- Release
-│  │  ├─ release.eno                <--- Manifest (only for this release)
+│  │  ├─ release.eno                <--- Release manifest
 │  │  ├─ networkangst.png           <--- Release cover
 │  │  └─ networkangst.wav           <--- Track
 │  └─ Dark Cybernetic Beings/     <--- Release
-│     ├─ release.eno                <--- Manifest (only for this release)
+│     ├─ release.eno                <--- Release manifest
 │     ├─ darkcyberneticbeings.png   <--- Release cover
 │     └─ darkcyberneticbeings.wav   <--- Track
 ├─ 2021/
@@ -39,36 +39,6 @@ Electric Curtain/             <--- Catalog
 Inside the file `Electric Curtain/catalog.eno`:
 
 ```eno
-# artist
-
-> Stylize the name with upside-down pentagrams.
-name: ⛧ Electric Curtain ⛧
-
-> Any release or track that has artist metadata matching one of
-> the three aliases below will be associated with this artist.
-aliases:
-- Electric Curtain
-- Electric Curtain feat. Miley Vaniley
-- Electric Curtain × Die Arbeit der Nacht
-
-# artist
-
-name: Miley Vaniley
-
-> One track features Miley Vaniley, and through an alias
-> we correctly associate it with them.
-alias: Electric Curtain feat. Miley Vaniley
-
-# artist
-
-name: Die Arbeit der Nacht
-
-> One track features Die Arbeit der Nacht, and through an alias
-> we correctly associate it with them.
-alias: Electric Curtain × Die Arbeit der Nacht
-
-# catalog
-
 title: Electric Curtain
 base_url: https://curtain.electric/
 
@@ -105,13 +75,39 @@ background_image = abstractsyntaxthreat.png
 > The dark theme with high dynamic range (= deep black) nicely fits the darkness of the music
 base = dark
 dynamic_range = 100
+
+# artist
+
+> Stylize the name with upside-down pentagrams.
+name: ⛧ Electric Curtain ⛧
+
+> Any release or track that has artist metadata matching one of
+> the three aliases below will be associated with this artist.
+aliases:
+- Electric Curtain
+- Electric Curtain feat. Miley Vaniley
+- Electric Curtain × Die Arbeit der Nacht
+
+# artist
+
+name: Miley Vaniley
+
+> One track features Miley Vaniley, and through an alias
+> we correctly associate it with them.
+alias: Electric Curtain feat. Miley Vaniley
+
+# artist
+
+name: Die Arbeit der Nacht
+
+> One track features Die Arbeit der Nacht, and through an alias
+> we correctly associate it with them.
+alias: Electric Curtain × Die Arbeit der Nacht
 ```
 
 Inside the file `Electric Curtain/2023/Enter the Maze/release.eno`:
 
 ```eno
-# release
-
 permalink: enter-the-maze
 date: 2023-05-15
 
@@ -125,8 +121,6 @@ file = enterthemaze.png
 Inside the file `Electric Curtain/2022/Network Angst/release.eno`:
 
 ```eno
-# release
-
 permalink: network-angst
 date: 2022-12-20
 
@@ -140,8 +134,6 @@ file = networkangst.png
 Inside the file `Electric Curtain/2022/Dark Cybernetic Beings/release.eno`:
 
 ```eno
-# release
-
 permalink: network-angst
 date: 2022-09-02
 

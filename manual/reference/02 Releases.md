@@ -5,14 +5,17 @@
 
 # Releases
 
-Release artists and titles are automatically derived from audio file metadata,
-however as you will possibly want to provide a textual description or tweak
-the displayed title and artists for display in the browser, such data can
-be provided through the manifests.
+In your release manifests you can specify options that apply to
+a specific release only. Simple create a (plain text) file called
+`release.eno` inside a release directory (a directory that contains
+audio files) and put any of the options documented on this page in it.
+
+Release artists and titles, track numbers, etc. are automatically derived from
+audio file metadata, but the release manifest allows a plethora of other options,
+such as customizing the design/theme per release, displaying a short synopsis
+and a long-form about text, making a release unlisted, etc.
 
 ```eno
-# release
-
 title: Ape Affairs (Bonus Track Edition)
 permalink: ape-affairs-bonus-track-edition
 date: 2019-11-03
@@ -641,8 +644,6 @@ Set it to `copy` and faircamp will transfer all tags 1:1 from the
 source files onto the transcoded files, as you provided them.
 
 ```eno
-# release
-
 tags: copy
 ```
 
@@ -650,8 +651,6 @@ Set it to `remove` and faircamp will produce entirely untagged files for
 streaming and download.
 
 ```eno
-# release
-
 tags: remove
 ```
 
@@ -671,8 +670,6 @@ no matter what you specify for `image`.
 A random example of this:
 
 ```eno
-# release
-
 tags:
 album = rewrite
 album_artist = remove
@@ -685,8 +682,6 @@ track = copy
 The default behavior can be explicitly (re-)applied with the `normalize` option.
 
 ```eno
-# release
-
 tags: normalize
 ```
 
@@ -694,8 +689,6 @@ When written out explicitly using the fine-grained notation, the default behavio
 (that is, `tags: normalize`) corresponds to the following settings:
 
 ```eno
-# release
-
 tags:
 album = rewrite
 album_artist = rewrite
@@ -707,15 +700,13 @@ track = rewrite
 
 ## Unlisted releases
 
-By including an `unlisted` flag in the release manifest/section you can
-configure a release to be generally present in the built site, but not publicly
+By including an `unlisted` flag in the release manifest you can configure a
+release to be generally present in the built site, but not publicly
 referenced anywhere. In other words, visitors will only be able to open an
 unlisted release page if they know the permalink. This is potentially
 interesting to do a pre-release or such for friends or collaborators.
 
 ```eno
-# release
-
 unlisted
 ```
 

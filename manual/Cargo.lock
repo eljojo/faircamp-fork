@@ -34,8 +34,8 @@ checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
 
 [[package]]
 name = "enolib"
-version = "0.4.2"
-source = "git+https://codeberg.org/simonrepp/enolib-rs?tag=0.4.2#b97102e1890d91f184469f9c778d07df7d117adc"
+version = "0.5.0"
+source = "git+https://codeberg.org/simonrepp/enolib-rs?tag=0.5.0#011a93092e5127c9354d643e9ac51ff592cf59f2"
 
 [[package]]
 name = "indoc"

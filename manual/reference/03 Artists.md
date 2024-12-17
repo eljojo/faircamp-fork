@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -7,39 +7,98 @@
 
 Artists are automatically created by faircamp when they are encountered in
 audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
-says a track is by "Alice"). To add further information to an artist, you can
-expliclity define it in a manifest. The name you assign will be used to match
-the explicitly defined artist (by you in the manifest) to the implicitly
-defined one (by the audio file metadata) so pay close attention that both are
-written the same (NB: lowercase/uppercase is ignored for matching). If
-(as often happens) different audio files use slightly different versions of
-an artist name (e.g. "Motörhead" vs. "Motorhead"), or the artist appears in a
-collaboration (e.g. "Alice (feat. Bob)"), you can additionally specify
-`aliases` that will also be matched against to map the artist to the right
-tracks.
+says a track is by "Alice"). To add further information to an artist, you need
+to explicitly define the artist.
+
+To define an artist, create a directory for it anywhere in your catalog,
+create a (plain text) file with the name `artist.eno` inside it and specify
+at least the `name` field, so your artist can be associated with its tracks
+in your catalog.
+
+Here is an example `artist.eno` file, below it the fields are explained one-by-one.
 
 ```eno
-# artist
-
-name: Heston Exchange
-permalink: heston-exchange
+name: Alice
+permalink: alice-artist
 
 aliases:
-- The Heston Exchange
-- Heston Exchange (feat. Bar Foo)
+- Älice
+- Alice (feat. Bob)
 
 image:
-description = All four bandmembers against a bright blue sky, wearing pink velvet top-hats
-file = heston_exchange.jpg
+description = Alice in a field
+file = example.jpg
 
 -- text
-Classic Dada-core formation founded in the 90ies.
+Alice is a classic recording artist from the 70ies.
 
-Only ever known to publicly perform at birthday parties and the gym at their hometown.
+Over the years she has appeared in various collaborations, most notably with Bob.
 -- text
+```
+
+## `aliases`
+
+```eno
+aliases:
+- Älice
+- Alice (feat. Bob)
+```
+
+If, as often happens, different audio files use slightly different versions of
+an artist name (e.g. "Motörhead" vs. "Motorhead"), or the artist appears in a
+collaboration (e.g. "Alice (feat. Bob)"), you can specify `aliases` that will
+be matched against in addition to the `name` to map the artist to the right
+tracks.
+
+## `copy_link`
+
+To disable the "Copy link" button (by default it's enabled) you can use the `copy_link` option, with either `enabled` or `disabled` as value. This is also inherited by all releases, but can be changed on a granular basis for single releases or groups of releases in their manifests.
+
+```eno
+copy_link: disabled
+```
+
+## `image`
+
+```eno
+image:
+description = Alice in a field
+file = example.jpg
+```
+
+With `file` specify the path of the image, relative to the directory the
+manifest is in (so if the image "example.jpg" is in the same folder, just
+write "example.jpg", if it's in the parent folder write "../example.jpg", and
+so on). Make sure to include a `description` for non-sighted people too.
+
+## `name`
+
+```eno
+name: Alice
+```
+
+The `name` you assign will be used to match the explicitly defined artist
+(by you in the manifest) to the implicitly defined one (by the audio file
+metadata) so pay close attention that both are written the same. Note
+however that lowercase/uppercase is ignored for matching.
+
+## `permalink`
+
+```eno
+permalink: alice-artist
 ```
 
 For an explanation what a `permalink` is please see the "Concepts Explained" page,
 unter "Topics".
 
-Note that the `text` field supports [Markdown](https://commonmark.org/help/).
+## `text`
+
+```eno
+-- text
+Alice is a classic recording artist from the 70ies.
+
+Over the years she has appeared in various collaborations, most notably with Bob.
+-- text
+```
+
+The `text` field supports [Markdown](https://commonmark.org/help/).

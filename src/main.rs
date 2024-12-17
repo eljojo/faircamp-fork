@@ -68,7 +68,7 @@ use crate::image::{DescribedImage, Image, ImageRc, ImageRcView};
 use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use link::Link;
 use locale::Locale;
-use manifest::Overrides;
+use manifest::{LocalOptions, Overrides};
 use markdown::HtmlAndStripped;
 use permalink::{Permalink, PermalinkUsage};
 use release::{Extra, Release, ReleaseRc};

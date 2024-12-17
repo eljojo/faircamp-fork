@@ -5,19 +5,22 @@
 
 # Catalog
 
-This is where you set global options for the site itself (such as the title,
-URL, language, etc.), options that globally affect all pages (such as the
-design/theme), as well as options that are only passed on to the releases
-(such as whether they can be downloaded and in which formats). In general,
-any option that is set at the catalog level can be overwritten at the release
-level by specifying override settings in its own manifest.
+The most central place in which changes to your site can be made
+is the catalog manifest. Simply create a (plain text) file called
+`catalog.eno` at the root directory of your catalog, and put any
+of the options documented on this page in it.
 
-An example configuration to give an overview (not all options are shown):
+As a short overview, this is where you set global options for the site itself
+(such as the title, URL, language, etc.), options that globally affect all
+pages (such as the design/theme), as well as options that are only passed on
+to the releases (such as whether they can be downloaded and in which formats).
+In general, any option that is set in the catalog manifest can be overwritten in
+a release manifest by specifying override settings there.
+
+An example `catalog.eno` file to give an overview (not all options are shown):
 
 ```eno
-# catalog
-
-title: My awesome music
+title: My music
 base_url: https://example.com/my-music/
 language: en
 
@@ -25,7 +28,7 @@ label_mode
 show_support_artists
 
 embedding: disabled
-m3u: disabled
+m3u: enabled
 more_label: About
 
 archive_downloads:
@@ -45,11 +48,13 @@ label = Blog
 url = https://example.com/my-blog/
 
 -- synopsis
-My self hosted faircamp site, presenting some of my music.
+Just some of my music
 -- synopsis
 
 -- text
-[Here be long form about/description text]
+Some of my music released between 1999-2005.
+
+For further information check out my [website](https://example.com)
 -- text
 
 theme:

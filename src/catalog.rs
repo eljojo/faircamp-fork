@@ -303,7 +303,7 @@ impl Catalog {
             }
         }
     }
-    
+
     pub fn new() -> Catalog {
         Catalog {
             artist: None,
@@ -340,10 +340,10 @@ impl Catalog {
             })
             .collect()
     }
-    
+
     pub fn read(build: &mut Build, cache: &mut Cache) -> Result<Catalog, ()> {
         let mut catalog = Catalog::new();
-        
+
         catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default()).unwrap();
 
         if catalog.home_image.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
@@ -393,7 +393,7 @@ impl Catalog {
 
         Ok(catalog)
     }
-    
+
     fn read_dir(
         &mut self,
         dir: &Path,
@@ -423,14 +423,14 @@ impl Catalog {
                 }
             }
         }
-        
+
         if build.verbose {
             info!("Reading directory {}", dir.display());
         }
-        
+
         let mut local_options = LocalOptions::new();
         let mut local_overrides = None;
-        
+
         // We get the 'album' metadata from each track in a release. As each track in a
         // release could have a different 'album' specified, we count how often each
         // distinct 'album' tag is present on a track in the release, and then when we
@@ -438,14 +438,15 @@ impl Catalog {
         // (this is what release_title_metrics is for => Vec<count, title>)
         let mut release_title_metrics: Vec<(u32, String)> = Vec::new();
         let mut release_tracks: Vec<Track> = Vec::new();
-        
+
         let mut dir_paths: Vec<PathBuf> = Vec::new();
         let mut extra_paths: Vec<PathBuf> = Vec::new();
         let mut image_paths: Vec<PathBuf> = Vec::new();
-        let mut meta_paths: Vec<PathBuf> = Vec::new();
         let mut track_paths: Vec<(PathBuf, String)> = Vec::new();
 
-        let mut is_artist_dir = false;
+        let mut artist_manifest_present = false;
+        let mut catalog_manifest_present = false;
+        let mut release_manifest_present = false;
 
         match dir.read_dir() {
             Ok(dir_entries) => {
@@ -459,10 +460,10 @@ impl Catalog {
                                 continue
                             }
                         }
-                        
+
                         if let Ok(file_type) = dir_entry.file_type() {
                             let path = dir_entry.path();
-                            
+
                             if file_type.is_dir() {
                                 dir_paths.push(path);
                             } else if file_type.is_file() {
@@ -497,8 +498,16 @@ impl Catalog {
                                     }
                                 }
 
-                                if path.ends_with("_artist.eno") {
-                                    is_artist_dir = true;
+                                if path.ends_with("artist.eno") {
+                                    artist_manifest_present = true;
+                                } else if path.ends_with("catalog.eno") {
+                                    if dir != build.catalog_dir {
+                                        error!("The catalog.eno manifest can only be placed at the root of the catalog directory, however it was found at '{}'. Please move it to the folder '{}'", path.display(), build.catalog_dir.display());
+                                    } else {
+                                        catalog_manifest_present = true;
+                                    }
+                                } else if path.ends_with("release.eno") {
+                                    release_manifest_present = true;
                                 } else if let Some(extension) = path
                                     .extension()
                                     .and_then(|osstr|
@@ -507,7 +516,8 @@ impl Catalog {
                                         )
                                     ) {
                                     if extension == "eno" {
-                                        meta_paths.push(path);
+                                        // TODO: Display only filename part in error message (and path separately?)
+                                        error!("A manifest named '{}' was encountered, but this name is not recognized (allowed ones are 'artist.eno', 'catalog.eno' and 'release.eno')", path.display());
                                     } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
                                         track_paths.push((path, extension));
                                     } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
@@ -532,20 +542,44 @@ impl Catalog {
             Err(err) => error!("Cannot read directory '{}' ({})", dir.display(), err)
         }
 
-        if is_artist_dir {
-            Artist::read_manifest(build, cache, self, dir, parent_overrides);
-        }
-
-        for meta_path in &meta_paths {
+        if catalog_manifest_present {
             if build.verbose {
-                info!("Reading meta {}", meta_path.display());
+                info!("Reading catalog manifest {}", dir.join("catalog.eno").display());
             }
-            
-            manifest::apply_options(
-                meta_path,
+            manifest::read_catalog_manifest(
                 build,
                 cache,
                 self,
+                dir,
+                &mut local_options,
+                local_overrides.get_or_insert_with(|| parent_overrides.clone())
+            );
+        }
+
+        if artist_manifest_present {
+            if release_manifest_present {
+                error!("Directory '{}' contains both an artist.eno and release.eno manifest, but this is not allowed. Create a separate artist or release directory respectively to put the second manifest and associated files in.", dir.display())
+            } else {
+                if build.verbose {
+                    info!("Reading artist manifest {}", dir.join("artist.eno").display());
+                }
+                manifest::read_artist_manifest(
+                    build,
+                    cache,
+                    self,
+                    dir,
+                    &mut local_options,
+                    local_overrides.get_or_insert_with(|| parent_overrides.clone())
+                );
+            }
+        } else if release_manifest_present {
+            if build.verbose {
+                info!("Reading release manifest {}", dir.join("release.eno").display());
+            }
+            manifest::read_release_manifest(
+                build,
+                cache,
+                dir,
                 &mut local_options,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
             );
@@ -554,7 +588,7 @@ impl Catalog {
         // At this point all overrides have been read and we can consolidate things.
         let merged_overrides = local_overrides.as_ref().unwrap_or(parent_overrides);
 
-        if !is_artist_dir {
+        if !artist_manifest_present {
             for (track_path, extension) in &track_paths {
                 let path_relative_to_catalog = track_path.strip_prefix(&build.catalog_dir).unwrap();
 
@@ -584,7 +618,7 @@ impl Catalog {
 
                 release_tracks.push(track);
             }
-            
+
             if !release_tracks.is_empty() {
                 // Process bare image paths into ImageRc representations
                 let images: Vec<ImageRcView> = image_paths
@@ -819,7 +853,7 @@ impl Catalog {
 
             self.theme = merged_overrides.theme.clone();
         }
-        
+
         for dir_path in &dir_paths {
             self.read_dir(dir_path, build, cache, merged_overrides).unwrap();
         }
@@ -839,7 +873,7 @@ impl Catalog {
         };
 
         let theme = overrides.theme.clone();
-        
+
         Track::new(
             artists_to_map,
             overrides.copy_link,
@@ -887,11 +921,11 @@ impl Catalog {
             self.artist = Some(most_featured_artist.0.clone());
         }
     }
-    
-    pub fn set_title(&mut self, title: String) -> Option<String> {
-        self.title.replace(title)
+
+    pub fn set_title(&mut self, title: String) {
+        self.title = Some(title);
     }
-    
+
     pub fn title(&self) -> String {
         if let Some(catalog_title) = &self.title {
             return catalog_title.to_string()
@@ -964,7 +998,7 @@ impl Catalog {
                 used_permalinks.insert(release_ref.permalink.slug.to_string(), usage);
             }
         }
-        
+
         // TODO: We could think about validating this even for non-featured
         // artists already (especially, or maybe only if their permalinks were
         // user-assigned). This way the behavior would be a bit more stable
@@ -998,7 +1032,7 @@ impl Catalog {
 
         true
     }
-    
+
     pub fn write_assets(&mut self, build: &mut Build) {
         if let Some(image) = &self.theme.background_image {
             write_background_image(build, image);

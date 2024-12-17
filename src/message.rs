@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2022 Simon Repp
+// SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 macro_rules! color {
@@ -97,22 +97,5 @@ macro_rules! warn_discouraged {
             concat!(color!(yellow), "[DISCOURAGED] ", $format_str, color!(reset))
             $(,$args)*
         )
-    };
-}
-
-macro_rules! warn_global_set_repeatedly {
-    ($key:expr) => {
-        warn!(
-            "Global {} is set more than once - overriding previous value",
-            $key
-        )
-    };
-    ($key:expr, $previous:expr, $new:expr) => {
-        warn!(
-            "Global {} is set more than once - overriding previous value '{}' with '{}'",
-            $key,
-            $previous,
-            $new
-        );
     };
 }

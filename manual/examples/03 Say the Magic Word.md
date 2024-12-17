@@ -15,10 +15,10 @@ This is how their catalog directory looks like:
 
 ```
 saythemagicword/             <--- Catalog
-├─ general.eno                 <--- Manifest (applies to all releases)
+├─ catalog.eno                 <--- Catalog manifest
 ├─ MagicSansV1.3-Book.woff2    <--- Custom font
 └─ saythemagicword-ep/           <--- Release
-   ├─ ep.eno                     <--- Manifest (only for this release)
+   ├─ release.eno                <--- Release manifest
    ├─ ep-cover.png               <--- Release cover
    ├─ booklet.pdf                <--- Extra
    ├─ 01.flac                    <--- Track
@@ -28,14 +28,11 @@ saythemagicword/             <--- Catalog
    └─ 05.flac                    <--- Track
 ```
 
-Inside the file `saythemagicword/general.eno`:
+Inside the file `saythemagicword/catalog.eno`:
 
 ```eno
-# catalog
-
 title: Say the Magic Word
-
-base_url: https://magicmagicmagic.se/
+base_url: https://example.com
 
 -- text
 The *Say the Magic Word EP* is out. Stream here, and to access downloads get a
@@ -52,11 +49,9 @@ base_hue = 116
 custom_font = MagicSansV1.3-Book.woff2
 ```
 
-Inside the file `saythemagicword/saythemagicword-ep/ep.eno`:
+Inside the file `saythemagicword/saythemagicword-ep/release.eno`:
 
 ```eno
-# release
-
 permalink: say-the-magic-word-ep
 date: 2023-11-15
 
