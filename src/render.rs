@@ -512,6 +512,12 @@ fn list_release_artists(
         let name_escaped = html_escape_outside_attribute(&artist_ref.name);
 
         if !artist_ref.unlisted {
+            if let Some(link) = &artist_ref.external_page {
+                let external_artist_link = format!(r#"<a href="{link}" target="_blank">{name_escaped}</a>"#);
+                items.push((name_chars, external_artist_link));
+                continue;
+            }
+
             if catalog.label_mode {
                 let permalink = &artist_ref.permalink.slug;
                 let artist_link = format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);
@@ -537,7 +543,10 @@ fn list_release_artists(
             let name_chars = artist_ref.name.chars().count();
             let name_escaped = html_escape_outside_attribute(&artist_ref.name);
 
-            if artist_ref.unlisted {
+            if let Some(link) = &artist_ref.external_page {
+                let external_artist_link = format!(r#"<a href="{link}" target="_blank">{name_escaped}</a>"#);
+                items.push((name_chars, external_artist_link));
+            } else if artist_ref.unlisted {
                 items.push((name_chars, name_escaped));
             } else {
                 let permalink = &artist_ref.permalink.slug;
@@ -550,6 +559,13 @@ fn list_release_artists(
             let artist_ref = artist.borrow();
             let name_chars = artist_ref.name.chars().count();
             let name_escaped = html_escape_outside_attribute(&artist_ref.name);
+
+            if let Some(link) = &artist_ref.external_page {
+                let external_artist_link = format!(r#"<a href="{link}" target="_blank">{name_escaped}</a>"#);
+                items.push((name_chars, external_artist_link));
+                continue;
+            }
+
             items.push((name_chars, name_escaped));
         }
     }
@@ -596,6 +612,12 @@ fn list_track_artists(
         let name_escaped = html_escape_outside_attribute(&artist_ref.name);
 
         if !artist_ref.unlisted {
+            if let Some(link) = &artist_ref.external_page {
+                let external_artist_link = format!(r#"<a href="{link}" target="_blank">{name_escaped}</a>"#);
+                items.push((name_chars, external_artist_link));
+                continue;
+            }
+
             if artist_ref.featured {
                 let permalink = &artist_ref.permalink.slug;
                 let artist_link = format!(r#"<a href="{root_prefix}{permalink}{index_suffix}">{name_escaped}</a>"#);

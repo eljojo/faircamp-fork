@@ -4,6 +4,8 @@
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
+use url::Url;
+
 use crate::{
     Catalog,
     DescribedImage,
@@ -18,6 +20,11 @@ use crate::{
 pub struct Artist {
     pub aliases: Vec<String>,
     pub copy_link: bool,
+    /// This is only set when an artist is created through a short-form
+    /// definition in a manifest, and when providing a link through it.
+    /// Its presence indicates that we don't generate an internal (featured)
+    /// artist page, but instead link to the artist on an external page.
+    pub external_page: Option<Url>,
     pub featured: bool,
     pub image: Option<DescribedImage>,
     pub links: Vec<Link>,
@@ -48,6 +55,7 @@ impl Artist {
         Artist {
             aliases: Vec::new(),
             copy_link: catalog.copy_link,
+            external_page: None,
             featured: false,
             image: None,
             links: Vec::new(),
@@ -61,9 +69,37 @@ impl Artist {
         }
     }
 
+    /// This is how we create an artist if we encouter an artist that is
+    /// manually defined in the catalog through a short-form artist
+    /// definition.
+    pub fn new_external(
+        aliases: Vec<String>,
+        catalog: &Catalog,
+        external_page: Option<Url>,
+        name: &str
+    ) -> Artist {
+        Artist {
+            aliases,
+            copy_link: false,
+            external_page,
+            featured: false,
+            image: None,
+            links: Vec::new(),
+            more_label: None,
+            name: name.to_string(),
+            // TODO: In terms of modeling, the fact that we need to set a permalink
+            //       for this, indicates that we should maybe have a separate structure to
+            //       hold external artists (but this has other implications).
+            permalink: Permalink::uid(),
+            releases: Vec::new(),
+            text: None,
+            theme: catalog.theme.clone(),
+            unlisted: false
+        }
+    }
+
     /// This is how we create an artist if we encouter an artist that
-    /// is manually defined in the catalog (via an artist manifest or
-    /// through a short-form artist definition).
+    /// is manually defined in the catalog via an artist manifest.
     pub fn new_manual(
         aliases: Vec<String>,
         copy_link: bool,
@@ -80,6 +116,7 @@ impl Artist {
         Artist {
             aliases,
             copy_link,
+            external_page: None,
             featured: false,
             image,
             links,

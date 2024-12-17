@@ -27,6 +27,7 @@ mod artist;
 mod artist_catalog_release;
 mod artist_release;
 mod catalog;
+mod catalog_release;
 mod obsolete;
 mod release;
 
@@ -34,6 +35,7 @@ pub use artist::read_artist_manifest;
 pub use artist_catalog_release::read_artist_catalog_release_option;
 pub use artist_release::read_artist_release_option;
 pub use catalog::read_catalog_manifest;
+pub use catalog_release::read_catalog_release_option;
 pub use obsolete::read_obsolete_option;
 pub use release::read_release_manifest;
 
@@ -67,14 +69,14 @@ pub struct Overrides {
     pub more_label: Option<String>,
     pub payment_info: Option<String>,
     pub price: Price,
-    pub release_artists: Option<Vec<String>>,
+    pub release_artists: Vec<String>,
     pub release_cover: Option<DescribedImage>,
     pub release_synopsis: Option<String>,
     pub release_text: Option<HtmlAndStripped>,
     pub streaming_quality: StreamingQuality,
     pub tag_agenda: TagAgenda,
     pub theme: Theme,
-    pub track_artists: Option<Vec<String>>,
+    pub track_artists: Vec<String>,
     pub track_numbering: TrackNumbering,
     pub unlock_info: Option<String>
 }
@@ -103,14 +105,14 @@ impl Overrides {
             more_label: None,
             payment_info: None,
             price: Price::default(),
-            release_artists: None,
+            release_artists: Vec::new(),
             release_cover: None,
             release_synopsis: None,
             release_text: None,
             streaming_quality: StreamingQuality::Standard,
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
-            track_artists: None,
+            track_artists: Vec::new(),
             track_numbering: TrackNumbering::ArabicDotted,
             unlock_info: None
         }

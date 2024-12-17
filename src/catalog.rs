@@ -349,12 +349,16 @@ impl Catalog {
 
         if catalog.label_mode {
             for main_artist in &catalog.main_artists {
+                if main_artist.borrow().external_page.is_some() { continue; }
+
+                catalog.featured_artists.push(main_artist.clone());
                 main_artist.borrow_mut().featured = true;
             }
-            catalog.featured_artists.extend(catalog.main_artists.iter().cloned());
 
             if catalog.feature_support_artists {
                 for support_artist in &catalog.support_artists {
+                    if support_artist.borrow().external_page.is_some() { continue; }
+
                     // Only assign support artist to catalog's featured artists if
                     // it hasn't already been assigned to them as a main artist
                     if !catalog.featured_artists.iter().any(|featured_artist| ArtistRc::ptr_eq(featured_artist, support_artist)) {
@@ -573,6 +577,7 @@ impl Catalog {
             manifest::read_release_manifest(
                 build,
                 cache,
+                self,
                 dir,
                 &mut local_options,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
@@ -661,9 +666,9 @@ impl Catalog {
 
                 // This sets main_artists_to_map and support_artists_to_map in
                 // one of three ways, see comments in branches
-                if let Some(artist_names) = &merged_overrides.release_artists {
+                if !merged_overrides.release_artists.is_empty() {
                     // Here, main_artists_to_map is set manually through manifest metadata.
-                    for artist_name in artist_names {
+                    for artist_name in &merged_overrides.release_artists {
                         main_artists_to_map.push(artist_name.to_string());
                     }
 
@@ -860,8 +865,8 @@ impl Catalog {
         overrides: &Overrides,
         transcodes: TranscodesRcView
     ) -> Track {
-        let artists_to_map = if let Some(artist_names) = &overrides.track_artists {
-            artist_names.to_vec()
+        let artists_to_map = if !overrides.track_artists.is_empty() {
+            overrides.track_artists.clone()
         } else {
             transcodes.borrow().source_meta.artists.to_vec()
         };

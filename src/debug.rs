@@ -3,13 +3,28 @@
 
 use indoc::formatdoc;
 
-use crate::{Catalog, DownloadAccess, Downloads};
+use crate::{
+    ArtistRc,
+    Catalog,
+    DownloadAccess,
+    Downloads
+};
+
+fn format_artist(artist: &ArtistRc) -> String {
+    let artist_ref = artist.borrow();
+
+    if let Some(link) = &artist_ref.external_page {
+        format!("{} ({})", artist_ref.name, link)
+    } else {
+        artist_ref.name.clone()
+    }
+}
 
 /// Prints debug information, e.g. to gain an understanding of how the catalog
 /// files map to faircamp's internally generated data model.
 pub fn debug_catalog(catalog: &Catalog) {
     let r_catalog_artist = match &catalog.artist {
-        Some(artist) => artist.borrow().name.clone(),
+        Some(artist) => format_artist(artist),
         None => String::from("None")
     };
 
@@ -17,7 +32,7 @@ pub fn debug_catalog(catalog: &Catalog) {
         true => String::from("Empty"),
         false => catalog.artists
             .iter()
-            .map(|artist| format!("\n- {}", artist.borrow().name))
+            .map(|artist| format!("\n- {}", format_artist(artist)))
             .collect::<Vec<String>>()
             .join("")
     };
@@ -26,7 +41,7 @@ pub fn debug_catalog(catalog: &Catalog) {
         true => String::from("Empty"),
         false => catalog.featured_artists
             .iter()
-            .map(|artist| format!("\n- {}", artist.borrow().name))
+            .map(|artist| format!("\n- {}", format_artist(artist)))
             .collect::<Vec<String>>()
             .join("")
     };
@@ -58,7 +73,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                     true => String::from("Empty"),
                     false => release_ref.main_artists
                         .iter()
-                        .map(|artist| format!("{}", artist.borrow().name))
+                        .map(|artist| format!("{}", format_artist(artist)))
                         .collect::<Vec<String>>()
                         .join(", ")
                 };
@@ -66,7 +81,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                     true => String::from("Empty"),
                     false => release_ref.support_artists
                         .iter()
-                        .map(|artist| format!("{}", artist.borrow().name))
+                        .map(|artist| format!("{}", format_artist(artist)))
                         .collect::<Vec<String>>()
                         .join(", ")
                 };
@@ -81,7 +96,7 @@ pub fn debug_catalog(catalog: &Catalog) {
         true => String::from("Empty"),
         false => catalog.support_artists
             .iter()
-            .map(|artist| format!("\n- {}", artist.borrow().name))
+            .map(|artist| format!("\n- {}", format_artist(artist)))
             .collect::<Vec<String>>()
             .join("")
     };

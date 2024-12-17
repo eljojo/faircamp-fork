@@ -561,12 +561,11 @@ pub fn read_artist_catalog_release_option(
             let error = "theme needs to be provided as a field with attributes, e.g.:\n\ntheme:\nbase = light\nwaveforms = absolute";
             element_error_with_snippet(element, &manifest_path, error);
         }
-        // TODO: Is this option documented? (Respectively: Should it be public yet?)
         "track_artist" => 'track_artist: {
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {
                     if let Some(value) = result {
-                        overrides.track_artists = Some(vec![value.to_string()]);
+                        overrides.track_artists = vec![value.to_string()];
                     }
 
                     break 'track_artist;
@@ -576,16 +575,13 @@ pub fn read_artist_catalog_release_option(
             let error = "track_artist needs to be provided as a field with a value, e.g.: 'track_artist: Alice'";
             element_error_with_snippet(element, &manifest_path, error);
         }
-        // TODO: Is this option documented? (Respectively: Should it be public yet?)
         "track_artists" => 'track_artists: {
             if let Ok(field) = element.as_field() {
                 if let Ok(items) = field.items() {
-                    overrides.track_artists = Some(
-                        items
+                    overrides.track_artists = items
                             .iter()
                             .filter_map(|item| item.optional_value().ok().flatten())
-                            .collect()
-                    );
+                            .collect();
 
                     break 'track_artists;
                 }

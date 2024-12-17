@@ -104,6 +104,25 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
+## `artist`
+
+The artist field is a shortcut (with limited options) to define artists
+without creating an explicit artist directory and `artist.eno` manifest.
+It is especially useful/intended to create external artists - those that
+appear only on some tracks/releases but have their own page outside of the
+faircamp page they are featured on. You can (but don't have to) use the
+`link` attribute to set an external page, in that case the artist's name,
+wherever it appears, is always linked to that external page (and no
+distinct page is rendered for the artist on the faircamp site).
+
+```eno
+artist:
+name = Alice
+link = https://example.com
+alias = Älice
+alias = Älicë
+```
+
 ## `cache_optimization`
 
 ```eno

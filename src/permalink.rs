@@ -4,6 +4,7 @@
 use slug::slugify;
 
 use crate::{ArtistRc, ReleaseRc};
+use crate::util::uid;
 
 #[derive(Clone, Debug)]
 pub struct Permalink {
@@ -38,6 +39,13 @@ impl Permalink {
             })
         } else {
             Err(format!("'{}' is not a valid permalink, an allowed version would be '{}'", slug, slugified))
+        }
+    }
+
+    pub fn uid() -> Permalink {
+        Permalink {
+            generated: false,
+            slug: uid()
         }
     }
 }

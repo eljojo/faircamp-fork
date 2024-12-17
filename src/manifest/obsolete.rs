@@ -26,6 +26,10 @@ pub fn read_obsolete_option(
     // should be regularly processed)
 
     match element.key() {
+        "artist" if element.is_field() && element.as_field().unwrap().has_value() => {
+            let error = "Since faircamp 1.0, the original 'artist' field (used to set the artist of a release) has been renamed to 'release_artist'. If you meant to use the new 'artist' field (which is a short-hand for defining an artist) you need to use a field with attributes, e.g.:\n\nartist:\nname = Alice\nlink = https://example.com\nalias = Älice\nalias = Älicë";
+            element_error_with_snippet(element, &manifest_path, error);
+        }
         "artist" if element.is_section() => {
             if manifest_path.ends_with("artist.eno") {
                 let error = "Since faircamp 1.0, '# artist' sections are not required anymore - just remove the line '# artist'";
@@ -34,6 +38,10 @@ pub fn read_obsolete_option(
                 let error = "Since faircamp 1.0, '# artist' sections are not used anymore. Remove the line '# artist', and move all options below to a file called 'artist.eno', inside a separate directory dedicated to the artist only";
                 element_error_with_snippet(element, &manifest_path, &error);
             }
+        }
+        "artists" if element.is_field() => {
+            let error = "Since faircamp 1.0, the 'artists' field (used to set the artists of a release) has been renamed to 'release_artists'.";
+            element_error_with_snippet(element, &manifest_path, error);
         }
         "cache" if element.is_section() => {
             let error = r##"Since faircamp 0.16.0, the "# cache ... " section was merged into the catalog manifest as the "cache_optimization: delayed|immediate|wipe|manual" option, please move and adapt the current definition accordingly."##;

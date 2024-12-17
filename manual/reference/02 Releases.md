@@ -6,21 +6,22 @@
 # Releases
 
 In your release manifests you can specify options that apply to
-a specific release only. Simple create a (plain text) file called
+a specific release only. Simply create a (plain text) file called
 `release.eno` inside a release directory (a directory that contains
 audio files) and put any of the options documented on this page in it.
 
-Release artists and titles, track numbers, etc. are automatically derived from
-audio file metadata, but the release manifest allows a plethora of other options,
-such as customizing the design/theme per release, displaying a short synopsis
-and a long-form about text, making a release unlisted, etc.
+Release artists and titles, track numbers, etc. are usually automatically
+derived from audio file metadata, but the release manifest allows a plethora
+of other options, such as customizing the design/theme per release,
+displaying a short synopsis and a long-form about text, making a release
+unlisted, etc.
 
 ```eno
 title: Ape Affairs (Bonus Track Edition)
 permalink: ape-affairs-bonus-track-edition
 date: 2019-11-03
 
-artist: Heston Exchange
+release_artist: Heston Exchange
 
 archive_downloads:
 - flac
@@ -75,16 +76,6 @@ will pick randomly. Note that it can also be ".png" or another format, only
 the filename before the extension is considered, and case is disregarded as
 well, so it can also be "Cover.jpg", for instance.
 
-If your release has multiple principal artists (e.g. a split EP), instead of
-`artist: Alice` you can also use the following to make faircamp present two
-discrete artists as main artists of the release:
-
-```eno
-artists:
-- Alice
-- Bob
-```
-
 ## `archive_downloads`
 
 Sets the formats in which entire releases can be downloaded
@@ -122,6 +113,28 @@ All currently available formats:
 In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
+
+## `artist`
+
+The artist field is a shortcut (with limited options) to define artists
+without creating an explicit artist directory and `artist.eno` manifest.
+It is especially useful/intended to create external artists - those that
+appear only on some tracks/releases but have their own page outside of the
+faircamp page they are featured on. You can (but don't have to) use the
+`link` attribute to set an external page, in that case the artist's name,
+wherever it appears, is always linked to that external page (and no
+distinct page is rendered for the artist on the faircamp site).
+
+```eno
+artist:
+name = Alice
+link = https://example.com
+alias = Älice
+alias = Älicë
+```
+
+For defining an artist with all options see the documentation for
+`artist.eno` manifests.
 
 ## `copy_link`
 
@@ -378,6 +391,29 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 - `INR 230+` (230 indian rupees or more)
 - `JPY 400-800` (Between 400 and 800 japanese yen)
 
+## `release_artist(s)`
+
+If your audio files are not tagged, or the tags contain inaccurate values, or
+for any other reason, you can use the `release_artist` and `release_artists`
+option to explicitly set one or multiple main artists for the release. Note
+that this does not set the artist on the tracks themselves (for this use the
+`track_artist(s)` option) but rather the "album artist" that is shown
+alongside the release cover.
+
+To set a single main artist for a release:
+
+```eno
+release_artist: Alice
+```
+
+To set a multiple main artist for a release:
+
+```eno
+release_artists:
+- Alice
+- Bob
+```
+
 ## `streaming_quality`
 
 ```eno
@@ -562,6 +598,28 @@ Bundling and using a custom font (put a `.woff` or `.woff2` file in the same dir
 ```eno
 theme:
 custom_font = MyCustomSans.woff2
+```
+
+## `track_artist(s)`
+
+If your audio files are not tagged, or the tags contain inaccurate values, or
+for any other reason, you can use the `track_artist` and `track_artists`
+option to explicitly set one or multiple main artists for the tracks. Note
+that this can implicitly affect the release artist (which can be explicitly
+set with the `release_artist(s)` option too).
+
+To set a single artist for tracks on a release:
+
+```eno
+track_artist: Alice
+```
+
+To set a multiple artist for tracks on a release:
+
+```eno
+track_artists:
+- Alice
+- Bob
 ```
 
 ## `track_downloads`

@@ -10,6 +10,7 @@ use enolib::TerminalPrinter;
 use crate::{
     Build,
     Cache,
+    Catalog,
     DescribedImage,
     LocalOptions,
     Overrides,
@@ -24,12 +25,14 @@ use super::{
     element_error_with_snippet,
     read_artist_catalog_release_option,
     read_artist_release_option,
+    read_catalog_release_option,
     read_obsolete_option
 };
 
 pub fn read_release_manifest(
     build: &Build,
     cache: &mut Cache,
+    catalog: &mut Catalog,
     dir: &Path,
     local_options: &mut LocalOptions,
     overrides: &mut Overrides
@@ -55,38 +58,6 @@ pub fn read_release_manifest(
     for element in document.elements() {
         match element.key() {
             _ if read_obsolete_option(build, element, &manifest_path) => (),
-            "artist" => 'artist: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(result) = field.value() {
-                        if let Some(value) = result {
-                            // TODO: Investigate if release_artists can simply be a Vec (without the Option wrapper)
-                            overrides.release_artists = Some(vec![value.to_string()]);
-                        }
-
-                        break 'artist;
-                    }
-                }
-
-                let error = "artist needs to be provided as a field with a value, e.g.: 'artist: Alice'\n\nFor multiple artists specify the artists field:\n\nartists:\n- Alice\n- Bob";
-                element_error_with_snippet(element, &manifest_path, error);
-            }
-            "artists" => 'artists: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(items) = field.items() {
-                        overrides.release_artists = Some(
-                            items
-                                .iter()
-                                .filter_map(|item| item.optional_value().ok().flatten())
-                                .collect()
-                        );
-
-                        break 'artists;
-                    }
-                }
-
-                let error = "artists needs to be provided as a field with items, e.g.:\n\nartists:\n- Alice\n- Bob";
-                element_error_with_snippet(element, &manifest_path, error);
-            }
             "cover" => 'cover: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(attributes) = field.attributes() {
@@ -173,6 +144,35 @@ pub fn read_release_manifest(
                 }
 
                 let error = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
+                element_error_with_snippet(element, &manifest_path, error);
+            }
+            "release_artist" => 'release_artist: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            overrides.release_artists = vec![value.to_string()];
+                        }
+
+                        break 'release_artist;
+                    }
+                }
+
+                let error = "release_artist needs to be provided as a field with a value, e.g.: 'release_artist: Alice'\n\nFor multiple artists specify the release_artists field:\n\nrelease_artists:\n- Alice\n- Bob";
+                element_error_with_snippet(element, &manifest_path, error);
+            }
+            "release_artists" => 'release_artists: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(items) = field.items() {
+                        overrides.release_artists = items
+                            .iter()
+                            .filter_map(|item| item.optional_value().ok().flatten())
+                            .collect();
+
+                        break 'release_artists;
+                    }
+                }
+
+                let error = "release_artists needs to be provided as a field with items, e.g.:\n\nrelease_artists:\n- Alice\n- Bob";
                 element_error_with_snippet(element, &manifest_path, error);
             }
             "synopsis" => {
@@ -264,6 +264,7 @@ pub fn read_release_manifest(
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
+            _ if read_catalog_release_option(catalog, element, &manifest_path) => (),
             _ => {
                 let error = format!("The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?");
                 element_error_with_snippet(element, &manifest_path, &error);

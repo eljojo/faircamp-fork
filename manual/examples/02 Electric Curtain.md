@@ -69,40 +69,43 @@ Option 1: Pay via [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 Option 2: Pay via [paypal](https://paypal.me/electriccurtainisfiction)
 -- payment_info
 
+> The artist uses a short-form artist declaration here, because the only
+> needed adjustments here concern the name and aliases, which can be done
+> with the short form. (With a page in label mode, when artists are featured
+> with their own pages, including images and longer texts, a separate
+> artist.eno manifest file per artist is the way to go instead)
+external_artist:
+> On the page we stylize the name with upside-down pentagrams, because.
+name = ⛧ Electric Curtain ⛧
+> Any release or track that has artist metadata matching one of
+> the three aliases below will be associated with this artist.
+alias = Electric Curtain
+alias = Electric Curtain feat. Miley Vaniley
+alias = Electric Curtain × Die Arbeit der Nacht
+
+> There are two guest artists, for which the artist also uses a short-form
+> artist definition in order to correctly associate them with the
+> respective tracks (which specify an artist name that actually mixes two
+> artists together, and as such couldn't be auto-detected as two artists)
+
+external_artist:
+name = Miley Vaniley
+> One track features Miley Vaniley, and through an alias
+> we correctly associate it with them.
+alias = Electric Curtain feat. Miley Vaniley
+
+external_artist:
+name = Die Arbeit der Nacht
+> One track features Die Arbeit der Nacht, and through an alias
+> we correctly associate it with them.
+alias = Electric Curtain × Die Arbeit der Nacht
+
 theme:
 background_alpha = 36
 background_image = abstractsyntaxthreat.png
 > The dark theme with high dynamic range (= deep black) nicely fits the darkness of the music
 base = dark
 dynamic_range = 100
-
-# artist
-
-> Stylize the name with upside-down pentagrams.
-name: ⛧ Electric Curtain ⛧
-
-> Any release or track that has artist metadata matching one of
-> the three aliases below will be associated with this artist.
-aliases:
-- Electric Curtain
-- Electric Curtain feat. Miley Vaniley
-- Electric Curtain × Die Arbeit der Nacht
-
-# artist
-
-name: Miley Vaniley
-
-> One track features Miley Vaniley, and through an alias
-> we correctly associate it with them.
-alias: Electric Curtain feat. Miley Vaniley
-
-# artist
-
-name: Die Arbeit der Nacht
-
-> One track features Die Arbeit der Nacht, and through an alias
-> we correctly associate it with them.
-alias: Electric Curtain × Die Arbeit der Nacht
 ```
 
 Inside the file `Electric Curtain/2023/Enter the Maze/release.eno`:

@@ -8,12 +8,18 @@
 Artists are automatically created by faircamp when they are encountered in
 audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
 says a track is by "Alice"). To add further information to an artist, you need
-to explicitly define the artist.
+to explicitly define the artist, which can be done in two ways:
 
-To define an artist, create a directory for it anywhere in your catalog,
-create a (plain text) file with the name `artist.eno` inside it and specify
-at least the `name` field, so your artist can be associated with its tracks
-in your catalog.
+For one, you can use the `artist` field inside a `catalog.eno` or `release.eno`
+manifest, which is primarily intended as a shortcut with limited options,
+especially to link external artists to their own pages. See the manual pages for
+catalog and releases for more info on that.
+
+On the other hand, to specify a full-featured artist with its own page on the
+faircamp site, create a directory for it anywhere in your catalog, create a
+(plain text) file with the name `artist.eno` inside it and specify at least
+the `name` field, so your artist can be associated with its tracks in your
+catalog.
 
 Here is an example `artist.eno` file, below it the fields are explained one-by-one.
 
@@ -89,6 +95,21 @@ the header/landing area of your artist page. A `link` must at least
 provide a url, either as a simple value or as an `url` attribute. Optionally
 you can also supply a `label` which is what is visibly displayed instead of
 the `url`, when given.
+
+## `more_label`
+
+```eno
+more_label: Biography
+```
+
+If you provide long-form text content for the artist (which can be anything
+you want, content-wise) through the `text` field, by default there will be a
+link with the label "More" on the artist page, leading to the section
+containing the long-form text. If you want to customize that label so it
+specifically refers to the type of content you are providing there, the
+`more_label` field allows you to do that. Some typical examples of custom
+`more_label`s one might use for the artist text: "Details", "Shows",
+"Discography", "Bio", "About" etc.
 
 ## `name`
 
