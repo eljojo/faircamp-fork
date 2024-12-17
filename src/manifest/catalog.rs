@@ -26,7 +26,6 @@ use super::{
     attribute_error_with_snippet,
     element_error_with_snippet,
     read_artist_catalog_release_option,
-    read_catalog_release_option,
     read_obsolete_option
 };
 
@@ -364,7 +363,6 @@ pub fn read_catalog_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_catalog_release_option(build, element, &manifest_path, overrides) => (),
             _ => {
                 let error = format!("The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?");
                 element_error_with_snippet(element, &manifest_path, &error);

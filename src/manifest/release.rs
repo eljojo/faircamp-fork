@@ -13,7 +13,6 @@ use crate::{
     DescribedImage,
     LocalOptions,
     Overrides,
-    Permalink,
     TagAgenda
 };
 use crate::markdown;
@@ -25,7 +24,6 @@ use super::{
     element_error_with_snippet,
     read_artist_catalog_release_option,
     read_artist_release_option,
-    read_catalog_release_option,
     read_obsolete_option
 };
 
@@ -177,26 +175,6 @@ pub fn read_release_manifest(
                 let error = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
                 element_error_with_snippet(element, &manifest_path, error);
             }
-            "permalink" => 'permalink: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(result) = field.value() {
-                        if let Some(value) = result {
-                            match Permalink::new(&value) {
-                                Ok(permalink) => local_options.release_permalink = Some(permalink),
-                                Err(err) => {
-                                    let error = format!("There is a problem with the permalink '{value}': {err}");
-                                    element_error_with_snippet(element, &manifest_path, &error);
-                                }
-                            }
-                        }
-
-                        break 'permalink;
-                    }
-                }
-
-                let error = "permalink needs to be provided as a field with a value, e.g.: 'permalink: such-perma-wow'";
-                element_error_with_snippet(element, &manifest_path, error);
-            }
             "synopsis" => {
                 if let Ok(embed) = element.as_embed() {
                     if let Some(value) = embed.value() {
@@ -285,8 +263,7 @@ pub fn read_release_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(element, &manifest_path, overrides) => (),
-            _ if read_catalog_release_option(build, element, &manifest_path, overrides) => (),
+            _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
             _ => {
                 let error = format!("The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?");
                 element_error_with_snippet(element, &manifest_path, &error);

@@ -5,8 +5,10 @@ use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
 use crate::{
+    Catalog,
     DescribedImage,
     HtmlAndStripped,
+    Link,
     Permalink,
     ReleaseRc,
     Theme
@@ -18,6 +20,10 @@ pub struct Artist {
     pub copy_link: bool,
     pub featured: bool,
     pub image: Option<DescribedImage>,
+    pub links: Vec<Link>,
+    /// Optional override label for the button that (by default) says "More" on the
+    /// artist page and points to the long-form text on the artist page.
+    pub more_label: Option<String>,
     pub name: String,
     pub permalink: Permalink,
     pub releases: Vec<ReleaseRc>,
@@ -32,18 +38,56 @@ pub struct ArtistRc {
 }
 
 impl Artist {
-    pub fn new(copy_link: bool, name: &str, theme: Theme) -> Artist {
+    /// This is how we create an artist if the catalog has no explicitly
+    /// defined artist that matches a release/track's artist. We use the
+    /// name that was given on the release/track and pull some default
+    /// options from the catalog.
+    pub fn new_automatic(catalog: &Catalog, name: &str) -> Artist {
         let permalink = Permalink::generate(name);
-        
+
         Artist {
             aliases: Vec::new(),
-            copy_link,
+            copy_link: catalog.copy_link,
             featured: false,
             image: None,
+            links: Vec::new(),
+            more_label: None,
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
             text: None,
+            theme: catalog.theme.clone(),
+            unlisted: false
+        }
+    }
+
+    /// This is how we create an artist if we encouter an artist that
+    /// is manually defined in the catalog (via an artist manifest or
+    /// through a short-form artist definition).
+    pub fn new_manual(
+        aliases: Vec<String>,
+        copy_link: bool,
+        image: Option<DescribedImage>,
+        links: Vec<Link>,
+        more_label: Option<String>,
+        name: &str,
+        permalink: Option<Permalink>,
+        text: Option<HtmlAndStripped>,
+        theme: Theme
+    ) -> Artist {
+        let permalink = permalink.unwrap_or_else(|| Permalink::generate(&name));
+
+        Artist {
+            aliases,
+            copy_link,
+            featured: false,
+            image,
+            links,
+            more_label,
+            name: name.to_string(),
+            permalink,
+            releases: Vec::new(),
+            text,
             theme,
             unlisted: false
         }

@@ -25,15 +25,13 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let r_more = match &artist.text {
         Some(html_and_stripped) => {
             let more_icon = icons::more(&build.locale.translations.more);
-            // TODO: Implement for artists
-            // let more_label = match &catalog.more_label {
-            //     Some(label) => label,
-            //     None => &build.locale.translations.more
-            // };
-            let t_more = &build.locale.translations.more;
+            let more_label = match &artist.more_label {
+                Some(label) => label,
+                None => *build.locale.translations.more
+            };
             let more_link = format!(r##"
                 <a class="more" href="#more">
-                    {more_icon} {t_more}
+                    {more_icon} {more_label}
                 </a>
             "##);
 
@@ -87,6 +85,25 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     } else {
         templates = String::new();
     };
+
+    for link in &artist.links {
+        let external_icon = icons::external(&build.locale.translations.external_link);
+
+        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
+        let url = &link.url;
+
+        let r_link = if link.hidden {
+            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
+        } else {
+            let label = link.pretty_label();
+            let e_label = html_escape_outside_attribute(&label);
+            formatdoc!(r#"
+                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
+            "#)
+        };
+
+        actions.push(r_link);
+    }
 
     let r_actions = if actions.is_empty() {
         String::new()

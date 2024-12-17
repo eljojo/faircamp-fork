@@ -2,18 +2,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs;
+use std::mem;
 use std::path::Path;
 
 use enolib::TerminalPrinter;
 
 use crate::{
+    Artist,
+    ArtistRc,
     Build,
     Cache,
     Catalog,
     DescribedImage,
     LocalOptions,
-    Overrides,
-    Permalink
+    Overrides
 };
 use crate::markdown;
 
@@ -54,7 +56,6 @@ pub fn read_artist_manifest(
     // By default we use the folder name as name
     let mut artist_name = dir.file_name().unwrap().to_string_lossy().to_string();
     let mut artist_image = None;
-    let mut artist_permalink = None;
     let mut artist_text = None;
 
     for element in document.elements() {
@@ -130,28 +131,6 @@ pub fn read_artist_manifest(
                 let error = "name needs to be provided as a field with a value, e.g.: 'name: Alice'";
                 element_error_with_snippet(element, &manifest_path, error);
             }
-            // TODO: Potentially unify this with the implementation in manifest/release.rs
-            //       (we just need to use local_options for artist.rs as well)
-            "permalink" => 'permalink: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(result) = field.value() {
-                        if let Some(value) = result {
-                            match Permalink::new(&value) {
-                                Ok(permalink) => artist_permalink = Some(permalink),
-                                Err(err) => {
-                                    let error = format!("There is a problem with the permalink '{value}': {err}");
-                                    element_error_with_snippet(element, &manifest_path, &error);
-                                }
-                            }
-                        }
-
-                        break 'permalink;
-                    }
-                }
-
-                let error = "permalink needs to be provided as a field with a value, e.g.: 'permalink: such-perma-wow'";
-                element_error_with_snippet(element, &manifest_path, error);
-            }
             "text" => {
                 if let Ok(embed) = element.as_embed() {
                     if let Some(value) = embed.value() {
@@ -165,7 +144,7 @@ pub fn read_artist_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(element, &manifest_path, overrides) => (),
+            _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
             _ => {
                 let error = format!("The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?");
                 element_error_with_snippet(element, &manifest_path, &error);
@@ -173,14 +152,17 @@ pub fn read_artist_manifest(
         }
     }
 
-    let artist = catalog.create_artist(overrides.copy_link, &artist_name, overrides.theme.clone());
-    let mut artist_mut = artist.borrow_mut();
+    let artist = Artist::new_manual(
+        artist_aliases,
+        overrides.copy_link,
+        artist_image,
+        mem::take(&mut local_options.links),
+        overrides.more_label.clone(),
+        &artist_name,
+        local_options.permalink.take(),
+        artist_text,
+        overrides.theme.clone()
+    );
 
-    if let Some(permalink) = artist_permalink {
-        artist_mut.permalink = permalink;
-    }
-
-    artist_mut.aliases = artist_aliases;
-    artist_mut.image = artist_image;
-    artist_mut.text = artist_text;
+    catalog.artists.push(ArtistRc::new(artist));
 }

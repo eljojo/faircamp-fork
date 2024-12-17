@@ -175,12 +175,6 @@ impl Catalog {
         }
     }
 
-    pub fn create_artist(&mut self, copy_link: bool, name: &str, theme: Theme) -> ArtistRc {
-        let artist = ArtistRc::new(Artist::new(copy_link, name, theme));
-        self.artists.push(artist.clone());
-        artist
-    }
-
     pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
         for release in self.releases.iter_mut() {
             release.borrow_mut().get_or_create_release_archives(cache);
@@ -231,7 +225,7 @@ impl Catalog {
                 }
 
                 if !any_artist_found {
-                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &main_artist_to_map, self.theme.clone()));
+                    let new_artist = ArtistRc::new(Artist::new_automatic(self, &main_artist_to_map));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.main_artists.push(new_artist.clone());
@@ -266,7 +260,7 @@ impl Catalog {
                 }
 
                 if !any_artist_found {
-                    let new_artist = ArtistRc::new(Artist::new(self.copy_link, &support_artist_to_map, self.theme.clone()));
+                    let new_artist = ArtistRc::new(Artist::new_automatic(self, &support_artist_to_map));
                     new_artist.borrow_mut().releases.push(release.clone());
                     self.artists.push(new_artist.clone());
                     self.support_artists.push(new_artist.clone());
@@ -295,7 +289,7 @@ impl Catalog {
                         // TODO: An artist created here curiously belongs neither to catalog.main_artists,
                         //       nor catalog.support_artists. This might indicate that in fact we never
                         //       enter into this branch at all?
-                        let new_artist = ArtistRc::new(Artist::new(self.copy_link, &track_artist_to_map, self.theme.clone()));
+                        let new_artist = ArtistRc::new(Artist::new_automatic(self, &track_artist_to_map));
                         self.artists.push(new_artist.clone());
                         track.artists.push(new_artist);
                     }
@@ -828,7 +822,7 @@ impl Catalog {
                     merged_overrides.m3u_enabled,
                     main_artists_to_map,
                     merged_overrides.more_label.clone(),
-                    local_options.release_permalink.take(),
+                    local_options.permalink.take(),
                     release_dir_relative_to_catalog,
                     merged_overrides.streaming_quality,
                     support_artists_to_map,
