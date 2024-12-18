@@ -39,7 +39,8 @@ pub fn track_html(
     // TODO: Could we/should we have a track-only flow here?
     //       (Also implies track-level download configuration?)
     let download_link = match &release.downloads {
-        Downloads::Disabled => None,
+        Downloads::Disabled |
+        Downloads::Empty => None,
         Downloads::Enabled { download_access, .. } => {
             match download_access {
                 DownloadAccess::Code { .. } => {

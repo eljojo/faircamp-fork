@@ -55,6 +55,7 @@ pub fn debug_catalog(catalog: &Catalog) {
 
                 let r_downloads = match &release_ref.downloads {
                     Downloads::Disabled => String::from("Disabled"),
+                    Downloads::Empty => String::from("Enabled but no formats set"),
                     Downloads::Enabled { download_access, downloads_config } => {
                         let r_access = match download_access {
                             DownloadAccess::Code { .. } => "Code",

@@ -794,6 +794,9 @@ impl Catalog {
                 }
 
                 let downloads = match &merged_overrides.downloads {
+                    DownloadOption::Code |
+                    DownloadOption::Free |
+                    DownloadOption::Paycurtain if merged_overrides.downloads_config.is_empty() => Downloads::Empty,
                     DownloadOption::Code => Downloads::Enabled {
                         download_access: DownloadAccess::Code {
                             download_codes: merged_overrides.download_codes.clone(),

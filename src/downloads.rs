@@ -32,6 +32,7 @@ pub enum DownloadAccess {
 #[derive(Clone, Debug)]
 pub enum Downloads {
     Disabled,
+    Empty,
     Enabled {
         download_access: DownloadAccess,
         downloads_config: DownloadsConfig
@@ -103,6 +104,15 @@ impl DownloadsConfig {
             extra_downloads: ExtraDownloads::BUNDLED,
             track_formats: Vec::new()
         }
+    }
+
+    /// If there are no formats configured and no separate extras for
+    /// download, this download config provides no downloads at all, and this
+    /// is the check for that condition.
+    pub fn is_empty(&self) -> bool {
+        self.archive_formats.is_empty() &&
+        self.track_formats.is_empty() &&
+        !self.extra_downloads.separate
     }
 }
 

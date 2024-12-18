@@ -151,41 +151,43 @@ impl Release {
     /// makes or breaks finding cached archives.
     pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
         if let Downloads::Enabled { downloads_config, .. } = &self.downloads {
-            let mut hasher = DefaultHasher::new();
+            if !downloads_config.archive_formats.is_empty() {
+                let mut hasher = DefaultHasher::new();
 
-            // TODO: Consider further if there are aspects of the dependency graph missing
-            //       that need to be included in the hash signature.
-            // TODO: Are the filenames represented at all? Should they? (With which filename
-            //       the tracks and extras and cover are written into the zip)
+                // TODO: Consider further if there are aspects of the dependency graph missing
+                //       that need to be included in the hash signature.
+                // TODO: Are the filenames represented at all? Should they? (With which filename
+                //       the tracks and extras and cover are written into the zip)
 
-            if let Some(described_image) = &self.cover {
-                // The image description is not used for building release archives,
-                // so we only hash the image itself
-                described_image.image.hash(&mut hasher);
+                if let Some(described_image) = &self.cover {
+                    // The image description is not used for building release archives,
+                    // so we only hash the image itself
+                    described_image.image.hash(&mut hasher);
+                }
+
+                if downloads_config.extra_downloads.bundled && !self.extras.is_empty() {
+                    // There is no relevant order for extras, they are just included in the zip as
+                    // files, but for hashing we need to ensure a stable order, as there is no such
+                    // guarantee coming from where they are initialized - so we sort them here.
+                    let mut extras_sorted = self.extras.clone();
+                    extras_sorted.sort_by(|a, b| a.sanitized_filename.cmp(&b.sanitized_filename));
+                    extras_sorted.hash(&mut hasher);
+                }
+
+                self.title.hash(&mut hasher);
+
+                // TODO: TrackNumbering could also be part of signature (how the files are numbered in the filename!)
+                for (track_index, track) in self.tracks.iter().enumerate() {
+                    let tag_mapping = TagMapping::new(self, track, track_index + 1);
+
+                    tag_mapping.hash(&mut hasher);
+                    track.transcodes.borrow().hash.hash(&mut hasher);
+                }
+
+                let signature = hasher.finish();
+
+                self.archives = Some(cache.get_or_create_archives(signature));
             }
-
-            if downloads_config.extra_downloads.bundled && !self.extras.is_empty() {
-                // There is no relevant order for extras, they are just included in the zip as
-                // files, but for hashing we need to ensure a stable order, as there is no such
-                // guarantee coming from where they are initialized - so we sort them here.
-                let mut extras_sorted = self.extras.clone();
-                extras_sorted.sort_by(|a, b| a.sanitized_filename.cmp(&b.sanitized_filename));
-                extras_sorted.hash(&mut hasher);
-            }
-
-            self.title.hash(&mut hasher);
-
-            // TODO: TrackNumbering could also be part of signature (how the files are numbered in the filename!)
-            for (track_index, track) in self.tracks.iter().enumerate() {
-                let tag_mapping = TagMapping::new(self, track, track_index + 1);
-
-                tag_mapping.hash(&mut hasher);
-                track.transcodes.borrow().hash.hash(&mut hasher);
-            }
-
-            let signature = hasher.finish();
-
-            self.archives = Some(cache.get_or_create_archives(signature));
         }
     }
 

@@ -39,7 +39,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let root_prefix = "../";
 
     let download_link = match &release.downloads {
-        Downloads::Disabled => String::new(),
+        Downloads::Disabled |
+        Downloads::Empty => String::new(),
         Downloads::Enabled { download_access, .. } => {
             match download_access {
                 DownloadAccess::Code { .. } => {
