@@ -31,7 +31,7 @@ pub fn read_artist_release_option(
                             "disabled" => overrides.copy_link = false,
                             _ => {
                                 let error = "This copy_link setting was not recognized (supported values are 'enabled' and 'disabled')";
-                                element_error_with_snippet(element, &manifest_path, error);
+                                element_error_with_snippet(element, manifest_path, error);
                             }
                         }
                     }
@@ -41,17 +41,17 @@ pub fn read_artist_release_option(
             }
 
             let error = "copy_link needs to be provided as a field with a value, e.g.: 'copy_link: disable'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "permalink" => 'permalink: {
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {
                     if let Some(value) = result {
-                        match Permalink::new(&value) {
+                        match Permalink::new(value) {
                             Ok(permalink) => local_options.permalink = Some(permalink),
                             Err(err) => {
                                 let error = format!("There is a problem with the permalink '{value}': {err}");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -61,7 +61,7 @@ pub fn read_artist_release_option(
             }
 
             let error = "permalink needs to be provided as a field with a value, e.g.: 'permalink: such-perma-wow'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         _ => return false
     }

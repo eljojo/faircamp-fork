@@ -51,7 +51,7 @@ pub fn read_artist_catalog_release_option(
                             Some(format) => overrides.downloads_config.archive_formats = vec![format],
                             None => {
                                 let error = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -67,7 +67,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(format) => Some(format),
                                         None => {
                                             let error = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
-                                            item_error_with_snippet(item, &manifest_path, &error);
+                                            item_error_with_snippet(item, manifest_path, &error);
                                             None
                                         }
                                     }
@@ -82,17 +82,17 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "archive_downloads needs to be provided either as a field with a value (e.g. 'archive_downloads: mp3') or as a field with items, e.g.:\n\narchive_downloads:\n- mp3\n- flac\n- opus\n\n(All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "download_code" => 'download_code: {
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {
                     if let Some(value) = result {
-                        match Permalink::new(&value) {
+                        match Permalink::new(value) {
                             Ok(_) => overrides.download_codes = vec![value.to_string()],
                             Err(err) => {
                                 let error = format!("The download code '{value}' contains non-permitted characters ({err})");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -102,7 +102,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "download_code needs to be provided as a field with a value, e.g.: 'download_code: enter3!'\n\nFor multiple download_codes specify the download_codes field:\n\ndownload_codes:\n- enter3!\n- enter2x";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "download_codes" => 'download_codes: {
             if let Ok(field) = element.as_field() {
@@ -112,11 +112,11 @@ pub fn read_artist_catalog_release_option(
                         .filter_map(|item| {
                             match item.value() {
                                 Some(value) => {
-                                    match Permalink::new(&value) {
+                                    match Permalink::new(value) {
                                         Ok(_) => Some(value.to_string()),
                                         Err(err) => {
                                             let error = format!("The download code '{value}' contains non-permitted characters ({err})");
-                                            item_error_with_snippet(item, &manifest_path, &error);
+                                            item_error_with_snippet(item, manifest_path, &error);
                                             None
                                         }
                                     }
@@ -131,7 +131,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "download_codes needs to be provided as a field with items, e.g.:\n\ndownload_codes:\n- enter3!\n- enter2x";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "downloads" => 'downloads: {
             if let Ok(field) = element.as_field() {
@@ -149,13 +149,13 @@ pub fn read_artist_catalog_release_option(
                                     }
                                     Err(err) => {
                                         let error = format!("This external downloads url is somehow not valid ({err})");
-                                        element_error_with_snippet(element, &manifest_path, &error);
+                                        element_error_with_snippet(element, manifest_path, &error);
                                     }
                                 }
                             }
                             _ => {
                                 let error = "This downloads setting was not recognized (supported values are 'code', 'disabled', 'free', 'paycurtain' or an external url like 'https://example.com')";
-                                element_error_with_snippet(element, &manifest_path, error);
+                                element_error_with_snippet(element, manifest_path, error);
                             }
                         }
                     }
@@ -165,7 +165,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "downloads needs to be provided as a field with the value 'code', 'disabled', 'free', 'paycurtain' or an external url like 'https://example.com', e.g.: 'downloads: code'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "embedding" => 'embedding: {
             if let Ok(field) = element.as_field() {
@@ -176,7 +176,7 @@ pub fn read_artist_catalog_release_option(
                             "enabled" => overrides.embedding = true,
                             _ => {
                                 let error = format!("The value '{value}' is not recognized for the embedding option, allowed values are 'enabled' and 'disabled'");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -186,7 +186,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "embedding needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'embedding: enabled'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "extra_downloads" => 'extra_downloads: {
             if let Ok(field) = element.as_field() {
@@ -198,7 +198,7 @@ pub fn read_artist_catalog_release_option(
                             "separate" => overrides.downloads_config.extra_downloads = ExtraDownloads::SEPARATE,
                             _ => {
                                 let error = format!("The value '{value}' is not supported (allowed are: 'bundled', 'disabled' or 'separate'");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -214,7 +214,7 @@ pub fn read_artist_catalog_release_option(
                             Some("separate") => overrides.downloads_config.extra_downloads.separate = true,
                             Some(other) => {
                                 let error = format!("The value '{other}' is not supported (allowed are: 'bundled', 'disabled' or 'separate'");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                             None => ()
                         }
@@ -225,7 +225,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "extra_downloads needs to be provided either as a field with a value (e.g. 'extra_downloads: disabled') or as a field with items, e.g.:\n\nextra_downloads:\n- bundled\n- separate\n\n(The available options are 'bundled', 'disabled' and 'separate')";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "link" => 'link: {
             if let Ok(field) = element.as_field() {
@@ -238,7 +238,7 @@ pub fn read_artist_catalog_release_option(
                             }
                             Err(err) => {
                                 let error = format!("The url supplied for the link seems to be malformed ({err})");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -263,7 +263,7 @@ pub fn read_artist_catalog_release_option(
                                         Ok(parsed_url) => url = Some(parsed_url),
                                         Err(err) => {
                                             let error = format!("The url supplied for the link seems to be malformed ({err})");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -281,14 +281,14 @@ pub fn read_artist_catalog_release_option(
                                         }
                                         _ => {
                                             let error = format!("The verification attribute value '{value}' is not recognized, allowed are 'rel-me' and 'rel-me-hidden'");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
                             }
                             other => {
                                 let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'label', 'url' and 'verification'");
-                                attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                attribute_error_with_snippet(attribute, manifest_path, &error);
                             }
                         }
                     }
@@ -298,7 +298,7 @@ pub fn read_artist_catalog_release_option(
                         local_options.links.push(link);
                     } else {
                         let error = "The link option must supply an url attribute at least, e.g.:\n\nlink:\nurl = https://example.com";
-                        element_error_with_snippet(element, &manifest_path, error);
+                        element_error_with_snippet(element, manifest_path, error);
                     }
 
                     break 'link;
@@ -306,7 +306,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "link must be provided as a basic field with a value (e.g. 'link: https://example.com') or in its extended form as a field with attributes, e.g.:\n\nlink:\nurl = https://example.com\nlabel = Example";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "more_label" => 'more_label: {
             if let Ok(field) = element.as_field() {
@@ -320,7 +320,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "more_label needs to be provided as a field with a value, e.g.: 'more_label: About'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "payment_info" => {
             if let Ok(embed) = element.as_embed() {
@@ -329,7 +329,7 @@ pub fn read_artist_catalog_release_option(
                 }
             } else {
                 let error = "payment_info needs to be provided as an embed, e.g.:\n-- payment_info\nThe payment info text\n--payment_info";
-                element_error_with_snippet(element, &manifest_path, error);
+                element_error_with_snippet(element, manifest_path, error);
             }
         }
         "price" => 'price: {
@@ -340,7 +340,7 @@ pub fn read_artist_catalog_release_option(
                             Ok(price) => overrides.price = price,
                             Err(err) => {
                                 let error = format!("Invalid price value ({err})");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -350,7 +350,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "price needs to be provided as a field with a currency and price (range) value, e.g.: 'price: USD 0+', 'price: 3.50 GBP', 'price: INR 230+' or 'price: JPY 400-800'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "streaming_quality" => 'streaming_quality: {
             if let Ok(field) = element.as_field() {
@@ -358,7 +358,7 @@ pub fn read_artist_catalog_release_option(
                     if let Some(value) = result {
                         match StreamingQuality::from_key(value) {
                             Ok(streaming_quality) => overrides.streaming_quality = streaming_quality,
-                            Err(error) => element_error_with_snippet(element, &manifest_path, &error)
+                            Err(error) => element_error_with_snippet(element, manifest_path, &error)
                         }
                     }
 
@@ -367,7 +367,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "streaming_quality needs to be provided as a field with a value, e.g.: 'streaming_quality: frugal'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "theme" => 'theme: {
             if let Ok(field) = element.as_field() {
@@ -380,7 +380,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(percentage) => overrides.theme.accent_brightening = percentage,
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'accent_brightening' (accepts a percentage in the range 0-100 - without the % sign)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -391,7 +391,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(percentage) => overrides.theme.accent_chroma = Some(percentage),
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'accent_chroma' (accepts a percentage in the range 0-100 - without the % sign)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -402,7 +402,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(degrees) => overrides.theme.accent_hue = Some(degrees),
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'accent_hue' (accepts an amount of degrees in the range 0-360)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -413,7 +413,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(percentage) => overrides.theme.background_alpha = percentage,
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'background_alpha' (accepts a percentage in the range 0-100 - without the % sign)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -427,7 +427,7 @@ pub fn read_artist_catalog_release_option(
                                         overrides.theme.background_image = Some(image);
                                     } else {
                                         let error = format!("Invalid background_image setting value '{path_relative_to_manifest}' (The referenced file was not found)");
-                                        attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                        attribute_error_with_snippet(attribute, manifest_path, &error);
                                     }
                                 }
                             }
@@ -437,7 +437,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(variant) => overrides.theme.base = variant,
                                         None => {
                                             let error = format!("Invalid base setting value '{value}' (supported values are dark and light)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -448,7 +448,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(percentage) => overrides.theme.base_chroma = percentage,
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'base_chroma' (accepts a percentage in the range 0-100 - without the % sign)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -459,7 +459,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(degrees) => overrides.theme.base_hue = degrees,
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'base_hue' (accepts an amount of degrees in the range 0-360)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -471,7 +471,7 @@ pub fn read_artist_catalog_release_option(
                                         None => {
                                             let supported = CoverGenerator::ALL_GENERATORS.map(|key| format!("'{key}'")).join(", ");
                                             let error = format!("Invalid cover_generator setting value '{value}' (supported values are {supported})");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -484,12 +484,12 @@ pub fn read_artist_catalog_release_option(
                                             Ok(theme_font) => overrides.theme.font = theme_font,
                                             Err(err) => {
                                                 let error = format!("Invalid custom_font setting value '{relative_path}' ({err})");
-                                                attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                                attribute_error_with_snippet(attribute, manifest_path, &error);
                                             }
                                         }
                                     } else {
                                         let error = format!("Invalid custom_font setting value '{relative_path}' (The referenced file was not found)");
-                                        attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                        attribute_error_with_snippet(attribute, manifest_path, &error);
                                     }
                                 }
                             }
@@ -499,7 +499,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(percentage) => overrides.theme.dynamic_range = percentage,
                                         None => {
                                             let error = format!("Unsupported value '{value}' for 'dynamic_range' (accepts a percentage in the range 0-100 - without the % sign)");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -511,7 +511,7 @@ pub fn read_artist_catalog_release_option(
                                         "enabled" => overrides.theme.round_corners = true,
                                         _ => {
                                             let error = format!("Ignoring unsupported round_corners setting value '{value}' (supported values are 'disabled' and 'enabled')");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -542,14 +542,14 @@ pub fn read_artist_catalog_release_option(
                                         }
                                         _ => {
                                             let error = format!("Ignoring unsupported waveforms setting value '{value}' (supported values are 'absolute', 'relative' and 'disabled')");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
                             }
                             other => {
                                 let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'accent_brightening', 'accent_chroma', 'accent_hue', 'background_alpha', 'background_image', 'base', 'base_chroma', 'base_hue', 'cover_generator', 'custom_font', 'dynamic_range', 'round_corners', 'system_font' and 'waveforms'");
-                                attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                attribute_error_with_snippet(attribute, manifest_path, &error);
                             }
                         }
                     }
@@ -559,7 +559,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "theme needs to be provided as a field with attributes, e.g.:\n\ntheme:\nbase = light\nwaveforms = absolute";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "track_artist" => 'track_artist: {
             if let Ok(field) = element.as_field() {
@@ -573,7 +573,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "track_artist needs to be provided as a field with a value, e.g.: 'track_artist: Alice'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "track_artists" => 'track_artists: {
             if let Ok(field) = element.as_field() {
@@ -588,7 +588,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "track_artists needs to be provided as a field with items, e.g.:\n\ntrack_artists:\n- Alice\n- Bob'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "track_downloads" => 'track_downloads: {
             if let Ok(field) = element.as_field() {
@@ -599,7 +599,7 @@ pub fn read_artist_catalog_release_option(
                             Some(format) => overrides.downloads_config.track_formats = vec![format],
                             None => {
                                 let error = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -615,7 +615,7 @@ pub fn read_artist_catalog_release_option(
                                         Some(format) => Some(format),
                                         None => {
                                             let error = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
-                                            item_error_with_snippet(item, &manifest_path, &error);
+                                            item_error_with_snippet(item, manifest_path, &error);
                                             None
                                         }
                                     }
@@ -630,7 +630,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "track_downloads needs to be provided either as a field with a value (e.g. 'track_downloads: mp3') or as a field with items, e.g.:\n\ntrack_downloads:\n- mp3\n- flac\n- opus\n\n(All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "track_numbering" => 'track_numbering: {
             if let Ok(field) = element.as_field() {
@@ -640,7 +640,7 @@ pub fn read_artist_catalog_release_option(
                             Some(variant) => overrides.track_numbering = variant,
                             None => {
                                 let error = format!("track_numbering value '{value}' was not recognized (supported values are 'arabic', 'arabic-dotted', 'arabic-padded', 'disabled', 'hexadecimal', 'hexadecimal-padded', 'roman' and 'roman-dotted')");
-                                element_error_with_snippet(element, &manifest_path, &error);
+                                element_error_with_snippet(element, manifest_path, &error);
                             }
                         }
                     }
@@ -650,7 +650,7 @@ pub fn read_artist_catalog_release_option(
             }
 
             let error = "track_numbering needs to be provided as a field with a value, e.g.: 'track_numbering: arabic-dotted'";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         "unlock_info" => {
             if let Ok(embed) = element.as_embed() {
@@ -659,7 +659,7 @@ pub fn read_artist_catalog_release_option(
                 }
             } else {
                 let error = "unlock_info needs to be provided as an embed, e.g.:\n-- unlock_info\nThe text instructing on how to get a download code\n--unlock_info";
-                element_error_with_snippet(element, &manifest_path, error);
+                element_error_with_snippet(element, manifest_path, error);
             }
         }
         _ => return false

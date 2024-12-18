@@ -53,8 +53,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         None => String::new()
     };
 
-    let templates;
-    if artist.copy_link {
+    let templates = if artist.copy_link {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
                 let url = base_url.join(&format!("{}{index_suffix}", &artist.permalink.slug)).unwrap().to_string();
@@ -71,7 +70,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
         let failed_icon = icons::failure(&build.locale.translations.failed);
         let success_icon = icons::success(&build.locale.translations.copied);
-        templates = format!(r#"
+        format!(r#"
             <template id="copy_icon">
                 {copy_icon}
             </template>
@@ -81,9 +80,9 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             <template id="success_icon">
                 {success_icon}
             </template>
-        "#);
+        "#)
     } else {
-        templates = String::new();
+        String::new()
     };
 
     for link in &artist.links {

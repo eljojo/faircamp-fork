@@ -143,6 +143,7 @@ impl DownloadFormat {
     /// Maps a Vec of download formats to a tuple ...
     /// - .0 => the original format
     /// - .1 => boolean saying whether the format is recommended
+    ///
     /// Careful this does not support being called with an empty list of formats.
     pub fn with_recommendation(download_formats: &[DownloadFormat]) -> Vec<(DownloadFormat, bool)> {
         let mut recommendation_given = false;

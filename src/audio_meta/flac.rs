@@ -75,7 +75,7 @@ pub fn extract(path: &Path) -> Result<AudioMeta, String> {
     Ok(audio_meta)
 }
 
-fn extract_multiple<'a>(key: &str, tag: &Tag) -> Vec<String> {
+fn extract_multiple(key: &str, tag: &Tag) -> Vec<String> {
     tag.get_vorbis(key)
         .map(|fields| fields.filter_map(trim_and_reject_empty).collect())
         .unwrap_or_else(Vec::new)

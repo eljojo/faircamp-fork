@@ -31,7 +31,7 @@ pub fn decode(path: &Path) -> Result<(DecodeResult, CommentHeader), String> {
         result.samples.reserve(packet_samples.len());
         
         for sample in packet_samples {
-            result.samples.push(sample as f32 / std::i16::MAX as f32);
+            result.samples.push(sample as f32 / i16::MAX as f32);
         }
         
         result.duration = result.sample_count as f32 / result.sample_rate as f32;

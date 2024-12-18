@@ -111,7 +111,7 @@ impl Artist {
         text: Option<HtmlAndStripped>,
         theme: Theme
     ) -> Artist {
-        let permalink = permalink.unwrap_or_else(|| Permalink::generate(&name));
+        let permalink = permalink.unwrap_or_else(|| Permalink::generate(name));
 
         Artist {
             aliases,

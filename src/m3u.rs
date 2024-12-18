@@ -103,7 +103,7 @@ pub fn generate_tracks(
     build: &Build,
     release: &Release,
     release_url: &Url,
-    tracks: &Vec<Track>
+    tracks: &[Track]
 ) -> String {
     tracks
         .iter()

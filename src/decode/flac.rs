@@ -42,8 +42,8 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
             for channel in 0..result.channels {
                 let raw_sample = block.sample(channel as u32, sample);
                 let normalized_sample = match streaminfo.bits_per_sample {
-                    8 => raw_sample as f32 / std::i8::MAX as f32,
-                    16 => raw_sample as f32 / std::i16::MAX as f32,
+                    8 => raw_sample as f32 / i8::MAX as f32,
+                    16 => raw_sample as f32 / i16::MAX as f32,
                     24 => raw_sample as f32 / I24_MAX as f32,
                     _ => unimplemented!()
                 };

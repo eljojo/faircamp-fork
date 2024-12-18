@@ -45,7 +45,7 @@ pub fn read_catalog_release_option(
                                         Ok(parsed_url) => link = Some(parsed_url),
                                         Err(err) => {
                                             let error = format!("The url supplied for the link seems to be malformed ({err})");
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
                                         }
                                     }
                                 }
@@ -57,7 +57,7 @@ pub fn read_catalog_release_option(
                             }
                             other => {
                                 let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'alias', 'name' and 'link'");
-                                attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                attribute_error_with_snippet(attribute, manifest_path, &error);
                             }
                         }
                     }
@@ -73,7 +73,7 @@ pub fn read_catalog_release_option(
                         catalog.artists.push(ArtistRc::new(artist));
                     } else {
                         let error = "The artist option must supply a name attribute at least, e.g.:\n\nartist:\nname = Alice";
-                        element_error_with_snippet(element, &manifest_path, error);
+                        element_error_with_snippet(element, manifest_path, error);
                     }
 
                     break 'artist;
@@ -81,7 +81,7 @@ pub fn read_catalog_release_option(
             }
 
             let error = "artist must be provided as a field with attributes, e.g.:\n\nartist:\nname = Alice\nlink = https://example.com\nalias = Älice\nalias = Älicë";
-            element_error_with_snippet(element, &manifest_path, error);
+            element_error_with_snippet(element, manifest_path, error);
         }
         _ => return false
     }

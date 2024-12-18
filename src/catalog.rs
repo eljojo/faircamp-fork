@@ -167,7 +167,7 @@ impl Catalog {
                     format!("{list} - ")
                 };
                 let track_number = index + 1;
-                let track_title = sanitize(&track.title());
+                let track_title = sanitize(track.title());
 
                 let track_basename = format!("{track_number:02} {track_artists}{track_title}");
 

@@ -180,7 +180,7 @@ pub fn read_catalog_manifest(
                             if value == "none" {
                                 catalog.favicon = Favicon::None;
                             } else {
-                                let absolute_path = dir.join(&value);
+                                let absolute_path = dir.join(value);
                                 if absolute_path.exists() {
                                     match Favicon::custom(absolute_path) {
                                         Ok(favicon) => catalog.favicon = favicon,
@@ -238,7 +238,7 @@ pub fn read_catalog_manifest(
                                 "file" => {
                                     // file is a path relative to the manifest
                                     if let Some(value) = attribute.value() {
-                                        let absolute_path = dir.join(&value);
+                                        let absolute_path = dir.join(value);
                                         if absolute_path.exists() {
                                             path_relative_to_catalog = Some(absolute_path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf());
                                         } else {
@@ -249,8 +249,8 @@ pub fn read_catalog_manifest(
                                     }
                                 }
                                 _ => {
-                                    let error = format!("The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an home_image field");
-                                    element_error_with_snippet(element, &manifest_path, &error);
+                                    let error = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an home_image field";
+                                    element_error_with_snippet(element, &manifest_path, error);
                                 }
                             }
                         }
@@ -279,7 +279,7 @@ pub fn read_catalog_manifest(
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {
                         if let Some(value) = result {
-                            build.locale = Locale::from_code(&value);
+                            build.locale = Locale::from_code(value);
                         }
 
                         break 'language;
@@ -350,7 +350,7 @@ pub fn read_catalog_manifest(
                         let synopsis_chars = value.chars().count();
 
                         if synopsis_chars <= MAX_SYNOPSIS_CHARS {
-                            let synopsis_escaped = html_escape_outside_attribute(&value);
+                            let synopsis_escaped = html_escape_outside_attribute(value);
                             catalog.synopsis = Some(synopsis_escaped);
                         } else {
                             let error = format!("Synopsis is too long ({synopsis_chars}/{MAX_SYNOPSIS_CHARS} characters)");
@@ -391,8 +391,8 @@ pub fn read_catalog_manifest(
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_catalog_release_option(catalog, element, &manifest_path) => (),
             _ => {
-                let error = format!("The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?");
-                element_error_with_snippet(element, &manifest_path, &error);
+                let error = "The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?";
+                element_error_with_snippet(element, &manifest_path, error);
             }
         }
     }

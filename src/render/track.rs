@@ -157,7 +157,7 @@ pub fn track_html(
         None => String::from(r#"<span class="cover_placeholder"></span>"#)
     };
     let r_more = if track.text.is_some() {
-        format!(r#"<a href="">More</a>&nbsp;&nbsp;"#)
+        String::from(r#"<a href="">More</a>&nbsp;&nbsp;"#)
     } else {
         String::new()
     };

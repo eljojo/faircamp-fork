@@ -71,7 +71,7 @@ pub fn purchase_html(
     let r_price_display;
     let r_price_input;
     if price.range.end == f32::INFINITY {
-        let placeholder = &build.locale.translations.xxx_or_more(&price.range.start.to_string());
+        let placeholder = build.locale.translations.xxx_or_more(&price.range.start.to_string());
         r_price_display = price_display(&placeholder);
         r_price_input = price_input(&price.range, &placeholder);
     } else if price.range.start == price.range.end {

@@ -467,7 +467,7 @@ impl Cache {
                     "Removing orphaned cache asset ({}) - it was probably created with a different version of faircamp.",
                     file_name
                 );
-                let _ = fs::remove_file(&cache_dir.join(file_name));
+                let _ = fs::remove_file(cache_dir.join(file_name));
             }
         }
     }

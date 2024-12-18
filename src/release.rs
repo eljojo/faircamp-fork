@@ -416,7 +416,7 @@ impl Release {
                             used_filenames.insert(filename);
 
                             let mut zip_inner_file = File::open(
-                                &build.cache_dir.join(&transcode.asset.filename)
+                                build.cache_dir.join(&transcode.asset.filename)
                             ).unwrap();
 
                             zip_inner_file.read_to_end(&mut buffer).unwrap();
@@ -437,7 +437,7 @@ impl Release {
                             used_filenames.insert(cover_filename);
 
                             let mut zip_inner_file = File::open(
-                                &build.cache_dir.join(&cover_assets.largest().filename)
+                                build.cache_dir.join(&cover_assets.largest().filename)
                             ).unwrap();
 
                             zip_inner_file.read_to_end(&mut buffer).unwrap();
@@ -463,7 +463,7 @@ impl Release {
                                 used_filenames.insert(extra_filename);
 
                                 let mut zip_inner_file = File::open(
-                                    &build.catalog_dir.join(&extra.file_meta.path)
+                                    build.catalog_dir.join(&extra.file_meta.path)
                                 ).unwrap();
 
                                 zip_inner_file.read_to_end(&mut buffer).unwrap();

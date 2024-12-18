@@ -33,7 +33,7 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     //       See https://docs.rs/alac/latest/alac/struct.Reader.html#method.into_packets
     for sample in reader.into_samples::<i32>() {
         result.sample_count += 1;
-        result.samples.push(sample.unwrap() as f32 / std::i32::MAX as f32);
+        result.samples.push(sample.unwrap() as f32 / i32::MAX as f32);
     }
 
     if result.sample_count == 0 {

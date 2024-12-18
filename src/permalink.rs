@@ -50,7 +50,7 @@ impl Permalink {
     }
 }
 
-impl<'a> PermalinkUsage<'a> {
+impl PermalinkUsage<'_> {
     pub fn as_string(&self) -> String {
         match self {
             PermalinkUsage::Artist(artist) => {

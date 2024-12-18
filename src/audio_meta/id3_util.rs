@@ -9,7 +9,7 @@ pub struct Id3Util<'a> {
     tag: &'a Tag
 }
 
-impl<'a> Id3Util<'a> {
+impl Id3Util<'_> {
     pub fn album(&self) -> Option<String> {
         match self.tag.album() {
             Some(album) => self.patched_trim_and_reject_empty(album),

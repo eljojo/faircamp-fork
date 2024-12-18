@@ -88,7 +88,7 @@ pub fn read_artist_manifest(
                                 "file" => {
                                     // file is a path relative to the manifest
                                     if let Some(value) = attribute.value() {
-                                        let absolute_path = dir.join(&value);
+                                        let absolute_path = dir.join(value);
                                         if absolute_path.exists() {
                                             path_relative_to_catalog = Some(absolute_path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf());
                                         } else {
@@ -99,8 +99,8 @@ pub fn read_artist_manifest(
                                     }
                                 }
                                 _ => {
-                                    let error = format!("The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an image field");
-                                    element_error_with_snippet(element, &manifest_path, &error);
+                                    let error = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an image field";
+                                    element_error_with_snippet(element, &manifest_path, error);
                                 }
                             }
                         }
@@ -146,8 +146,8 @@ pub fn read_artist_manifest(
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
             _ => {
-                let error = format!("The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?");
-                element_error_with_snippet(element, &manifest_path, &error);
+                let error = "The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?";
+                element_error_with_snippet(element, &manifest_path, error);
             }
         }
     }

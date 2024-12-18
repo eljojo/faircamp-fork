@@ -108,8 +108,7 @@ impl CoverGenerator {
         let mut track_offset = 0.0;
         let points = release.tracks
             .iter()
-            .enumerate()
-            .map(|(_track_index, track)| {
+            .map(|track| {
                 let source_meta = &track.transcodes.borrow().source_meta;
 
                 let track_arc_range = source_meta.duration_seconds / total_duration;
@@ -277,8 +276,7 @@ impl CoverGenerator {
         let mut track_offset = 0.0;
         let points = release.tracks
             .iter()
-            .enumerate()
-            .map(|(_track_index, track)| {
+            .map(|track| {
                 let source_meta = &track.transcodes.borrow().source_meta;
 
                 let altitude_factor = (source_meta.duration_seconds - shortest_track_duration) / (longest_track_duration - shortest_track_duration);

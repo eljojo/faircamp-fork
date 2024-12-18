@@ -74,7 +74,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                     true => String::from("Empty"),
                     false => release_ref.main_artists
                         .iter()
-                        .map(|artist| format!("{}", format_artist(artist)))
+                        .map(format_artist)
                         .collect::<Vec<String>>()
                         .join(", ")
                 };
@@ -82,7 +82,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                     true => String::from("Empty"),
                     false => release_ref.support_artists
                         .iter()
-                        .map(|artist| format!("{}", format_artist(artist)))
+                        .map(format_artist)
                         .collect::<Vec<String>>()
                         .join(", ")
                 };
