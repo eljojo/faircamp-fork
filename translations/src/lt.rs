@@ -66,7 +66,6 @@ pub const LT: Translations = Translations {
     showing_featured_items: Reviewed("Rodomi rekomenduojami elementai"),
     showing_xxx_results_for_xxx: Reviewed("Rodoma {count} rezultatų užklausai „{query}“"),
     skip_to_main_content: Reviewed("Praleisti į pagrindinį turinį"),
-    this_site_was_created_with_faircamp: Reviewed("Ši svetainė buvo sukurta su „{faircamp_link}“"),
     unlisted: Reviewed("Neįtrauktas į sąrašą"),
     unlock: Reviewed("Atrakinti"),
     unlock_downloads: Reviewed("Atrakinti atsisiuntimus"),

@@ -191,7 +191,6 @@ pub struct Translations {
     pub showing_featured_items: Translation,
     pub showing_xxx_results_for_xxx: Translation,
     pub skip_to_main_content: Translation,
-    pub this_site_was_created_with_faircamp: Translation,
     pub unlisted: Translation,
     pub unlock: Translation,
     pub unlock_downloads: Translation,
@@ -273,7 +272,6 @@ impl Translations {
         showing_featured_items: Reviewed("showing_featured_items"),
         showing_xxx_results_for_xxx: Reviewed("showing_xxx_results_for_xxx"),
         skip_to_main_content: Reviewed("skip_to_main_content"),
-        this_site_was_created_with_faircamp: Reviewed("this_site_was_created_with_faircamp"),
         unlisted: Reviewed("unlisted"),
         unlock: Reviewed("unlock"),
         unlock_downloads: Reviewed("unlock_downloads"),
@@ -353,7 +351,6 @@ impl Translations {
         showing_featured_items: EN.showing_featured_items.as_untranslated(),
         showing_xxx_results_for_xxx: EN.showing_xxx_results_for_xxx.as_untranslated(),
         skip_to_main_content: EN.skip_to_main_content.as_untranslated(),
-        this_site_was_created_with_faircamp: EN.this_site_was_created_with_faircamp.as_untranslated(),
         unlisted: EN.unlisted.as_untranslated(),
         unlock: EN.unlock.as_untranslated(),
         unlock_downloads: EN.unlock_downloads.as_untranslated(),
@@ -435,7 +432,6 @@ impl Translations {
             ("showing_featured_items", &self.showing_featured_items, false),
             ("showing_xxx_results_for_xxx", &self.showing_xxx_results_for_xxx, false),
             ("skip_to_main_content", &self.skip_to_main_content, false),
-            ("this_site_was_created_with_faircamp", &self.this_site_was_created_with_faircamp, false),
             ("unlisted", &self.unlisted, false),
             ("unlock", &self.unlock, false),
             ("unlock_downloads", &self.unlock_downloads, false),
@@ -517,10 +513,6 @@ impl Translations {
         (translated as f32 / total as f32) * 100.0
     }
 
-    pub fn this_site_was_created_with_faircamp(&self, faircamp_link: &str) -> String {
-        self.this_site_was_created_with_faircamp.replace("{faircamp_link}", faircamp_link)
-    }
-
     pub fn unlock_manual_instructions(&self, page_hash: &str, index_suffix: &str) -> String {
         self.unlock_manual_instructions
             .replace("{downloads_permalink}", &self.downloads_permalink)
@@ -559,7 +551,6 @@ fn check_translations() {
         assert!(&translations.player_open_playing_xxx.contains("{title}"));
         assert!(&translations.showing_xxx_results_for_xxx.contains("{count}"));
         assert!(&translations.showing_xxx_results_for_xxx.contains("{query}"));
-        assert!(&translations.this_site_was_created_with_faircamp.contains("{faircamp_link}"));
         assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));
         assert!(&translations.unlock_manual_instructions.contains("{index_suffix}"));
         assert!(&translations.unlock_manual_instructions.contains("{page_hash}"));

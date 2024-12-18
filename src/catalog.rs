@@ -50,6 +50,7 @@ pub struct Catalog {
     /// All artists (main_artists + support_artists)
     pub artists: Vec<ArtistRc>,
     pub copy_link: bool,
+    pub faircamp_signature: bool,
     pub favicon: Favicon,
     /// Whether support artists should get their own
     /// pages and be linked to them
@@ -303,6 +304,7 @@ impl Catalog {
             artist: None,
             artists: Vec::new(),
             copy_link: true,
+            faircamp_signature: true,
             favicon: Favicon::Default,
             feature_support_artists: false,
             featured_artists: Vec::new(),

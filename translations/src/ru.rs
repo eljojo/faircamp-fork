@@ -65,7 +65,6 @@ pub const RU: Translations = Translations {
     search: Reviewed("Поиск"),
     showing_featured_items: Reviewed("Показаны избранные элементы"),
     showing_xxx_results_for_xxx: Reviewed(r#"Найдено результатов по запросу "{query}": {count}"#),
-    this_site_was_created_with_faircamp: Reviewed("Сайт создан с использованием {faircamp_link}"),
     unlisted: Reviewed("Доступ по ссылке"),
     unlock: Reviewed("Открыть"),
     unlock_downloads: Reviewed("Открыть загрузки"),

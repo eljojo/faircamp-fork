@@ -82,7 +82,6 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     showing_featured_items: Reviewed("Gefeaturete Einträge werden angezeigt"),
     showing_xxx_results_for_xxx: Reviewed("{count} Ergebnisse für '{query}' werden angezeigt"),
     skip_to_main_content: Reviewed("Zum Hauptinhalt springen"),
-    this_site_was_created_with_faircamp: Reviewed("Diese Seite wurde mit {faircamp_link} erstellt"),
     unlisted: Reviewed("Ungelistet"),
     unlock: Reviewed("Freischalten"),
     unlock_downloads: Reviewed("Downloads freischalten"),

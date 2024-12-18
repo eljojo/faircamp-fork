@@ -375,6 +375,23 @@ fn embed_layout(
     )
 }
 
+fn faircamp_signature() -> String {
+    let faircamp_icon = icons::faircamp(None);
+    let version = env!("CARGO_PKG_VERSION");
+    let version_major = env!("CARGO_PKG_VERSION_MAJOR");
+    let version_minor = env!("CARGO_PKG_VERSION_MINOR");
+
+
+    formatdoc!(r#"
+        <a class="faircamp_signature" href="https://simonrepp.com/faircamp/" target="_blank">
+            {faircamp_icon}
+            <span data-version="{version}">
+                Faircamp {version_major}.{version_minor}
+            </span>
+        </a>
+    "#)
+}
+
 /// For pages that should not be indexed by crawlers (search engines etc.),
 /// pass CrawlerMeta::NoIndexNoFollow, this adds a noindex and nofollow meta tag for crawlers.
 fn layout(
@@ -399,6 +416,12 @@ fn layout(
     };
 
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
+
+    let r_faircamp_signature = if catalog.faircamp_signature {
+        faircamp_signature()
+    } else {
+        String::new()
+    };
 
     let theming_widget = if build.theming_widget {
         let accent_brightening = &catalog.theme.accent_brightening;
@@ -459,8 +482,9 @@ fn layout(
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
         extra_scripts = extra_scripts.header_tags(build, root_prefix),
-        faircamp_icon = icons::faircamp(),
+        faircamp_icon = icons::faircamp(Some("Faircamp")),
         favicon_links = catalog.favicon.header_tags(build, root_prefix),
+        faircamp_signature = r_faircamp_signature,
         feed_meta_link = feed_meta_link,
         index_suffix = build.index_suffix(),
         lang = &build.locale.language,

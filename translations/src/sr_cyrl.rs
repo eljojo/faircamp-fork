@@ -59,7 +59,6 @@ pub const SR_CYRL: Translations = Translations {
     recommended_format: Reviewed("Препоручени формат"),
     rss_feed: Reviewed("RSS довод"),
     search: Reviewed("Претрага"),
-    this_site_was_created_with_faircamp: Reviewed("Ова интернет презентација је направљена са {faircamp_link}"),
     unlisted: Reviewed("Није улистано"),
     unlock: Reviewed("Откључај"),
     unlock_downloads: Reviewed("Откључај преузимања"),

@@ -17,7 +17,6 @@ pub const HE: Translations = Translations {
     pause: Unreviewed("הַפסָקָה"),
     play: Unreviewed("לְשַׂחֵק"),
     rss_feed: Unreviewed("הזנת RSS"),
-    this_site_was_created_with_faircamp: Unreviewed("אתר זה נוצר עם {faircamp_link}"),
     unlisted: Unreviewed("לא רשום"),
     unlock: Unreviewed("לִפְתוֹחַ"),
     ..Translations::UNTRANSLATED

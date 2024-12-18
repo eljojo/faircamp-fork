@@ -300,6 +300,16 @@ extra_downloads:
 - separate
 ```
 
+## `faircamp_signature`
+
+```eno
+faircamp_signature: disabled
+```
+
+By default faircamp adds a subtle faircamp signature (faircamp logo, title and
+version) to the footer. If you want to disable this (no judgement! :)) set it
+to `disabled`.
+
 ## `label_mode`
 
 ```eno

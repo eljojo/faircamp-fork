@@ -1,5 +1,6 @@
 const browser = document.querySelector('#browser');
-const browseButton = document.querySelector('button.browse');
+const browseButtonFooter = document.querySelector('footer button.browse');
+const browseButtonHeader = document.querySelector('header button.browse');
 
 const browseResults = browser.querySelector('#results');
 const closeButton = browser.querySelector('button');
@@ -151,6 +152,10 @@ for (const artist of ARTISTS) {
 }
 
 function hideBrowser() {
+    const browseButton = browseButtonFooter.ariaExpanded === 'true'
+        ? browseButtonFooter
+        : browseButtonHeader;
+
     browser.classList.remove('active');
     browseButton.setAttribute('aria-expanded', 'false');
     searchField.value = '';
@@ -163,7 +168,7 @@ function hideBrowser() {
     browseButton.focus();
 }
 
-function showBrowser() {
+function showBrowser(browseButton) {
     browser.classList.add('active');
     browseButton.setAttribute('aria-expanded', 'true');
     searchField.focus();
@@ -182,7 +187,7 @@ document.body.addEventListener('focusin', event => {
 });
 
 browser.addEventListener('focusout', event => {
-    if (event.relatedTarget && !browser.contains(event.relatedTarget)) {
+    if (browser.classList.contains('active') && event.relatedTarget && !browser.contains(event.relatedTarget)) {
         hideBrowser();
     }
 });
@@ -194,13 +199,8 @@ browser.addEventListener('keydown', event => {
     }
 });
 
-browseButton.addEventListener('click', () => {
-    if (browser.classList.contains('active')) {
-        hideBrowser();
-    } else {
-        showBrowser();
-    }
-});
+browseButtonFooter.addEventListener('click', () => showBrowser(browseButtonFooter));
+browseButtonHeader.addEventListener('click', () => showBrowser(browseButtonHeader));
 
 closeButton.addEventListener('click', hideBrowser);
 

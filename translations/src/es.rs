@@ -69,7 +69,6 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     recommended_format: Unreviewed("Formato recomendado"),
     rss_feed: Unreviewed("Feed RSS"),
     search: Unreviewed("Buscar"),
-    this_site_was_created_with_faircamp: Reviewed("Este sitio fue creado con {faircamp_link}"),
     unlisted: Unreviewed("No listado"),
     unlock: Unreviewed("Desbloquear"),
     unlock_downloads: Unreviewed("Desbloquear descargas"),

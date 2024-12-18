@@ -59,7 +59,6 @@ pub const SR_LATN: Translations = Translations {
     recommended_format: Reviewed("Preporučeni format"),
     rss_feed: Reviewed("RSS dovod"),
     search: Reviewed("Pretraga"),
-    this_site_was_created_with_faircamp: Reviewed("Ova internet prezentacija je napravljena sa {faircamp_link}"),
     unlisted: Reviewed("Nije ulistano"),
     unlock: Reviewed("Otključaj"),
     unlock_downloads: Reviewed("Otključaj preuzimanja"),

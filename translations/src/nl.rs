@@ -64,7 +64,6 @@ pub const NL: Translations = Translations {
     search: Reviewed("Zoeken"),
     showing_featured_items: Reviewed("Uitgelichte items tonen"),
     showing_xxx_results_for_xxx: Reviewed("Weergave {count} resultaten voor '{query}'"),
-    this_site_was_created_with_faircamp: Reviewed("Deze site werd gemaakt met {faircamp_link}"),
     unlisted: Reviewed("Niet vermeld"),
     unlock: Reviewed("Ontsluiten"),
     unlock_downloads: Reviewed("Downloads ontsluiten"),

@@ -67,7 +67,6 @@ pub const UK: Translations = Translations {
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("Рекомендований формат"),
     rss_feed: Reviewed("RSS-стрічка"),
-    this_site_was_created_with_faircamp: Reviewed("Сайт створено за допомогою {faircamp_link}"),
     unlisted: Reviewed("Поза списком"),
     unlock: Reviewed("Розблокувати"),
     unlock_downloads: Reviewed("Розблокувати завантаження"),

@@ -79,7 +79,6 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     search: Reviewed("Cerca"),
     showing_featured_items: Reviewed("Mostrando gli elementi in evidenza"),
     showing_xxx_results_for_xxx: Reviewed("Mostrando {count} risultati per '{query}'"),
-    this_site_was_created_with_faircamp: Reviewed("Questo sito è stato creato con {faircamp_link}"),
     unlisted: Reviewed("Non elencato"),
     unlock: Reviewed("Sblocca"),
     unlock_downloads: Reviewed("Sblocca download"),

@@ -22,11 +22,13 @@ pub fn buy(label: &str) -> String {
     "#)
 }
 
-/// For `text_alternative` provide either a label that should be read for
-/// screen readers, or None to declare the icon invisible to screenreaders
-/// (e.g. when it would only contain duplicate content).
-pub fn copy(text_alternative: Option<&str>) -> String {
-    let (aria_hidden, title) = match text_alternative {
+/// Two squares with rounded corners slightly shifted from each other diagonally,
+/// with one being in front of the other (the common symbol depiction for "copy").
+/// For `label` provide either a label that should be read for screen readers,
+/// or None to declare the icon invisible to screenreaders (e.g. when it would
+/// only contain duplicate content).
+pub fn copy(label: Option<&str>) -> String {
+    let (aria_hidden, title) = match label {
         Some(label) => ("", format!("<title>{label}</title>")),
         None => (r#"aria-hidden="true""#, String::new())
     };
@@ -78,11 +80,19 @@ pub fn failure(label: &str) -> String {
     "#)
 }
 
-/// The logo
-pub fn faircamp() -> String {
+/// The faircamp logo
+/// For `label` provide either a label that should be read for screen readers,
+/// or None to declare the icon invisible to screenreaders (e.g. when it would
+/// only contain duplicate content).
+pub fn faircamp(label: Option<&str>) -> String {
+    let (aria_hidden, title) = match label {
+        Some(label) => ("", format!("<title>{label}</title>")),
+        None => (r#"aria-hidden="true""#, String::new())
+    };
+
     formatdoc!(r#"
-        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-            <title>Faircamp</title>
+        <svg {aria_hidden} width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            {title}
             <path d="m39.881 40.829 1.2736-3.7326c0.16935-0.49631 0.51868-0.91106 0.97898-1.1623l7.6911-4.1982c0.41894-0.22868 0.44885-0.81906 0.05516-1.0889l-5.3773-3.6858c-0.40252-0.2759-0.58586-0.77665-0.45667-1.2472l0.83396-3.0375c0.10596-0.38594 0.5597-0.55363 0.89118-0.32937l10.551 7.1384c1.1285 0.76347 1.0472 2.4511-0.14947 3.1025l-15.839 8.6228c-0.2544 0.13848-0.54634-0.10768-0.4528-0.38181zm-21.56-0.71651-10.639-7.1649c-1.1304-0.76131-1.0532-2.4495 0.14204-3.1044l16.55-9.0683c0.24626-0.13493 0.52768 0.10884 0.42925 0.37183l-1.4747 3.9402c-0.18436 0.4926-0.53964 0.90254-1.001 1.155l-8.1479 4.459c-0.41817 0.22884-0.44672 0.81879-0.0526 1.0869l5.4751 3.7252c0.40291 0.27414 0.58616 0.77467 0.45549 1.2442l-0.84196 3.0251c-0.10758 0.38652-0.56213 0.55415-0.89491 0.33004zm25.654-30.594c-3.4629 0-10.138 2.0227-15.593 24.68-4.1 17.03-7.8557 18.965-9.919 19.007-1.1051 0.0226-1.7076-1.5696-1.1711-1.9798 0.37253-0.22641 1.1535-0.80303 1.1535-1.5516 0-0.85436-0.66165-1.3217-1.521-1.3017-0.88964 0.02072-1.7065 0.98255-1.7505 2.3158 0 1.7735 1.2416 3.7938 3.7009 3.7938 4.335 0 11.759-5.0498 15.399-20.158 2.0661-8.5762 5.2058-23.614 10.028-23.614 1.5974 0 1.5175 1.4328 1.0664 1.8125-0.45106 0.37973-0.95632 0.78658-0.99971 1.5338-0.04845 0.83454 0.55753 1.8182 1.4467 1.7975 1.2133-0.02825 2.1069-0.91548 2.1069-2.3008 0-2.2179-1.6252-4.034-3.9476-4.034z"/>
         </svg>
     "#)

@@ -65,7 +65,6 @@ Här är några tips för hur en skriver bra bildbeskrivningar:<br>\
     purchase_permalink: Reviewed("betala"),
     recommended_format: Reviewed("Rekommenderat format"),
     rss_feed: Reviewed("RSS-flöde"),
-    this_site_was_created_with_faircamp: Reviewed("Denna hemsida skapades med {faircamp_link}"),
     unlisted: Reviewed("Olistade"),
     unlock: Reviewed("Lås upp"),
     unlock_downloads: Reviewed("Lås upp nedladdningar"),

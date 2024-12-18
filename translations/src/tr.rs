@@ -75,7 +75,6 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     recommended_format: Reviewed("Tavsiye edilen dosya türü"),
     rss_feed: Reviewed("RSS Kaynağı"),
     search: Reviewed("Ara"),
-    this_site_was_created_with_faircamp: Reviewed("Bu sayfa {faircamp_link} ile oluşturulmuştur"),
     unlisted: Reviewed("Yayınlanmamış"),
     unlock: Reviewed("Kilidi aç"),
     unlock_downloads: Reviewed("İndirmelerin kilidini aç"),

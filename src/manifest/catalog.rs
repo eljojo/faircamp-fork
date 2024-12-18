@@ -148,6 +148,31 @@ pub fn read_catalog_manifest(
                     element_error_with_snippet(element, &manifest_path, error);
                 }
             }
+            "faircamp_signature" => 'faircamp_signature: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            match value {
+                                "disabled" => {
+                                    catalog.faircamp_signature = false;
+                                }
+                                "enabled" => {
+                                    catalog.faircamp_signature = true;
+                                }
+                                _ => {
+                                    let error = "This faircamp_signature setting was not recognized (supported values are 'disabled' and 'enabled)";
+                                    element_error_with_snippet(element, &manifest_path, error);
+                                }
+                            }
+                        }
+
+                        break 'faircamp_signature;
+                    }
+                }
+
+                let error = "faircamp_signature needs to be provided as a field with the value 'disabled' or 'enabled', e.g.: 'faircamp_signature: disabled'";
+                element_error_with_snippet(element, &manifest_path, error);
+            }
             "favicon" => 'favicon: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {

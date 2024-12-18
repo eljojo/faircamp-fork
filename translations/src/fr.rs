@@ -65,7 +65,6 @@ pub const FR: Translations = Translations {
     search: Reviewed("Rechercher"),
     showing_featured_items: Reviewed("Affichage des éléments en vedette"),
     showing_xxx_results_for_xxx: Reviewed("Affichage de {count} résultats pour '{query}'"),
-    this_site_was_created_with_faircamp: Reviewed("Ce site a été créé avec {faircamp_link}"),
     unlisted: Reviewed("Non répertorié"),
     unlock: Reviewed("Déverouiller"),
     unlock_downloads: Reviewed("Déverouiller les téléchargements"),
