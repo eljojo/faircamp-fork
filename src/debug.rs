@@ -14,9 +14,9 @@ fn format_artist(artist: &ArtistRc) -> String {
     let artist_ref = artist.borrow();
 
     if let Some(link) = &artist_ref.external_page {
-        format!("{} ({})", artist_ref.name, link)
+        format!("{} (External page: {})", artist_ref.name, link)
     } else {
-        artist_ref.name.clone()
+        format!("{} (Permalink: {})", artist_ref.name, artist_ref.permalink.slug)
     }
 }
 
@@ -24,7 +24,7 @@ fn format_artist(artist: &ArtistRc) -> String {
 /// files map to faircamp's internally generated data model.
 pub fn debug_catalog(catalog: &Catalog) {
     let r_catalog_artist = match &catalog.artist {
-        Some(artist) => format_artist(artist),
+        Some(artist) => artist.borrow().name.clone(),
         None => String::from("None")
     };
 
@@ -41,10 +41,13 @@ pub fn debug_catalog(catalog: &Catalog) {
         true => String::from("Empty"),
         false => catalog.featured_artists
             .iter()
-            .map(|artist| format!("\n- {}", format_artist(artist)))
+            .map(|artist| format!("\n- {}", artist.borrow().name))
             .collect::<Vec<String>>()
             .join("")
     };
+
+    let r_feature_support_artists = if catalog.feature_support_artists { "Enabled" } else { "Disabled" };
+    let r_label_mode = if catalog.label_mode { "Enabled" } else { "Disabled" };
 
     let r_releases = match catalog.releases.is_empty() {
         true => String::from("Empty"),
@@ -74,7 +77,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                     true => String::from("Empty"),
                     false => release_ref.main_artists
                         .iter()
-                        .map(format_artist)
+                        .map(|artist| artist.borrow().name.clone())
                         .collect::<Vec<String>>()
                         .join(", ")
                 };
@@ -82,7 +85,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                     true => String::from("Empty"),
                     false => release_ref.support_artists
                         .iter()
-                        .map(format_artist)
+                        .map(|artist| artist.borrow().name.clone())
                         .collect::<Vec<String>>()
                         .join(", ")
                 };
@@ -97,12 +100,15 @@ pub fn debug_catalog(catalog: &Catalog) {
         true => String::from("Empty"),
         false => catalog.support_artists
             .iter()
-            .map(|artist| format!("\n- {}", format_artist(artist)))
+            .map(|artist| format!("\n- {}", artist.borrow().name))
             .collect::<Vec<String>>()
             .join("")
     };
 
     let output = formatdoc!(r#"
+        Label mode: {r_label_mode}
+        Feature support artists: {r_feature_support_artists}
+
         Artists: {r_artists}
 
         Featured Artists: {r_featured_artists}
