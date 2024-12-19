@@ -9,7 +9,8 @@ use url::Url;
 use crate::{
     Artist,
     ArtistRc,
-    Catalog
+    Catalog,
+    Permalink
 };
 
 use super::{
@@ -35,6 +36,7 @@ pub fn read_catalog_release_option(
                     let mut aliases = Vec::new();
                     let mut name = None;
                     let mut link = None;
+                    let mut permalink = None;
 
                     for attribute in attributes {
                         match attribute.key() {
@@ -59,6 +61,17 @@ pub fn read_catalog_release_option(
                                     name = Some(value.to_string());
                                 }
                             }
+                            "permalink" => {
+                                if let Some(value) = attribute.value() {
+                                    match Permalink::new(value) {
+                                        Ok(custom_permalink) => permalink = Some(custom_permalink),
+                                        Err(err) => {
+                                            let error = format!("There is a problem with the permalink '{value}': {err}");
+                                            attribute_error_with_snippet(attribute, manifest_path, &error);
+                                        }
+                                    }
+                                }
+                            }
                             other => {
                                 let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'alias', 'name' and 'link'");
                                 attribute_error_with_snippet(attribute, manifest_path, &error);
@@ -67,11 +80,12 @@ pub fn read_catalog_release_option(
                     }
 
                     if let Some(name) = name {
-                        let artist = Artist::new_external(
+                        let artist = Artist::new_shortcut(
                             aliases,
                             catalog,
                             link,
-                            &name
+                            &name,
+                            permalink
                         );
 
                         catalog.artists.push(ArtistRc::new(artist));

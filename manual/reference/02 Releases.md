@@ -118,7 +118,7 @@ lossless format (e.g. `flac`) is recommended.
 
 The artist field is a shortcut (with limited options) to define artists
 without creating an explicit artist directory and `artist.eno` manifest.
-It is especially useful/intended to create external artists - those that
+It is especially useful for creating external artists - those that
 appear only on some tracks/releases but have their own page outside of the
 faircamp page they are featured on. You can (but don't have to) use the
 `link` attribute to set an external page, in that case the artist's name,
@@ -131,6 +131,16 @@ name = Alice
 link = https://example.com
 alias = Älice
 alias = Älicë
+```
+
+When creating a non-external artist, the permalink option can be used
+for explicitly defining the internal permalink (for external artists
+this option has no use and is ignored):
+
+```eno
+artist:
+name = Alice
+permalink = alice-artist
 ```
 
 For defining an artist with all options see the documentation for

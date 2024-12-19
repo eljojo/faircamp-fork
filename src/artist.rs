@@ -69,35 +69,6 @@ impl Artist {
         }
     }
 
-    /// This is how we create an artist if we encouter an artist that is
-    /// manually defined in the catalog through a short-form artist
-    /// definition.
-    pub fn new_external(
-        aliases: Vec<String>,
-        catalog: &Catalog,
-        external_page: Option<Url>,
-        name: &str
-    ) -> Artist {
-        Artist {
-            aliases,
-            copy_link: false,
-            external_page,
-            featured: false,
-            image: None,
-            links: Vec::new(),
-            more_label: None,
-            name: name.to_string(),
-            // TODO: In terms of modeling, the fact that we need to set a permalink
-            //       for this, indicates that we should maybe have a separate structure to
-            //       hold external artists (but this has other implications).
-            permalink: Permalink::uid(),
-            releases: Vec::new(),
-            text: None,
-            theme: catalog.theme.clone(),
-            unlisted: false
-        }
-    }
-
     /// This is how we create an artist if we encouter an artist that
     /// is manually defined in the catalog via an artist manifest.
     pub fn new_manual(
@@ -126,6 +97,41 @@ impl Artist {
             releases: Vec::new(),
             text,
             theme,
+            unlisted: false
+        }
+    }
+
+    /// This is how we create an artist if we encouter an artist that is
+    /// manually defined in the catalog through a short-form artist
+    /// definition.
+    pub fn new_shortcut(
+        aliases: Vec<String>,
+        catalog: &Catalog,
+        external_page: Option<Url>,
+        name: &str,
+        permalink: Option<Permalink>
+    ) -> Artist {
+        let permalink = match external_page {
+            // TODO: In terms of modeling, the fact that we need to set a permalink
+            //       for this, might indicate that we should maybe have a separate structure to
+            //       hold external artists (but this would have other implications too).
+            Some(_) => Permalink::uid(),
+            None => permalink.unwrap_or_else(|| Permalink::generate(name))
+        };
+
+        Artist {
+            aliases,
+            copy_link: false,
+            external_page,
+            featured: false,
+            image: None,
+            links: Vec::new(),
+            more_label: None,
+            name: name.to_string(),
+            permalink,
+            releases: Vec::new(),
+            text: None,
+            theme: catalog.theme.clone(),
             unlisted: false
         }
     }

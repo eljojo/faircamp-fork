@@ -30,6 +30,7 @@ use super::{
 };
 
 const ARTIST_OPTIONS: &[&str] = &[
+    "alias",
     "aliases",
     "image",
     "name",
@@ -70,6 +71,20 @@ pub fn read_artist_manifest(
     for element in document.elements() {
         match element.key() {
             _ if read_obsolete_option(build, element, &manifest_path) => (),
+            "alias" => 'alias: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            artist_aliases = vec![value.to_string()];
+                        }
+
+                        break 'alias;
+                    }
+                }
+
+                let error = "alias needs to be provided as a field with a value, e.g.: 'alias: Älice'";
+                element_error_with_snippet(element, &manifest_path, error);
+            }
             "aliases" => 'aliases: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(items) = field.items() {

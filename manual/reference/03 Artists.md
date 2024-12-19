@@ -42,7 +42,15 @@ Over the years she has appeared in various collaborations, most notably with Bob
 -- text
 ```
 
-## `aliases`
+## `alias(es)`
+
+To define a single alias for the artist:
+
+```eno
+alias: Älice
+```
+
+To define multiple aliases for the artist:
 
 ```eno
 aliases:
@@ -125,17 +133,17 @@ Very importantly, the name is also used to match your explicit definition of
 the artist (by you in the manifest) to any implicit definition (through audio
 file metadata), so pay close attention that they are spelled exactly the same
 in all places - including casing (lower-/uppercase). If the artist is
-frequently written in different ways (e.g. in one audio file the artist is
-tagged as "Punkband", in another "PunkBand", and in yet another
-"Punkbänd"), a simple way to still correctly associate it with your single
+frequently spelled in different ways (e.g. in one audio file the artist is
+tagged as "Alice", in another "alice", and in yet another
+"Älicë"), a simple way to still correctly associate it with your single
  explicit definition is to use the `aliases` option, e.g.:
 
  ```eno
- name: Punkband
+ name: Alice
 
  aliases:
- - PunkBand
- - Punkbänd
+ - alice
+ - Älicë
  ```
 
 ## `permalink`
