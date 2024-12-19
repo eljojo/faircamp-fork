@@ -204,12 +204,11 @@ impl Catalog {
                 .collect();
 
             for main_artist_to_map in main_artists_to_map {
-                let main_artist_to_map_lowercase = main_artist_to_map.to_lowercase();
                 let mut any_artist_found = false;
                 for artist in &self.artists {
                     let mut artist_mut = artist.borrow_mut();
-                    if artist_mut.name.to_lowercase() == main_artist_to_map_lowercase ||
-                        artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == main_artist_to_map_lowercase) {
+                    if artist_mut.name == main_artist_to_map ||
+                        artist_mut.aliases.iter().any(|alias| *alias == main_artist_to_map) {
                         any_artist_found = true;
 
                         // Only assign artist to release's main artists if it hasn't already been assigned to them
@@ -239,12 +238,11 @@ impl Catalog {
                 .collect();
 
             for support_artist_to_map in support_artists_to_map {
-                let support_artist_to_map_lowercase = support_artist_to_map.to_lowercase();
                 let mut any_artist_found = false;
                 for artist in &self.artists {
                     let mut artist_mut = artist.borrow_mut();
-                    if artist_mut.name.to_lowercase() == support_artist_to_map_lowercase ||
-                        artist_mut.aliases.iter().any(|alias| alias.to_lowercase() == support_artist_to_map_lowercase) {
+                    if artist_mut.name == support_artist_to_map ||
+                        artist_mut.aliases.iter().any(|alias| *alias == support_artist_to_map) {
                         any_artist_found = true;
 
                         // Only assign artist to release's support artists if it hasn't already been assigned to them
@@ -271,12 +269,11 @@ impl Catalog {
 
             for track in release_mut.tracks.iter_mut() {
                 for track_artist_to_map in track.artists_to_map.drain(..) {
-                    let track_artist_to_map_lowercase = track_artist_to_map.to_lowercase();
                     let mut any_artist_found = false;
                     for artist in &self.artists {
                         let artist_ref = artist.borrow();
-                        if artist_ref.name.to_lowercase() == track_artist_to_map_lowercase ||
-                            artist_ref.aliases.iter().any(|alias| alias.to_lowercase() == track_artist_to_map_lowercase) {
+                        if artist_ref.name == track_artist_to_map ||
+                            artist_ref.aliases.iter().any(|alias| *alias == track_artist_to_map) {
                             any_artist_found = true;
 
                             // Only assign artist to track if it hasn't already been assigned to it
@@ -370,7 +367,7 @@ impl Catalog {
                 }
             }
 
-            catalog.featured_artists.sort_unstable_by_key(|artist| artist.borrow().name.to_lowercase());
+            catalog.featured_artists.sort_unstable_by(|a, b| a.borrow().name.cmp(&b.borrow().name));
 
             for artist in &catalog.featured_artists {
                 let artist_ref = artist.borrow();

@@ -117,10 +117,26 @@ specifically refers to the type of content you are providing there, the
 name: Alice
 ```
 
-The `name` you assign will be used to match the explicitly defined artist
-(by you in the manifest) to the implicitly defined one (by the audio file
-metadata) so pay close attention that both are written the same. Note
-however that lowercase/uppercase is ignored for matching.
+The `name` you assign is how the artist is represented **everywhere**,
+including in tags on your downloads (unless you enable `tags: copy`, or a
+similar setting).
+
+Very importantly, the name is also used to match your explicit definition of
+the artist (by you in the manifest) to any implicit definition (through audio
+file metadata), so pay close attention that they are spelled exactly the same
+in all places - including casing (lower-/uppercase). If the artist is
+frequently written in different ways (e.g. in one audio file the artist is
+tagged as "Punkband", in another "PunkBand", and in yet another
+"Punkbänd"), a simple way to still correctly associate it with your single
+ explicit definition is to use the `aliases` option, e.g.:
+
+ ```eno
+ name: Punkband
+
+ aliases:
+ - PunkBand
+ - Punkbänd
+ ```
 
 ## `permalink`
 
