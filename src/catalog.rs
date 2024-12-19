@@ -213,7 +213,9 @@ impl Catalog {
                         artist_mut.aliases.iter().any(|alias| *alias == main_artist_to_map) {
                         any_artist_found = true;
 
-                        // Only assign artist to release's main artists if it hasn't already been assigned to them
+                        // Only assign artist to release's main artists if it
+                        // hasn't already been assigned to the release as
+                        // main artist before.
                         if !release_mut.main_artists.iter().any(|main_artist| ArtistRc::ptr_eq(main_artist, artist)) {
                             artist_mut.releases.push(release.clone());
                             release_mut.main_artists.push(artist.clone());
@@ -249,8 +251,11 @@ impl Catalog {
                         artist_mut.aliases.iter().any(|alias| *alias == support_artist_to_map) {
                         any_artist_found = true;
 
-                        // Only assign artist to release's support artists if it hasn't already been assigned to them
-                        if !release_mut.support_artists.iter().any(|support_artist| ArtistRc::ptr_eq(support_artist, artist)) {
+                        // Only assign artist to release's supports artists if it
+                        // hasn't already been assigned to the release as
+                        // main or support artist before.
+                        if !release_mut.main_artists.iter().any(|main_artist| ArtistRc::ptr_eq(main_artist, artist)) &&
+                           !release_mut.support_artists.iter().any(|support_artist| ArtistRc::ptr_eq(support_artist, artist)) {
                             artist_mut.releases.push(release.clone());
                             release_mut.support_artists.push(artist.clone());
                         }
