@@ -12,3 +12,12 @@ specifying the folder to which the manual should be written.
 gets wiped and rewritten in the process.**
 
  `cargo run -- /path/to/manual`
+
+ ## Check internal links/references
+
+ For automatically checking integrity of internal cross-links in the manual,
+ including references to anchors on pages, use a tool like
+ <https://linkchecker.github.io/linkchecker/index.html> (with the
+ `AnchorCheck` plugin enabled in
+ <https://linkchecker.github.io/linkchecker/man/linkcheckerrc.html>) on the
+ generated manual.

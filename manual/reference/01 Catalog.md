@@ -3,7 +3,9 @@
     SPDX-License-Identifier: CC0-1.0
 -->
 
-# Catalog
+# The catalog manifest – catalog.eno
+
+> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [text](#text), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -66,7 +68,8 @@ base_chroma = 34
 base_hue = 180
 ```
 
-## `archive_downloads`
+## <a name="archive_downloads"></a> `archive_downloads`
+
 
 Sets the formats in which entire releases can be downloaded
 as a (zip) archive. By default none are specified, so this needs
@@ -104,7 +107,7 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
-## `artist`
+## <a name="artist"></a> `artist`
 
 The artist field is a shortcut (with limited options) to define artists
 without creating an explicit artist directory and `artist.eno` manifest.
@@ -136,7 +139,19 @@ permalink = alice-artist
 For defining an artist with all options see the documentation for
 `artist.eno` manifests.
 
-## `cache_optimization`
+## <a name="base_url"></a> `base_url`
+
+To allow embeds, M3U playlists and RSS feeds to be generated (whether they are
+enabled is configured on its own) you have to set `base_url`:
+
+```eno
+base_url: https://example.com
+```
+
+This url should be the website url under which you want your faircamp site to
+go online.
+
+## <a name="cache_optimization"></a> `cache_optimization`
 
 ```eno
 cache_optimization: delayed
@@ -172,7 +187,7 @@ assets after each build and lets you use `faircamp --optimize-cache`
 and/or `faircamp --wipe-cache` accordingly whenever you're done with
 your changes and e.g. don't expect to generate any new builds for a while.
 
-## `copy_link`
+## <a name="copy_link"></a> `copy_link`
 
 To disable the "Copy link" button (by default it's enabled) you can use the `copy_link` option, with either `enabled` or `disabled` as value. This is also inherited by all releases, but can be changed on a granular basis for single releases or groups of releases in their manifests.
 
@@ -180,7 +195,16 @@ To disable the "Copy link" button (by default it's enabled) you can use the `cop
 copy_link: disabled
 ```
 
-## `download_code(s)`
+## <a name="disable_feed"></a> `disable_feed`
+
+To disable RSS feed generation (which is by default enabled as soon as you
+set a [base_url](#base_url)) you can use this option:
+
+```eno
+disable_feed
+```
+
+## <a name="download_codes"></a> `download_code(s)`
 
 To set a single download code that can be entered to access downloads:
 
@@ -196,16 +220,18 @@ download_codes:
 - SILVERsupporter
 ```
 
-Note that you also need to use the `downloads: code` option to activate
-download codes. In addition it is highly recommended to use `unlock_info` to
-provide a text that is displayed alongside the code input prompt.
+Note that you also need to use the [downloads](#downloads) option
+(e.g. `downloads: code`) to activate download codes. In addition it is highly
+recommended to use the [unlock_info](#unlock_info) option to provide a text
+that is displayed alongside the code input prompt.
 
-## `downloads`
+## <a name="downloads"></a> `downloads`
 
 By default your visitors can only stream your releases.
 
 To enable simple free downloads all you need to do is set one or more download
-formats with the `archive_downloads` and/or `track_downloads` option.
+formats with the [archive_downloads](#archive_downloads) and/or
+[track_downloads](#track_downloads) option.
 
 The `downloads` option gives you further control over the general download
 mode, which by default is free downloads, but can be changed to external
@@ -244,10 +270,11 @@ To protect downloads with a code:
 downloads: code
 ```
 
-In combination with this use the `download_code` or `download_codes` option to
-set the codes for accessing downloads and the `download_info` option to
-provide a text that is displayed with the code input field (to give your
-audience directions on how to obtain an download code).
+In combination with this use the [download_code(s)](#download_codes) option to
+set the codes for accessing downloads and the [payment_info]
+(#payment_info) option to provide a text that is displayed with the code
+input field (to give your audience directions on how to obtain an download
+code).
 
 ### Soft Paycurtain
 
@@ -259,8 +286,9 @@ To provide downloads behind a soft paycurtain:
 downloads: paycurtain
 ```
 
-In combination with this option, use the `price` and `payment_info` options
-to set a price and give instructions for where the payment can be made.
+In combination with this option, use the [price](#price) and
+[payment_info](#payment_info) options to set a price and give instructions
+for where the payment can be made.
 
 ### Disable downloads
 
@@ -270,13 +298,13 @@ Downloads can also be disabled explicitly (e.g. if you quickly want to take them
 downloads: disabled
 ```
 
-## `embedding`
+## <a name="embedding"></a> `embedding`
 
 This allows external sites to embed a widget that presents music from your site.
 The embed code can be copied from each release page where embedding is enabled.
 
 Embedding is disabled by default. If you want to enable it you also need to
-set the catalog's `base_url` (embeds work by displaying something from your
+set the catalog's [base_url](#base_url) (embeds work by displaying something from your
 site on another site, for this the other site needs to point to your site's
 address), and then set `enabled`, for the catalog, or for specific
 releases. If you set it `enabled` at the catalog level, you can also use
@@ -286,7 +314,7 @@ releases. If you set it `enabled` at the catalog level, you can also use
 embedding: enabled
 ```
 
-## `extra_downloads`
+## <a name="extra_downloads"></a> `extra_downloads`
 
 Any additional files in a release directory besides the audio files, cover
 image and manifests (.eno files) are considered "extras" and by default
@@ -313,7 +341,7 @@ extra_downloads:
 - separate
 ```
 
-## `faircamp_signature`
+## <a name="faircamp_signature"></a> `faircamp_signature`
 
 ```eno
 faircamp_signature: disabled
@@ -323,7 +351,74 @@ By default faircamp adds a subtle faircamp signature (faircamp logo, title and
 version) to the footer. If you want to disable this (no judgement! :)) set it
 to `disabled`.
 
-## `label_mode`
+## <a name="favicon"></a> `favicon`
+
+A custom [favicon](#favicon) can be set, this currently only supports `.png`
+and `.ico` files. `favicon: none` can be used to build the site without any
+favicon at all.
+
+```eno
+favicon: my_favicon.png
+```
+
+## <a name="feature_support_artists"></a> `feature_support_artists`
+
+By default, support artists (think features, guest artists, collaborators on
+tracks/releases) are never linked to, and also don't have
+their own artist page. The `feature_support_artists`  flag can be used to
+link them to, and give them their own, artist pages (this implicitly enables
+`show_support_artists`). Note that this flag only affects [label mode](#label_mode). In
+artist mode no artist pages exist, instead the homepage *is* the one and only
+artist page (the catalog artist's page).
+
+```eno
+feature_support_artists
+```
+
+## <a name="home_image"></a> `home_image`
+
+The `home_image` is an image that will be displayed on the homepage, e.g. a logo
+for your label or a band photo or such.
+
+```eno
+home_image:
+description = Me in my studio
+file = studio_3.png
+```
+
+### How to ensure certain content in a home_image always is visible
+
+The catalog's `home_image` is shown in different ways depending on the screen
+size and browser viewport of a visitor's device. If you include e.g. a logo
+in your `home_image`, parts of it might be invisible due to the automated
+cropping done by faircamp. This section describes how to include content
+within the `home_image` in such a way that it never gets cropped away:
+
+The least wide the `home_image` is shown is at an aspect ratio of 2.25:1
+(corresponding e.g. to a resolution of 225x100, 675x300, etc.), that's on
+very wide and very narrow screens. The widest it is shown (when the browser
+is just below 960px wide) is at an aspect ratio of 5:1 (corresponding to a
+resolution of 500x100, 1500x300, etc.). If you create your image with an
+aspect ratio of 5:1, so e.g. at 1500x300, and place the text that should be
+not cropped within a rectangle of 2.25:1, so within a 675px wide rectangle at
+the center of the example 1500x300 image, the text should always be fully
+visible, uncropped, and only the parts to the left and right will get cropped
+off.
+
+```
+|<-------  5:1 (e.g. 1500×300)  ------->|
+┌─────────────┬───────────┬─────────────┐
+│             │           │             │
+│   CROPPED   │ LOGO SAFE │   CROPPED   │
+│             │           │             │
+└─────────────┴───────────┴─────────────┘
+              |<--------->|
+           2.25:1 (e.g. 675×300)
+```
+
+Note that all of this also applies 1:1 to artist images in `label_mode`.
+
+## <a name="label_mode"></a> `label_mode`
 
 ```eno
 label_mode
@@ -339,7 +434,7 @@ The `label_mode` flag can be used if one wants to present multiple artists
 on a single faircamp site. This adds an additional layer of information to the
 page that differentiates the artists, gives them each their own page, etc.
 
-## `language`
+## <a name="language"></a> `language`
 
 ```eno
 language: fr
@@ -379,7 +474,7 @@ the interface texts will still be in english then of course.
 language: ar
 ```
 
-## `link`
+## <a name="link"></a> `link`
 
 ```eno
 link: https://example.com/my/music/elsewhere/
@@ -413,7 +508,7 @@ site from (e.g.) a fediverse profile. With `verification = rel-me-hidden` you
 can have the link be included on your faircamp site without it showing up
 on the page, thus serving only for verification purposes.
 
-## `m3u`
+## <a name="m3u"></a> `m3u`
 
 This controls the generation of [M3U](https://en.wikipedia.org/wiki/M3U) playlists
 both for the entire catalog (provided on the landing page), as well as for each
@@ -440,14 +535,14 @@ m3u: releases
 You can granularly enable/disable M3U playlists for single releases as well
 (in the release manifests).
 
-## `more_label`
+## <a name="more_label"></a> `more_label`
 
 ```eno
 more_label: About
 ```
 
 If you provide long-form text content for your catalog (which can be anything
-you want, content-wise) through the `text` field, by default there will be a
+you want, content-wise) through the [text](#text) field, by default there will be a
 link with the label "More" on your homepage, leading to the section
 containing your long-form text. If you want to customize that label so it
 specifically refers to the type of content you are providing there, the
@@ -455,10 +550,11 @@ specifically refers to the type of content you are providing there, the
 `more_label`s one might use for the catalog text: "About", "Biography",
 "Artist Statement", "Read on", "Artist roster" etc.
 
-## `payment_info`
+## <a name="payment_info"></a> `payment_info`
 
-This is used together with `downloads: paycurtain` to set the text that is
-displayed before downloads are accessed.
+This is used together with the `paycurtain` [downloads](#downloads) option
+(`downloads: paycurtain`) to set the text that is displayed before downloads
+are accessed.
 
 The general idea here is to provide external links to one or more payment,
 donation or patronage platforms that you use, be it liberapay, ko-fi, paypal,
@@ -482,9 +578,10 @@ me the money yourself as well, make sure to make a note of it though! :)
 -- payment_info
 ```
 
-## `price`
+## <a name="price"></a> `price`
 
-This is used together with `downloads: paycurtain` to set the price that is
+This is used together with the `paycurtain` [downloads](#downloads) option
+(`downloads: paycurtain`) to set the price that is
 displayed before downloads are accessed.
 
 For example in order to ask for 4€ for accessing the downloads of a release:
@@ -501,7 +598,17 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 - `INR 230+` (230 indian rupees or more)
 - `JPY 400-800` (Between 400 and 800 japanese yen)
 
-## `streaming_quality`
+## <a name="show_support_artists"></a> `show_support_artists`
+
+By default, support artists (think features, guest artists, collaborators on
+tracks/releases) are not listed in the interface. You can use the
+`show_support_artists` flag to make them show up in listings:
+
+```eno
+show_support_artists
+```
+
+## <a name="streaming_quality"></a> `streaming_quality`
 
 ```eno
 streaming_quality: frugal
@@ -512,7 +619,7 @@ default) to `frugal`. This uses considerably less bandwidth, reduces
 emissions and improves load times for listeners, especially on slow
 connections.
 
-## `synopsis`
+## <a name="synopsis"></a> `synopsis`
 
 ```eno
 -- synopsis
@@ -524,7 +631,7 @@ Thanks for stopping by!
 A short (256 characters max), plain-text introduction text for your catalog,
 this is the first thing visitors will see - make it count!
 
-## `text`
+## <a name="text"></a> `text`
 
 ```eno
 -- text
@@ -535,7 +642,7 @@ this is the first thing visitors will see - make it count!
 A [markdown](https://commonmark.org/help/)-enabled long-form text (think "About" text), in which you can write
 about your catalog in any length and detail you like.
 
-## `theme`
+## <a name="theme"></a> `theme`
 
 With this you can adjust the visual appearance of your faircamp site.
 
@@ -686,7 +793,16 @@ theme:
 custom_font = MyCustomSans.woff2
 ```
 
-## `track_downloads`
+## <a name="title"></a> `title`
+
+The value of [title](#title) appears in multiple
+places on the site, inside the RSS Feed, etc.
+
+```eno
+title: My music
+```
+
+## <a name="track_downloads"></a> `track_downloads`
 
 Sets the formats in which single tracks can be separately downloaded.
 By default none are specified, so this needs to be set in order to
@@ -724,7 +840,7 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
-## `track_numbering`
+## <a name="track_numbering"></a> `track_numbering`
 
 ```eno
 track_numbering: arabic-dotted
@@ -742,12 +858,13 @@ used, offering the following choices:
 - `roman` (I II III …)
 - `roman-dotted` (I. II. III. …)
 
-## `unlock_info`
+## <a name="unlock_info"></a> `unlock_info`
 
-In combination with `downloads: code` and `download_code(s)`, this option
-lets you set the text that is displayed to your visitors when they are prompted
-for a download code. Usually you will want to put instructions in the text that
-tell your visitors how they can obtain a download code.
+In combination with the `code` [downloads](#downloads) option
+(`downloads: code`) and [download_code(s)](#download_codes) option, this
+option lets you set the text that is displayed to your visitors when they are
+prompted for a download code. Usually you will want to put instructions in
+the text that tell your visitors how they can obtain a download code.
 
 ```eno
 -- unlock_info
@@ -755,31 +872,6 @@ You should have received a download code in your confirmation mail
 for this year's crowdfunding. Stay tuned in case you missed it,
 we're currently planning the next run!
 -- unlock_info
-```
-
-## General settings
-
-To enable embeds, M3U playlists and RSS feed generation you have to set `base_url`. The value
-of `title` appears in multiple places on the site, inside the RSS Feed, etc.. The `home_image` is an
-image that will be displayed on the homepage, e.g. a logo for your label or a
-band photo or such. A custom `favicon` can be set, this currently only
-supports `.png` and `.ico` files. `favicon: none` can be used to build the
-site without any favicon at all.
-
-```eno
-base_url: https://myawesomemusic.site/
-favicon: my_favicon.png
-title: My awesome music
-
-home_image:
-description = Me in my studio
-file = studio_3.png
-```
-
-To disable RSS feed generation you can use the `disable_feed` option:
-
-```eno
-disable_feed
 ```
 
 ## Main & Support artists
@@ -838,35 +930,3 @@ the right, for instance `freeze_download_urls: 1 April 2022` could tell you
 that your current download urls have been valid since that day. You could
 also use "2022-04", "Spring 2022" or such, given that one usually will not
 manually invalidate the urls on a daily basis.
-
-## How to ensure certain content in a home_image always is visible
-
-The catalog's `home_image` is shown in different ways depending on the screen
-size and browser viewport of a visitor's device. If you include e.g. a logo
-in your `home_image`, parts of it might be invisible due to the automated
-cropping done by faircamp. This section describes how to include content
-within the `home_image` in such a way that it never gets cropped away:
-
-The least wide the `home_image` is shown is at an aspect ratio of 2.25:1
-(corresponding e.g. to a resolution of 225x100, 675x300, etc.), that's on
-very wide and very narrow screens. The widest it is shown (when the browser
-is just below 960px wide) is at an aspect ratio of 5:1 (corresponding to a
-resolution of 500x100, 1500x300, etc.). If you create your image with an
-aspect ratio of 5:1, so e.g. at 1500x300, and place the text that should be
-not cropped within a rectangle of 2.25:1, so within a 675px wide rectangle at
-the center of the example 1500x300 image, the text should always be fully
-visible, uncropped, and only the parts to the left and right will get cropped
-off.
-
-```
-|<-------  5:1 (e.g. 1500×300)  ------->|
-┌─────────────┬───────────┬─────────────┐
-│             │           │             │
-│   CROPPED   │ LOGO SAFE │   CROPPED   │
-│             │           │             │
-└─────────────┴───────────┴─────────────┘
-              |<--------->|
-           2.25:1 (e.g. 675×300)
-```
-
-Note that all of this also applies 1:1 to artist images in `label_mode`.

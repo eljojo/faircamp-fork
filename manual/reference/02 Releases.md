@@ -3,7 +3,9 @@
     SPDX-License-Identifier: CC0-1.0
 -->
 
-# Releases
+# Release manifests – release.eno
+
+> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [copy_link](#copy_link), [date](#date), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [link](#link), [m3u](#m3u), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_artist(s)](#release_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [text](#text), [theme](#theme), [track_artist(s)](#track_artists), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlisted](#unlisted), [unlock_info](#unlock_info)
 
 In your release manifests you can specify options that apply to
 a specific release only. Simply create a (plain text) file called
@@ -58,9 +60,9 @@ base_hue = 180
 If you provide a cover image, use `description` to include an image description
 for it.
 
-The `text` field allows the use of [Markdown](https://commonmark.org/help/).
+The [text](#text) field allows the use of [Markdown](https://commonmark.org/help/).
 
-For an explanation what a `permalink` is please see the "Concepts Explained" page,
+For an explanation what a [permalink](#permalink) is please see the "Concepts Explained" page,
 unter "Topics".
 
 Tracks are sorted by the track numbers found in the audio file metadata,
@@ -76,7 +78,7 @@ will pick randomly. Note that it can also be ".png" or another format, only
 the filename before the extension is considered, and case is disregarded as
 well, so it can also be "Cover.jpg", for instance.
 
-## `archive_downloads`
+## <a name="archive_downloads"></a> `archive_downloads`
 
 Sets the formats in which entire releases can be downloaded
 as a (zip) archive. By default none are specified, so this needs
@@ -114,7 +116,7 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
-## `artist`
+## <a name="artist"></a> `artist`
 
 The artist field is a shortcut (with limited options) to define artists
 without creating an explicit artist directory and `artist.eno` manifest.
@@ -144,9 +146,9 @@ permalink = alice-artist
 ```
 
 For defining an artist with all options see the documentation for
-`artist.eno` manifests.
+[artist.eno](artists.html) manifests.
 
-## `copy_link`
+## <a name="copy_link"></a> `copy_link`
 
 To disable the "Copy link" button (by default it's enabled) you can use the
 `copy_link` option, with either `enabled` or `disabled` as value.
@@ -155,7 +157,7 @@ To disable the "Copy link" button (by default it's enabled) you can use the
 copy_link: disabled
 ```
 
-## `date`
+## <a name="date"></a> `date`
 
 The `date` field is used for sorting only. Both on the homepage, as well as on
 artist pages (in label mode), releases that have the most recent date are
@@ -168,7 +170,7 @@ Dates must be supplied strictly in the format `YYYY-MM-DD`, for instance:
 date: 1999-12-31
 ```
 
-## `download_code(s)`
+## <a name="download_codes"></a> `download_code(s)`
 
 To set a single download code that can be entered to access downloads:
 
@@ -184,16 +186,18 @@ download_codes:
 - SILVERsupporter
 ```
 
-Note that you also need to use the `downloads: code` option to activate
-download codes. In addition it is highly recommended to use `unlock_info` to
-provide a text that is displayed alongside the code input prompt.
+Note that you also need to use the `code` [downloads](#downloads) option
+(`downloads: code`) to activate download codes. In addition it is highly
+recommended to use [unlock_info](#unlock_info) to provide a text that is displayed
+alongside the code input prompt.
 
-## `downloads`
+## <a name="downloads"></a> `downloads`
 
 By default your visitors can only stream your releases.
 
 To enable simple free downloads all you need to do is set one or more download
-formats with the `archive_downloads` and/or `track_downloads` option.
+formats with the [archive_downloads](#archive_downloads) and/or
+[track_downloads](#track_downloads) option.
 
 The `downloads` option gives you further control over the general download
 mode, which by default is free downloads, but can be changed to external
@@ -232,10 +236,11 @@ To protect downloads with a code:
 downloads: code
 ```
 
-In combination with this use the `download_code` or `download_codes` option to
-set the codes for accessing downloads and the `download_info` option to
-provide a text that is displayed with the code input field (to give your
-audience directions on how to obtain an download code).
+In combination with this use the [download_code(s)](#download_codes) option to
+set the codes for accessing downloads and the [payment_info]
+(#payment_info) option to provide a text that is displayed with the code
+input field (to give your audience directions on how to obtain an download
+code).
 
 ### Soft Paycurtain
 
@@ -247,8 +252,9 @@ To provide downloads behind a soft paycurtain:
 downloads: paycurtain
 ```
 
-In combination with this option, use the `price` and `payment_info` options
-to set a price and give instructions for where the payment can be made.
+In combination with this option, use the [price](#price) and
+[payment_info](#payment_info) options to set a price and give instructions
+for where the payment can be made.
 
 ### Disable downloads
 
@@ -258,7 +264,7 @@ Downloads can also be disabled explicitly (e.g. if you quickly want to take them
 downloads: disabled
 ```
 
-## `embedding`
+## <a name="embedding"></a> `embedding`
 
 This allows external sites to embed a widget that presents music from your site.
 The embed code can be copied from each release page where embedding is enabled.
@@ -274,7 +280,7 @@ releases. If you set it `enabled` at the catalog level, you can also use
 embedding: enabled
 ```
 
-## `extra_downloads`
+## <a name="extra_downloads"></a> `extra_downloads`
 
 Any additional files in a release directory besides the audio files, cover
 image and manifests (.eno files) are considered "extras" and by default
@@ -301,7 +307,7 @@ extra_downloads:
 - separate
 ```
 
-## `link`
+## <a name="link"></a> `link`
 
 ```eno
 link: https://example.com/this/release/elsewhere/
@@ -320,7 +326,7 @@ provide a url, either as a simple value or as an `url` attribute. Optionally
 you can also supply a `label` which is what is visibly displayed instead of
 the `url`, when given.
 
-## `m3u`
+## <a name="m3u"></a> `m3u`
 
 This controls the generation of an [M3U](https://en.wikipedia.org/wiki/M3U) playlist
 for the release (provided on the release page) - it is disabled by default.
@@ -340,14 +346,14 @@ m3u: disabled
 This behavior can also be globally configured (for all releases) in the
 catalog manifest.
 
-## `more_label`
+## <a name="more_label"></a> `more_label`
 
 ```eno
 more_label: Liner Notes
 ```
 
 If you provide long-form text content for your release (which can be anything
-you want, content-wise) through the `text` field, by default there will be a
+you want, content-wise) through the [text](#text) field, by default there will be a
 link with the label "More" on your release page, leading to the section
 containing your long-form text. If you want to customize that label so it
 specifically refers to the type of content you are providing there, the
@@ -355,10 +361,11 @@ specifically refers to the type of content you are providing there, the
 `more_label`s one might use for the release text: "Details", "Liner Notes",
 "Staff", "Lyrics", "About" etc.
 
-## `payment_info`
+## <a name="payment_info"></a> `payment_info`
 
-This is used together with `downloads: paycurtain` to set the text that is
-displayed before downloads are accessed.
+This is used together with the `paycurtain` [downloads](#downloads) option
+(`downloads: paycurtain`) to set the text that is displayed before downloads
+are accessed.
 
 The general idea here is to provide external links to one or more payment,
 donation or patronage platforms that you use, be it liberapay, ko-fi, paypal,
@@ -382,9 +389,19 @@ me the money yourself as well, make sure to make a note of it though! :)
 -- payment_info
 ```
 
-## `price`
+## <a name="permalink"></a> `permalink`
 
-This is used together with `downloads: paycurtain` to set the price that is
+```eno
+permalink: example-ep
+```
+
+For an explanation what a `permalink` is please see the
+[Concepts Explained](concepts-explained.html) page, unter "Topics".
+
+## <a name="price"></a> `price`
+
+This is used together with the `paycurtain` [downloads](#downloads) option
+(`downloads: paycurtain`) to set the price that is
 displayed before downloads are accessed.
 
 For example in order to ask for 4€ for accessing the downloads of a release:
@@ -401,7 +418,7 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 - `INR 230+` (230 indian rupees or more)
 - `JPY 400-800` (Between 400 and 800 japanese yen)
 
-## `release_artist(s)`
+## <a name="release_artists"></a> `release_artist(s)`
 
 If your audio files are not tagged, or the tags contain inaccurate values, or
 for any other reason, you can use the `release_artist` and `release_artists`
@@ -424,7 +441,7 @@ release_artists:
 - Bob
 ```
 
-## `streaming_quality`
+## <a name="streaming_quality"></a> `streaming_quality`
 
 ```eno
 streaming_quality: frugal
@@ -435,7 +452,7 @@ default) to `frugal`. This uses considerably less bandwidth, reduces
 emissions and improves load times for listeners, especially on slow
 connections.
 
-## `synopsis`
+## <a name="synopsis"></a> `synopsis`
 
 ```eno
 -- synopsis
@@ -446,7 +463,73 @@ Nobody thought it possible, until somebody did it. The release that started it a
 A short (256 characters max), plain-text introduction text for your release,
 this is prominently featured atop your release page - make it count!
 
-## `text`
+## <a name="tags"></a> `tags`
+
+By default faircamp strips all metadata off the audio files that you supply
+when it transcodes them for streaming and downloading, only adding back those
+tags that it needs and manages itself, i.e. the title, track number, artist
+(s), release artist(s) and release title. The `tags` option lets you control
+this behavior:
+
+Set it to `copy` and faircamp will transfer all tags 1:1 from the
+source files onto the transcoded files, as you provided them.
+
+```eno
+tags: copy
+```
+
+Set it to `remove` and faircamp will produce entirely untagged files for
+streaming and download.
+
+```eno
+tags: remove
+```
+
+In order to assert fine-grained control over tags, you can also specify
+precise behavior per tag. The available tags at this point are `album`,
+`album_artist`, `artist`, `image`, `title` and `track` (= track number). The
+available actions for each tag are `copy` (copy 1:1 from the source audio
+files) and `rewrite` (set it from whichever information you implicitly or
+explicitly gave faircamp that would override the original tag, or fall back
+to the original tag value if there is no override). There is also `remove`,
+but as any tag you don't explicitly provide in this form is implicitly set
+to be removed, this is redundant. Note that support for writing embedded
+cover images differs wildly between target formats, at this point pretty much
+only the `flac` and `mp3` formats can be expected to reliably contain them,
+no matter what you specify for `image`.
+
+A random example of this:
+
+```eno
+tags:
+album = rewrite
+album_artist = remove
+artist = rewrite
+image = copy
+title = copy
+track = copy
+```
+
+The default behavior can be explicitly (re-)applied with the `normalize` option.
+
+```eno
+tags: normalize
+```
+
+When written out explicitly using the fine-grained notation, the default behavior
+(that is, `tags: normalize`) corresponds to the following settings:
+
+```eno
+tags:
+album = rewrite
+album_artist = rewrite
+artist = rewrite
+image = remove
+title = rewrite
+track = rewrite
+```
+
+## <a name="text"></a> `text`
 
 ```eno
 -- text
@@ -459,7 +542,7 @@ Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
 A [markdown](https://commonmark.org/help/)-enabled long-form text (think "About" text), in which you can write
 about your release in any length and detail you like.
 
-## `theme`
+## <a name="theme"></a> `theme`
 
 With this you can adjust the visual appearance of your faircamp site.
 
@@ -610,13 +693,13 @@ theme:
 custom_font = MyCustomSans.woff2
 ```
 
-## `track_artist(s)`
+## <a name="track_artists"></a> `track_artist(s)`
 
 If your audio files are not tagged, or the tags contain inaccurate values, or
 for any other reason, you can use the `track_artist` and `track_artists`
 option to explicitly set one or multiple main artists for the tracks. Note
 that this can implicitly affect the release artist (which can be explicitly
-set with the `release_artist(s)` option too).
+set with the [release_artist(s)](#release_artists) option too).
 
 To set a single artist for tracks on a release:
 
@@ -632,7 +715,7 @@ track_artists:
 - Bob
 ```
 
-## `track_downloads`
+## <a name="track_downloads"></a> `track_downloads`
 
 Sets the formats in which single tracks can be separately downloaded.
 By default none are specified, so this needs to be set in order to
@@ -670,7 +753,7 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
-## `track_numbering`
+## <a name="track_numbering"></a> `track_numbering`
 
 ```eno
 track_numbering: arabic-dotted
@@ -688,88 +771,7 @@ used, offering the following choices:
 - `roman` (I II III …)
 - `roman-dotted` (I. II. III. …)
 
-## `unlock_info`
-
-In combination with `downloads: code` and `download_code(s)`, this option
-lets you set the text that is displayed to your visitors when they are prompted
-for a download code. Usually you will want to put instructions in the text that
-tell your visitors how they can obtain a download code.
-
-```eno
--- unlock_info
-You should have received a download code in your confirmation mail
-for this year's crowdfunding. Stay tuned in case you missed it,
-we're currently planning the next run!
--- unlock_info
-```
-
-## Tag/Metadata settings
-
-By default faircamp strips all metadata off the audio files that you supply
-when it transcodes them for streaming and downloading, only adding back those
-tags that it needs and manages itself, i.e. the title, track number, artist
-(s), release artist(s) and release title. The `tags` option lets you control
-this behavior:
-
-Set it to `copy` and faircamp will transfer all tags 1:1 from the
-source files onto the transcoded files, as you provided them.
-
-```eno
-tags: copy
-```
-
-Set it to `remove` and faircamp will produce entirely untagged files for
-streaming and download.
-
-```eno
-tags: remove
-```
-
-In order to assert fine-grained control over tags, you can also specify
-precise behavior per tag. The available tags at this point are `album`,
-`album_artist`, `artist`, `image`, `title` and `track` (= track number). The
-available actions for each tag are `copy` (copy 1:1 from the source audio
-files) and `rewrite` (set it from whichever information you implicitly or
-explicitly gave faircamp that would override the original tag, or fall back
-to the original tag value if there is no override). There is also `remove`,
-but as any tag you don't explicitly provide in this form is implicitly set
-to be removed, this is redundant. Note that support for writing embedded
-cover images differs wildly between target formats, at this point pretty much
-only the `flac` and `mp3` formats can be expected to reliably contain them,
-no matter what you specify for `image`.
-
-A random example of this:
-
-```eno
-tags:
-album = rewrite
-album_artist = remove
-artist = rewrite
-image = copy
-title = copy
-track = copy
-```
-
-The default behavior can be explicitly (re-)applied with the `normalize` option.
-
-```eno
-tags: normalize
-```
-
-When written out explicitly using the fine-grained notation, the default behavior
-(that is, `tags: normalize`) corresponds to the following settings:
-
-```eno
-tags:
-album = rewrite
-album_artist = rewrite
-artist = rewrite
-image = remove
-title = rewrite
-track = rewrite
-```
-
-## Unlisted releases
+## <a name="unlisted"></a> `unlisted`
 
 By including an `unlisted` flag in the release manifest you can configure a
 release to be generally present in the built site, but not publicly
@@ -781,7 +783,24 @@ interesting to do a pre-release or such for friends or collaborators.
 unlisted
 ```
 
-Note that in label mode, artists that have *only* unlisted releases will also
-be unlisted, that is, they will not appear on the home/index page. Their
-artist page however will still be generated, it too can be visited as an
-unlisted page then by those who know the permalink.
+Note that in [label mode](catalog.html#label_mode), artists that have *only* unlisted
+releases will also be unlisted, that is, they will not appear on the
+home/index page. Their artist page however will still be generated, it too
+can be visited as an unlisted page then by those who know the permalink.
+
+
+## <a name="unlock_info"></a> `unlock_info`
+
+In combination with the `code` [downloads](#downloads) option
+(`downloads: code`) and [download_code(s)](#download_codes) option, this
+option lets you set the text that is displayed to your visitors when they are
+prompted for a download code. Usually you will want to put instructions in
+the text that tell your visitors how they can obtain a download code.
+
+```eno
+-- unlock_info
+You should have received a download code in your confirmation mail
+for this year's crowdfunding. Stay tuned in case you missed it,
+we're currently planning the next run!
+-- unlock_info
+```
