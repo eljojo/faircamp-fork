@@ -217,7 +217,9 @@ impl Catalog {
                             release_mut.main_artists.push(artist.clone());
                         }
 
-                        // Only assign artist to catalog's main artists if it hasn't already been assigned to them
+                        // Only assign artist to catalog's main artists if it
+                        // hasn't already been assigned to the catalog as
+                        // main artist before.
                         if !self.main_artists.iter().any(|main_artist| ArtistRc::ptr_eq(main_artist, artist)) {
                             self.main_artists.push(artist.clone());
                         }
@@ -251,8 +253,11 @@ impl Catalog {
                             release_mut.support_artists.push(artist.clone());
                         }
 
-                        // Only assign artist to catalog's support artists if it hasn't already been assigned to them
-                        if !self.support_artists.iter().any(|support_artist| ArtistRc::ptr_eq(support_artist, artist)) {
+                        // Only assign artist to catalog's support artists if
+                        // it hasn't already been assigned to the catalog as
+                        // main or support artist before.
+                        if !self.main_artists.iter().any(|main_artist| ArtistRc::ptr_eq(main_artist, artist)) &&
+                           !self.support_artists.iter().any(|support_artist| ArtistRc::ptr_eq(support_artist, artist)) {
                             self.support_artists.push(artist.clone());
                         }
                     }
