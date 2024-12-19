@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use sanitize_filename::sanitize;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
 use std::path::{Path, PathBuf};
+
+use indoc::formatdoc;
+use sanitize_filename::sanitize;
 
 use crate::{
     Artist,
@@ -41,7 +43,7 @@ const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png
 
 const UNSUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aac", "m4a"];
 
-const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "Hint: In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through manifests (see faircamp's README.md)";
+const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through manifests using the 'permalink: example' option.";
 
 #[derive(Debug)]
 pub struct Catalog {
@@ -1017,8 +1019,48 @@ impl Catalog {
                 let slug = &artist_ref.permalink.slug;
                 let name = &artist_ref.name;
                 let previous_usage_formatted = previous_usage.as_string();
-                let message = format!("The {generated_or_assigned} permalink '{slug}' of the artist '{name}' conflicts with the {previous_usage_formatted}");
-                error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
+
+                let resolution_hint = match &previous_usage {
+                    PermalinkUsage::Artist(_) => {
+                        formatdoc!(r#"
+                            When two artist permalinks are in conflict, a likely cause is that it is actually one and the same artist,
+                            whose name has just been spelled differently on different releases or tracks (e.g. "Alice" being spelled as
+                            "alice" or "Älicë" too). In such cases there are three possible solutions:
+
+                            1. Unify/correct the tags to use the same spelling on all audio files (e.g. using a tag editor)
+
+                            2. Expliclity define the artist in an artist.eno manifest, defining aliases for them:
+
+                               name: Alice
+                               aliases:
+                               - alice
+                               - Älicë
+
+                            3. Explicitly define the artist in a catalog.eno manifest using a shortcut artist definition with aliases:
+
+                               artist:
+                               name = Alice
+                               alias = alice
+                               alias = Älicë
+
+                            If in your case there are actually two separate artists whose permalinks just happen to conflict,
+                            use the 'permalink: example' option to manually specify a permalink on at least one of them to
+                            resolve the conflict.
+                        "#)
+                    }
+                    PermalinkUsage::Release(_) => format!("{PERMALINK_CONFLICT_RESOLUTION_HINT}")
+                };
+
+                let message = formatdoc!("
+                    Two permalinks are in conflict (= two different pages are competing for the same URL):
+
+                    A) The artist '{name}' has the {generated_or_assigned} permalink '{slug}'
+                    B) {previous_usage_formatted}
+
+                    {resolution_hint}
+                ");
+
+                error!("{}", message);
                 return false;
             } else {
                 let usage = PermalinkUsage::Artist(artist);

@@ -55,18 +55,24 @@ impl PermalinkUsage<'_> {
         match self {
             PermalinkUsage::Artist(artist) => {
                 let artist_ref = artist.borrow();
-                let generated_or_assigned = artist_ref.permalink.generated_or_assigned_str();
-                let name = &artist_ref.name;
+                let permalink = &artist_ref.permalink;
 
-                format!("{generated_or_assigned} permalink of the artist '{name}'")
+                let generated_or_assigned = permalink.generated_or_assigned_str();
+                let name = &artist_ref.name;
+                let slug = &permalink.slug;
+
+                format!("The artist '{name}' also has the {generated_or_assigned} permalink '{slug}'")
             }
             PermalinkUsage::Release(release) => {
                 let release_ref = release.borrow();
-                let generated_or_assigned = release_ref.permalink.generated_or_assigned_str();
+                let permalink = &release_ref.permalink;
+
+                let generated_or_assigned = permalink.generated_or_assigned_str();
                 let release_dir = release_ref.source_dir.display();
+                let slug = &permalink.slug;
                 let title = &release_ref.title;
 
-                format!("{generated_or_assigned} permalink of the release '{title}' from directory '{release_dir}'")
+                format!("The release '{title}' from directory '{release_dir}' also has the {generated_or_assigned} permalink '{slug}'")
             }
         }
     }
