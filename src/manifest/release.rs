@@ -5,7 +5,6 @@ use std::fs;
 use std::path::Path;
 
 use chrono::NaiveDate;
-use enolib::TerminalPrinter;
 
 use crate::{
     Build,
@@ -27,6 +26,7 @@ use super::{
     attribute_error_with_snippet,
     element_error_with_snippet,
     not_supported_error,
+    platform_printer,
     read_artist_catalog_release_option,
     read_artist_release_option,
     read_catalog_release_option,
@@ -64,7 +64,7 @@ pub fn read_release_manifest(
         }
     };
 
-    let document = match enolib::parse_with_printer(&content, Box::new(TerminalPrinter)) {
+    let document = match enolib::parse_with_printer(&content, platform_printer()) {
         Ok(document) => document,
         Err(err) => {
             error!("Syntax error in {}:{} ({})", manifest_path.display(), err.line, err);

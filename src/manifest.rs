@@ -175,3 +175,14 @@ fn not_supported_error(
     format!("This '{option_key}' option was not recognized (check for typos and that the option is supported inside a(n) {manifest_name} manifest).\n\nInside this manifest ({manifest_name}) the following keys are supported:\n{r_supported_options}")
 }
 
+#[cfg(not(target_os = "windows"))]
+fn platform_printer() -> Box<enolib::TerminalPrinter> {
+    Box::new(enolib::TerminalPrinter)
+}
+
+// TODO: Replace with terminal capability based approach, this is
+//       just to temporarily fix the situation in Windows command prompt.
+#[cfg(target_os = "windows")]
+fn platform_printer() -> Box<enolib::TextPrinter> {
+    Box::new(enolib::TextPrinter)
+}

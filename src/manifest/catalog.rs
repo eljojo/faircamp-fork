@@ -4,7 +4,6 @@
 use std::fs;
 use std::path::Path;
 
-use enolib::TerminalPrinter;
 use url::Url;
 
 use crate::{
@@ -28,6 +27,7 @@ use super::{
     attribute_error_with_snippet,
     element_error_with_snippet,
     not_supported_error,
+    platform_printer,
     read_artist_catalog_release_option,
     read_catalog_release_option,
     read_obsolete_option
@@ -71,7 +71,7 @@ pub fn read_catalog_manifest(
         }
     };
 
-    let document = match enolib::parse_with_printer(&content, Box::new(TerminalPrinter)) {
+    let document = match enolib::parse_with_printer(&content, platform_printer()) {
         Ok(document) => document,
         Err(err) => {
             error!("Syntax error in {}:{} ({})", manifest_path.display(), err.line, err);

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#[cfg(not(target_os = "windows"))]
 macro_rules! color {
     (blue) => ("\x1b[34m");
     (cyan) => ("\x1b[36m");
@@ -8,6 +9,18 @@ macro_rules! color {
     (red) => ("\x1b[31m");
     (reset) => ("\x1b[0m");
     (yellow) => ("\x1b[33m");
+}
+
+// TODO: Replace with terminal capability based approach, this is
+//       just to temporarily fix the situation in Windows command prompt.
+#[cfg(target_os = "windows")]
+macro_rules! color {
+    (blue) => ("");
+    (cyan) => ("");
+    (magenta) => ("");
+    (red) => ("");
+    (reset) => ("");
+    (yellow) => ("");
 }
 
 macro_rules! error {
