@@ -32,10 +32,19 @@ mod obsolete;
 mod release;
 
 pub use artist::read_artist_manifest;
-pub use artist_catalog_release::read_artist_catalog_release_option;
-pub use artist_release::read_artist_release_option;
+pub use artist_catalog_release::{
+    ARTIST_CATALOG_RELEASE_OPTIONS,
+    read_artist_catalog_release_option
+};
+pub use artist_release::{
+    ARTIST_RELEASE_OPTIONS,
+    read_artist_release_option
+};
 pub use catalog::read_catalog_manifest;
-pub use catalog_release::read_catalog_release_option;
+pub use catalog_release::{
+    CATALOG_RELEASE_OPTIONS,
+    read_catalog_release_option
+};
 pub use obsolete::read_obsolete_option;
 pub use release::read_release_manifest;
 
@@ -145,3 +154,24 @@ fn item_error_with_snippet(
     let snippet = item.snippet();
     error!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), item.line_number, snippet, error);
 }
+
+fn not_supported_error(
+    manifest_name: &str,
+    option_key: &str,
+    supported_options_groups: &[&[&str]]
+) -> String {
+    let mut supported_options_sorted = Vec::new();
+
+    for supported_option_group in supported_options_groups {
+        for option in *supported_option_group {
+            supported_options_sorted.push(*option);
+        }
+    }
+
+    supported_options_sorted.sort();
+
+    let r_supported_options = supported_options_sorted.join(", ");
+
+    format!("This '{option_key}' option was not recognized (check for typos and that the option is supported inside a(n) {manifest_name} manifest).\n\nInside this manifest ({manifest_name}) the following keys are supported:\n{r_supported_options}")
+}
+

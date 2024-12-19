@@ -13,6 +13,8 @@ use crate::{
 
 use super::element_error_with_snippet;
 
+pub const ARTIST_RELEASE_OPTIONS: &[&str] = &["copy_link", "permalink"];
+
 /// Try to read a single option from the passed element. Processes
 /// options that are present in artist and release manifests.
 pub fn read_artist_release_option(

@@ -20,14 +20,31 @@ use crate::markdown;
 use crate::util::html_escape_outside_attribute;
 
 use super::{
+    ARTIST_CATALOG_RELEASE_OPTIONS,
+    ARTIST_RELEASE_OPTIONS,
+    CATALOG_RELEASE_OPTIONS,
     MAX_SYNOPSIS_CHARS,
     attribute_error_with_snippet,
     element_error_with_snippet,
+    not_supported_error,
     read_artist_catalog_release_option,
     read_artist_release_option,
     read_catalog_release_option,
     read_obsolete_option
 };
+
+const RELEASE_OPTIONS: &[&str] = &[
+    "cover",
+    "date",
+    "m3u",
+    "release_artist",
+    "release_artists",
+    "synopsis",
+    "tags",
+    "text",
+    "title",
+    "unlisted"
+];
 
 pub fn read_release_manifest(
     build: &Build,
@@ -265,9 +282,14 @@ pub fn read_release_manifest(
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
             _ if read_catalog_release_option(catalog, element, &manifest_path) => (),
-            _ => {
-                let error = "The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?";
-                element_error_with_snippet(element, &manifest_path, error);
+            other => {
+                let error = not_supported_error(
+                    "release.eno",
+                    other,
+                    &[RELEASE_OPTIONS, ARTIST_CATALOG_RELEASE_OPTIONS, ARTIST_RELEASE_OPTIONS, CATALOG_RELEASE_OPTIONS]
+                );
+
+                element_error_with_snippet(element, &manifest_path, &error);
             }
         }
     }

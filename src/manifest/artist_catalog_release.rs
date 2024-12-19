@@ -31,6 +31,26 @@ use super::{
     item_error_with_snippet
 };
 
+pub const ARTIST_CATALOG_RELEASE_OPTIONS: &[&str] = &[
+    "archive_downloads",
+    "download_code",
+    "download_codes",
+    "downloads",
+    "embedding",
+    "extra_downloads",
+    "link",
+    "more_label",
+    "payment_info",
+    "price",
+    "streaming_quality",
+    "theme",
+    "track_artist",
+    "track_artists",
+    "track_downloads",
+    "track_numbering",
+    "unlock_info"
+];
+
 /// Try to read a single option from the passed element. Processes
 /// options that are present in artist, catalog and release manifests.
 pub fn read_artist_catalog_release_option(
@@ -548,7 +568,7 @@ pub fn read_artist_catalog_release_option(
                                 }
                             }
                             other => {
-                                let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'accent_brightening', 'accent_chroma', 'accent_hue', 'background_alpha', 'background_image', 'base', 'base_chroma', 'base_hue', 'cover_generator', 'custom_font', 'dynamic_range', 'round_corners', 'system_font' and 'waveforms'");
+                                let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'accent_brightening', 'accent_chroma', 'accent_hue', 'background_alpha', 'background_image', 'base', 'base_chroma', 'base_hue', 'cover_generator', 'custom_font', 'dynamic_range', 'round_corners', 'system_font' and 'waveforms')");
                                 attribute_error_with_snippet(attribute, manifest_path, &error);
                             }
                         }

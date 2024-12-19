@@ -22,13 +22,36 @@ use crate::markdown;
 use crate::util::{html_escape_outside_attribute, uid};
 
 use super::{
+    ARTIST_CATALOG_RELEASE_OPTIONS,
+    CATALOG_RELEASE_OPTIONS,
     MAX_SYNOPSIS_CHARS,
     attribute_error_with_snippet,
     element_error_with_snippet,
+    not_supported_error,
     read_artist_catalog_release_option,
     read_catalog_release_option,
     read_obsolete_option
 };
+
+const CATALOG_OPTIONS: &[&str] = &[
+    "base_url",
+    "cache_optimization",
+    "copy_link",
+    "disable_feed",
+    "faircamp_signature",
+    "favicon",
+    "feature_support_artists",
+    "freeze_download_urls",
+    "home_image",
+    "label_mode",
+    "language",
+    "m3u",
+    "rotate_download_urls",
+    "show_support_artists",
+    "synopsis",
+    "title",
+    "text"
+];
 
 pub fn read_catalog_manifest(
     build: &mut Build,
@@ -390,9 +413,14 @@ pub fn read_catalog_manifest(
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_catalog_release_option(catalog, element, &manifest_path) => (),
-            _ => {
-                let error = "The key/name of this option was not recognized, maybe there is a typo, or it appears in a manifest that does not support that option?";
-                element_error_with_snippet(element, &manifest_path, error);
+            other => {
+                let error = not_supported_error(
+                    "catalog.eno",
+                    other,
+                    &[CATALOG_OPTIONS, ARTIST_CATALOG_RELEASE_OPTIONS, CATALOG_RELEASE_OPTIONS]
+                );
+
+                element_error_with_snippet(element, &manifest_path, &error);
             }
         }
     }

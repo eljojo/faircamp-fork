@@ -17,6 +17,10 @@ use super::{
     element_error_with_snippet
 };
 
+pub const CATALOG_RELEASE_OPTIONS: &[&str] = &[
+    "artist"
+];
+
 /// Try to read a single option from the passed element. Processes
 /// options that are present in catalog and release manifests.
 pub fn read_catalog_release_option(
