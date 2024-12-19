@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Vac
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations, Unreviewed};
+use super::{Reviewed, Translations};
 
 pub const LT: Translations = Translations {
     audio_format_alac: Reviewed("Nenuostolingas ir suglaudintas. Jei naudojate tik „Apple“ produktus, rinkitės šį, o ne FLAC."),
@@ -26,7 +26,7 @@ pub const LT: Translations = Translations {
     cover_image: Reviewed("Viršelio vaizdas"),
     default_unlock_info: Reviewed("Reikia įvesti kodą, kad atrakintumėte šiuos atsisiuntimus. Klauskite svetainės operatorių, kaip jį gauti."),
     download: Reviewed("Atsisiųsti"),
-    download_code_seems_incorrect: Unreviewed("Atrodo, kad atrakinimo kodas neteisingas. Patikrinkite, ar nėra rašybos klaidų."),
+    download_code_seems_incorrect: Reviewed("Atrodo, kad atsisiuntimo kodas neteisingas. Patikrinkite, ar nėra rašybos klaidų."),
     downloads: Reviewed("Atsisiuntimai"),
     downloads_permalink: Reviewed("atsisiuntimai"),
     embed: Reviewed("Įterpti"),
