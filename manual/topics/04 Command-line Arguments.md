@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -12,6 +12,7 @@ That said here's a glimpse at some particularly interesting ones:
 - `--build-dir <BUILD_DIR>` Override build directory (default is .faircamp_build/ inside the catalog directory). **Pay close attention where you point this to - this directory is wiped during the build process (!)**
 - `--cache-dir <CACHE_DIR>` Override cache directory (default is .faircamp_cache/ inside the catalog directory). **Pay close attention where you point this to - this directory is wiped during the build process (!)**
 - `--catalog-dir <CATALOG_DIR>` Override catalog directory (default is the current working directory)
+- `--debug` Print debug information for the catalog (no build is performed)
 - `--exclude <PATTERN>` Excludes all file paths that contain the specified pattern from being processed. Can be supplied multiple times. Matching is done by simple case-sensitive string comparison - no glob/regex
 - `--include <PATTERN>` Pass this so only file paths that contain the specified pattern will get processed. Can be supplied multiple times. Matching is done by simple case-sensitive string comparison - no glob/regex
 - `--manual` Opens the faircamp manual in your browser, does not do anything else

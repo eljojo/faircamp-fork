@@ -17,14 +17,16 @@ works in general and swiftly guide you to your first faircamp site.
 These each explain a fictional faircamp catalog - how the file layout is
 structured, what metadata from audio files it uses, and how the manifests are
 placed and used to customize the site for each respective usecase. This
-teaches by example, but does not necessarily show *every* feature there is in
-faircamp, so also consider going through the reference to get the full
-picture.
+teaches by example, but only shows *some* of the features in faircamp, so
+definitely check out the reference to get the full picture.
 
 ## Reference
 
-The reference pages explain all available options and metadata that you can
-set in your manifests, giving detailed info for each setting.
+A faircamp site is tweaked, configured, extended, themed, etc. through
+so called manifests. There are three different types of manifest files,
+clearly identified by their respective filename ([artist.eno](artists-artist-eno.html),
+[catalog.eno](catalog-catalog-eno.html) and [release.eno](releases-release-eno.html)).
+The reference provides a detailed list of all available options for each type of manifest.
 
 ## More resources
 

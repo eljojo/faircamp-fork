@@ -146,7 +146,7 @@ permalink = alice-artist
 ```
 
 For defining an artist with all options see the documentation for
-[artist.eno](artists.html) manifests.
+[artist.eno](artists-artist-eno.html) manifests.
 
 ## <a name="copy_link"></a> `copy_link`
 
@@ -783,7 +783,7 @@ interesting to do a pre-release or such for friends or collaborators.
 unlisted
 ```
 
-Note that in [label mode](catalog.html#label_mode), artists that have *only* unlisted
+Note that in [label mode](catalog-catalog-eno.html#label_mode), artists that have *only* unlisted
 releases will also be unlisted, that is, they will not appear on the
 home/index page. Their artist page however will still be generated, it too
 can be visited as an unlisted page then by those who know the permalink.
