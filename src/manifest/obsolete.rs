@@ -56,12 +56,34 @@ pub fn read_obsolete_option(
                 element_error_with_snippet(element, manifest_path, error);
             }
         }
+        "code" |
+        "codes" => {
+            let error = "Since faircamp 1.0, the 'code' and 'codes' fields have been renamed to 'download_code' and 'download_codes'.";
+            element_error_with_snippet(element, manifest_path, error);
+        }
         "download" if element.is_section() => {
             let error = "Since faircamp 1.0, the '# download' section is obsolete and its options can/must now be put directly into the 'catalog.eno' and 'release.eno' files, please move and adapt the current options accordingly.";
             element_error_with_snippet(element, manifest_path, error);
         }
         "embedding" if element.is_section() => {
             let error = "Since faircamp 1.0 the embedding option must be specified as 'embedding: enabled|disabled' inside an 'artist.eno', 'catalog.eno' or 'release.eno' manifest, please move and adapt the current definiton accordingly.";
+            element_error_with_snippet(element, manifest_path, error);
+        }
+        "external" => {
+            let error = "Since faircamp 1.0, external download options such as 'external: https://example.com' are instead specified as 'downloads: https://example.com'.";
+            element_error_with_snippet(element, manifest_path, error);
+        }
+        "format" |
+        "formats" => {
+            let error = "Since faircamp 1.0, the 'format' and 'formats' fields have been renamed to 'archive_downloads' (respectively 'track_downloads' to now separately specify the format(s) for single track downloads).";
+            element_error_with_snippet(element, manifest_path, error);
+        }
+        "free" => {
+            let error = "Since faircamp 1.0, free downloads have become the default (but explicit declaration is still possible with 'downloads: free') - you now only need to set download formats with 'archive_downloads' (replaces the previous 'format(s)' option) or 'track_downloads' (now enables specific format choices for single track downloads) to enable free downloads.";
+            element_error_with_snippet(element, manifest_path, error);
+        }
+        "include_extras" => {
+            let error = "Since faircamp 1.0, 'include_extras: no' is now specified as 'extra_downloads: disabled', 'include_extras: yes' as 'extra_downloads: bundled' (the default) and there's also an additional 'extra_downloads: separate' option, as well as the possiblity for enabling both, like this:\nextra_downloads:\n- bundled\n- separate.";
             element_error_with_snippet(element, manifest_path, error);
         }
         "link_brightness" => {
@@ -84,6 +106,10 @@ pub fn read_obsolete_option(
             let error = "Since faircamp 1.0, specify payment options directly in an artist.eno, catalog.eno or release.eno manifest using the single 'payment_info' field. The payment section is not supported anymore.";
             element_error_with_snippet(element, manifest_path, error);
         }
+        "payment_text" => {
+            let error = "Since faircamp 1.0, the name of the 'payment_text' option has changed to 'payment_info'.";
+            element_error_with_snippet(element, manifest_path, error);
+        }
         "release" if element.is_section() => {
             if manifest_path.ends_with("release.eno") {
                 let error = "Since faircamp 1.0, '# release' sections are not required anymore - just remove the line '# release'";
@@ -95,6 +121,10 @@ pub fn read_obsolete_option(
         }
         "rewrite_tags" => {
             let error = "Since faircamp 1.0, 'rewrite_tags: no' must be specified as 'tags: copy', 'rewrite_tags: yes' as 'tags: normalize'";
+            element_error_with_snippet(element, manifest_path, error);
+        }
+        "single_files" => {
+            let error = "Since faircamp 1.0, the 'single_files' option has been removed, instead you now can use the 'track_downloads' option to directly enable/pick the formats in which you want to offer single file downloads, e.g. 'track_downloads: mp3' or for multiple:\ntrack_downloads:\n- flac\n- mp3\n- opus";
             element_error_with_snippet(element, manifest_path, error);
         }
         "streaming" if element.is_section() => {
@@ -115,6 +145,10 @@ pub fn read_obsolete_option(
         }
         "tint_front" => {
             let error = "Since faircamp 0.16.0, theming works differently and the tint_front setting needs to be replaced (the base_chroma and dynamic_range attributes in the theme field in combination serve a similar purpose)";
+            element_error_with_snippet(element, manifest_path, error);
+        }
+        "unlock_text" => {
+            let error = "Since faircamp 1.0, the name of the 'unlock_text' option has changed to 'unlock_info'.";
             element_error_with_snippet(element, manifest_path, error);
         }
         _ => return false
