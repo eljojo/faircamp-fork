@@ -36,7 +36,7 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
                 main_artists
             };
 
-            let item_description = release_ref.text
+            let item_description = release_ref.more
                 .as_ref()
                 .map(|html_and_stripped|
                     format!(
@@ -61,7 +61,7 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
         .collect::<Vec<String>>()
         .join("\n");
 
-    let channel_description = catalog.text
+    let channel_description = catalog.more
         .as_ref()
         .map(|html_and_stripped| html_escape_outside_attribute(html_and_stripped.stripped.as_str()))
         // TODO: Translate and/or reconsider content (e.g. integrate artist list in label mode?)

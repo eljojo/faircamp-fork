@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [text](#text), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -53,11 +53,11 @@ url = https://example.com/my-blog/
 Just some of my music
 -- synopsis
 
--- text
+-- more
 Some of my music released between 1999-2005.
 
 For further information check out my [website](https://example.com)
--- text
+-- more
 
 theme:
 accent_brightening = 85
@@ -535,20 +535,38 @@ m3u: releases
 You can granularly enable/disable M3U playlists for single releases as well
 (in the release manifests).
 
+## <a name="more"></a> `more`
+
+```eno
+-- more
+Our label explores a niche between 90ies Italo Disco and scottish
+folk music from the early 50ies.
+
+Among the represented artists are: ...
+-- more
+```
+
+This field lets you provide long-form content of any kind to augment the
+catalog homepage with: A biography/discography, mission statement,
+about text, links to related pages, etc. When provided, this content appears right
+after the releases on the catalog homepage.
+
+The `more` field supports [Markdown](https://commonmark.org/help/).
+
 ## <a name="more_label"></a> `more_label`
 
 ```eno
 more_label: About
 ```
 
-If you provide long-form text content for your catalog (which can be anything
-you want, content-wise) through the [text](#text) field, by default there will be a
-link with the label "More" on your homepage, leading to the section
-containing your long-form text. If you want to customize that label so it
+If you provide long-form content for your catalog (which can be anything you
+want, content-wise) through the [more](#more) field, by default there will be
+a link with the label "More" on your homepage, leading to the section
+containing that content. If you want to customize that label so it
 specifically refers to the type of content you are providing there, the
 `more_label` field allows you to do that. Some typical examples of custom
-`more_label`s one might use for the catalog text: "About", "Biography",
-"Artist Statement", "Read on", "Artist roster" etc.
+labels one might use in the context of the catalog homepage: "About",
+ "Biography", "Artist Statement", "Read on", "Artist roster" etc.
 
 ## <a name="payment_info"></a> `payment_info`
 
@@ -630,17 +648,6 @@ Thanks for stopping by!
 
 A short (256 characters max), plain-text introduction text for your catalog,
 this is the first thing visitors will see - make it count!
-
-## <a name="text"></a> `text`
-
-```eno
--- text
-[Here be long form about/description text]
--- text
-```
-
-A [markdown](https://commonmark.org/help/)-enabled long-form text (think "About" text), in which you can write
-about your catalog in any length and detail you like.
 
 ## <a name="theme"></a> `theme`
 

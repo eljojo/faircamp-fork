@@ -242,7 +242,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
     let artists_truncated = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
 
-    let r_more = if release.text.is_some() || artists_truncated.truncated {
+    let r_more = if release.more.is_some() || artists_truncated.truncated {
         let more_label = match &release.more_label {
             Some(label) => label,
             None => *build.locale.translations.more
@@ -260,7 +260,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             None => String::new()
         };
 
-        let r_text = match &release.text {
+        let r_more = match &release.more {
             Some(html_and_stripped) => format!(
                 r#"<div class="text">{}</div>"#,
                 html_and_stripped.html
@@ -276,7 +276,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                             <h1>{release_title_escaped} {release_year}</h1>
                             <div class="release_artists">{artists}</div>
                         </div>
-                        {r_text}
+                        {r_more}
                     </div>
                 </div>
             </div>

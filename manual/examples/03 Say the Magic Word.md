@@ -34,10 +34,14 @@ Inside the file `saythemagicword/catalog.eno`:
 title: Say the Magic Word
 base_url: https://example.com
 
--- text
-The *Say the Magic Word EP* is out. Stream here, and to access downloads get a
-download code by [becoming a patron](https://tinyurl.com/say-support)!
--- text
+link:
+label = Become a Patron
+url = https://example.com/become-patron/
+
+-- synopsis
+The Say the Magic Word EP is out. Stream here, and to access downloads get a
+download code by becoming a patron!
+-- synopsis
 
 theme:
 accent_brightening = 13

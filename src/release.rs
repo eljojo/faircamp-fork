@@ -82,8 +82,9 @@ pub struct Release {
     pub main_artists_to_map: Vec<String>,
     /// Whether an m3u playlist should be generated and provided on the release page
     pub m3u: bool,
-    /// Optional override label for the button that (by default) says "More" on the
-    /// release page and points to the long-form text on the release page.
+    pub more: Option<HtmlAndStripped>,
+    /// Optional custom label for the button that (by default) says "More" on the
+    /// release page and points to additional long-form content for the release.
     pub more_label: Option<String>,
     pub permalink: Permalink,
     /// Lazily generated when there is no regular cover
@@ -99,7 +100,6 @@ pub struct Release {
     pub support_artists_to_map: Vec<String>,
     pub synopsis: Option<String>,
     pub tag_agenda: TagAgenda,
-    pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     pub title: String,
     pub track_numbering: TrackNumbering,
@@ -212,6 +212,7 @@ impl Release {
         links: Vec<Link>,
         m3u: bool,
         main_artists_to_map: Vec<String>,
+        more: Option<HtmlAndStripped>,
         more_label: Option<String>,
         permalink: Option<Permalink>,
         source_dir: PathBuf,
@@ -219,7 +220,6 @@ impl Release {
         support_artists_to_map: Vec<String>,
         synopsis: Option<String>,
         tag_agenda: TagAgenda,
-        text: Option<HtmlAndStripped>,
         theme: Theme,
         title: String,
         track_numbering: TrackNumbering,
@@ -241,6 +241,7 @@ impl Release {
             m3u,
             main_artists: Vec::new(),
             main_artists_to_map,
+            more,
             more_label,
             permalink,
             procedural_cover: None,
@@ -250,7 +251,6 @@ impl Release {
             support_artists_to_map,
             synopsis,
             tag_agenda,
-            text,
             theme,
             title,
             track_numbering,

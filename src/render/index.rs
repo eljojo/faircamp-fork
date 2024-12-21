@@ -35,8 +35,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let mut actions = Vec::new();
     let mut templates = String::new();
 
-    let r_more = match &catalog.text {
+    let r_more = match &catalog.more {
         Some(html_and_stripped) => {
+            let more = &html_and_stripped.html;
             let more_icon = icons::more(&build.locale.translations.more);
             let more_label = match &catalog.more_label {
                 Some(label) => label,
@@ -50,14 +51,13 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
             actions.push(more_link);
 
-            let catalog_text = &html_and_stripped.html;
             format!(r#"
                 <a class="scroll_target" id="more"></a>
                 <div class="page">
                     <div class="page_center page_50vh">
                         <div class="page_more">
                             <h1>{title_escaped}</h1>
-                            <div class="text">{catalog_text}</div>
+                            <div class="text">{more}</div>
                         </div>
                     </div>
                 </div>

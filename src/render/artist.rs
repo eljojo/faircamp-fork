@@ -22,7 +22,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let mut actions = Vec::new();
 
-    let r_more = match &artist.text {
+    let r_more = match &artist.more {
         Some(html_and_stripped) => {
             let more_icon = icons::more(&build.locale.translations.more);
             let more_label = match &artist.more_label {

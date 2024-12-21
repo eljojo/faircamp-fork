@@ -46,12 +46,12 @@ base_url: https://curtain.electric/
 > streaming quality a little bit.
 streaming_quality: frugal
 
--- text
+-- more
 Hailing from the small town of Welkenraedt, Electric Curtain sucks you into
 a gigantesque dystopian world of hard and harsh bass-driven synth.
 
 Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
--- text
+-- more
 
 downloads: paycurtain
 

@@ -5,7 +5,7 @@
 
 # Release manifests – release.eno
 
-> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [copy_link](#copy_link), [date](#date), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [link](#link), [m3u](#m3u), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_artist(s)](#release_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [text](#text), [theme](#theme), [track_artist(s)](#track_artists), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlisted](#unlisted), [unlock_info](#unlock_info)
+> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [copy_link](#copy_link), [date](#date), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_artist(s)](#release_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlisted](#unlisted), [unlock_info](#unlock_info)
 
 In your release manifests you can specify options that apply to
 a specific release only. Simply create a (plain text) file called
@@ -42,11 +42,11 @@ file = cover.jpg
 Nobody thought it possible, until somebody did it. The release that started it all!
 -- synopsis
 
--- text
+-- more
 Recorded in the summer of '94 at West Callaghan Ranch, XE.
 
 Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
--- text
+-- more
 
 theme:
 accent_brightening = 85
@@ -60,7 +60,7 @@ base_hue = 180
 If you provide a cover image, use `description` to include an image description
 for it.
 
-The [text](#text) field allows the use of [Markdown](https://commonmark.org/help/).
+The [more](#more) field allows the use of [Markdown](https://commonmark.org/help/).
 
 For an explanation what a [permalink](#permalink) is please see the "Concepts Explained" page,
 unter "Topics".
@@ -346,19 +346,36 @@ m3u: disabled
 This behavior can also be globally configured (for all releases) in the
 catalog manifest.
 
+## <a name="more"></a> `more`
+
+```eno
+-- more
+Recorded in the summer of '94 at West Callaghan Ranch, XE.
+
+Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
+-- more
+```
+
+This field lets you provide long-form content of any kind to augment the
+release page with: Liner notes, production staff credits, lyrics,
+making of stories, etc. When provided, this content appears right
+after the releases on the catalog homepage.
+
+The `more` field supports [Markdown](https://commonmark.org/help/).
+
 ## <a name="more_label"></a> `more_label`
 
 ```eno
 more_label: Liner Notes
 ```
 
-If you provide long-form text content for your release (which can be anything
-you want, content-wise) through the [text](#text) field, by default there will be a
+If you provide long-form content for your release (which can be anything
+you want, content-wise) through the [more](#more) field, by default there will be a
 link with the label "More" on your release page, leading to the section
-containing your long-form text. If you want to customize that label so it
+containing that content. If you want to customize that label so it
 specifically refers to the type of content you are providing there, the
 `more_label` field allows you to do that. Some typical examples of custom
-`more_label`s one might use for the release text: "Details", "Liner Notes",
+labels one might use in the context of a release: "Details", "Liner Notes",
 "Staff", "Lyrics", "About" etc.
 
 ## <a name="payment_info"></a> `payment_info`
@@ -528,19 +545,6 @@ image = remove
 title = rewrite
 track = rewrite
 ```
-
-## <a name="text"></a> `text`
-
-```eno
--- text
-Recorded in the summer of '94 at West Callaghan Ranch, XE.
-
-Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
--- text
-```
-
-A [markdown](https://commonmark.org/help/)-enabled long-form text (think "About" text), in which you can write
-about your release in any length and detail you like.
 
 ## <a name="theme"></a> `theme`
 

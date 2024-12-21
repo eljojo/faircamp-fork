@@ -62,11 +62,11 @@ pub fn read_artist_manifest(
         }
     };
 
-    let mut artist_aliases = Vec::new();
+    let mut aliases = Vec::new();
+    let mut more = None;
     // By default we use the folder name as name
-    let mut artist_name = dir.file_name().unwrap().to_string_lossy().to_string();
-    let mut artist_image = None;
-    let mut artist_text = None;
+    let mut name = dir.file_name().unwrap().to_string_lossy().to_string();
+    let mut image = None;
 
     for element in document.elements() {
         match element.key() {
@@ -75,7 +75,7 @@ pub fn read_artist_manifest(
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {
                         if let Some(value) = result {
-                            artist_aliases = vec![value.to_string()];
+                            aliases = vec![value.to_string()];
                         }
 
                         break 'alias;
@@ -88,7 +88,7 @@ pub fn read_artist_manifest(
             "aliases" => 'aliases: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(items) = field.items() {
-                        artist_aliases = items.iter().filter_map(|item| item.value().map(|value| value.to_string())).collect();
+                        aliases = items.iter().filter_map(|item| item.value().map(|value| value.to_string())).collect();
                         break 'aliases;
                     }
                 }
@@ -130,8 +130,8 @@ pub fn read_artist_manifest(
                         }
 
                         if let Some(path) = path_relative_to_catalog {
-                            let image = cache.get_or_create_image(build, &path);
-                            artist_image = Some(DescribedImage::new(description, image));
+                            let obtained_image = cache.get_or_create_image(build, &path);
+                            image = Some(DescribedImage::new(description, obtained_image));
                         }
 
                         break 'image;
@@ -141,31 +141,30 @@ pub fn read_artist_manifest(
                 let error = "image needs to be provided as a field with attributes, e.g.:\n\nimage:\ndescription = Alice, looking amused\nfile = alice.jpg";
                 element_error_with_snippet(element, &manifest_path, error);
             }
+            "more" => {
+                if let Ok(embed) = element.as_embed() {
+                    if let Some(value) = embed.value() {
+                        more = Some(markdown::to_html_and_stripped(&build.base_url, value));
+                    } else {
+                        more = None;
+                    }
+                } else {
+                    let error = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the artist\n--more";
+                    element_error_with_snippet(element, &manifest_path, error);
+                }
+            }
             "name" => 'name: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {
                         if let Some(value) = result {
-                            artist_name = value.to_string();
+                            name = value.to_string();
                         }
 
                         break 'name;
                     }
                 }
-
                 let error = "name needs to be provided as a field with a value, e.g.: 'name: Alice'";
                 element_error_with_snippet(element, &manifest_path, error);
-            }
-            "text" => {
-                if let Ok(embed) = element.as_embed() {
-                    if let Some(value) = embed.value() {
-                        artist_text = Some(markdown::to_html_and_stripped(&build.base_url, value));
-                    } else {
-                        artist_text = None;
-                    }
-                } else {
-                    let error = "text needs to be provided as an embed, e.g.:\n-- text\nThe text about the artist\n--text";
-                    element_error_with_snippet(element, &manifest_path, error);
-                }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
@@ -182,14 +181,14 @@ pub fn read_artist_manifest(
     }
 
     let artist = Artist::new_manual(
-        artist_aliases,
+        aliases,
         overrides.copy_link,
-        artist_image,
+        image,
         mem::take(&mut local_options.links),
+        more,
         overrides.more_label.clone(),
-        &artist_name,
+        &name,
         local_options.permalink.take(),
-        artist_text,
         overrides.theme.clone()
     );
 

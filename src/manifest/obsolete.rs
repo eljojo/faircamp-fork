@@ -101,6 +101,10 @@ pub fn read_obsolete_option(
             let error = r##"Since faircamp 0.16.0, the "# streaming" section has been merged directly into the catalog/release manifests as the 'streaming_quality: frugal|standard' option, please adapt and move the setting accordingly."##;
             element_error_with_snippet(element, manifest_path, error);
         }
+        "text" => {
+            let error = "Since faircamp 1.0, the name of the 'text' option has changed to 'more'.";
+            element_error_with_snippet(element, manifest_path, error);
+        }
         "text_hue" => {
             let error = "Since faircamp 0.16.0, theming works differently and the text_hue setting needs to be replaced (the base_hue attribute in the theme field is the closest alternative)";
             element_error_with_snippet(element, manifest_path, error);

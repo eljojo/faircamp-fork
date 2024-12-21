@@ -347,6 +347,18 @@ pub fn read_catalog_manifest(
                 let error = "m3u needs to be provided as a field with the value 'catalog', 'disabled', 'enabled' or 'relases', e.g.: 'm3u: disable'";
                 element_error_with_snippet(element, &manifest_path, error);
             }
+            "more" => {
+                if let Ok(embed) = element.as_embed() {
+                    if let Some(value) = embed.value() {
+                        catalog.more = Some(markdown::to_html_and_stripped(&build.base_url, value));
+                    } else {
+                        catalog.more = None;
+                    }
+                } else {
+                    let error = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the catalog\n--more";
+                    element_error_with_snippet(element, &manifest_path, error);
+                }
+            }
             "rotate_download_urls" => {
                 // TODO: Would make sense to report if both rotate_download_urls and
                 // freeze_download_urls are set (or the latter twice e.g.), as this
@@ -400,16 +412,6 @@ pub fn read_catalog_manifest(
 
                 let error = "title needs to be provided as a field with a value, e.g.: 'title: My music'";
                 element_error_with_snippet(element, &manifest_path, error);
-            }
-            "text" => {
-                if let Ok(embed) = element.as_embed() {
-                    if let Some(value) = embed.value() {
-                        catalog.text = Some(markdown::to_html_and_stripped(&build.base_url, value));
-                    }
-                } else {
-                    let error = "text needs to be provided as an embed, e.g.:\n-- text\nThe text about the catalog\n--text";
-                    element_error_with_snippet(element, &manifest_path, error);
-                }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_catalog_release_option(catalog, element, &manifest_path) => (),

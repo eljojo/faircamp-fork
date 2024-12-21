@@ -5,7 +5,7 @@
 
 # Artist manifests – artist.eno
 
-> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [image](#image), [link](#link), [more_label](#more_label), [name](#name), [permalink](#permalink), [text](#text), [theme](#theme)
+> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [image](#image), [link](#link), [more](#more), [more_label](#more_label), [name](#name), [permalink](#permalink), [theme](#theme)
 
 Artists are automatically created by faircamp when they are encountered in
 audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
@@ -37,11 +37,11 @@ image:
 description = Alice in a field
 file = example.jpg
 
--- text
+-- more
 Alice is a classic recording artist from the 70ies.
 
 Over the years she has appeared in various collaborations, most notably with Bob.
--- text
+-- more
 ```
 
 ## <a name="aliases"></a> `alias(es)`
@@ -109,19 +109,36 @@ provide a url, either as a simple value or as an `url` attribute. Optionally
 you can also supply a `label` which is what is visibly displayed instead of
 the `url`, when given.
 
+## <a name="more"></a> `more`
+
+```eno
+-- more
+Alice is a classic recording artist from the 70ies.
+
+Over the years she has appeared in various collaborations, most notably with Bob.
+-- more
+```
+
+This field lets you provide long-form content of any kind to augment the artist's
+page with: A biography/discography, list of upcoming shows, personal message,
+further links to the artist, etc. When provided, this content appears right
+after the releases on an artist's page.
+
+The `more` field supports [Markdown](https://commonmark.org/help/).
+
 ## <a name="more_label"></a> `more_label`
 
 ```eno
 more_label: Biography
 ```
 
-If you provide long-form text content for the artist (which can be anything
-you want, content-wise) through the [text](#text) field, by default there will be a
-link with the label "More" on the artist page, leading to the section
-containing the long-form text. If you want to customize that label so it
+If you provide long-form additional content for the artist (which can be
+anything you want, content-wise) through the [more](#more) field, by default
+there will be a link with the label "More" on the artist page, leading to the
+section containing that content. If you want to customize that label so it
 specifically refers to the type of content you are providing there, the
 `more_label` field allows you to do that. Some typical examples of custom
-`more_label`s one might use for the artist text: "Details", "Shows",
+labels one might use in the context of an artist: "Details", "Shows",
 "Discography", "Bio", "About" etc.
 
 ## <a name="name"></a> `name`
@@ -159,18 +176,6 @@ permalink: alice-artist
 
 For an explanation what a `permalink` is please see the "Concepts Explained" page,
 unter "Topics".
-
-## <a name="text"></a> `text`
-
-```eno
--- text
-Alice is a classic recording artist from the 70ies.
-
-Over the years she has appeared in various collaborations, most notably with Bob.
--- text
-```
-
-The `text` field supports [Markdown](https://commonmark.org/help/).
 
 ## <a name="theme"></a> `theme`
 

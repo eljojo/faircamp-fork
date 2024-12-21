@@ -28,13 +28,13 @@ pub struct Artist {
     pub featured: bool,
     pub image: Option<DescribedImage>,
     pub links: Vec<Link>,
+    pub more: Option<HtmlAndStripped>,
     /// Optional override label for the button that (by default) says "More" on the
-    /// artist page and points to the long-form text on the artist page.
+    /// artist page and points to additional long-form content for the artist.
     pub more_label: Option<String>,
     pub name: String,
     pub permalink: Permalink,
     pub releases: Vec<ReleaseRc>,
-    pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     pub unlisted: bool
 }
@@ -59,11 +59,11 @@ impl Artist {
             featured: false,
             image: None,
             links: Vec::new(),
+            more: None,
             more_label: None,
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
-            text: None,
             theme: catalog.theme.clone(),
             unlisted: false
         }
@@ -76,10 +76,10 @@ impl Artist {
         copy_link: bool,
         image: Option<DescribedImage>,
         links: Vec<Link>,
+        more: Option<HtmlAndStripped>,
         more_label: Option<String>,
         name: &str,
         permalink: Option<Permalink>,
-        text: Option<HtmlAndStripped>,
         theme: Theme
     ) -> Artist {
         let permalink = permalink.unwrap_or_else(|| Permalink::generate(name));
@@ -91,11 +91,11 @@ impl Artist {
             featured: false,
             image,
             links,
+            more,
             more_label,
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
-            text,
             theme,
             unlisted: false
         }
@@ -126,11 +126,11 @@ impl Artist {
             featured: false,
             image: None,
             links: Vec::new(),
+            more: None,
             more_label: None,
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
-            text: None,
             theme: catalog.theme.clone(),
             unlisted: false
         }

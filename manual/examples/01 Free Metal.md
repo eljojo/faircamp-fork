@@ -43,21 +43,18 @@ archive_downloads:
 - opus
 - mp3
 
--- text
-Hey Metalheads!
-
-Check our newest releases - *Much Doublebass* and *Very Tapping* - we've
-got them out for free download for you cuties!
-
-xoxo, Free Metal
--- text
+-- synopsis
+Hey Metalheads! Check our newest releases "Much Doublebass" and "Very Tapping" - we've
+got them out for free download for you cuties! xoxo, Free Metal
+-- synopsis
 ```
 
-This sets the title on the frontpage, the base url (which is not mandatory,
-but needed for some features to work), specifies the image that is shown on
-the frontpage (plus its description for screen reader users), a text that is
-also shown on the frontpage and it specifies that downloads are served in the
-formats opus and mp3 (which is all you need to do to enable free downloads).
+This sets the `title` on the frontpage, the `base_url` (which is not mandatory,
+but needed for some features to work), specifies the `home_image` that is shown on
+the frontpage (plus its description for screen reader users), a short
+`synopsis` text that is shown on the frontpage and it specifies that downloads
+are served in the formats `opus` and `mp3` (which is all you need to do to enable
+free downloads).
 
 As this is the `catalog.eno` manifest, download settings are applied to all
 releases further down in the directory hierarchy (in this case two of them),
@@ -74,22 +71,28 @@ cover:
 description = The band, looking tough (with yellow plush hats)
 file = cover.jpg
 
--- text
+-- synopsis
 We're so excited to share our latest release with you, enjoy!
+-- synopsis
+
+-- more
 Mastered by our good friends at the Doom Dungeon.
--- text
+-- more
 ```
 
-Here the title of the release is explicitly set because the band forgot to
-include "(Deluxe Edition)" when they tagged the audio files, otherwise
-faircamp would have automatically picked it from the audio files as well. The
-permalink ensures that the release is made available under the url
-`https://example.com/much-doublebass-album/`, so as you can see it simply
-gets added to the base url of the page (an in-depth explanation of permalinks
-can be found on the "Concepts Explained" page). The cover image would have
-been automatically picked by faircamp, but to describe the image for those
-who cannot see it, they included the description here, as we all should
-always do. Again a text is provided that is shown on the release page.
+Here the `title` of the release is explicitly set because the band forgot to
+include "(Deluxe Edition)" when they tagged the audio files - generally
+faircamp simply takes the title form the audio files, so there's normally no
+need to set it manually. The `permalink` ensures that the release is made
+available under the url `https://example.com/much-doublebass-album/`, so as
+you can see it simply gets added to the base url of the page (an in-depth
+explanation of permalinks can be found on the [Concepts Explained](concepts-explained.html) page).
+The cover image would have been automatically picked by faircamp, but to describe
+the image for those who cannot see it, they included the description here, as
+should always be done. Again a short `synopsis` text is provided (this is shown on the
+top of the release page) as well as a production note in the `more` field,
+which however could also be used to include content of any length, and supports
+[Markdown](https://commonmark.org/help/).
 
 In the file `Free Metal/Very Tapping/release.eno` we find the following content:
 

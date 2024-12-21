@@ -163,6 +163,18 @@ pub fn read_release_manifest(
                 let error = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
                 element_error_with_snippet(element, &manifest_path, error);
             }
+            "more" => {
+                if let Ok(embed) = element.as_embed() {
+                    if let Some(value) = embed.value() {
+                        overrides.release_more = Some(markdown::to_html_and_stripped(&build.base_url, value));
+                    } else {
+                        overrides.release_more = None;
+                    }
+                } else {
+                    let error = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the release\n--more";
+                    element_error_with_snippet(element, &manifest_path, error);
+                }
+            }
             "release_artist" => 'release_artist: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {
@@ -244,18 +256,6 @@ pub fn read_release_manifest(
 
                 let error = "tags needs to be provided either as a field with a value (allowed are 'copy', 'normalize' and 'remove') - e.g.: 'tags: copy' - or as a field with attributes, e.g.:\n\ntags:\ntitle = copy\nartist = rewrite\nalbum_artist = remove";
                 element_error_with_snippet(element, &manifest_path, error);
-            }
-            "text" => {
-                if let Ok(embed) = element.as_embed() {
-                    if let Some(value) = embed.value() {
-                        overrides.release_text = Some(markdown::to_html_and_stripped(&build.base_url, value));
-                    } else {
-                        overrides.release_text = None;
-                    }
-                } else {
-                    let error = "text needs to be provided as an embed, e.g.:\n-- text\nThe text about the release\n--text";
-                    element_error_with_snippet(element, &manifest_path, error);
-                }
             }
             "title" => 'title: {
                 if let Ok(field) = element.as_field() {

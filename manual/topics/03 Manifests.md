@@ -57,11 +57,11 @@ archive_downloads:
 - mp3
 - opus
 
--- text
+-- more
 Recorded in the summer of '94 at West Callaghan Ranch, XE.
 
 Featuring Ted Tukowsky on Trombone and Lisa Merringfield on Theremin.
--- text
+-- more
 ```
 
 For details on the syntax used in the manifest files see the eno language

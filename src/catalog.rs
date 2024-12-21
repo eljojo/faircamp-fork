@@ -66,14 +66,14 @@ pub struct Catalog {
     /// Whether an m3u playlist should be generated and provided for the entire catalog
     pub m3u: bool,
     pub main_artists: Vec<ArtistRc>,
-    /// Optional override label for the button that (by default) says "More" on the
-    /// catalog homepage and points to the long-form catalog text on the homepage.
+    pub more: Option<HtmlAndStripped>,
+    /// Optional custom label for the button that (by default) says "More" on the
+    /// catalog homepage and points to additional long-form content for the catalog.
     pub more_label: Option<String>,
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
     pub support_artists: Vec<ArtistRc>,
     pub synopsis: Option<String>,
-    pub text: Option<HtmlAndStripped>,
     pub theme: Theme,
     title: Option<String>
 }
@@ -323,12 +323,12 @@ impl Catalog {
             links: Vec::new(),
             m3u: false,
             main_artists: Vec::new(),
+            more: None,
             more_label: None,
             releases: Vec::new(),
             show_support_artists: false,
             support_artists: Vec::new(),
             synopsis: None,
-            text: None,
             theme: Theme::new(),
             title: None
         }
@@ -840,6 +840,7 @@ impl Catalog {
                     mem::take(&mut local_options.links),
                     merged_overrides.m3u_enabled,
                     main_artists_to_map,
+                    merged_overrides.release_more.clone(),
                     merged_overrides.more_label.clone(),
                     local_options.permalink.take(),
                     release_dir_relative_to_catalog,
@@ -847,7 +848,6 @@ impl Catalog {
                     support_artists_to_map,
                     merged_overrides.release_synopsis.clone(),
                     merged_overrides.tag_agenda.clone(),
-                    merged_overrides.release_text.clone(),
                     merged_overrides.theme.clone(),
                     title.to_string(),
                     merged_overrides.track_numbering.clone(),
