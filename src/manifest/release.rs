@@ -37,11 +37,11 @@ const RELEASE_OPTIONS: &[&str] = &[
     "cover",
     "date",
     "m3u",
+    "more",
     "release_artist",
     "release_artists",
     "synopsis",
     "tags",
-    "text",
     "title",
     "unlisted"
 ];

@@ -36,8 +36,8 @@ pub fn read_catalog_release_option(
             if let Ok(field) = element.as_field() {
                 if let Ok(attributes) = field.attributes() {
                     let mut aliases = Vec::new();
+                    let mut external_page = None;
                     let mut name = None;
-                    let mut link = None;
                     let mut permalink = None;
 
                     for attribute in attributes {
@@ -47,12 +47,12 @@ pub fn read_catalog_release_option(
                                     aliases.push(value.to_string());
                                 }
                             }
-                            "link" => {
+                            "external_page" => {
                                 if let Some(value) = attribute.value() {
                                     match Url::parse(value) {
-                                        Ok(parsed_url) => link = Some(parsed_url),
+                                        Ok(url) => external_page = Some(url),
                                         Err(err) => {
-                                            let message = format!("The url supplied for the link seems to be malformed ({err})");
+                                            let message = format!("The url supplied for the external_page option seems to be malformed ({err})");
                                             let error = attribute_error_with_snippet(attribute, manifest_path, &message);
                                             build.error(&error);
                                         }
@@ -88,7 +88,7 @@ pub fn read_catalog_release_option(
                         let artist = Artist::new_shortcut(
                             aliases,
                             catalog,
-                            link,
+                            external_page,
                             &name,
                             permalink
                         );

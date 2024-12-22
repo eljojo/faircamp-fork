@@ -71,18 +71,18 @@ base_hue = 180
 ## <a name="artist"></a> `artist`
 
 The artist field is a shortcut (with limited options) to define artists
-without creating an explicit artist directory and `artist.eno` manifest.
-It is especially useful for creating external artists - those that
-appear only on some tracks/releases but have their own page outside of the
-faircamp page they are featured on. You can (but don't have to) use the
-`link` attribute to set an external page, in that case the artist's name,
-wherever it appears, is always linked to that external page (and no
+without creating an explicit artist directory and `artist.eno` manifest. It
+is especially useful for creating external artists - those that appear only
+on some tracks/releases but have their own website away from the faircamp
+page they are featured on. You can (but don't have to) use the
+`external_page` attribute to set an external page, in that case the artist's
+name, wherever it appears, is always linked to that external page (and no
 distinct page is rendered for the artist on the faircamp site).
 
 ```eno
 artist:
 name = Alice
-link = https://example.com
+external_page = https://example.com
 alias = Älice
 alias = Älicë
 ```
@@ -98,7 +98,7 @@ permalink = alice-artist
 ```
 
 For defining an artist with all options see the documentation for
-`artist.eno` manifests.
+[artist.eno](artists-artist-eno.html) manifests.
 
 ## <a name="base_url"></a> `base_url`
 

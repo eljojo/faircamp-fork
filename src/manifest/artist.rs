@@ -5,6 +5,8 @@ use std::fs;
 use std::mem;
 use std::path::Path;
 
+use url::Url;
+
 use crate::{
     Artist,
     ArtistRc,
@@ -32,9 +34,10 @@ use super::{
 const ARTIST_OPTIONS: &[&str] = &[
     "alias",
     "aliases",
+    "external_page",
     "image",
-    "name",
-    "text"
+    "more",
+    "name"
 ];
 
 pub fn read_artist_manifest(
@@ -65,6 +68,7 @@ pub fn read_artist_manifest(
     };
 
     let mut aliases = Vec::new();
+    let mut external_page = None;
     let mut more = None;
     // By default we use the folder name as name
     let mut name = dir.file_name().unwrap().to_string_lossy().to_string();
@@ -97,6 +101,28 @@ pub fn read_artist_manifest(
                 }
 
                 let message = "aliases needs to be provided as a field containing items, e.g.:\n\naliases:\n- Älice\n- Älicë";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
+            }
+            "external_page" => 'external_page: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            match Url::parse(value) {
+                                Ok(url) => external_page = Some(url),
+                                Err(err) => {
+                                    let message = format!("The url supplied for the external_page option seems to be malformed ({err})");
+                                    let error = element_error_with_snippet(element, &manifest_path, &message);
+                                    build.error(&error);
+                                }
+                            }
+                        }
+
+                        break 'external_page;
+                    }
+                }
+
+                let message = "external_page must be provided as a field with a value, e.g. 'external_page: https://example.com'";
                 let error = element_error_with_snippet(element, &manifest_path, message);
                 build.error(&error);
             }
@@ -193,6 +219,7 @@ pub fn read_artist_manifest(
     let artist = Artist::new_manual(
         aliases,
         overrides.copy_link,
+        external_page,
         image,
         mem::take(&mut local_options.links),
         more,

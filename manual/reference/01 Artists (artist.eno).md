@@ -5,7 +5,7 @@
 
 # Artist manifests – artist.eno
 
-> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [image](#image), [link](#link), [more](#more), [more_label](#more_label), [name](#name), [permalink](#permalink), [theme](#theme)
+> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [external_page](#external_page), [image](#image), [link](#link), [more](#more), [more_label](#more_label), [name](#name), [permalink](#permalink), [theme](#theme)
 
 Artists are automatically created by faircamp when they are encountered in
 audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
@@ -76,6 +76,26 @@ single releases or groups of releases in their manifests.
 ```eno
 copy_link: disabled
 ```
+
+## <a name="external_page"></a> `external_page`
+
+Artists that appear only on some tracks/releases but have their own website
+away from the faircamp page they are featured on, can be linked to that page
+through this option. In that case the artist's name, wherever it appears, is
+always linked to that external page (and no distinct page is rendered for the
+artist on the faircamp site). To re-emphasize: Activating this will discard
+the `permalink`, `synopsis`, `more`, etc. options for this artist - the artist
+will just be linked to an external page everywhere, but not get their own on
+the faircamp site itself.
+
+```eno
+external_page: https://example.com
+```
+
+When using this option, it often makes more sense to use a shortcut artist
+definition using the [artist](catalog-catalog-eno.html#artist) field in a
+[catalog.eno](catalog-catalog-eno.html) or [release.eno](releases-release-eno.html)
+manifest.
 
 ## <a name="image"></a> `image`
 

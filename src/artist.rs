@@ -74,6 +74,7 @@ impl Artist {
     pub fn new_manual(
         aliases: Vec<String>,
         copy_link: bool,
+        external_page: Option<Url>,
         image: Option<DescribedImage>,
         links: Vec<Link>,
         more: Option<HtmlAndStripped>,
@@ -87,7 +88,7 @@ impl Artist {
         Artist {
             aliases,
             copy_link,
-            external_page: None,
+            external_page,
             featured: false,
             image,
             links,

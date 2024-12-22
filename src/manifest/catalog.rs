@@ -46,11 +46,11 @@ const CATALOG_OPTIONS: &[&str] = &[
     "label_mode",
     "language",
     "m3u",
+    "more",
     "rotate_download_urls",
     "show_support_artists",
     "synopsis",
-    "title",
-    "text"
+    "title"
 ];
 
 pub fn read_catalog_manifest(
