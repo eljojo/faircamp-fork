@@ -297,9 +297,7 @@ impl Release {
 
                 util::ensure_dir(&format_dir);
 
-                let archives_unwrapped = self.archives.as_ref().unwrap(); // at this point guaranteed to be available (delayed initialization)
-                let mut archives_mut = archives_unwrapped.borrow_mut();
-                let has_cached_archive_asset = archives_mut.has(download_format);
+                let generate_archive = write_archive && !self.archives.as_ref().unwrap().borrow().has(download_format);
 
                 let cover_path = self.cover
                     .as_ref()
@@ -313,7 +311,7 @@ impl Release {
 
                 for (track, tag_mapping) in self.tracks.iter_mut().zip(tag_mappings.iter()) {
                     // Transcode track to required format if needed and not yet available
-                    if (write_archive && !has_cached_archive_asset || write_tracks) &&
+                    if (generate_archive || write_tracks) &&
                         !track.transcodes.borrow().has(download_format.as_audio_format(), generic_hash(&tag_mapping)) {
                         if download_format.is_lossless() && !track.transcodes.borrow().source_meta.lossless {
                             warn_discouraged!(
@@ -380,8 +378,11 @@ impl Release {
 
                 // If entire release downloads are enabled we copy the release archive to the build
                 if write_archive {
+                    let archives_ref = self.archives.as_ref().unwrap();
+                    let mut archives_mut = archives_ref.borrow_mut();
+
                     // Create zip for required format if not yet available
-                    if !has_cached_archive_asset {
+                    if generate_archive {
                         let cached_archive_filename = format!("{}.zip", util::uid());
 
                         info_zipping!(
