@@ -101,7 +101,7 @@ fn main() {
         return;
     }
 
-    info!("Build process started. You can safely terminate faircamp at any point - progress is continuously saved and the next build will continue where the previous left off!");
+    info!("You can safely terminate faircamp at any point (using Ctrl+C) - all progress is continuously saved and new builds always continue where the previous build left off.");
 
     let mut cache = Cache::retrieve(&build);
     
