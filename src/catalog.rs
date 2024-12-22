@@ -352,7 +352,8 @@ impl Catalog {
         catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default());
 
         if build.errors > 0 && !build.ignore_errors {
-            warn!("Building was aborted because errors were encountered while reading the catalog. You can run faircamp with --ignore-errors if you want building to continue in spite of errors.");
+            info!("Build was aborted because {} errors were encountered while reading the catalog.", build.errors);
+            info!("You can run faircamp with --ignore-errors if you want to build in spite of errors.");
             return Err(());
         }
 
