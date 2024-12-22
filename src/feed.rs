@@ -36,15 +36,14 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
                 main_artists
             };
 
-            let item_description = release_ref.more
-                .as_ref()
-                .map(|html_and_stripped|
-                    format!(
-                        "<description>{}</description>",
-                        html_escape_outside_attribute(html_and_stripped.stripped.as_str())
-                    )
-                )
-                .unwrap_or(String::new());
+            let item_description = if let Some(synopsis) = &release_ref.synopsis {
+                format!("<description>{synopsis}</description>")
+            } else if let Some(html_and_stripped) = &release_ref.more {
+                let more_stripped = html_escape_outside_attribute(html_and_stripped.stripped.as_str());
+                format!("<description>{more_stripped}</description>")
+            } else {
+                String::new()
+            };
 
             let item_title = format!("{artists_list} – {}", release_ref.title);
 
@@ -61,12 +60,17 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
         .collect::<Vec<String>>()
         .join("\n");
 
-    let channel_description = catalog.more
-        .as_ref()
-        .map(|html_and_stripped| html_escape_outside_attribute(html_and_stripped.stripped.as_str()))
-        // TODO: Translate and/or reconsider content (e.g. integrate artist list in label mode?)
+    let channel_description = if let Some(synopsis) = &catalog.synopsis {
+        format!("<description>{synopsis}</description>")
+    } else if let Some(html_and_stripped) = &catalog.more {
+        let more_stripped = html_escape_outside_attribute(html_and_stripped.stripped.as_str());
+        format!("<description>{more_stripped}</description>")
+    } else {
+        // TODO: Eventually find something better to fallback to.
         // Note that this is a mandatory field in RSS (https://www.rssboard.org/rss-specification#requiredChannelElements)
-        .unwrap_or(String::from("A faircamp-based music catalog"));
+        let version = env!("CARGO_PKG_VERSION");
+        format!("Faircamp {version}")
+    };
 
     let channel_title = catalog.title();
 
