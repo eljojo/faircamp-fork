@@ -297,7 +297,7 @@ pub fn read_obsolete_theme_attribute(
             let error = attribute_error_with_snippet(attribute, manifest_path, message);
             build.error(&error);
         }
-        "round_corners" => {
+        "round_corners" if attribute.value().is_none() => {
             let message = "Since faircamp 1.0, 'round_corners' must be specified with the value 'enabled', e.g.:'\ntheme:\nround_corners = enabled";
             let error = attribute_error_with_snippet(attribute, manifest_path, message);
             build.error(&error);
