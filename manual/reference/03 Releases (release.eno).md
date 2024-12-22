@@ -5,7 +5,7 @@
 
 # Release manifests – release.eno
 
-> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [copy_link](#copy_link), [date](#date), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_artist(s)](#release_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlisted](#unlisted), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [copy_link](#copy_link), [date](#date), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_artist(s)](#release_artists), [release_downloads](#release_downloads), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlisted](#unlisted), [unlock_info](#unlock_info)
 
 In your release manifests you can specify options that apply to
 a specific release only. Simply create a (plain text) file called
@@ -25,7 +25,7 @@ date: 2019-11-03
 
 release_artist: Heston Exchange
 
-archive_downloads:
+release_downloads:
 - flac
 - mp3
 - opus
@@ -77,44 +77,6 @@ cover: "cover.jpg" before "front.jpg" before "album.jpg", and after that it
 will pick randomly. Note that it can also be ".png" or another format, only
 the filename before the extension is considered, and case is disregarded as
 well, so it can also be "Cover.jpg", for instance.
-
-## <a name="archive_downloads"></a> `archive_downloads`
-
-Sets the formats in which entire releases can be downloaded
-as a (zip) archive. By default none are specified, so this needs
-to be set in order to enable downloads for the entire release.
-
-To set a single download format:
-
-```eno
-archive_downloads: flac
-```
-
-To set multiple download formats:
-
-```eno
-archive_downloads:
-- flac
-- mp3
-- opus
-```
-
-All currently available formats:
-- `aac`
-- `aiff`
-- `alac`
-- `flac`
-- `mp3`
-- `ogg_vorbis`
-- `opus` (this is an alias for `opus_128`)
-- `opus_48`
-- `opus_96`
-- `opus_128`
-- `wav`
-
-In practice a minimal combination of a lossy state of the art format
-(e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
-lossless format (e.g. `flac`) is recommended.
 
 ## <a name="artist"></a> `artist`
 
@@ -196,7 +158,7 @@ alongside the code input prompt.
 By default your visitors can only stream your releases.
 
 To enable simple free downloads all you need to do is set one or more download
-formats with the [archive_downloads](#archive_downloads) and/or
+formats with the [release_downloads](#release_downloads) and/or
 [track_downloads](#track_downloads) option.
 
 The `downloads` option gives you further control over the general download
@@ -457,6 +419,44 @@ release_artists:
 - Alice
 - Bob
 ```
+
+## <a name="release_downloads"></a> `release_downloads`
+
+Sets the formats in which entire releases can be downloaded
+as a (zip) archive. By default none are specified, so this needs
+to be set in order to enable downloads for the entire release.
+
+To set a single download format:
+
+```eno
+release_downloads: flac
+```
+
+To set multiple download formats:
+
+```eno
+release_downloads:
+- flac
+- mp3
+- opus
+```
+
+All currently available formats:
+- `aac`
+- `aiff`
+- `alac`
+- `flac`
+- `mp3`
+- `ogg_vorbis`
+- `opus` (this is an alias for `opus_128`)
+- `opus_48`
+- `opus_96`
+- `opus_128`
+- `wav`
+
+In practice a minimal combination of a lossy state of the art format
+(e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
+lossless format (e.g. `flac`) is recommended.
 
 ## <a name="streaming_quality"></a> `streaming_quality`
 

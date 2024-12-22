@@ -42,8 +42,8 @@ pub fn download_html(
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
 
-    let mut archive_formats_sorted = downloads_config.archive_formats.clone();
-    archive_formats_sorted.sort_by_key(|format| format.download_rank());
+    let mut release_formats_sorted = downloads_config.release_formats.clone();
+    release_formats_sorted.sort_by_key(|format| format.download_rank());
 
     let mut track_formats_sorted = downloads_config.track_formats.clone();
     track_formats_sorted.sort_by_key(|format| format.download_rank());
@@ -79,8 +79,8 @@ pub fn download_html(
         root_prefix,
     );
 
-    let archive_downloads = if !archive_formats_sorted.is_empty() {
-        let release_downloads = archive_formats_sorted
+    let release_downloads = if !release_formats_sorted.is_empty() {
+        let release_downloads = release_formats_sorted
             .iter()
             .map(|download_format| {
                 let release_slug = &release.permalink.slug;
@@ -244,7 +244,7 @@ pub fn download_html(
                         <h1>{t_downloads}</h1>
 
                         {compact_release_identifier_rendered}
-                        {archive_downloads}
+                        {release_downloads}
                         {track_downloads}
                         {extra_downloads}
 

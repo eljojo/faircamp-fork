@@ -151,7 +151,7 @@ impl Release {
     /// makes or breaks finding cached archives.
     pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
         if let Downloads::Enabled { downloads_config, .. } = &self.downloads {
-            if !downloads_config.archive_formats.is_empty() {
+            if !downloads_config.release_formats.is_empty() {
                 let mut hasher = DefaultHasher::new();
 
                 // TODO: Consider further if there are aspects of the dependency graph missing

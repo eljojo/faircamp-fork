@@ -59,7 +59,7 @@ downloads: paycurtain
 > the download format for all of them. As each of them
 > has a different price, that setting is individually set
 > in each of the .eno files alongside the releases.
-archive_downloads: flac
+release_downloads: flac
 
 > For each release these two payment options will be shown,
 > as the settings here apply to all releases

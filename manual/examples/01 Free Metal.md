@@ -39,7 +39,7 @@ home_image:
 description = The band, looking tough
 file = so-tough.jpg
 
-archive_downloads:
+release_downloads:
 - opus
 - mp3
 

@@ -63,7 +63,7 @@ cover:
 description = My dog Winston with a paper party hat (he's tiny)
 file = ep-cover.png
 
-archive_downloads:
+release_downloads:
 - flac
 - mp3
 - opus

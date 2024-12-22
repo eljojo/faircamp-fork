@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [archive_downloads](#archive_downloads), [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -33,7 +33,7 @@ embedding: disabled
 m3u: enabled
 more_label: About
 
-archive_downloads:
+release_downloads:
 - flac
 - mp3
 - opus
@@ -67,45 +67,6 @@ base = light
 base_chroma = 34
 base_hue = 180
 ```
-
-## <a name="archive_downloads"></a> `archive_downloads`
-
-
-Sets the formats in which entire releases can be downloaded
-as a (zip) archive. By default none are specified, so this needs
-to be set in order to enable downloads for the entire release.
-
-To set a single download format:
-
-```eno
-archive_downloads: flac
-```
-
-To set multiple download formats:
-
-```eno
-archive_downloads:
-- flac
-- mp3
-- opus
-```
-
-All currently available formats:
-- `aac`
-- `aiff`
-- `alac`
-- `flac`
-- `mp3`
-- `ogg_vorbis`
-- `opus` (this is an alias for `opus_128`)
-- `opus_48`
-- `opus_96`
-- `opus_128`
-- `wav`
-
-In practice a minimal combination of a lossy state of the art format
-(e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
-lossless format (e.g. `flac`) is recommended.
 
 ## <a name="artist"></a> `artist`
 
@@ -230,7 +191,7 @@ that is displayed alongside the code input prompt.
 By default your visitors can only stream your releases.
 
 To enable simple free downloads all you need to do is set one or more download
-formats with the [archive_downloads](#archive_downloads) and/or
+formats with the [release_downloads](#release_downloads) and/or
 [track_downloads](#track_downloads) option.
 
 The `downloads` option gives you further control over the general download
@@ -615,6 +576,45 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 - `KRW 9080` (Exactly 9080 south korean won)
 - `INR 230+` (230 indian rupees or more)
 - `JPY 400-800` (Between 400 and 800 japanese yen)
+
+## <a name="release_downloads"></a> `release_downloads`
+
+
+Sets the formats in which entire releases can be downloaded
+as a (zip) archive. By default none are specified, so this needs
+to be set in order to enable downloads for the entire release.
+
+To set a single download format:
+
+```eno
+release_downloads: flac
+```
+
+To set multiple download formats:
+
+```eno
+release_downloads:
+- flac
+- mp3
+- opus
+```
+
+All currently available formats:
+- `aac`
+- `aiff`
+- `alac`
+- `flac`
+- `mp3`
+- `ogg_vorbis`
+- `opus` (this is an alias for `opus_128`)
+- `opus_48`
+- `opus_96`
+- `opus_128`
+- `wav`
+
+In practice a minimal combination of a lossy state of the art format
+(e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
+lossless format (e.g. `flac`) is recommended.
 
 ## <a name="show_support_artists"></a> `show_support_artists`
 

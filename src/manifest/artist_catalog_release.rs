@@ -32,7 +32,6 @@ use super::{
 };
 
 pub const ARTIST_CATALOG_RELEASE_OPTIONS: &[&str] = &[
-    "archive_downloads",
     "download_code",
     "download_codes",
     "downloads",
@@ -42,6 +41,7 @@ pub const ARTIST_CATALOG_RELEASE_OPTIONS: &[&str] = &[
     "more_label",
     "payment_info",
     "price",
+    "release_downloads",
     "streaming_quality",
     "theme",
     "track_artist",
@@ -62,51 +62,6 @@ pub fn read_artist_catalog_release_option(
     overrides: &mut Overrides
 ) -> bool {
     match element.key() {
-        "archive_downloads" => 'archive_downloads: {
-            if let Ok(field) = element.as_field() {
-                if let Ok(result) = field.value() {
-                    if let Some(value) = result {
-                        // TODO: Implement via FromStr
-                        match DownloadFormat::from_manifest_key(value) {
-                            Some(format) => overrides.downloads_config.archive_formats = vec![format],
-                            None => {
-                                let message = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
-                                let error = element_error_with_snippet(element, manifest_path, &message);
-                                build.error(&error);
-                            }
-                        }
-                    }
-
-                    break 'archive_downloads;
-                } else if let Ok(items) = field.items() {
-                    overrides.downloads_config.archive_formats = items
-                        .iter()
-                        .filter_map(|item| {
-                            match item.value() {
-                                Some(value) => {
-                                    match DownloadFormat::from_manifest_key(value) {
-                                        Some(format) => Some(format),
-                                        None => {
-                                            let message = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
-                                            let error = item_error_with_snippet(item, manifest_path, &message);
-                                            build.error(&error);
-                                            None
-                                        }
-                                    }
-                                }
-                                None => None
-                            }
-                        })
-                        .collect();
-
-                    break 'archive_downloads;
-                }
-            }
-
-            let message = "archive_downloads needs to be provided either as a field with a value (e.g. 'archive_downloads: mp3') or as a field with items, e.g.:\n\narchive_downloads:\n- mp3\n- flac\n- opus\n\n(All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')";
-            let error = element_error_with_snippet(element, manifest_path, message);
-            build.error(&error);
-        }
         "download_code" => 'download_code: {
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {
@@ -394,6 +349,51 @@ pub fn read_artist_catalog_release_option(
             }
 
             let message = "price needs to be provided as a field with a currency and price (range) value, e.g.: 'price: USD 0+', 'price: 3.50 GBP', 'price: INR 230+' or 'price: JPY 400-800'";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
+        }
+        "release_downloads" => 'release_downloads: {
+            if let Ok(field) = element.as_field() {
+                if let Ok(result) = field.value() {
+                    if let Some(value) = result {
+                        // TODO: Implement via FromStr
+                        match DownloadFormat::from_manifest_key(value) {
+                            Some(format) => overrides.downloads_config.release_formats = vec![format],
+                            None => {
+                                let message = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
+                            }
+                        }
+                    }
+
+                    break 'release_downloads;
+                } else if let Ok(items) = field.items() {
+                    overrides.downloads_config.release_formats = items
+                        .iter()
+                        .filter_map(|item| {
+                            match item.value() {
+                                Some(value) => {
+                                    match DownloadFormat::from_manifest_key(value) {
+                                        Some(format) => Some(format),
+                                        None => {
+                                            let message = format!("The download format '{value}' is not supported (All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')");
+                                            let error = item_error_with_snippet(item, manifest_path, &message);
+                                            build.error(&error);
+                                            None
+                                        }
+                                    }
+                                }
+                                None => None
+                            }
+                        })
+                        .collect();
+
+                    break 'release_downloads;
+                }
+            }
+
+            let message = "release_downloads needs to be provided either as a field with a value (e.g. 'release_downloads: mp3') or as a field with items, e.g.:\n\nrelease_downloads:\n- mp3\n- flac\n- opus\n\n(All available formats: 'aac', 'aiff', 'alac', 'flac', 'mp3', 'ogg_vorbis', 'opus', 'opus_48', 'opus_96', 'opus_128' and 'wav')";
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }

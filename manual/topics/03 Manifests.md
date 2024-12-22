@@ -53,7 +53,7 @@ cover:
 description = An ink drawing of a barren tree with monkeys in its branches
 file = cover.jpg
 
-archive_downloads:
+release_downloads:
 - mp3
 - opus
 

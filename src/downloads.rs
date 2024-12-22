@@ -44,8 +44,8 @@ pub enum Downloads {
 
 #[derive(Clone, Debug)]
 pub struct DownloadsConfig {
-    pub archive_formats: Vec<DownloadFormat>,
     pub extra_downloads: ExtraDownloads,
+    pub release_formats: Vec<DownloadFormat>,
     pub track_formats: Vec<DownloadFormat>
 }
 
@@ -63,7 +63,7 @@ pub struct Price {
 
 impl DownloadsConfig {
     pub fn all_formats(&self) -> Vec<DownloadFormat> {
-        let mut all_formats = self.archive_formats.clone();
+        let mut all_formats = self.release_formats.clone();
 
         for format in &self.track_formats {
             if !all_formats.contains(format) {
@@ -76,7 +76,7 @@ impl DownloadsConfig {
 
     /// (format, write_archive, write_tracks)
     pub fn all_formats_for_writing(&self) -> Vec<(DownloadFormat, bool, bool)> {
-        let mut all_specs: Vec<(DownloadFormat, bool, bool)> = self.archive_formats
+        let mut all_specs: Vec<(DownloadFormat, bool, bool)> = self.release_formats
             .iter()
             .map(|format| (*format, true, false))
             .collect();
@@ -100,8 +100,8 @@ impl DownloadsConfig {
 
     pub fn default() -> DownloadsConfig {
         DownloadsConfig {
-            archive_formats: Vec::new(),
             extra_downloads: ExtraDownloads::BUNDLED,
+            release_formats: Vec::new(),
             track_formats: Vec::new()
         }
     }
@@ -110,7 +110,7 @@ impl DownloadsConfig {
     /// download, this download config provides no downloads at all, and this
     /// is the check for that condition.
     pub fn is_empty(&self) -> bool {
-        self.archive_formats.is_empty() &&
+        self.release_formats.is_empty() &&
         self.track_formats.is_empty() &&
         !self.extra_downloads.separate
     }

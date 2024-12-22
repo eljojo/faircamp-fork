@@ -66,7 +66,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                             DownloadAccess::Paycurtain { .. } => "Paycurtain"
                         };
 
-                        let r_formats = format!("({} archive formats/{} track formats)", downloads_config.archive_formats.len(), downloads_config.track_formats.len());
+                        let r_formats = format!("({} release formats/{} track formats)", downloads_config.release_formats.len(), downloads_config.track_formats.len());
 
                         format!("{r_access} {r_formats}")
                     }

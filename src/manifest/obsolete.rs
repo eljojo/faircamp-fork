@@ -86,12 +86,12 @@ pub fn read_obsolete_option(
         }
         "format" |
         "formats" => {
-            let message = "Since faircamp 1.0, the 'format' and 'formats' fields have been renamed to 'archive_downloads' (respectively 'track_downloads' to now separately specify the format(s) for single track downloads).";
+            let message = "Since faircamp 1.0, the 'format' and 'formats' fields have been renamed to 'release_downloads' (respectively 'track_downloads' to now separately specify the format(s) for single track downloads).";
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
         "free" => {
-            let message = "Since faircamp 1.0, free downloads have become the default (but explicit declaration is still possible with 'downloads: free') - you now only need to set download formats with 'archive_downloads' (replaces the previous 'format(s)' option) or 'track_downloads' (now enables specific format choices for single track downloads) to enable free downloads.";
+            let message = "Since faircamp 1.0, free downloads have become the default (but explicit declaration is still possible with 'downloads: free') - you now only need to set download formats with 'release_downloads' (replaces the previous 'format(s)' option) or 'track_downloads' (now enables specific format choices for single track downloads) to enable free downloads.";
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
