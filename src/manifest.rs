@@ -45,7 +45,7 @@ pub use catalog_release::{
     CATALOG_RELEASE_OPTIONS,
     read_catalog_release_option
 };
-pub use obsolete::read_obsolete_option;
+pub use obsolete::{read_obsolete_option, read_obsolete_theme_attribute};
 pub use release::read_release_manifest;
 
 /// Options specified in a manifest that only apply to everything found in the

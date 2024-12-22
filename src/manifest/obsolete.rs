@@ -3,15 +3,19 @@
 
 use std::path::Path;
 
-use enolib::SectionElement;
+use enolib::{Attribute, SectionElement};
 
 use crate::Build;
 
-use super::element_error_with_snippet;
+use super::{
+    attribute_error_with_snippet,
+    element_error_with_snippet
+};
 
 // TODO: Occasionally remove some of these, ideally at some point remove the
 // whole thing when everything becomes completely stable.
 // (rough timeline: 0.16.0 was released in summer 2024, 1.0 in december 2024)
+
 pub fn read_obsolete_option(
     build: &mut Build,
     element: &Box<dyn SectionElement>,
@@ -146,6 +150,11 @@ pub fn read_obsolete_option(
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
+        "round_corners" => {
+            let message = "Since faircamp 1.0, 'round_corners' must be specified inside a theme field as an attribute with the value 'enabled', e.g.:'\ntheme:\nround_corners = enabled";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
+        }
         "single_files" => {
             let message = "Since faircamp 1.0, the 'single_files' option has been removed, instead you now can use the 'track_downloads' option to directly enable/pick the formats in which you want to offer single file downloads, e.g. 'track_downloads: mp3' or for multiple:\ntrack_downloads:\n- flac\n- mp3\n- opus";
             let error = element_error_with_snippet(element, manifest_path, message);
@@ -166,6 +175,11 @@ pub fn read_obsolete_option(
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
+        "theme" if element.is_section() => {
+            let message = "Since faircamp 1.0, the \"# theme\" section needs to be provided as a field with attributes, e.g:\n\ntheme:\nbase = light\ndynamic_range = 13\nround_corners = enabled";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
+        }
         "tint_back" => {
             let message = "Since faircamp 0.16.0, theming works differently and the tint_back setting needs to be replaced (the base_chroma attribute in the theme field is the closest alternative)";
             let error = element_error_with_snippet(element, manifest_path, message);
@@ -179,6 +193,61 @@ pub fn read_obsolete_option(
         "unlock_text" => {
             let message = "Since faircamp 1.0, the name of the 'unlock_text' option has changed to 'unlock_info'.";
             let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
+        }
+        _ => return false
+    }
+
+    true
+}
+
+pub fn read_obsolete_theme_attribute(
+    build: &mut Build,
+    attribute: &Attribute,
+    manifest_path: &Path
+) -> bool {
+
+    // IMPORTANT:
+    // Make sure that this does not "over-consume"!
+    // Only elements that are clearly obsolete (e.g. because it's a section,
+    // or because the key is not in use anymore _at all_ can be matched here,
+    // everything else needs to be ignored, else it shadows real fields that
+    // should be regularly processed)
+
+    match attribute.key() {
+        "link_brightness" => {
+            let message = "Since faircamp 0.16.0, theming works differently and the link_brightness setting needs to be replaced (the dynamic_range attribute is somewhat similar in function now)";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
+            build.error(&error);
+        }
+        "link_hue" => {
+            let message = "Since faircamp 0.16.0, theming works differently and the link_hue setting needs to be replaced (the base_hue attribute is the closest alternative)";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
+            build.error(&error);
+        }
+        "link_saturation" => {
+            let message = "Since faircamp 0.16.0, theming works differently and the link_saturation setting needs to be replaced (the base_chroma attribute is the closest alternative)";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
+            build.error(&error);
+        }
+        "round_corners" => {
+            let message = "Since faircamp 1.0, 'round_corners' must be specified with the value 'enabled', e.g.:'\ntheme:\nround_corners = enabled";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
+            build.error(&error);
+        }
+        "text_hue" => {
+            let message = "Since faircamp 0.16.0, theming works differently and the text_hue setting needs to be replaced (the base_hue attribute is the closest alternative)";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
+            build.error(&error);
+        }
+        "tint_back" => {
+            let message = "Since faircamp 0.16.0, theming works differently and the tint_back setting needs to be replaced (the base_chroma attribute is the closest alternative)";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
+            build.error(&error);
+        }
+        "tint_front" => {
+            let message = "Since faircamp 0.16.0, theming works differently and the tint_front setting needs to be replaced (the base_chroma and dynamic_range attributes in combination serve a similar purpose)";
+            let error = attribute_error_with_snippet(attribute, manifest_path, message);
             build.error(&error);
         }
         _ => return false

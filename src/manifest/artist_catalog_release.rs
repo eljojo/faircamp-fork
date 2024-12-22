@@ -28,7 +28,8 @@ use crate::markdown;
 use super::{
     attribute_error_with_snippet,
     element_error_with_snippet,
-    item_error_with_snippet
+    item_error_with_snippet,
+    read_obsolete_theme_attribute
 };
 
 pub const ARTIST_CATALOG_RELEASE_OPTIONS: &[&str] = &[
@@ -423,6 +424,7 @@ pub fn read_artist_catalog_release_option(
                 if let Ok(attributes) = field.attributes() {
                     for attribute in attributes {
                         match attribute.key() {
+                            _ if read_obsolete_theme_attribute(build, attribute, &manifest_path) => (),
                             "accent_brightening" => {
                                 if let Some(value) = attribute.value() {
                                     match value.parse::<u8>().ok().filter(|percentage| *percentage <= 100) {
