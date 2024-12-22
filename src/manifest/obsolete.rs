@@ -13,7 +13,7 @@ use super::element_error_with_snippet;
 // whole thing when everything becomes completely stable.
 // (rough timeline: 0.16.0 was released in summer 2024, 1.0 in december 2024)
 pub fn read_obsolete_option(
-    build: &Build,
+    build: &mut Build,
     element: &Box<dyn SectionElement>,
     manifest_path: &Path
 ) -> bool {
@@ -27,129 +27,159 @@ pub fn read_obsolete_option(
 
     match element.key() {
         "artist" if element.is_field() && element.as_field().unwrap().has_value() => {
-            let error = "Since faircamp 1.0, the original 'artist' field (used to set the artist of a release) has been renamed to 'release_artist'. If you meant to use the new 'artist' field (which is a short-hand for defining an artist) you need to use a field with attributes, e.g.:\n\nartist:\nname = Alice\nlink = https://example.com\nalias = Älice\nalias = Älicë";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the original 'artist' field (used to set the artist of a release) has been renamed to 'release_artist'. If you meant to use the new 'artist' field (which is a short-hand for defining an artist) you need to use a field with attributes, e.g.:\n\nartist:\nname = Alice\nlink = https://example.com\nalias = Älice\nalias = Älicë";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "artist" if element.is_section() => {
             if manifest_path.ends_with("artist.eno") {
-                let error = "Since faircamp 1.0, '# artist' sections are not required anymore - just remove the line '# artist'";
-                element_error_with_snippet(element, manifest_path, error);
+                let message = "Since faircamp 1.0, '# artist' sections are not required anymore - just remove the line '# artist'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             } else {
-                let error = "Since faircamp 1.0, '# artist' sections are not used anymore. Remove the line '# artist', and move all options below to a file called 'artist.eno', inside a separate directory dedicated to the artist only";
-                element_error_with_snippet(element, manifest_path, error);
+                let message = "Since faircamp 1.0, '# artist' sections are not used anymore. Remove the line '# artist', and move all options below to a file called 'artist.eno', inside a separate directory dedicated to the artist only";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             }
         }
         "artists" if element.is_field() => {
-            let error = "Since faircamp 1.0, the 'artists' field (used to set the artists of a release) has been renamed to 'release_artists'.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the 'artists' field (used to set the artists of a release) has been renamed to 'release_artists'.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "cache" if element.is_section() => {
-            let error = r##"Since faircamp 0.16.0, the "# cache ... " section was merged into the catalog manifest as the "cache_optimization: delayed|immediate|wipe|manual" option, please move and adapt the current definition accordingly."##;
-            element_error_with_snippet(element, manifest_path, error);
+            let message = r##"Since faircamp 0.16.0, the "# cache ... " section was merged into the catalog manifest as the "cache_optimization: delayed|immediate|wipe|manual" option, please move and adapt the current definition accordingly."##;
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "catalog" if element.is_section() => {
             if manifest_path.ends_with("catalog.eno") && manifest_path.parent().unwrap() == build.catalog_dir {
-                let error = "Since faircamp 1.0, '# catalog' sections are not required anymore - just remove the line '# catalog'";
-                element_error_with_snippet(element, manifest_path, error);
+                let message = "Since faircamp 1.0, '# catalog' sections are not required anymore - just remove the line '# catalog'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             } else {
-                let error = "Since faircamp 1.0, '# catalog' sections are not used anymore. Remove the line '# catalog', and move all options below to a file called 'catalog.eno' in the catalog root folder";
-                element_error_with_snippet(element, manifest_path, error);
+                let message = "Since faircamp 1.0, '# catalog' sections are not used anymore. Remove the line '# catalog', and move all options below to a file called 'catalog.eno' in the catalog root folder";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             }
         }
         "code" |
         "codes" => {
-            let error = "Since faircamp 1.0, the 'code' and 'codes' fields have been renamed to 'download_code' and 'download_codes'.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the 'code' and 'codes' fields have been renamed to 'download_code' and 'download_codes'.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "download" if element.is_section() => {
-            let error = "Since faircamp 1.0, the '# download' section is obsolete and its options can/must now be put directly into the 'catalog.eno' and 'release.eno' files, please move and adapt the current options accordingly.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the '# download' section is obsolete and its options can/must now be put directly into the 'catalog.eno' and 'release.eno' files, please move and adapt the current options accordingly.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "embedding" if element.is_section() => {
-            let error = "Since faircamp 1.0 the embedding option must be specified as 'embedding: enabled|disabled' inside an 'artist.eno', 'catalog.eno' or 'release.eno' manifest, please move and adapt the current definiton accordingly.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0 the embedding option must be specified as 'embedding: enabled|disabled' inside an 'artist.eno', 'catalog.eno' or 'release.eno' manifest, please move and adapt the current definiton accordingly.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "external" => {
-            let error = "Since faircamp 1.0, external download options such as 'external: https://example.com' are instead specified as 'downloads: https://example.com'.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, external download options such as 'external: https://example.com' are instead specified as 'downloads: https://example.com'.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "format" |
         "formats" => {
-            let error = "Since faircamp 1.0, the 'format' and 'formats' fields have been renamed to 'archive_downloads' (respectively 'track_downloads' to now separately specify the format(s) for single track downloads).";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the 'format' and 'formats' fields have been renamed to 'archive_downloads' (respectively 'track_downloads' to now separately specify the format(s) for single track downloads).";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "free" => {
-            let error = "Since faircamp 1.0, free downloads have become the default (but explicit declaration is still possible with 'downloads: free') - you now only need to set download formats with 'archive_downloads' (replaces the previous 'format(s)' option) or 'track_downloads' (now enables specific format choices for single track downloads) to enable free downloads.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, free downloads have become the default (but explicit declaration is still possible with 'downloads: free') - you now only need to set download formats with 'archive_downloads' (replaces the previous 'format(s)' option) or 'track_downloads' (now enables specific format choices for single track downloads) to enable free downloads.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "include_extras" => {
-            let error = "Since faircamp 1.0, 'include_extras: no' is now specified as 'extra_downloads: disabled', 'include_extras: yes' as 'extra_downloads: bundled' (the default) and there's also an additional 'extra_downloads: separate' option, as well as the possiblity for enabling both, like this:\nextra_downloads:\n- bundled\n- separate.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, 'include_extras: no' is now specified as 'extra_downloads: disabled', 'include_extras: yes' as 'extra_downloads: bundled' (the default) and there's also an additional 'extra_downloads: separate' option, as well as the possiblity for enabling both, like this:\nextra_downloads:\n- bundled\n- separate.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "link_brightness" => {
-            let error = "Since faircamp 0.16.0, theming works differently and the link_brightness setting needs to be replaced (the dynamic_range attribute in the theme field is somewhat related in function now)";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, theming works differently and the link_brightness setting needs to be replaced (the dynamic_range attribute in the theme field is somewhat related in function now)";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "link_hue" => {
-            let error = "Since faircamp 0.16.0, theming works differently and the link_hue setting needs to be replaced (the base_hue attribute in the theme field is the closest alternative)";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, theming works differently and the link_hue setting needs to be replaced (the base_hue attribute in the theme field is the closest alternative)";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "link_saturation" => {
-            let error = "Since faircamp 0.16.0, theming works differently and the link_saturation setting needs to be replaced (the base_chroma attribute in the theme field is the closest alternative)";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, theming works differently and the link_saturation setting needs to be replaced (the base_chroma attribute in the theme field is the closest alternative)";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "localization" if element.is_section() => {
-            let error = "Since faircamp 0.16.0, specify the language directly in the 'catalog.eno' manifest using e.g. 'language: fr' (the writing direction is determined from language automatically now). The localization section must be removed, it's not supported anymore.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, specify the language directly in the 'catalog.eno' manifest using e.g. 'language: fr' (the writing direction is determined from language automatically now). The localization section must be removed, it's not supported anymore.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "payment" if element.is_section() => {
-            let error = "Since faircamp 1.0, specify payment options directly in an artist.eno, catalog.eno or release.eno manifest using the single 'payment_info' field. The payment section is not supported anymore.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, specify payment options directly in an artist.eno, catalog.eno or release.eno manifest using the single 'payment_info' field. The payment section is not supported anymore.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "payment_text" => {
-            let error = "Since faircamp 1.0, the name of the 'payment_text' option has changed to 'payment_info'.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the name of the 'payment_text' option has changed to 'payment_info'.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "release" if element.is_section() => {
             if manifest_path.ends_with("release.eno") {
-                let error = "Since faircamp 1.0, '# release' sections are not required anymore - just remove the line '# release'";
-                element_error_with_snippet(element, manifest_path, error);
+                let message = "Since faircamp 1.0, '# release' sections are not required anymore - just remove the line '# release'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             } else {
-                let error = "Since faircamp 1.0, '# release' sections are not used anymore. Remove the line '# release', and move all options below to a file called 'release.eno'";
-                element_error_with_snippet(element, manifest_path, error);
+                let message = "Since faircamp 1.0, '# release' sections are not used anymore. Remove the line '# release', and move all options below to a file called 'release.eno'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             }
         }
         "rewrite_tags" => {
-            let error = "Since faircamp 1.0, 'rewrite_tags: no' must be specified as 'tags: copy', 'rewrite_tags: yes' as 'tags: normalize'";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, 'rewrite_tags: no' must be specified as 'tags: copy', 'rewrite_tags: yes' as 'tags: normalize'";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "single_files" => {
-            let error = "Since faircamp 1.0, the 'single_files' option has been removed, instead you now can use the 'track_downloads' option to directly enable/pick the formats in which you want to offer single file downloads, e.g. 'track_downloads: mp3' or for multiple:\ntrack_downloads:\n- flac\n- mp3\n- opus";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the 'single_files' option has been removed, instead you now can use the 'track_downloads' option to directly enable/pick the formats in which you want to offer single file downloads, e.g. 'track_downloads: mp3' or for multiple:\ntrack_downloads:\n- flac\n- mp3\n- opus";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "streaming" if element.is_section() => {
-            let error = r##"Since faircamp 0.16.0, the "# streaming" section has been merged directly into the catalog/release manifests as the 'streaming_quality: frugal|standard' option, please adapt and move the setting accordingly."##;
-            element_error_with_snippet(element, manifest_path, error);
+            let message = r##"Since faircamp 0.16.0, the "# streaming" section has been merged directly into the catalog/release manifests as the 'streaming_quality: frugal|standard' option, please adapt and move the setting accordingly."##;
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "text" => {
-            let error = "Since faircamp 1.0, the name of the 'text' option has changed to 'more'.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the name of the 'text' option has changed to 'more'.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "text_hue" => {
-            let error = "Since faircamp 0.16.0, theming works differently and the text_hue setting needs to be replaced (the base_hue attribute in the theme field is the closest alternative)";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, theming works differently and the text_hue setting needs to be replaced (the base_hue attribute in the theme field is the closest alternative)";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "tint_back" => {
-            let error = "Since faircamp 0.16.0, theming works differently and the tint_back setting needs to be replaced (the base_chroma attribute in the theme field is the closest alternative)";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, theming works differently and the tint_back setting needs to be replaced (the base_chroma attribute in the theme field is the closest alternative)";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "tint_front" => {
-            let error = "Since faircamp 0.16.0, theming works differently and the tint_front setting needs to be replaced (the base_chroma and dynamic_range attributes in the theme field in combination serve a similar purpose)";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 0.16.0, theming works differently and the tint_front setting needs to be replaced (the base_chroma and dynamic_range attributes in the theme field in combination serve a similar purpose)";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "unlock_text" => {
-            let error = "Since faircamp 1.0, the name of the 'unlock_text' option has changed to 'unlock_info'.";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "Since faircamp 1.0, the name of the 'unlock_text' option has changed to 'unlock_info'.";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         _ => return false
     }

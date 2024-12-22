@@ -6,6 +6,7 @@ use std::path::Path;
 use enolib::SectionElement;
 
 use crate::{
+    Build,
     LocalOptions,
     Overrides,
     Permalink
@@ -18,6 +19,7 @@ pub const ARTIST_RELEASE_OPTIONS: &[&str] = &["copy_link", "permalink"];
 /// Try to read a single option from the passed element. Processes
 /// options that are present in artist and release manifests.
 pub fn read_artist_release_option(
+    build: &mut Build,
     element: &Box<dyn SectionElement>,
     local_options: &mut LocalOptions,
     manifest_path: &Path,
@@ -32,8 +34,9 @@ pub fn read_artist_release_option(
                             "enabled" => overrides.copy_link = true,
                             "disabled" => overrides.copy_link = false,
                             _ => {
-                                let error = "This copy_link setting was not recognized (supported values are 'enabled' and 'disabled')";
-                                element_error_with_snippet(element, manifest_path, error);
+                                let message = "This copy_link setting was not recognized (supported values are 'enabled' and 'disabled')";
+                                let error = element_error_with_snippet(element, manifest_path, message);
+                                build.error(&error);
                             }
                         }
                     }
@@ -42,8 +45,9 @@ pub fn read_artist_release_option(
                 }
             }
 
-            let error = "copy_link needs to be provided as a field with a value, e.g.: 'copy_link: disable'";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "copy_link needs to be provided as a field with a value, e.g.: 'copy_link: disable'";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "permalink" => 'permalink: {
             if let Ok(field) = element.as_field() {
@@ -52,8 +56,9 @@ pub fn read_artist_release_option(
                         match Permalink::new(value) {
                             Ok(permalink) => local_options.permalink = Some(permalink),
                             Err(err) => {
-                                let error = format!("There is a problem with the permalink '{value}': {err}");
-                                element_error_with_snippet(element, manifest_path, &error);
+                                let message = format!("There is a problem with the permalink '{value}': {err}");
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
                             }
                         }
                     }
@@ -62,8 +67,9 @@ pub fn read_artist_release_option(
                 }
             }
 
-            let error = "permalink needs to be provided as a field with a value, e.g.: 'permalink: such-perma-wow'";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "permalink needs to be provided as a field with a value, e.g.: 'permalink: such-perma-wow'";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         _ => return false
     }

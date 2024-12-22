@@ -47,7 +47,7 @@ const RELEASE_OPTIONS: &[&str] = &[
 ];
 
 pub fn read_release_manifest(
-    build: &Build,
+    build: &mut Build,
     cache: &mut Cache,
     catalog: &mut Catalog,
     dir: &Path,
@@ -59,7 +59,8 @@ pub fn read_release_manifest(
     let content = match fs::read_to_string(&manifest_path) {
         Ok(content) => content,
         Err(err) => {
-            error!("Could not read manifest {} ({})", manifest_path.display(), err);
+            let error = format!("Could not read manifest {} ({})", manifest_path.display(), err);
+            build.error(&error);
             return
         }
     };
@@ -67,7 +68,8 @@ pub fn read_release_manifest(
     let document = match enolib::parse_with_printer(&content, platform_printer()) {
         Ok(document) => document,
         Err(err) => {
-            error!("Syntax error in {}:{} ({})", manifest_path.display(), err.line, err);
+            let error = format!("Syntax error in {}:{} ({})", manifest_path.display(), err.line, err);
+            build.error(&error);
             return
         }
     };
@@ -95,15 +97,17 @@ pub fn read_release_manifest(
                                         if absolute_path.exists() {
                                             path_relative_to_catalog = Some(absolute_path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf());
                                         } else {
-                                            let error = format!("The referenced file was not found ({})", absolute_path.display());
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            let message = format!("The referenced file was not found ({})", absolute_path.display());
+                                            let error = attribute_error_with_snippet(attribute, &manifest_path, &message);
+                                            build.error(&error);
                                         }
 
                                     }
                                 }
                                 _ => {
-                                    let error = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside a cover field";
-                                    element_error_with_snippet(element, &manifest_path, error);
+                                    let message = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside a cover field";
+                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    build.error(&error);
                                 }
                             }
                         }
@@ -117,8 +121,9 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "cover needs to be provided as a field with attributes, e.g.:\n\ncover:\ndescription = Alice, looking amused\nfile = alice.jpg";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "cover needs to be provided as a field with attributes, e.g.:\n\ncover:\ndescription = Alice, looking amused\nfile = alice.jpg";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "date" => 'date: {
                 if let Ok(field) = element.as_field() {
@@ -127,8 +132,9 @@ pub fn read_release_manifest(
                             match NaiveDate::parse_from_str(value, "%Y-%m-%d") {
                                 Ok(date) => local_options.release_date = Some(date),
                                 Err(err) => {
-                                    let error = format!("Invalid date value '{value}': {err}");
-                                    element_error_with_snippet(element, &manifest_path, &error);
+                                    let message = format!("Invalid date value '{value}': {err}");
+                                    let error = element_error_with_snippet(element, &manifest_path, &message);
+                                    build.error(&error);
                                 }
                             }
                         } else {
@@ -139,8 +145,9 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "date needs to be provided as a field with a value following the pattern YYYY-MM-DD, e.g.: 'date: 1999-31-12'";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "date needs to be provided as a field with a value following the pattern YYYY-MM-DD, e.g.: 'date: 1999-31-12'";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "m3u" => 'm3u: {
                 if let Ok(field) = element.as_field() {
@@ -150,8 +157,9 @@ pub fn read_release_manifest(
                                 "disabled" => overrides.m3u_enabled = false,
                                 "enabled" => overrides.m3u_enabled = true,
                                 _ => {
-                                    let error = format!("The value '{value}' is not recognized for the m3u option, allowed values are 'enabled' and 'disabled'");
-                                    element_error_with_snippet(element, &manifest_path, &error);
+                                    let message = format!("The value '{value}' is not recognized for the m3u option, allowed values are 'enabled' and 'disabled'");
+                                    let error = element_error_with_snippet(element, &manifest_path, &message);
+                                    build.error(&error);
                                 }
                             }
                         }
@@ -160,8 +168,9 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "more" => {
                 if let Ok(embed) = element.as_embed() {
@@ -171,8 +180,9 @@ pub fn read_release_manifest(
                         overrides.release_more = None;
                     }
                 } else {
-                    let error = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the release\n--more";
-                    element_error_with_snippet(element, &manifest_path, error);
+                    let message = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the release\n--more";
+                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    build.error(&error);
                 }
             }
             "release_artist" => 'release_artist: {
@@ -186,8 +196,9 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "release_artist needs to be provided as a field with a value, e.g.: 'release_artist: Alice'\n\nFor multiple artists specify the release_artists field:\n\nrelease_artists:\n- Alice\n- Bob";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "release_artist needs to be provided as a field with a value, e.g.: 'release_artist: Alice'\n\nFor multiple artists specify the release_artists field:\n\nrelease_artists:\n- Alice\n- Bob";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "release_artists" => 'release_artists: {
                 if let Ok(field) = element.as_field() {
@@ -201,8 +212,9 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "release_artists needs to be provided as a field with items, e.g.:\n\nrelease_artists:\n- Alice\n- Bob";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "release_artists needs to be provided as a field with items, e.g.:\n\nrelease_artists:\n- Alice\n- Bob";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "synopsis" => {
                 if let Ok(embed) = element.as_embed() {
@@ -213,15 +225,17 @@ pub fn read_release_manifest(
                             let synopsis_escaped = html_escape_outside_attribute(value);
                             overrides.release_synopsis = Some(synopsis_escaped);
                         } else {
-                            let error = format!("Synopsis is too long ({synopsis_chars}/{MAX_SYNOPSIS_CHARS} characters)");
-                            element_error_with_snippet(element, &manifest_path, &error);
+                            let message = format!("Synopsis is too long ({synopsis_chars}/{MAX_SYNOPSIS_CHARS} characters)");
+                            let error = element_error_with_snippet(element, &manifest_path, &message);
+                            build.error(&error);
                         }
                     } else {
                         overrides.release_synopsis = None;
                     }
                 } else {
-                    let error = "synopsis needs to be provided as an embed, e.g.:\n-- synopsis\nThe synopsis for the release\n--synopsis";
-                    element_error_with_snippet(element, &manifest_path, error);
+                    let message = "synopsis needs to be provided as an embed, e.g.:\n-- synopsis\nThe synopsis for the release\n--synopsis";
+                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    build.error(&error);
                 }
             }
             "tags" => 'tags: {
@@ -233,8 +247,9 @@ pub fn read_release_manifest(
                                 "normalize" => overrides.tag_agenda = TagAgenda::normalize(),
                                 "remove" => overrides.tag_agenda = TagAgenda::Remove,
                                 _ => {
-                                    let error = format!("The value '{value}' is not recognized for the tags option, allowed values are 'copy', 'normalize' and 'remove'");
-                                    element_error_with_snippet(element, &manifest_path, &error);
+                                    let message = format!("The value '{value}' is not recognized for the tags option, allowed values are 'copy', 'normalize' and 'remove'");
+                                    let error = element_error_with_snippet(element, &manifest_path, &message);
+                                    build.error(&error);
                                 }
                             }
                         }
@@ -244,8 +259,9 @@ pub fn read_release_manifest(
                         overrides.tag_agenda = TagAgenda::Remove;
                         for attribute in attributes {
                             if let Some(value) = attribute.value() {
-                                if let Err(error) = overrides.tag_agenda.set(attribute.key(), value) {
-                                    attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                if let Err(err) = overrides.tag_agenda.set(attribute.key(), value) {
+                                    let error = attribute_error_with_snippet(attribute, &manifest_path, &err);
+                                    build.error(&error);
                                 }
                             }
                         }
@@ -254,8 +270,9 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "tags needs to be provided either as a field with a value (allowed are 'copy', 'normalize' and 'remove') - e.g.: 'tags: copy' - or as a field with attributes, e.g.:\n\ntags:\ntitle = copy\nartist = rewrite\nalbum_artist = remove";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "tags needs to be provided either as a field with a value (allowed are 'copy', 'normalize' and 'remove') - e.g.: 'tags: copy' - or as a field with attributes, e.g.:\n\ntags:\ntitle = copy\nartist = rewrite\nalbum_artist = remove";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "title" => 'title: {
                 if let Ok(field) = element.as_field() {
@@ -268,28 +285,31 @@ pub fn read_release_manifest(
                     }
                 }
 
-                let error = "title needs to be provided as a field with a value, e.g.: 'title: Demotape'";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "title needs to be provided as a field with a value, e.g.: 'title: Demotape'";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "unlisted" => {
                 if element.is_flag() {
                     local_options.unlisted_release = true;
                 } else {
-                    let error = "unlisted needs to be provided as a flag, that is, exactly as 'unlisted' (without colon and without value)";
-                    element_error_with_snippet(element, &manifest_path, error);
+                    let message = "unlisted needs to be provided as a flag, that is, exactly as 'unlisted' (without colon and without value)";
+                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    build.error(&error);
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
-            _ if read_catalog_release_option(catalog, element, &manifest_path) => (),
+            _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
+            _ if read_catalog_release_option(build, catalog, element, &manifest_path) => (),
             other => {
-                let error = not_supported_error(
+                let message = not_supported_error(
                     "release.eno",
                     other,
                     &[RELEASE_OPTIONS, ARTIST_CATALOG_RELEASE_OPTIONS, ARTIST_RELEASE_OPTIONS, CATALOG_RELEASE_OPTIONS]
                 );
 
-                element_error_with_snippet(element, &manifest_path, &error);
+                let error = element_error_with_snippet(element, &manifest_path, &message);
+                build.error(&error);
             }
         }
     }

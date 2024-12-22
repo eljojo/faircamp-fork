@@ -38,7 +38,7 @@ const ARTIST_OPTIONS: &[&str] = &[
 ];
 
 pub fn read_artist_manifest(
-    build: &Build,
+    build: &mut Build,
     cache: &mut Cache,
     catalog: &mut Catalog,
     dir: &Path,local_options: &mut LocalOptions,
@@ -49,7 +49,8 @@ pub fn read_artist_manifest(
     let content = match fs::read_to_string(&manifest_path) {
         Ok(content) => content,
         Err(err) => {
-            error!("Could not read manifest {} ({})", manifest_path.display(), err);
+            let error =format!("Could not read manifest {} ({})", manifest_path.display(), err);
+            build.error(&error);
             return
         }
     };
@@ -57,7 +58,8 @@ pub fn read_artist_manifest(
     let document = match enolib::parse_with_printer(&content, platform_printer()) {
         Ok(document) => document,
         Err(err) => {
-            error!("Syntax error in {}:{} ({})", manifest_path.display(), err.line, err);
+            let error =format!("Syntax error in {}:{} ({})", manifest_path.display(), err.line, err);
+            build.error(&error);
             return
         }
     };
@@ -82,8 +84,9 @@ pub fn read_artist_manifest(
                     }
                 }
 
-                let error = "alias needs to be provided as a field with a value, e.g.: 'alias: Älice'";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "alias needs to be provided as a field with a value, e.g.: 'alias: Älice'";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "aliases" => 'aliases: {
                 if let Ok(field) = element.as_field() {
@@ -93,8 +96,9 @@ pub fn read_artist_manifest(
                     }
                 }
 
-                let error = "aliases needs to be provided as a field containing items, e.g.:\n\naliases:\n- Älice\n- Älicë";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "aliases needs to be provided as a field containing items, e.g.:\n\naliases:\n- Älice\n- Älicë";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "image" => 'image: {
                 if let Ok(field) = element.as_field() {
@@ -116,15 +120,17 @@ pub fn read_artist_manifest(
                                         if absolute_path.exists() {
                                             path_relative_to_catalog = Some(absolute_path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf());
                                         } else {
-                                            let error = format!("The referenced file was not found ({})", absolute_path.display());
-                                            attribute_error_with_snippet(attribute, &manifest_path, &error);
+                                            let message = format!("The referenced file was not found ({})", absolute_path.display());
+                                            let error = attribute_error_with_snippet(attribute, &manifest_path, &message);
+                                            build.error(&error);
                                         }
 
                                     }
                                 }
                                 _ => {
-                                    let error = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an image field";
-                                    element_error_with_snippet(element, &manifest_path, error);
+                                    let message = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an image field";
+                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    build.error(&error);
                                 }
                             }
                         }
@@ -138,8 +144,9 @@ pub fn read_artist_manifest(
                     }
                 }
 
-                let error = "image needs to be provided as a field with attributes, e.g.:\n\nimage:\ndescription = Alice, looking amused\nfile = alice.jpg";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "image needs to be provided as a field with attributes, e.g.:\n\nimage:\ndescription = Alice, looking amused\nfile = alice.jpg";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "more" => {
                 if let Ok(embed) = element.as_embed() {
@@ -149,8 +156,9 @@ pub fn read_artist_manifest(
                         more = None;
                     }
                 } else {
-                    let error = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the artist\n--more";
-                    element_error_with_snippet(element, &manifest_path, error);
+                    let message = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the artist\n--more";
+                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    build.error(&error);
                 }
             }
             "name" => 'name: {
@@ -163,19 +171,21 @@ pub fn read_artist_manifest(
                         break 'name;
                     }
                 }
-                let error = "name needs to be provided as a field with a value, e.g.: 'name: Alice'";
-                element_error_with_snippet(element, &manifest_path, error);
+                let message = "name needs to be provided as a field with a value, e.g.: 'name: Alice'";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(element, local_options, &manifest_path, overrides) => (),
+            _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
             other => {
-                let error = not_supported_error(
+                let message = not_supported_error(
                     "artist.eno",
                     other,
                     &[ARTIST_OPTIONS, ARTIST_CATALOG_RELEASE_OPTIONS, ARTIST_RELEASE_OPTIONS]
                 );
 
-                element_error_with_snippet(element, &manifest_path, &error);
+                let error = element_error_with_snippet(element, &manifest_path, &message);
+                build.error(&error);
             }
         }
     }

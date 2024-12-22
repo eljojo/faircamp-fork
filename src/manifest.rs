@@ -132,27 +132,27 @@ fn attribute_error_with_snippet(
     attribute: &Attribute,
     manifest_path: &Path,
     error: &str
-) {
+) -> String {
     let snippet = attribute.snippet();
-    error!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), attribute.line_number, snippet, error);
+    format!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), attribute.line_number, snippet, error)
 }
 
 fn element_error_with_snippet(
     element: &Box<dyn SectionElement>,
     manifest_path: &Path,
     error: &str
-) {
+) -> String {
     let snippet = element.snippet();
-    error!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), element.line_number(), snippet, error);
+    format!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), element.line_number(), snippet, error)
 }
 
 fn item_error_with_snippet(
     item: &Item,
     manifest_path: &Path,
     error: &str
-) {
+) -> String {
     let snippet = item.snippet();
-    error!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), item.line_number, snippet, error);
+    format!("Error in {}:{}:\n\n{}\n\n{}", manifest_path.display(), item.line_number, snippet, error)
 }
 
 fn not_supported_error(

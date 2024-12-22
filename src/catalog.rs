@@ -349,7 +349,12 @@ impl Catalog {
     pub fn read(build: &mut Build, cache: &mut Cache) -> Result<Catalog, ()> {
         let mut catalog = Catalog::new();
 
-        catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default()).unwrap();
+        catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default());
+
+        if build.errors > 0 && !build.ignore_errors {
+            warn!("Building was aborted because errors were encountered while reading the catalog. You can run faircamp with --ignore-errors if you want building to continue in spite of errors.");
+            return Err(());
+        }
 
         if catalog.home_image.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
             warn_discouraged!("The catalog home image is missing an image description.");
@@ -394,7 +399,10 @@ impl Catalog {
 
         catalog.get_or_create_release_archives(cache);
 
-        if !catalog.validate_permalinks() { return Err(()); }
+        if !catalog.validate_permalinks(build) {
+            warn!("The build has been aborted because permalink conflicts were found, this kind of error needs to be resolved and cannot be ignored.");
+            return Err(());
+        }
 
         catalog.compute_asset_basenames();
 
@@ -409,7 +417,7 @@ impl Catalog {
         build: &mut Build,
         cache: &mut Cache,
         parent_overrides: &Overrides
-    ) -> Result<(), String> {
+    ) {
         let dir_canonicalized = dir.canonicalize().unwrap();
         for special_dir in &[&build.build_dir, &build.cache_dir] {
             if let Ok(special_dir_canonicalized) = special_dir.canonicalize() {
@@ -417,7 +425,7 @@ impl Catalog {
                     if build.verbose {
                         info!("Ignoring special directory {}", special_dir.display());
                     }
-                    return Ok(())
+                    return;
                 }
             }
         }
@@ -428,7 +436,7 @@ impl Catalog {
                     if build.verbose {
                         info!("Ignoring directory {} and all below (excluded by pattern '{}')", dir.display(), exclude_pattern);
                     }
-                    return Ok(())
+                    return;
                 }
             }
         }
@@ -511,7 +519,8 @@ impl Catalog {
                                     artist_manifest_present = true;
                                 } else if path.ends_with("catalog.eno") {
                                     if dir != build.catalog_dir {
-                                        error!("The catalog.eno manifest can only be placed at the root of the catalog directory, however it was found at '{}'. Please move it to the folder '{}'", path.display(), build.catalog_dir.display());
+                                        let error = format!("The catalog.eno manifest can only be placed at the root of the catalog directory, however it was found at '{}'. Please move it to the folder '{}'", path.display(), build.catalog_dir.display());
+                                        build.error(&error);
                                     } else {
                                         catalog_manifest_present = true;
                                     }
@@ -525,14 +534,15 @@ impl Catalog {
                                         )
                                     ) {
                                     if extension == "eno" {
-                                        // TODO: Display only filename part in error message (and path separately?)
-                                        error!("A manifest named '{}' was encountered, but this name is not recognized (allowed ones are 'artist.eno', 'catalog.eno' and 'release.eno')", path.display());
+                                        let error = format!("A manifest named '{}' was encountered at '{}', but this name is not recognized (allowed ones are 'artist.eno', 'catalog.eno' and 'release.eno')", path.file_name().unwrap().to_string_lossy(), path.display());
+                                        build.error(&error);
                                     } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
                                         track_paths.push((path, extension));
                                     } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
                                         image_paths.push(path);
                                     } else if UNSUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
-                                        error!("Support for reading audio files with the extension '{}' from the catalog is not yet supported - please get in touch or open an issue if you need this", extension);
+                                        let error = format!("Support for reading audio files with the extension '{extension}' from the catalog is not yet supported - please get in touch or open an issue if you need this");
+                                        build.error(&error);
                                     } else {
                                         extra_paths.push(path);
                                     }
@@ -548,7 +558,10 @@ impl Catalog {
                     }
                 }
             }
-            Err(err) => error!("Cannot read directory '{}' ({})", dir.display(), err)
+            Err(err) => {
+                let error = format!("Cannot read directory '{}' ({err})", dir.display());
+                build.error(&error);
+            }
         }
 
         if catalog_manifest_present {
@@ -567,7 +580,8 @@ impl Catalog {
 
         if artist_manifest_present {
             if release_manifest_present {
-                error!("Directory '{}' contains both an artist.eno and release.eno manifest, but this is not allowed. Create a separate artist or release directory respectively to put the second manifest and associated files in.", dir.display())
+                let error = format!("Directory '{}' contains both an artist.eno and release.eno manifest, but this is not allowed. Create a separate artist or release directory respectively to put the second manifest and associated files in.", dir.display());
+                build.error(&error);
             } else {
                 if build.verbose {
                     info!("Reading artist manifest {}", dir.join("artist.eno").display());
@@ -609,7 +623,8 @@ impl Catalog {
                 let transcodes = match cache.get_or_create_transcodes(build, path_relative_to_catalog, extension) {
                     Ok(transcodes) => transcodes,
                     Err(err) => {
-                        error!("Skipping track {} due to decoding error ({})", path_relative_to_catalog.display(), err);
+                        let error = format!("Skipping track {} due to decoding error ({err})", path_relative_to_catalog.display());
+                        build.error(&error);
                         continue;
                     }
                 };
@@ -868,10 +883,8 @@ impl Catalog {
         }
 
         for dir_path in &dir_paths {
-            self.read_dir(dir_path, build, cache, merged_overrides).unwrap();
+            self.read_dir(dir_path, build, cache, merged_overrides);
         }
-
-        Ok(())
     }
 
     pub fn read_track(
@@ -968,9 +981,10 @@ impl Catalog {
     /// artists and releases in the catalog, printing errors when any two
     /// conflict with each other. Also prints warnings if there are
     /// auto-generated permalinks, as these are not truly permanent and
-    /// should be replaced with manually specified ones. Returns whether any
-    /// conflicts were found.
-    fn validate_permalinks(&self) -> bool {
+    /// should be replaced with manually specified ones. Returns whether all
+    /// permalinks were valid (i.e.: whether no conflicts were found).
+    fn validate_permalinks(&self, build: &mut Build) -> bool {
+        let mut no_conflicts = true;
         let mut generated_permalinks = (None, None, None, 0);
         let mut used_permalinks: HashMap<String, PermalinkUsage> = HashMap::new();
 
@@ -1002,9 +1016,9 @@ impl Catalog {
                 let title = &release_ref.title;
                 let previous_usage_formatted = previous_usage.as_string();
                 let release_dir = release_ref.source_dir.display();
-                let message = format!("The {generated_or_assigned} permalink '{slug}' of the release '{title}' from directory '{release_dir}' conflicts with the {previous_usage_formatted}");
-                error!("{}\n{}", message, PERMALINK_CONFLICT_RESOLUTION_HINT);
-                return false;
+                let error = format!("The {generated_or_assigned} permalink '{slug}' of the release '{title}' from directory '{release_dir}' conflicts with the {previous_usage_formatted}\n{PERMALINK_CONFLICT_RESOLUTION_HINT}");
+                build.error(&error);
+                no_conflicts = false;
             } else {
                 let usage = PermalinkUsage::Release(release);
                 if release_ref.permalink.generated { add_generated_usage(&usage); }
@@ -1056,7 +1070,7 @@ impl Catalog {
                     PermalinkUsage::Release(_) => format!("{PERMALINK_CONFLICT_RESOLUTION_HINT}")
                 };
 
-                let message = formatdoc!("
+                let error = formatdoc!("
                     Two permalinks are in conflict (= two different pages are competing for the same URL):
 
                     A) The artist '{name}' has the {generated_or_assigned} permalink '{slug}'
@@ -1065,8 +1079,8 @@ impl Catalog {
                     {resolution_hint}
                 ");
 
-                error!("{}", message);
-                return false;
+                build.error(&error);
+                no_conflicts = false;
             } else {
                 let usage = PermalinkUsage::Artist(artist);
                 if artist_ref.permalink.generated { add_generated_usage(&usage); }
@@ -1083,7 +1097,7 @@ impl Catalog {
             _ => unreachable!()
         }
 
-        true
+        no_conflicts
     }
 
     pub fn write_assets(&mut self, build: &mut Build) {

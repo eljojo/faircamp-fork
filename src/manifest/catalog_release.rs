@@ -9,6 +9,7 @@ use url::Url;
 use crate::{
     Artist,
     ArtistRc,
+    Build,
     Catalog,
     Permalink
 };
@@ -25,6 +26,7 @@ pub const CATALOG_RELEASE_OPTIONS: &[&str] = &[
 /// Try to read a single option from the passed element. Processes
 /// options that are present in catalog and release manifests.
 pub fn read_catalog_release_option(
+    build: &mut Build,
     catalog: &mut Catalog,
     element: &Box<dyn SectionElement>,
     manifest_path: &Path
@@ -50,8 +52,9 @@ pub fn read_catalog_release_option(
                                     match Url::parse(value) {
                                         Ok(parsed_url) => link = Some(parsed_url),
                                         Err(err) => {
-                                            let error = format!("The url supplied for the link seems to be malformed ({err})");
-                                            attribute_error_with_snippet(attribute, manifest_path, &error);
+                                            let message = format!("The url supplied for the link seems to be malformed ({err})");
+                                            let error = attribute_error_with_snippet(attribute, manifest_path, &message);
+                                            build.error(&error);
                                         }
                                     }
                                 }
@@ -66,15 +69,17 @@ pub fn read_catalog_release_option(
                                     match Permalink::new(value) {
                                         Ok(custom_permalink) => permalink = Some(custom_permalink),
                                         Err(err) => {
-                                            let error = format!("There is a problem with the permalink '{value}': {err}");
-                                            attribute_error_with_snippet(attribute, manifest_path, &error);
+                                            let message = format!("There is a problem with the permalink '{value}': {err}");
+                                            let error = attribute_error_with_snippet(attribute, manifest_path, &message);
+                                            build.error(&error);
                                         }
                                     }
                                 }
                             }
                             other => {
-                                let error = format!("The attribute '{other}' is not recognized here (supported attributes are 'alias', 'name' and 'link'");
-                                attribute_error_with_snippet(attribute, manifest_path, &error);
+                                let message = format!("The attribute '{other}' is not recognized here (supported attributes are 'alias', 'name' and 'link'");
+                                let error = attribute_error_with_snippet(attribute, manifest_path, &message);
+                                build.error(&error);
                             }
                         }
                     }
@@ -90,16 +95,18 @@ pub fn read_catalog_release_option(
 
                         catalog.artists.push(ArtistRc::new(artist));
                     } else {
-                        let error = "The artist option must supply a name attribute at least, e.g.:\n\nartist:\nname = Alice";
-                        element_error_with_snippet(element, manifest_path, error);
+                        let message = "The artist option must supply a name attribute at least, e.g.:\n\nartist:\nname = Alice";
+                        let error = element_error_with_snippet(element, manifest_path, message);
+                        build.error(&error);
                     }
 
                     break 'artist;
                 }
             }
 
-            let error = "artist must be provided as a field with attributes, e.g.:\n\nartist:\nname = Alice\nlink = https://example.com\nalias = Älice\nalias = Älicë";
-            element_error_with_snippet(element, manifest_path, error);
+            let message = "artist must be provided as a field with attributes, e.g.:\n\nartist:\nname = Alice\nlink = https://example.com\nalias = Älice\nalias = Älicë";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         _ => return false
     }

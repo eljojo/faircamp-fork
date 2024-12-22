@@ -14,6 +14,7 @@ That said here's a glimpse at some particularly interesting ones:
 - `--catalog-dir <CATALOG_DIR>` Override catalog directory (default is the current working directory)
 - `--debug` Print debug information for the catalog (no build is performed)
 - `--exclude <PATTERN>` Excludes all file paths that contain the specified pattern from being processed. Can be supplied multiple times. Matching is done by simple case-sensitive string comparison - no glob/regex
+- `--ignore-errors` By default, a build is interrupted when there are errors (e.g. invalid manifest options). With this option the build continues anyway when there are errors. Note that some critical errors can not be ignored (permalink conflicts, notably).
 - `--include <PATTERN>` Pass this so only file paths that contain the specified pattern will get processed. Can be supplied multiple times. Matching is done by simple case-sensitive string comparison - no glob/regex
 - `--manual` Opens the faircamp manual in your browser, does not do anything else
 - `--no-clean-urls` Generate full links, e.g. "/my-album/index.html" instead of "/my-album/". Creates a build that is fully browsable from your local disk without a webserver

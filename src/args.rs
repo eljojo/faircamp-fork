@@ -40,11 +40,22 @@ pub struct Args {
     #[clap(long = "deploy-destination")]
     pub deploy_destination: Option<String>,
 
-    /// Excludes all file paths that contain the specified pattern from being processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex.
+    /// Excludes all file paths that contain the specified pattern from being
+    /// processed. Multiple can be supplied. Matching is done by simple
+    /// case-sensitive string comparison - no glob/regex.
     #[clap(long = "exclude")]
     pub exclude_patterns: Vec<String>,
 
-    /// Pass this so only file paths that contain the specified pattern will get processed. Multiple can be supplied. Matching is done by simple case-sensitive string comparison - no glob/regex.
+    /// By default, a build is interrupted when there are errors (e.g. invalid
+    /// manifest options). With this option the build continues anyway when
+    /// there are errors. Note that some critical errors can not be ignored
+    /// (permalink conflicts, notably).
+    #[clap(long = "ignore-errors")]
+    pub ignore_errors: bool,
+
+    /// Pass this so only file paths that contain the specified pattern will
+    /// get processed. Multiple can be supplied. Matching is done by simple
+    /// case-sensitive string comparison - no glob/regex.
     #[clap(long = "include")]
     pub include_patterns: Vec<String>,
 

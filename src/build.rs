@@ -47,8 +47,13 @@ pub struct Build {
     /// to print a warning in case the base_url is missing and we hence
     /// couldn't generate any embeds in spite of them being requested.
     pub embeds_requested: bool,
+    /// Counts errors during build
+    pub errors: usize,
     pub exclude_patterns: Vec<String>,
     pub image_processor: ImageProcessor,
+    /// Forces continuation of build even when there are errors in the
+    /// manifests or during building in general.
+    pub ignore_errors: bool,
     pub include_patterns: Vec<String>,
     pub locale: Locale,
     /// If we encounter missing image descriptions during the build we set this flag.
@@ -106,6 +111,11 @@ impl AssetHashes {
 }
 
 impl Build {
+    pub fn error(&mut self, error: &str) {
+        error!("{}", error);
+        self.errors += 1;
+    }
+
     pub fn hash_path_with_salt(
         &self,
         release_slug: &str,
@@ -189,9 +199,11 @@ impl Build {
             clean_urls: !args.no_clean_urls,
             deploy_destination: args.deploy_destination.clone(),
             embeds_requested: false,
+            errors: 0,
             exclude_patterns: args.exclude_patterns.clone(),
             include_patterns: args.include_patterns.clone(),
             image_processor: ImageProcessor::new(),
+            ignore_errors: args.ignore_errors,
             locale,
             missing_image_descriptions: false,
             post_build_action,
