@@ -215,10 +215,18 @@ impl Build {
     }
     
     pub fn print_stats(&self) {
-        let elapsed = Utc::now().signed_duration_since(self.build_begin).num_seconds();
-        
+        let elapsed_time_delta = Utc::now().signed_duration_since(self.build_begin);
+
+        let elapsed_time_string = if elapsed_time_delta.num_seconds() == 0 {
+            format!("{} milliseconds", elapsed_time_delta.num_milliseconds())
+        } else if elapsed_time_delta.num_minutes() == 0 {
+            format!("{} seconds", elapsed_time_delta.num_seconds())
+        } else {
+            format!("{} minutes", elapsed_time_delta.num_minutes())
+        };
+
         info_stats!("{}", &self.stats.to_string());
-        info_stats!("Build finished in {:.2} seconds", elapsed);
+        info_stats!("Build finished in {}", elapsed_time_string);
     }
 }
 
