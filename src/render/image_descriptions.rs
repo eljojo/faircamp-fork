@@ -14,7 +14,7 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_center page_90vh">
+            <div class="page_center">
                 <div style="max-width: 28rem;">
                     <h1 style="margin-bottom: 2rem;">{t_image_descriptions}</h1>
                     {t_image_descriptions_guide}

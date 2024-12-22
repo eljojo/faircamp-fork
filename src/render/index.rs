@@ -54,7 +54,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             format!(r#"
                 <a class="scroll_target" id="more"></a>
                 <div class="page">
-                    <div class="page_center page_50vh">
+                    <div class="page_center">
                         <div class="page_more">
                             <h1>{title_escaped}</h1>
                             <div class="text">{more}</div>
@@ -179,7 +179,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_split page_50vh">
+            <div class="page_split">
                 {home_image}
                 <div class="abstract">
                     <h1>{title_escaped}</h1>
@@ -189,7 +189,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             </div>
         </div>
         <div class="page">
-            <div class="page_grid page_50vh">
+            <div class="page_grid">
                 <div>
                     {r_releases}
                 </div>

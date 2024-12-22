@@ -41,7 +41,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             formatdoc!(r#"
                 <a class="scroll_target" id="more"></a>
                 <div class="page">
-                    <div class="page_center page_50vh">
+                    <div class="page_center">
                         <div class="page_more">
                             <h1>{artist_name_escaped}</h1>
                             <div class="text">{artist_text}</div>
@@ -165,7 +165,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_50vh">
+            <div class="page_split">
                 {r_artist_image}
                 <div class="abstract">
                     <h1>{name_unlisted}</h1>
@@ -175,7 +175,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             </div>
         </div>
         <div class="page">
-            <div class="page_grid page_50vh">
+            <div class="page_grid">
                 <div>
                     {r_releases}
                 </div>

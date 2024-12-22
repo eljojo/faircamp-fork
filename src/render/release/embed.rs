@@ -146,7 +146,7 @@ pub fn embed_choices_html(
     let t_embed_entire_release = &build.locale.translations.embed_entire_release;
     let body = formatdoc!(r#"
         <div class="page">
-            <div class="page_center page_90vh">
+            <div class="page_center">
                 <div>
                     <h1>{t_embed}</h1>
                     {r_compact_release_identifier}

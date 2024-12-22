@@ -236,7 +236,7 @@ pub fn track_html(
         formatdoc!(r#"
             <a class="scroll_target" id="more"></a>
             <div class="page">
-                <div class="page_center page_50vh">
+                <div class="page_center">
                     <div class="page_more">
                         <div class="release_info">
                             <h1>{track_title_escaped} {release_year}</h1>
@@ -366,7 +366,7 @@ pub fn track_html(
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_50vh">
+            <div class="page_split">
                 <div class="cover">{cover}</div>
                 <div class="abstract">
                     <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->

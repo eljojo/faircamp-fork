@@ -16,21 +16,23 @@
     <body>
         <script>document.body.classList.add('js_enabled');</script>
         <a class="skip_to_content" href="#content">{t_skip_to_main_content}</a>
-        <header>
-            <div>
-                <a id="logo" href="{root_prefix}.{index_suffix}">
-                    {faircamp_icon}
-                    <span>{catalog_title}</span>
-                </a>
-                {breadcrumb}
-            </div>
-            <button class="browse">
-                {t_browse}
-                {browse_icon}
-            </button>
-        </header>
-        <main id="content">
-            {body}
+        <div class="layout">
+            <header>
+                <div>
+                    <a id="logo" href="{root_prefix}.{index_suffix}">
+                        {faircamp_icon}
+                        <span>{catalog_title}</span>
+                    </a>
+                    {breadcrumb}
+                </div>
+                <button class="browse">
+                    {t_browse}
+                    {browse_icon}
+                </button>
+            </header>
+            <main id="content">
+                {body}
+            </main>
             <footer>
                 <span>
                     <a href="{root_prefix}">{catalog_title}</a>
@@ -38,7 +40,7 @@
                 </span>
                 {faircamp_signature}
             </footer>
-        </main>
+        </div>
         {browser}
         {theming_widget}
         <aside class="js_notice">{t_javascript_is_disabled_text}</aside>

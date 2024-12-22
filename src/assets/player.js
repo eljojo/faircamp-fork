@@ -73,7 +73,7 @@ function formatTimeWrittenOut(seconds) {
 async function mountAndPlay(track, seekTo) {
     activeTrack = track;
 
-    dockedPlayer.container.classList.add('active');
+    document.body.classList.add('player_active');
     dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenPlayingXxx(track.title.textContent));
     dockedPlayer.currentTime.textContent = '0:00';
     dockedPlayer.totalTime.textContent = formatTime(activeTrack.duration);
@@ -529,7 +529,7 @@ for (const container of document.querySelectorAll('.track')) {
             togglePlayback(track.nextTrack);
         } else {
             activeTrack = null;
-            dockedPlayer.container.classList.remove('active');
+            document.body.classList.remove('player_active');
             dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerClosed);
         }
     });

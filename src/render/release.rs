@@ -270,7 +270,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         formatdoc!(r#"
             <a class="scroll_target" id="more"></a>
             <div class="page">
-                <div class="page_center page_50vh">
+                <div class="page_center">
                     <div class="page_more">
                         <div class="release_info">
                             <h1>{release_title_escaped} {release_year}</h1>
@@ -427,7 +427,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
-            <div class="page_split page_50vh">
+            <div class="page_split">
                 <div class="cover">{cover}</div>
                 <div class="abstract">
                     <h1>{release_title_with_unlisted_badge}</h1>

@@ -239,7 +239,7 @@ pub fn download_html(
     let body = formatdoc!(
         r##"
             <div class="page">
-                <div class="page_center page_90vh">
+                <div class="page_center">
                     <div style="max-width: 28rem;">
                         <h1>{t_downloads}</h1>
 
