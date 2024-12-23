@@ -151,8 +151,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         &public_releases
     );
 
-    let artist_synopsis: Option<String> = None; // TODO: Think through/unmock/implement
-    let synopsis = match artist_synopsis {
+    let synopsis = match &artist.synopsis {
         Some(synopsis) => {
             formatdoc!(r#"
                 <div style="margin-bottom: 1rem; margin-top: 1rem;">

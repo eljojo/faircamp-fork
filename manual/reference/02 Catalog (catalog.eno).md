@@ -265,11 +265,12 @@ This allows external sites to embed a widget that presents music from your site.
 The embed code can be copied from each release page where embedding is enabled.
 
 Embedding is disabled by default. If you want to enable it you also need to
-set the catalog's [base_url](#base_url) (embeds work by displaying something from your
-site on another site, for this the other site needs to point to your site's
-address), and then set `enabled`, for the catalog, or for specific
-releases. If you set it `enabled` at the catalog level, you can also use
-`disabled` at release level to re-disable it for specific releases.
+set the catalog's [base_url](#base_url) (embeds work
+by displaying something from your site on another site, for this the other site
+needs to point to your site's address), and then set `embedding: enabled`,
+either for the catalog or for artist or releases. If you set it `enabled`
+at the catalog level, you can also use `disabled` at lower level to
+re-disable it for specific releases.
 
 ```eno
 embedding: enabled
@@ -854,7 +855,7 @@ track_numbering: arabic-dotted
 ```
 
 `track_numbering` allows configuration of the numbering style
-used, offering the following choices:
+used for the track numbers of releases, offering the following choices:
 
 - `arabic` (1 2 3 …)
 - `arabic-dotted` (1. 2. 3. …) (default)

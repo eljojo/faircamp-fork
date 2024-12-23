@@ -18,10 +18,12 @@ use crate::{
     Overrides
 };
 use crate::markdown;
+use crate::util::html_escape_outside_attribute;
 
 use super::{
     ARTIST_CATALOG_RELEASE_OPTIONS,
     ARTIST_RELEASE_OPTIONS,
+    MAX_SYNOPSIS_CHARS,
     attribute_error_with_snippet,
     element_error_with_snippet,
     not_supported_error,
@@ -37,7 +39,8 @@ const ARTIST_OPTIONS: &[&str] = &[
     "external_page",
     "image",
     "more",
-    "name"
+    "name",
+    "synopsis"
 ];
 
 pub fn read_artist_manifest(
@@ -73,6 +76,7 @@ pub fn read_artist_manifest(
     // By default we use the folder name as name
     let mut name = dir.file_name().unwrap().to_string_lossy().to_string();
     let mut image = None;
+    let mut synopsis = None;
 
     for element in document.elements() {
         match element.key() {
@@ -201,6 +205,28 @@ pub fn read_artist_manifest(
                 let error = element_error_with_snippet(element, &manifest_path, message);
                 build.error(&error);
             }
+            "synopsis" => {
+                if let Ok(embed) = element.as_embed() {
+                    if let Some(value) = embed.value() {
+                        let synopsis_chars = value.chars().count();
+
+                        if synopsis_chars <= MAX_SYNOPSIS_CHARS {
+                            let synopsis_escaped = html_escape_outside_attribute(value);
+                            synopsis = Some(synopsis_escaped);
+                        } else {
+                            let message = format!("Synopsis is too long ({synopsis_chars}/{MAX_SYNOPSIS_CHARS} characters)");
+                            let error = element_error_with_snippet(element, &manifest_path, &message);
+                            build.error(&error);
+                        }
+                    } else {
+                        synopsis = None;
+                    }
+                } else {
+                    let message = "synopsis needs to be provided as an embed, e.g.:\n-- synopsis\nThe synopsis for the artist\n--synopsis";
+                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    build.error(&error);
+                }
+            }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
             _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
             other => {
@@ -226,6 +252,7 @@ pub fn read_artist_manifest(
         overrides.more_label.clone(),
         &name,
         local_options.permalink.take(),
+        synopsis,
         overrides.theme.clone()
     );
 

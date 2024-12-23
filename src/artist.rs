@@ -35,6 +35,7 @@ pub struct Artist {
     pub name: String,
     pub permalink: Permalink,
     pub releases: Vec<ReleaseRc>,
+    pub synopsis: Option<String>,
     pub theme: Theme,
     pub unlisted: bool
 }
@@ -64,6 +65,7 @@ impl Artist {
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
+            synopsis: None,
             theme: catalog.theme.clone(),
             unlisted: false
         }
@@ -81,6 +83,7 @@ impl Artist {
         more_label: Option<String>,
         name: &str,
         permalink: Option<Permalink>,
+        synopsis: Option<String>,
         theme: Theme
     ) -> Artist {
         let permalink = permalink.unwrap_or_else(|| Permalink::generate(name));
@@ -97,6 +100,7 @@ impl Artist {
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
+            synopsis,
             theme,
             unlisted: false
         }
@@ -132,6 +136,7 @@ impl Artist {
             name: name.to_string(),
             permalink,
             releases: Vec::new(),
+            synopsis: None,
             theme: catalog.theme.clone(),
             unlisted: false
         }
