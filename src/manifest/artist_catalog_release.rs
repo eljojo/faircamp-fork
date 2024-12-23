@@ -492,7 +492,7 @@ pub fn read_artist_catalog_release_option(
                                     match ThemeBase::from_manifest_key(value) {
                                         Some(variant) => overrides.theme.base = variant,
                                         None => {
-                                            let message = format!("Invalid base setting value '{value}' (supported values are dark and light)");
+                                            let message = format!("Invalid base setting value '{value}' (supported values are 'dark' and 'light')");
                                             let error = attribute_error_with_snippet(attribute, manifest_path, &message);
                                             build.error(&error);
                                         }

@@ -47,11 +47,11 @@ pub fn read_obsolete_option(
 
                     1) If you only need to set the name, permalink, and alias(es) you can use the new artist field inside a 'catalog.eno' or 'release.eno' manifest file (this only defines the artist, assigning an artist to a release happens with the 'release_artist(s)' field now):
 
-                    artist:
-                    name = Alice
-                    permalink = alice
-                    alias = alice
-                    alias = Älicë
+                      artist:
+                      name = Alice
+                      permalink = alice
+                      alias = alice
+                      alias = Älicë
 
                     2) For a full-fledged artist definition (including image, long text etc.), move all options you had inside the '# artist' section to a file called 'artist.eno', inside a separate directory dedicated to the artist only.
                 ");
@@ -92,43 +92,43 @@ pub fn read_obsolete_option(
 
                 *) Free downloads in mp3 and opus (for free downloads you only need to set the download formats!):
 
-                release_downloads:
-                - mp3
-                - opus
+                  release_downloads:
+                  - mp3
+                  - opus
 
                 *) Flac downloads protected with a download code:
 
-                release_downloads: flac
-                downloads: code
-                download_code: thesecret
-                -- unlock_info
-                Get a download code at my [shop](https://example.com)
-                -- unlock_info
+                  release_downloads: flac
+                  downloads: code
+                  download_code: thesecret
+                  -- unlock_info
+                  Get a download code at my [shop](https://example.com)
+                  -- unlock_info
 
                 *) Mp3 and flac downloads with a paycurtain:
 
-                release_downloads:
-                - mp3
-                - flac
-                downloads: paycurtain
-                price: USD 0+
-                -- payment_info
-                Pay via my [donations page](https://example.com)
-                -- payment_info
+                  release_downloads:
+                  - mp3
+                  - flac
+                  downloads: paycurtain
+                  price: USD 0+
+                  -- payment_info
+                  Pay via my [donations page](https://example.com)
+                  -- payment_info
 
                 *) Enabling single file downloads (this is now fine-controlled by setting formats explicitly):
 
-                track_downloads:
-                - mp3
-                - flac
+                  track_downloads:
+                  - mp3
+                  - flac
 
                 *) External downloads:
 
-                downloads: https://example.com
+                  downloads: https://example.com
 
                 *) Disabled downloads (only ever needed when you somehow enabled them in a parent manifest):
 
-                downloads: disabled
+                  downloads: disabled
             ");
             let error = element_error_with_snippet(element, manifest_path, &message);
             build.error(&error);
@@ -183,15 +183,15 @@ pub fn read_obsolete_option(
             let message = formatdoc!("
                 Since faircamp 1.0, specify payment options directly in an artist.eno, catalog.eno or release.eno manifest using the single 'payment_info' field. Example with context:
 
-                downloads: paycurtain
-                price: EUR 4+
-                release_downloads:
-                - mp3
-                - flac
+                  downloads: paycurtain
+                  price: EUR 4+
+                  release_downloads:
+                  - mp3
+                  - flac
 
-                -- payment_info
-                Pay via my [donations page](https://example.com)
-                -- payment_info
+                  -- payment_info
+                  Pay via my [donations page](https://example.com)
+                  -- payment_info
             ");
             let error = element_error_with_snippet(element, manifest_path, &message);
             build.error(&error);
