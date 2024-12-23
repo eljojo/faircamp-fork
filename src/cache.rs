@@ -778,7 +778,7 @@ impl Cache {
             }
         }
 
-        let source_meta = match AudioMeta::extract(&build.catalog_dir.join(source_path), extension) {
+        let source_meta = match AudioMeta::extract(build, extension, source_path) {
             Ok(audio_meta) => audio_meta,
             Err(err) => return Err(err)
         };

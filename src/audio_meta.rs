@@ -13,7 +13,7 @@ use std::path::Path;
 
 use serde_derive::{Serialize, Deserialize};
 
-use crate::AudioFormatFamily;
+use crate::{AudioFormatFamily, Build};
 use crate::decode::DecodeResult;
 
 mod aiff;
@@ -50,8 +50,10 @@ pub struct AudioMeta {
 }
 
 impl AudioMeta {
-    pub fn extract(path: &Path, extension: &str) -> Result<AudioMeta, String> {
-        info_decoding!("{:?} (Generating waveform/reading metadata)", path);
+    pub fn extract(build: &Build, extension: &str, relative_path: &Path) -> Result<AudioMeta, String> {
+        info_decoding!("{:?} (Generating waveform/reading metadata)", relative_path);
+
+        let absolute_path = build.catalog_dir.join(relative_path);
 
         match extension {
             "aac" => {
@@ -79,13 +81,13 @@ impl AudioMeta {
             }
             "aif" |
             "aifc" |
-            "aiff" => aiff::extract(path),
-            "alac" => alac::extract(path),
-            "flac" => flac::extract(path),
-            "mp3" => mp3::extract(path),
-            "ogg" => ogg_vorbis::extract(path),
-            "opus" => opus::extract(path),
-            "wav" => wav::extract(path),
+            "aiff" => aiff::extract(&absolute_path),
+            "alac" => alac::extract(&absolute_path),
+            "flac" => flac::extract(&absolute_path),
+            "mp3" => mp3::extract(&absolute_path),
+            "ogg" => ogg_vorbis::extract(&absolute_path),
+            "opus" => opus::extract(&absolute_path),
+            "wav" => wav::extract(&absolute_path),
             _ => unreachable!()
         }
     }
