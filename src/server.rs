@@ -63,6 +63,7 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
     let url = format!("http://localhost:{port_bound}");
 
     println!("Serving the site preview at {url} (open this address in your browser)");
+    println!("Press Ctrl+C to shut down the preview server (e.g. to perform another build)");
 
     let open_browser = || async {
         if webbrowser::open(&url).is_err() {
