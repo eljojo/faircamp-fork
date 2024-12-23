@@ -488,6 +488,7 @@ img {
     grid-template-rows: min-content 1fr min-content;
     min-height: 100dvh;
 }
+.layout > * { max-width: 100vw; }
 main {
     align-content: center;
     box-sizing: border-box;
