@@ -1068,7 +1068,7 @@ impl Catalog {
                             resolve the conflict.
                         "#)
                     }
-                    PermalinkUsage::Release(_) => format!("{PERMALINK_CONFLICT_RESOLUTION_HINT}")
+                    PermalinkUsage::Release(_) => PERMALINK_CONFLICT_RESOLUTION_HINT.to_string()
                 };
 
                 let error = formatdoc!("
