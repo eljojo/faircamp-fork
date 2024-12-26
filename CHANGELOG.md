@@ -42,7 +42,7 @@
 - Change M3U playlists to be opt-in (f7db4d7)
 - Change the default track numbering style to arabic-dotted (e112267)
 - Build catalog/release descriptions for RSS feed from synopsis fields first (cede9fe)
-- Update lithuanian translations (43f91f1, db143c4)
+- Update lithuanian translations (Vac, 43f91f1, db143c4)
 - Improve debug feature output (2647f9a)
 
 ## Manual
