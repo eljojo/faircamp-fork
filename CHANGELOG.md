@@ -5,6 +5,67 @@
 
 # Changelog
 
+# 1.0.0
+
+## Manifests
+
+- Switch to dedicated artist.eno, catalog.eno and release.eno manifests, overhaul error handling (df6454a)
+- Switch to case-sensitive matching when comparing/associating artists by name (34651bc)
+- Switch to theme options as a field inside the artist/catalog/release manifests (638dc1a)
+- Extend downloads customizability, move options into artist/catalog/release manifests (5529c60, eb30ac5, e5f38e7, e348c4d)
+- Extend artist customizability, generalize and reorganize manifest code/options (71b040a, 77d2cc3)
+- Introduce artist shortcut and external pages, rename original artists field (4fbcbbe, 67aa339)
+- Implement synopsis on artist, document missing options for artist.eno (166895e)
+- Rename 'text' option to 'more', improve/extend its documentation and examples (a71471b)
+- Provide a short-hand link option, improve/extend link documentation to artists (c228e88)
+- Support track_numbering option at the catalog level as well (17439a2)
+
+## Terminal usability
+
+- Always abort builds on error, allow forced override with --ignore-errors flag (0a85676)
+- List all options supported by the manifest when an unsupported option is found (fcb9668)
+- Provide interactive error guidance for migrating from obsolete options (271a2e5, c1dc284, d608c60, f112865)
+- Provide explicit help message for handling an artist with varying spelling (140200b)
+- Provide a hint for shutting down the preview server (cf5b8a8)
+- Refine faircamp termination/progress hint (5e034ac)
+- Print relative path (in catalog) when informing about decoding operations (feddff8)
+- Adaptively format build time metric in milliseconds, seconds or minutes (d1ef0b7)
+- Minor readability tweaks in misc manifest error messages (97c18ee)
+
+## Layout
+
+- Introduce global footer and configurable faircamp signature (9435de4)
+- Compact the layout further, implement responsive/sticky footer behavior (c7eb3a5, 52e33be)
+
+## Misc
+
+- Change M3U playlists to be opt-in (f7db4d7)
+- Change the default track numbering style to arabic-dotted (e112267)
+- Build catalog/release descriptions for RSS feed from synopsis fields first (cede9fe)
+- Update lithuanian translations (43f91f1, db143c4)
+- Improve debug feature output (2647f9a)
+
+## Manual
+
+- Add label example in manual, improve artist example titles and intros (96c9eaf)
+- Introduce cross-links, options overview and extend content on reference pages (161ab10)
+- Document --debug option (b5c84ce)
+- Revisit manual background shades (6a42c01)
+- Reorder and structure shuffled docs around copy_link, date and track sorting (9a4e4eb)
+- Remove redundant manual instructions for rel="me" link placement (39f96ca)
+
+## Bugfixes
+
+- Ensure mutually exclusive artist assignment to catalog's main/support artists (6a860ba)
+- Ensure mutually exclusive artist assignment to release's main/support artists (9aa9bd5)
+- Fix printing of unsupported color codes in windows command prompt (514c30b)
+
+## Build integrity
+
+- Pin pacmog crate dependency to an exact version (4fba9ee)
+- Pin libvips crate dependency to an exact version (281c447)
+- Mirror version in translations subcrate to work around build/tooling issues (f9904d2)
+
 # 0.23.0
 
 - Implement hybrid ltr/rtl layouting and better space usage for docked and embedded players (8f8b3c4, 0198081)
