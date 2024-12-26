@@ -3,13 +3,12 @@
     SPDX-License-Identifier: CC0-1.0
 -->
 
-# Electric Curtain
+# Example artist site with soft paycurtain – Electric Curtain
 
-This example catalog demonstrates various concepts using a fictional Darksynth
-producer with the pseudonym *Electric Curtain* that has many singles, who on
-their faircamp site offers downloads behind a soft paycurtain, that is,
-asking for payment for downloads through third party platforms, which are
-however not technically enforced.
+A fictional Darksynth producer with the pseudonym *Electric Curtain* that has
+many singles, who on their faircamp site offers downloads behind a soft
+paycurtain, that is, asking for payment for downloads through third party
+platforms, which are however not technically enforced.
 
 This is how their catalog directory looks like:
 

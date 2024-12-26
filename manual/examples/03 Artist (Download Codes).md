@@ -3,13 +3,12 @@
     SPDX-License-Identifier: CC0-1.0
 -->
 
-# Say the Magic Word
+# Example artist site with download codes – Say the Magic Word
 
-This example catalog demonstrates further concepts using the fictional solo
-artist *Say the Magic Word*, which has released a single EP, and who on their
-faircamp site provides access to downloads through download codes, which can
-be obtained on another site which the artist uses to receive and manage
-financial support from his audience.
+A fictional solo artist *Say the Magic Word*, which has released a single EP,
+and who on their faircamp site provides access to downloads through download
+codes, which can be obtained on another site which the artist uses to receive
+and manage financial support from his audience.
 
 This is how their catalog directory looks like:
 

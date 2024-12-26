@@ -1,13 +1,12 @@
 <!--
-    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023-2024 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
-# Free Metal
+# Example artist site with free downloads – Free Metal
 
-This first example catalog explains some of faircamp using a fictional Metal
-band called *Free Metal* with two albums (*Much Doublebass* and *Very Tapping*),
-which on its faircamp site offers free downloads only.
+A fictional Metal band called *Free Metal* with two albums (*Much Doublebass*
+and *Very Tapping*), which on its faircamp site offers free downloads only.
 
 This is how their catalog looks like:
 
