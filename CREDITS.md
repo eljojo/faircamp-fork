@@ -26,6 +26,7 @@ Thanks everyone for your support.
 [Andy Berdan](https://codeberg.org/berdandy)<br>
 [atomkarinca](https://fe.disroot.org/users/atomkarinca)<br>
 [AxWax](https://axwax.eu/)<br>
+[bran(...)pos](https://www.soundcrack.net/)<br>
 [Christian Pacaud](https://www.christianpacaud.com/)<br>
 [controlfreak](https://control.org/)<br>
 [Crocuta](https://crocutaband.org/)<br>
@@ -65,7 +66,7 @@ Damian Szetela<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [n3wjack](https://n3wjack.net/)<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
-[nOOq](https://codeberg.org/n00q)<br>
+[n00q](https://codeberg.org/n00q)<br>
 [OniriCorpe](https://oniricorpe.eu)<br>
 [Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
