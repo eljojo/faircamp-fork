@@ -5,7 +5,7 @@
 
 # Artist manifests – artist.eno
 
-> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [external_page](#external_page), [extra_downloads](#extra_downloads), [image](#image), [link](#link), [more](#more), [more_label](#more_label), [name](#name), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_downloads](#release_downloads), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [external_page](#external_page), [extra_downloads](#extra_downloads), [image](#image), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [name](#name), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_downloads](#release_downloads), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 Artists are automatically created by faircamp when they are encountered in
 audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
@@ -266,6 +266,26 @@ the header/landing area of your artist page. A `link` must at least
 provide a url, either as a simple value or as an `url` attribute. Optionally
 you can also supply a `label` which is what is visibly displayed instead of
 the `url`, when given.
+
+## <a name="m3u"></a> `m3u`
+
+This controls the generation of an [M3U](https://en.wikipedia.org/wiki/M3U) playlist
+for the artist (provided on the artist page) - it is disabled by default.
+
+To enable the M3U playlist for an artist:
+
+```eno
+m3u: enabled
+```
+
+To disable the M3U playlist for an artist:
+
+```eno
+m3u: disabled
+```
+
+This behavior can also be globally configured (for all artists/releases) in the
+catalog manifest.
 
 ## <a name="more"></a> `more`
 

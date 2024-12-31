@@ -35,7 +35,6 @@ use super::{
 const RELEASE_OPTIONS: &[&str] = &[
     "cover",
     "date",
-    "m3u",
     "more",
     "release_artist",
     "release_artists",
@@ -147,29 +146,6 @@ pub fn read_release_manifest(
                 let error = element_error_with_snippet(element, &manifest_path, message);
                 build.error(&error);
             }
-            "m3u" => 'm3u: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(result) = field.value() {
-                        if let Some(value) = result {
-                            match value {
-                                "disabled" => overrides.m3u_enabled = false,
-                                "enabled" => overrides.m3u_enabled = true,
-                                _ => {
-                                    let message = format!("The value '{value}' is not recognized for the m3u option, allowed values are 'enabled' and 'disabled'");
-                                    let error = element_error_with_snippet(element, &manifest_path, &message);
-                                    build.error(&error);
-                                }
-                            }
-                        }
-
-                        break 'm3u;
-                    }
-                }
-
-                let message = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
-                build.error(&error);
-            }
             "more" => {
                 if let Ok(embed) = element.as_embed() {
                     if let Some(value) = embed.value() {
@@ -261,7 +237,7 @@ pub fn read_release_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(build, element, local_options, &manifest_path) => (),
+            _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
             _ if read_catalog_release_option(build, catalog, element, &manifest_path) => (),
             other => {
                 let message = not_supported_error(

@@ -8,7 +8,65 @@
 use indoc::formatdoc;
 use url::Url;
 
-use crate::{Build, Catalog, Release, Track};
+use crate::{Artist, Build, Catalog, Release, Track};
+
+/// Generate complete content of an M3U playlist for all (public) releases of
+/// an artist.
+pub fn generate_for_artist(base_url: &Url, build: &Build, artist: &Artist) -> String {
+    let artist_url = base_url.join(&format!("{}/", artist.permalink.slug)).unwrap();
+    let artist_name = &artist.name;
+
+    let r_releases = artist.public_releases()
+        .iter()
+        .map(|release| {
+            let release_ref = release.borrow();
+            let release_url = base_url.join(&format!("{}/", release_ref.permalink.slug)).unwrap();
+            let release_title = &release_ref.title;
+
+            let r_tracks = generate_tracks(build, &release_ref, &release_url, &release_ref.tracks);
+
+            let release_extimg = match &release_ref.cover {
+                Some(described_image) => {
+                    let image_ref = described_image.image.borrow();
+                    let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
+                    let file_url = release_url.join(&file_name).unwrap();
+                    let hash = image_ref.hash.as_url_safe_base64();
+
+                    format!("#EXTIMG:{file_url}?{hash}")
+                }
+                None => String::new()
+            };
+
+            formatdoc!(r#"
+                {release_extimg}
+                #EXTALB:{release_title}
+                {r_tracks}
+            "#)
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+
+    let artist_extimg = match &artist.image {
+        Some(described_image) => {
+            let image_ref = described_image.image.borrow();
+            let file_name = image_ref.artist_assets.as_ref().unwrap().playlist_image();
+            let file_url = artist_url.join(&file_name).unwrap();
+            let hash = image_ref.hash.as_url_safe_base64();
+
+            format!("#EXTIMG:{file_url}?{hash}")
+        }
+        None => String::new()
+    };
+
+    formatdoc!(r#"
+        #EXTM3U
+        #EXTENC:UTF-8
+        #PLAYLIST:{artist_name}
+        {artist_extimg}
+        {r_releases}
+    "#)
+}
 
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// the catalog.

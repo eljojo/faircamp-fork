@@ -28,6 +28,8 @@ pub struct Artist {
     pub featured: bool,
     pub image: Option<DescribedImage>,
     pub links: Vec<Link>,
+    /// Whether an m3u playlist should be generated and provided for this artist
+    pub m3u: bool,
     pub more: Option<HtmlAndStripped>,
     /// Optional override label for the button that (by default) says "More" on the
     /// artist page and points to additional long-form content for the artist.
@@ -60,6 +62,7 @@ impl Artist {
             featured: false,
             image: None,
             links: Vec::new(),
+            m3u: false,
             more: None,
             more_label: None,
             name: name.to_string(),
@@ -71,7 +74,7 @@ impl Artist {
         }
     }
 
-    /// This is how we create an artist if we encouter an artist that
+    /// This is how we create an artist if we encounter an artist that
     /// is manually defined in the catalog via an artist manifest.
     pub fn new_manual(
         aliases: Vec<String>,
@@ -79,6 +82,7 @@ impl Artist {
         external_page: Option<Url>,
         image: Option<DescribedImage>,
         links: Vec<Link>,
+        m3u: bool,
         more: Option<HtmlAndStripped>,
         more_label: Option<String>,
         name: &str,
@@ -95,6 +99,7 @@ impl Artist {
             featured: false,
             image,
             links,
+            m3u,
             more,
             more_label,
             name: name.to_string(),
@@ -131,6 +136,7 @@ impl Artist {
             featured: false,
             image: None,
             links: Vec::new(),
+            m3u: false,
             more: None,
             more_label: None,
             name: name.to_string(),
@@ -140,6 +146,18 @@ impl Artist {
             theme: catalog.theme.clone(),
             unlisted: false
         }
+    }
+
+    pub fn public_releases(&self) -> Vec<ReleaseRc> {
+        self.releases
+            .iter()
+            .filter_map(|release| {
+                match release.borrow().unlisted {
+                    true => None,
+                    false => Some(release.clone())
+                }
+            })
+            .collect()
     }
 }
 

@@ -228,7 +228,7 @@ pub fn read_artist_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(build, element, local_options, &manifest_path) => (),
+            _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
             other => {
                 let message = not_supported_error(
                     "artist.eno",
@@ -248,6 +248,7 @@ pub fn read_artist_manifest(
         external_page,
         image,
         mem::take(&mut local_options.links),
+        overrides.m3u_enabled,
         more,
         overrides.more_label.clone(),
         &name,

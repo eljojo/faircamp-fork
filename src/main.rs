@@ -184,9 +184,19 @@ fn main() -> ExitCode {
     // Render pages for featured artists (these are populated only in label mode)
     for artist in &catalog.featured_artists {
         let artist_ref = artist.borrow();
+        let artist_dir = build.build_dir.join(&artist_ref.permalink.slug);
+
+        // Render m3u playlist
+        if let Some(base_url) = &build.base_url {
+            if artist_ref.m3u {
+                let r_m3u = m3u::generate_for_artist(base_url, &build, &artist_ref);
+                fs::write(artist_dir.join("playlist.m3u"), r_m3u).unwrap();
+            }
+        }
+
         let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
-        fs::create_dir(build.build_dir.join(&artist_ref.permalink.slug)).unwrap();
-        fs::write(build.build_dir.join(&artist_ref.permalink.slug).join("index.html"), artist_html).unwrap();
+        fs::create_dir(&artist_dir).unwrap();
+        fs::write(artist_dir.join("index.html"), artist_html).unwrap();
     }
 
     // Render image descriptions page (when needed)
@@ -203,7 +213,9 @@ fn main() -> ExitCode {
 
         if build.embeds_requested { not_generated.push("Embeds"); }
         if catalog.feed_enabled { not_generated.push("RSS Feed"); }
-        if catalog.m3u || catalog.releases.iter().any(|release| release.borrow().m3u) {
+        if catalog.m3u ||
+            catalog.artists.iter().any(|artist| artist.borrow().m3u) ||
+            catalog.releases.iter().any(|release| release.borrow().m3u) {
             not_generated.push("M3U playlists");
         }
 

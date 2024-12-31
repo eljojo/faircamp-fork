@@ -3,7 +3,7 @@
 
 use indoc::formatdoc;
 
-use crate::{Artist, Build, Catalog, CrawlerMeta, ReleaseRc, Scripts};
+use crate::{Artist, Build, Catalog, CrawlerMeta, Scripts};
 use crate::icons;
 use crate::render::{
     artist_image,
@@ -133,15 +133,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         artist_name_escaped.clone()
     };
 
-    let public_releases: Vec<ReleaseRc> = artist.releases
-        .iter()
-        .filter_map(|release| {
-            match release.borrow().unlisted {
-                true => None,
-                false => Some(release.clone())
-            }
-        })
-        .collect();
+    let public_releases = artist.public_releases();
 
     let r_releases = releases(
         build,
