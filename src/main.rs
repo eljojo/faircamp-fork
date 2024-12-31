@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2021-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use clap::Parser;
 use std::fs;
+use std::process::ExitCode;
+
+use clap::Parser;
 
 #[macro_use]
 mod message;
@@ -84,21 +86,23 @@ use transcodes::{Transcode, Transcodes, TranscodesRc, TranscodesRcView};
 
 const MANUAL_URL: &str = "https://simonrepp.com/faircamp/manual/";
 
-fn main() {
+fn main() -> ExitCode {
     let args: Args = Args::parse();
 
     if args.manual {
         if webbrowser::open(MANUAL_URL).is_err() {
-            error!("Could not open browser for displaying the manual")
+            error!("Could not open browser for displaying the manual");
+            return ExitCode::FAILURE;
+        } else {
+            return ExitCode::SUCCESS;
         }
-        return;
     }
 
     let mut build = Build::new(&args);
     
     if !build.catalog_dir.is_dir() {
         error!("Configured catalog directory does not exist - aborting build");
-        return;
+        return ExitCode::FAILURE;
     }
 
     info!("You can safely terminate faircamp at any point (using Ctrl+C) - all progress is continuously saved and new builds always continue where the previous build left off.");
@@ -107,13 +111,13 @@ fn main() {
     
     if args.analyze_cache {
         cache.report_stale();
-        return;
+        return ExitCode::SUCCESS;
     }
     
     if args.optimize_cache {
         cache.optimization = CacheOptimization::Immediate;
         cache.maintain(&build);
-        return;
+        return ExitCode::SUCCESS;
     }
     
     if args.wipe_all || args.wipe_build || args.wipe_cache {
@@ -126,19 +130,19 @@ fn main() {
             let _ = fs::remove_dir_all(&build.cache_dir);
         }
         info!("No further actions are performed due to requested wipe operation(s)");
-        return;
+        return ExitCode::SUCCESS;
     }
-    
+
     cache.mark_all_stale(&build.build_begin);
     
     let mut catalog = match Catalog::read(&mut build, &mut cache) {
         Ok(catalog) => catalog,
-        Err(()) => return
+        Err(()) => return ExitCode::FAILURE
     };
 
     if args.debug {
         debug::debug_catalog(&catalog);
-        return;
+        return ExitCode::SUCCESS;
     }
 
     util::ensure_empty_dir(&build.build_dir);
@@ -218,11 +222,12 @@ fn main() {
         PostBuildAction::Deploy => {
             if build.theming_widget {
                 // TODO: But maybe someone *wants* to deploy it to a "live" page, e.g. to ask their bandmates for their color preferences? Follow up again :)
-                error!("Aborting deploy because --theming-widget is enabled, we probably don't want that on the live page.")
+                error!("Aborting deploy because --theming-widget is enabled, we probably don't want that on the live page.");
+                return ExitCode::FAILURE;
             } else {
                 deploy::deploy(&build);
             }
-        },
+        }
         PostBuildAction::Preview { port } => {
             if build.clean_urls || build.theming_widget {
                 // Here we serve the preview through an actual http server. In
@@ -238,9 +243,12 @@ fn main() {
                 // a browser.
                 let local_file_url = build.build_dir.join("index.html");
                 if webbrowser::open(&local_file_url.to_string_lossy()).is_err() {
-                    error!("Could not open browser for previewing the site")
+                    error!("Could not open browser for previewing the site");
+                    return ExitCode::FAILURE
                 }
             }
         }
     }
+
+    ExitCode::SUCCESS
 }

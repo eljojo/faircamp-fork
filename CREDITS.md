@@ -81,6 +81,7 @@ Damian Szetela<br>
 [thurti](https://t3000.uber.space)<br>
 [Tommaso Croce](https://mastodon.uno/@toctoc)<br>
 [Torsten Torsten](https://torstentorsten.de)<br>
+[Travis Briggs](https://travisbriggs.com/)<br>
 [Vac](https://crumb.lt/Vac)<br>
 [Venya](https://venya.soundslike.pro/)<br>
 [Yonder](https://spacey.space/@yonder)<br>
