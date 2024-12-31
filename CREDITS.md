@@ -42,6 +42,7 @@ Damian Szetela<br>
 [DURAD](https://durad.xyz)<br>
 [Emanuel Pesendorfer](https://emanuel-pesendorfer.at/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
+[Filip](https://autom.zone/)<br>
 [Flavigula](https://flavigula.net/)<br>
 [Florian Antoine](http://oooooooooo.net/)<br>
 [Francesco Gazzetta](https://codeberg.org/fgaz)<br>
