@@ -82,7 +82,7 @@ copy_link: disabled
 To set a single download code that can be entered to access downloads:
 
 ```eno
-download_code: crowdfunding2023!
+download_code: crowdfunding2023
 ```
 
 To set multiple download codes that can be entered to access downloads:

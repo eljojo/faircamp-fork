@@ -105,7 +105,7 @@ pub fn read_artist_catalog_release_option(
                 }
             }
 
-            let message = "download_code needs to be provided as a field with a value, e.g.: 'download_code: enter3!'\n\nFor multiple download_codes specify the download_codes field:\n\ndownload_codes:\n- enter3!\n- enter2x";
+            let message = "download_code needs to be provided as a field with a value, e.g.: 'download_code: enterfriend'\n\nFor multiple download_codes specify the download_codes field:\n\ndownload_codes:\n- enterfriend\n- enteralternative";
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
@@ -136,7 +136,7 @@ pub fn read_artist_catalog_release_option(
                 }
             }
 
-            let message = "download_codes needs to be provided as a field with items, e.g.:\n\ndownload_codes:\n- enter3!\n- enter2x";
+            let message = "download_codes needs to be provided as a field with items, e.g.:\n\ndownload_codes:\n- enterfriend\n- enteralternative";
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
