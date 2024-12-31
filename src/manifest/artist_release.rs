@@ -5,16 +5,11 @@ use std::path::Path;
 
 use enolib::SectionElement;
 
-use crate::{
-    Build,
-    LocalOptions,
-    Overrides,
-    Permalink
-};
+use crate::{Build, LocalOptions, Permalink};
 
 use super::element_error_with_snippet;
 
-pub const ARTIST_RELEASE_OPTIONS: &[&str] = &["copy_link", "permalink"];
+pub const ARTIST_RELEASE_OPTIONS: &[&str] = &["permalink"];
 
 /// Try to read a single option from the passed element. Processes
 /// options that are present in artist and release manifests.
@@ -22,33 +17,9 @@ pub fn read_artist_release_option(
     build: &mut Build,
     element: &Box<dyn SectionElement>,
     local_options: &mut LocalOptions,
-    manifest_path: &Path,
-    overrides: &mut Overrides
+    manifest_path: &Path
 ) -> bool {
     match element.key() {
-        "copy_link" => 'copy_link: {
-            if let Ok(field) = element.as_field() {
-                if let Ok(result) = field.value() {
-                    if let Some(value) = result {
-                        match value {
-                            "enabled" => overrides.copy_link = true,
-                            "disabled" => overrides.copy_link = false,
-                            _ => {
-                                let message = "This copy_link setting was not recognized (supported values are 'enabled' and 'disabled')";
-                                let error = element_error_with_snippet(element, manifest_path, message);
-                                build.error(&error);
-                            }
-                        }
-                    }
-
-                    break 'copy_link;
-                }
-            }
-
-            let message = "copy_link needs to be provided as a field with a value, e.g.: 'copy_link: disable'";
-            let error = element_error_with_snippet(element, manifest_path, message);
-            build.error(&error);
-        }
         "permalink" => 'permalink: {
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {

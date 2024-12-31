@@ -299,7 +299,7 @@ pub fn read_release_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
+            _ if read_artist_release_option(build, element, local_options, &manifest_path) => (),
             _ if read_catalog_release_option(build, catalog, element, &manifest_path) => (),
             other => {
                 let message = not_supported_error(

@@ -228,7 +228,7 @@ pub fn read_artist_manifest(
                 }
             }
             _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_artist_release_option(build, element, local_options, &manifest_path, overrides) => (),
+            _ if read_artist_release_option(build, element, local_options, &manifest_path) => (),
             other => {
                 let message = not_supported_error(
                     "artist.eno",

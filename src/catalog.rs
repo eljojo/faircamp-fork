@@ -876,6 +876,9 @@ impl Catalog {
         }
 
         if dir == build.catalog_dir {
+            self.copy_link = merged_overrides.copy_link;
+            self.more_label = merged_overrides.more_label.clone();
+
             if !local_options.links.is_empty() {
                 self.links = local_options.links;
             }

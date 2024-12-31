@@ -33,10 +33,13 @@ use super::{
     read_obsolete_option
 };
 
+/// Options that exist only for the catalog manifest, or are handled in a
+/// catalog-specific way in spite of existing on artist or release manifests
+/// as well, are tracked here. This has to correspond 1:1 with the keys that
+/// are matched against in `read_catalog_manifest`.
 const CATALOG_OPTIONS: &[&str] = &[
     "base_url",
     "cache_optimization",
-    "copy_link",
     "disable_feed",
     "faircamp_signature",
     "favicon",
@@ -135,39 +138,6 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "cache_optimization needs to be provided as a field with the value 'delayed', 'immediate', 'manual' or 'wipe', e.g.: 'cache_optimization: delayed'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
-                build.error(&error);
-            }
-            "copy_link" => 'copy_link: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(result) = field.value() {
-                        if let Some(value) = result {
-                            match value {
-                                // TODO: Maybe we can somehow improve this, so that
-                                //       we can just use the same generic implementation for copy_link
-                                //       manifest retrieval for artist/catalog/release and set it afterwards
-                                //       for the catalog somehow.
-                                "enabled" => {
-                                    catalog.copy_link = true;
-                                    overrides.copy_link = true;
-                                }
-                                "disabled" => {
-                                    catalog.copy_link = false;
-                                    overrides.copy_link = false;
-                                }
-                                _ => {
-                                    let message = "This copy_link setting was not recognized (supported values are 'enabled' and 'disabled')";
-                                    let error = element_error_with_snippet(element, &manifest_path, message);
-                                    build.error(&error);
-                                }
-                            }
-                        }
-
-                        break 'copy_link;
-                    }
-                }
-
-                let message = "copy_link needs to be provided as a field with a value, e.g.: 'copy_link: disable'";
                 let error = element_error_with_snippet(element, &manifest_path, message);
                 build.error(&error);
             }

@@ -33,6 +33,7 @@ use super::{
 };
 
 pub const ARTIST_CATALOG_RELEASE_OPTIONS: &[&str] = &[
+    "copy_link",
     "download_code",
     "download_codes",
     "downloads",
@@ -63,6 +64,29 @@ pub fn read_artist_catalog_release_option(
     overrides: &mut Overrides
 ) -> bool {
     match element.key() {
+        "copy_link" => 'copy_link: {
+            if let Ok(field) = element.as_field() {
+                if let Ok(result) = field.value() {
+                    if let Some(value) = result {
+                        match value {
+                            "enabled" => overrides.copy_link = true,
+                            "disabled" => overrides.copy_link = false,
+                            _ => {
+                                let message = "This copy_link setting was not recognized (supported values are 'enabled' and 'disabled')";
+                                let error = element_error_with_snippet(element, manifest_path, message);
+                                build.error(&error);
+                            }
+                        }
+                    }
+
+                    break 'copy_link;
+                }
+            }
+
+            let message = "copy_link needs to be provided as a field with a value, e.g.: 'copy_link: disabled'";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
+        }
         "download_code" => 'download_code: {
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {
