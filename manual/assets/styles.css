@@ -164,8 +164,10 @@ svg { fill: currentColor; }
     font-size: 1.1rem;
 }
 .title svg {
-    height: 2.5rem;
-    width: 2.5rem;
+    font-size: 1.4em;
+    margin-inline-start: .3em;
+    position: relative;
+    top: .05em;
 }
 ul { padding-left: 2rem; }
 @media (max-width: 49.999rem) {
