@@ -63,6 +63,7 @@ Damian Szetela<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [Miró Allard](https://www.miroallard.com/)<br>
+[naskya](https://naskya.net/)<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [n3wjack](https://n3wjack.net/)<br>

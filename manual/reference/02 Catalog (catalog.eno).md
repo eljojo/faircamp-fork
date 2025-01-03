@@ -411,6 +411,7 @@ Faircamp currently ships with these languages:
 - French `fr`
 - German `de`
 - Italian `it`
+- Japanese `ja`
 - Lithuanian `lt`
 - Norwegian Bokmål `nb`
 - Polish `pl`
