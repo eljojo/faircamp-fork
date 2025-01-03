@@ -207,15 +207,28 @@ pub fn transcode(
         }
     }
 
+    // Apply custom codec options based on the target format
     match target_format {
+        AudioFormat::Aac => (),
+        AudioFormat::Aiff => (),
         AudioFormat::Alac => {
             command.arg("-vn");
             command.arg("-codec:a").arg("alac");
         }
+        AudioFormat::Flac => (),
         AudioFormat::Mp3VbrV0 => {
             command.arg("-codec:a").arg("libmp3lame");
             command.arg("-qscale:a").arg("0");
         }
+        AudioFormat::Mp3VbrV5 => {
+            command.arg("-codec:a").arg("libmp3lame");
+            command.arg("-qscale:a").arg("5");
+        }
+        AudioFormat::Mp3VbrV7 => {
+            command.arg("-codec:a").arg("libmp3lame");
+            command.arg("-qscale:a").arg("7");
+        }
+        AudioFormat::OggVorbis => (),
         AudioFormat::Opus48Kbps => {
             command.arg("-codec:a").arg("libopus");
             command.arg("-b:a").arg("48k");
@@ -228,7 +241,7 @@ pub fn transcode(
             command.arg("-codec:a").arg("libopus");
             command.arg("-b:a").arg("128k");
         }
-        _ => ()
+        AudioFormat::Wav => ()
     }
     
     command.arg(output_file);
