@@ -73,6 +73,7 @@ release_downloads:
 > special tier and got the download code "magicsuperfanspectacular" which
 > the artist will then also add to the upcoming releases, so these patrons
 > can access all downloads by the artist.
+downloads: code
 download_codes:
 - magicfanlove
 - magicsuperfanspectacular
@@ -83,3 +84,9 @@ download_codes:
 You can obtain a download code by [becoming a patron](https://tinyurl.com/say-support)!
 -- unlock_info
 ```
+
+## How it works
+
+When you enable download codes, the "Download" button sends the user to an unlock page instead of directly to the download URL. The unlock page includes instructions for accessing the page `/downloads/<download-code>/` which includes a link to the download URL.
+
+By default, download URLs are difficult but not impossible to guess by reading Faircamp's source code. Download URLs also do not change if you switch from `downloads: free` to `downloads: code`. You can create unguessable download URLs by either setting `freeze_download_urls` to a value you keep secret or by setting `rotate_download_urls` in `catalog.eno`.

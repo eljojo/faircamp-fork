@@ -8,7 +8,7 @@ pub const EN: Translations = Translations {
     audio_format_alac: Reviewed("Lossless and compressed, if you exclusively use Apple products choose this over FLAC"),
     audio_format_average: Reviewed("Average compression, appropriate if your player does not support better formats"),
     audio_format_flac: Reviewed("Lossless and compressed, best choice for archival"),
-    audio_format_mp3: Reviewed("Inefficent compression, appropriate if compatibility with older players is needed"),
+    audio_format_mp3: Reviewed("Inefficient compression, appropriate if compatibility with older players is needed"),
     audio_format_opus_48: Reviewed("Excellent compression, frugal quality, good choice if space is limited"),
     audio_format_opus_96: Reviewed("Excellent compression, standard quality, good choice for offline listening"),
     audio_format_opus_128: Reviewed("Excellent compression, highest quality, best choice for offline listening"),
@@ -86,11 +86,11 @@ Here are some tips for writing good image descriptions:<br>\
     unlock: Reviewed("Unlock"),
     unlock_downloads: Reviewed("Unlock downloads"),
     unlock_manual_instructions: Reviewed("\
-To unlock the download, please make the below described \
-changes to the address in your browser's adress bar.\
+To unlock the download, please make the following \
+changes to the address in your browser's address bar.\
 <br><br>\
-Before you embark on this please be aware that wrong codes or \
-address modifications take you to a 404 page. In this case \
+Before you try this please be aware that incorrect codes or \
+address modifications will take you to a 404 page. In this case \
 use the Back button and closely follow the instructions again.\
 <br><br>\
 Replace the final part of the address - /{unlock_permalink}/{page_hash}{index_suffix} - \
