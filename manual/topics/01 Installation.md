@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -39,6 +39,10 @@ See copy/paste instructions in [Building from source](https://codeberg.org/simon
 **Nix/NixOS**
 
 Install the [faircamp package](https://search.nixos.org/packages?show=faircamp&type=packages&query=faircamp)
+
+**openSUSE**
+
+Install the [faircamp package](https://build.opensuse.org/package/show/home:edogawa/faircamp)
 
 ## FreeBSD
 

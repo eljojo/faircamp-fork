@@ -40,6 +40,7 @@ Damian Szetela<br>
 [Denys Nykula](https://libre.net.ua/)<br>
 [Devin Canterberry](https://canterberry.cc/)<br>
 [DURAD](https://durad.xyz)<br>
+[Edgar Aichinger](https://build.opensuse.org/users/edogawa)<br>
 [Emanuel Pesendorfer](https://emanuel-pesendorfer.at/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
 [Filip](https://autom.zone/)<br>
