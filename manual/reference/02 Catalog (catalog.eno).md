@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -697,6 +697,72 @@ Thanks for stopping by!
 
 A short (256 characters max), plain-text introduction text for your catalog,
 this is the first thing visitors will see - make it count!
+
+## <a name="tags"></a> `tags`
+
+By default faircamp strips all metadata off the audio files that you supply
+when it transcodes them for streaming and downloading, only adding back those
+tags that it needs and manages itself, i.e. the title, track number, artist
+(s), release artist(s) and release title. The `tags` option lets you control
+this behavior:
+
+Set it to `copy` and faircamp will transfer all tags 1:1 from the
+source files onto the transcoded files, as you provided them.
+
+```eno
+tags: copy
+```
+
+Set it to `remove` and faircamp will produce entirely untagged files for
+streaming and download.
+
+```eno
+tags: remove
+```
+
+In order to assert fine-grained control over tags, you can also specify
+precise behavior per tag. The available tags at this point are `album`,
+`album_artist`, `artist`, `image`, `title` and `track` (= track number). The
+available actions for each tag are `copy` (copy 1:1 from the source audio
+files) and `rewrite` (set it from whichever information you implicitly or
+explicitly gave faircamp that would override the original tag, or fall back
+to the original tag value if there is no override). There is also `remove`,
+but as any tag you don't explicitly provide in this form is implicitly set
+to be removed, this is redundant. Note that support for writing embedded
+cover images differs wildly between target formats, at this point pretty much
+only the `flac` and `mp3` formats can be expected to reliably contain them,
+no matter what you specify for `image`.
+
+A random example of this:
+
+```eno
+tags:
+album = rewrite
+album_artist = remove
+artist = rewrite
+image = copy
+title = copy
+track = copy
+```
+
+The default behavior can be explicitly (re-)applied with the `normalize` option.
+
+```eno
+tags: normalize
+```
+
+When written out explicitly using the fine-grained notation, the default behavior
+(that is, `tags: normalize`) corresponds to the following settings:
+
+```eno
+tags:
+album = rewrite
+album_artist = rewrite
+artist = rewrite
+image = remove
+title = rewrite
+track = rewrite
+```
 
 ## <a name="theme"></a> `theme`
 

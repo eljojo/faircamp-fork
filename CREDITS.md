@@ -61,6 +61,7 @@ Damian Szetela<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Mac Chaffee](https://www.macchaffee.com)<br>
+[Mahlon E. Smith](https://martini.nu/)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [Miró Allard](https://www.miroallard.com/)<br>

@@ -12,8 +12,7 @@ use crate::{
     Catalog,
     DescribedImage,
     LocalOptions,
-    Overrides,
-    TagAgenda
+    Overrides
 };
 use crate::markdown;
 use crate::util::html_escape_outside_attribute;
@@ -41,7 +40,6 @@ const RELEASE_OPTIONS: &[&str] = &[
     "release_artist",
     "release_artists",
     "synopsis",
-    "tags",
     "title",
     "unlisted"
 ];
@@ -237,42 +235,6 @@ pub fn read_release_manifest(
                     let error = element_error_with_snippet(element, &manifest_path, message);
                     build.error(&error);
                 }
-            }
-            "tags" => 'tags: {
-                if let Ok(field) = element.as_field() {
-                    if let Ok(result) = field.value() {
-                        if let Some(value) = result {
-                            match value {
-                                "copy" => overrides.tag_agenda = TagAgenda::Copy,
-                                "normalize" => overrides.tag_agenda = TagAgenda::normalize(),
-                                "remove" => overrides.tag_agenda = TagAgenda::Remove,
-                                _ => {
-                                    let message = format!("The value '{value}' is not recognized for the tags option, allowed values are 'copy', 'normalize' and 'remove'");
-                                    let error = element_error_with_snippet(element, &manifest_path, &message);
-                                    build.error(&error);
-                                }
-                            }
-                        }
-
-                        break 'tags;
-                    } else if let Ok(attributes) = field.attributes() {
-                        overrides.tag_agenda = TagAgenda::Remove;
-                        for attribute in attributes {
-                            if let Some(value) = attribute.value() {
-                                if let Err(err) = overrides.tag_agenda.set(attribute.key(), value) {
-                                    let error = attribute_error_with_snippet(attribute, &manifest_path, &err);
-                                    build.error(&error);
-                                }
-                            }
-                        }
-
-                        break 'tags;
-                    }
-                }
-
-                let message = "tags needs to be provided either as a field with a value (allowed are 'copy', 'normalize' and 'remove') - e.g.: 'tags: copy' - or as a field with attributes, e.g.:\n\ntags:\ntitle = copy\nartist = rewrite\nalbum_artist = remove";
-                let error = element_error_with_snippet(element, &manifest_path, message);
-                build.error(&error);
             }
             "title" => 'title: {
                 if let Ok(field) = element.as_field() {
