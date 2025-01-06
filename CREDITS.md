@@ -60,6 +60,7 @@ Damian Szetela<br>
 [Léon van Kammen](https://2wa.isvery.ninja)<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
+[Mac Chaffee](https://www.macchaffee.com)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [Miró Allard](https://www.miroallard.com/)<br>

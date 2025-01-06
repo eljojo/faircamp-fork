@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -337,6 +337,36 @@ artist page (the catalog artist's page).
 feature_support_artists
 ```
 
+## <a name="freeze_download_urls"></a> `freeze_download_urls`
+
+When third parties hotlink to your site's resources, or when you discover that
+people are blatantly sharing direct download links to your releases,
+faircamp offers two related configuration options to combat this,
+one of them being:
+
+```eno
+freeze_download_urls: [put-any-text-here]
+```
+
+Whatever text you put on the right is used to generate unique download urls
+during site generation - but note that the text itself never shows up in the urls
+themselves, it is merely used for randomization. The download urls stay valid
+as long as the text does not change. Any time you update the text, all
+download urls are regenerated, and thereby all old ones invalidated.
+Practically speaking it makes sense to use some kind of a date as the text on
+the right, for instance `freeze_download_urls: 1 April 2022` could tell you
+that your current download urls have been valid since that day. You could
+also use "2022-04", "Spring 2022" or such, given that one usually will not
+manually invalidate the urls on a daily basis.
+
+If you need an even stronger mechanism, you can also use the
+[rotate_download_urls](#rotate_download_urls) option, which will automatically
+renew all download urls each time you generate the site. Note however that
+without additional manual tweaks to your deployment routine, this will have
+very adverse effects on your deployment time, prompting a re-upload of all
+your audio files each time you deploy, so use this with caution and only
+when it's really needed.
+
 ## <a name="home_image"></a> `home_image`
 
 The `home_image` is an image that will be displayed on the homepage, e.g. a logo
@@ -617,6 +647,23 @@ All currently available formats:
 In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
+
+## <a name="rotate_download_urls"></a> `rotate_download_urls`
+
+When third parties hotlink to your site's resources, or when you discover that
+people are blatantly sharing direct download links to your releases,
+faircamp offers two related configuration options to combat this,
+one of them being:
+
+```eno
+rotate_download_urls
+```
+
+With `rotate_download_urls` enabled, faircamp will automatically generate new
+download urls on each deployment (rendering invalid all previously existing
+urls). This is a very strong measure. Usually it's enough to work with
+less frequent, manual download url renewals using the
+[freeze_download_urls](#freeze_download_urls) option.
 
 ## <a name="show_support_artists"></a> `show_support_artists`
 
@@ -908,34 +955,3 @@ artist page (the catalog artist's page).
 ```eno
 feature_support_artists
 ```
-
-## Dealing with malicious behavior
-
-When third parties hotlink to your site's resources, or when you discover that
-people are blatantly sharing direct download links to your releases,
-faircamp offers two related configuration options to combat this:
-
-```eno
-rotate_download_urls
-```
-
-With `rotate_download_urls` enabled, faircamp will automatically generate new
-download urls on each deployment (rendering invalid all previously existing
-urls).
-
-Similarly, you can also manually control this mechanism:
-
-```eno
-freeze_download_urls: [put-any-text-here]
-```
-
-Whatever text you put on the right is used to generate unique download urls
-during deployment - but note that the text itself never shows up in the urls
-themselves, it is merely used for randomization. The download urls stay valid
-as long as the text does not change. Any time you update the text, all
-download urls are regenerated, and thereby all old ones invalidated.
-Practically speaking it makes sense to use some kind of a date as the text on
-the right, for instance `freeze_download_urls: 1 April 2022` could tell you
-that your current download urls have been valid since that day. You could
-also use "2022-04", "Spring 2022" or such, given that one usually will not
-manually invalidate the urls on a daily basis.

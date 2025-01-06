@@ -27,7 +27,7 @@ saythemagicword/             <--- Catalog
    └─ 05.flac                    <--- Track
 ```
 
-Inside the file `saythemagicword/catalog.eno`:
+## `saythemagicword/catalog.eno`:
 
 ```eno
 title: Say the Magic Word
@@ -52,7 +52,7 @@ base_hue = 116
 custom_font = MagicSansV1.3-Book.woff2
 ```
 
-Inside the file `saythemagicword/saythemagicword-ep/release.eno`:
+## `saythemagicword/saythemagicword-ep/release.eno`:
 
 ```eno
 permalink: say-the-magic-word-ep
@@ -87,6 +87,7 @@ You can obtain a download code by [becoming a patron](https://tinyurl.com/say-su
 
 ## How it works
 
-When you enable download codes, the "Download" button sends the user to an unlock page instead of directly to the download URL. The unlock page includes instructions for accessing the page `/downloads/<download-code>/` which includes a link to the download URL.
-
-By default, download URLs are difficult but not impossible to guess by reading Faircamp's source code. Download URLs also do not change if you switch from `downloads: free` to `downloads: code`. You can create unguessable download URLs by either setting `freeze_download_urls` to a value you keep secret or by setting `rotate_download_urls` in `catalog.eno`.
+When you enable download codes, the "Download" button sends the user to an
+unlock page instead of directly to the download page. The unlock page prompts
+visitors to enter a download code, and if a correct download code is entered
+they are taken to the download page.
