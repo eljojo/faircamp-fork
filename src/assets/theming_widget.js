@@ -167,7 +167,7 @@ function updateCssVariables() {
 
     const pickFromRange = (factor, variable) => variable[0] + (factor / 100) * (variable[1] - variable[0]);
 
-    const oklch = (l, c, h, a) => a ? `oklch(${l}% ${c}% ${h} / ${a}%)` : `oklch(${l}% ${c}% ${h})`;
+    const oklch = (l, c, h, a) => (a === undefined) ? `oklch(${l}% ${c}% ${h})` : `oklch(${l}% ${c}% ${h} / ${a}%)`;
     const set = (key, value) => document.querySelector(':root').style.setProperty(key, value);
 
     const background1Lightness = pickFromRange(dynamicRange, background1LightnessRange);
