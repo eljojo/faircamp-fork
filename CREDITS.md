@@ -25,6 +25,7 @@ Thanks everyone for your support.
 [Alexander Cobleigh](https://cblgh.org)<br>
 [Andy Berdan](https://codeberg.org/berdandy)<br>
 [atomkarinca](https://fe.disroot.org/users/atomkarinca)<br>
+[audiokontor](https://audiokontor.net/)<br>
 [AxWax](https://axwax.eu/)<br>
 [bran(...)pos](https://www.soundcrack.net/)<br>
 [Christian Pacaud](https://www.christianpacaud.com/)<br>
@@ -61,6 +62,7 @@ Damian Szetela<br>
 [Léon van Kammen](https://2wa.isvery.ninja)<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
+[Lorenzo's Music](https://www.lorenzosmusic.com)<br>
 [Mac Chaffee](https://www.macchaffee.com)<br>
 [Mahlon E. Smith](https://martini.nu/)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
