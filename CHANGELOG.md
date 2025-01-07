@@ -1,9 +1,31 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
 # Changelog
+
+# 1.1.0
+
+## New functionality
+
+- Introduce opt-in opengraph metadata provision (159e717)
+- Implement M3U playlists for artists (2ed079c)
+- Implement tags option in catalog and artist manifests (4782110)
+- Return exit code for failure/success on process termination (f018070)
+
+## Bugfixes
+
+- Fix more_label assignment in the catalog manifest (92f2005)
+- Add missing ffmpeg qscale arguments for MP3 V5/V7 audio format encoding (a4a8409)
+- Fix decoding of opus files originally encoded from non-native sample rates (8fae371)
+- Fix oklch computation glitch at 100% background alpha in theming widget (a2572c2)
+
+## Translations
+
+- Add Japanese translations (naskya, e989fe1)
+- Update swedish translations (Filip, cc0dc7e)
+- Update norwegian translations (Mathias, d80e5a6)
 
 # 1.0.0
 
