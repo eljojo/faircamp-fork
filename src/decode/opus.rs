@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs::File;
@@ -9,6 +9,19 @@ use opus::{Channels, Decoder};
 
 use super::DecodeResult;
 
+// Opus can only encode/decode at specific sample rates (8, 12, 16, 24, or 48 kHz).
+// The original input sample rate, which would be available on
+// `identification_header.input_sample_rate`, is of no importance to us, as
+// we only decode in order to compute a visual representation (waveform).
+// In terms of the decoder sample rate we choose, we follow the Opus
+// specification, which says: "An Ogg Opus player SHOULD select the playback
+// sample rate according to the following procedure: 1. If the hardware
+// supports 48 kHz playback, decode at 48 kHz" (For our purposes we can
+// consider ourselves a player, and as we merely perform computation on the
+// decoded data, any sample rate is acceptable to us)
+// See https://wiki.xiph.org/OggOpus#ID_Header
+const DECODING_SAMPLE_RATE: u32 = 48000;
+
 pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     let identification_header = match opus_headers::parse_from_path(path) {
         Ok(headers) => headers.id,
@@ -16,7 +29,6 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     };
 
     let channels: u16 = identification_header.channel_count as u16;
-    let sample_rate: u32 = identification_header.input_sample_rate;
 
     let mut reader = match File::open(path) {
         Ok(file) => PacketReader::new(file),
@@ -26,7 +38,7 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
     // Opus only supports mono and stereo, see https://opus-codec.org/
     let channels_enum = if channels == 1 { Channels::Mono } else { Channels::Stereo };
 
-    let mut decoder = match Decoder::new(sample_rate, channels_enum) {
+    let mut decoder = match Decoder::new(DECODING_SAMPLE_RATE, channels_enum) {
         Ok(decoder) => decoder,
         Err(err) => return Err(err.to_string())
     };
@@ -35,7 +47,7 @@ pub fn decode(path: &Path) -> Result<DecodeResult, String> {
         channels,
         duration: 0.0,
         sample_count: 0,
-        sample_rate,
+        sample_rate: DECODING_SAMPLE_RATE,
         samples: Vec::new()
     };
 
