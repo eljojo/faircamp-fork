@@ -1,9 +1,16 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
 
-use crate::{Artist, Build, Catalog, CrawlerMeta, Scripts};
+use crate::{
+    Artist,
+    Build,
+    Catalog,
+    CrawlerMeta,
+    OpenGraphMeta,
+    Scripts
+};
 use crate::icons;
 use crate::render::{
     artist_image,
@@ -178,15 +185,46 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let crawler_meta = if artist.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
 
+    let opengraph_meta = if catalog.opengraph {
+        if let Some(base_url) = &build.base_url {
+            let artist_slug = &artist.permalink.slug;
+            let artist_url = base_url.join(&format!("{artist_slug}{index_suffix}")).unwrap();
+            let mut meta = OpenGraphMeta::new(artist.name.clone(), artist_url);
+
+            if let Some(synopsis) = &artist.synopsis {
+                meta.description(synopsis);
+            }
+
+            if let Some(described_image) = &artist.image {
+                let image = described_image.image.borrow();
+                let image_url_prefix = base_url.join(&format!("{artist_slug}/")).unwrap();
+                let opengraph_image = image.artist_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+
+                meta.image(opengraph_image);
+
+                if let Some(description) = &described_image.description {
+                    meta.image_alt(description);
+                }
+            }
+
+            Some(meta)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     layout(
         root_prefix,
         &body,
+        None,
         build,
         catalog,
-        Scripts::Clipboard,
-        &artist.theme,
-        &artist.name,
         crawler_meta,
-        None
+        Scripts::Clipboard,
+        opengraph_meta,
+        &artist.theme,
+        &artist.name
     )
 }

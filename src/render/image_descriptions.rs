@@ -1,9 +1,14 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta, Scripts};
+use crate::{
+    Build,
+    Catalog,
+    CrawlerMeta,
+    Scripts
+};
 use crate::render::layout;
 
 pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
@@ -26,12 +31,13 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     layout(
         root_prefix,
         &body,
+        None,
         build,
         catalog,
-        Scripts::None,
-        &catalog.theme,
-        t_image_descriptions,
         CrawlerMeta::NoIndexNoFollow,
-        None
+        Scripts::None,
+        None,
+        &catalog.theme,
+        t_image_descriptions
     )
 }

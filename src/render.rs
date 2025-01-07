@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-FileCopyrightText: 2023 James Fenn
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -35,6 +35,21 @@ pub enum CrawlerMeta {
     NoIndexNoFollow,
 }
 
+pub struct OpenGraphImage {
+    pub height: u32,
+    pub url: Url,
+    pub width: u32
+}
+
+/// For the Open Graph specification see https://ogp.me/
+pub struct OpenGraphMeta {
+    description: Option<String>,
+    image: Option<OpenGraphImage>,
+    image_alt: Option<String>,
+    title: String,
+    url: Url
+}
+
 struct TruncatedList {
     pub html: String,
     pub truncated: bool
@@ -54,6 +69,56 @@ impl CrawlerMeta {
             CrawlerMeta::None => "",
             CrawlerMeta::NoIndexNoFollow => r#"<meta name="robots" content="noindex, nofollow">"#
         }
+    }
+}
+
+impl OpenGraphMeta {
+    pub fn description(&mut self, description: &str) {
+        self.description = Some(description.to_string());
+    }
+
+    pub fn image(&mut self, image: OpenGraphImage) {
+        self.image = Some(image);
+    }
+
+    pub fn image_alt(&mut self, description: &str) {
+        self.image_alt = Some(description.to_string());
+    }
+
+    pub fn new(title: String, url: Url) -> OpenGraphMeta {
+        OpenGraphMeta {
+            description: None,
+            image: None,
+            image_alt: None,
+            title,
+            url
+        }
+    }
+
+    pub fn tags(&self, build: &Build, catalog: &Catalog) -> String {
+        let mut tags = Vec::new();
+
+        if let Some(description) = &self.description {
+            tags.push(format!(r#"<meta property="og:description" content="{}"/>"#, description));
+        }
+
+        if let Some(image) = &self.image {
+            tags.push(format!(r#"<meta property="og:image" content="{}"/>"#, image.url));
+            tags.push(format!(r#"<meta property="og:image:height" content="{}"/>"#, image.height));
+            tags.push(format!(r#"<meta property="og:image:width" content="{}"/>"#, image.width));
+        }
+
+        if let Some(image_alt) = &self.image_alt {
+            tags.push(format!(r#"<meta property="og:image:alt" content="{image_alt}"/>"#));
+        }
+
+        tags.push(format!(r#"<meta property="og:locale" content="{}"/>"#, &build.locale.language));
+        tags.push(format!(r#"<meta property="og:site_name" content="{}"/>"#, catalog.title()));
+        tags.push(format!(r#"<meta property="og:title" content="{}"/>"#, self.title));
+        tags.push(format!(r#"<meta property="og:type" content="website"/>"#));
+        tags.push(format!(r#"<meta property="og:url" content="{}"/>"#, self.url));
+
+        tags.join("\n")
     }
 }
 
@@ -397,13 +462,14 @@ fn faircamp_signature() -> String {
 fn layout(
     root_prefix: &str,
     body: &str,
+    breadcrumb_option: Option<String>,
     build: &Build,
     catalog: &Catalog,
-    extra_scripts: Scripts,
-    theme: &Theme,
-    title: &str,
     crawler_meta: CrawlerMeta,
-    breadcrumb_option: Option<String>
+    extra_scripts: Scripts,
+    opengraph_meta: Option<OpenGraphMeta>,
+    theme: &Theme,
+    title: &str
 ) -> String {
     let r_browser = browser(build, root_prefix);
 
@@ -488,6 +554,7 @@ fn layout(
         feed_meta_link = feed_meta_link,
         index_suffix = build.index_suffix(),
         lang = &build.locale.language,
+        opengraph_meta = opengraph_meta.map(|meta| meta.tags(build, catalog)).unwrap_or(String::new()),
         root_prefix = root_prefix,
         site_css_hash = build.asset_hashes.site_css.as_ref().unwrap(),
         t_browse = &build.locale.translations.browse,

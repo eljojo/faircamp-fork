@@ -1,11 +1,11 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [extra_downloads](#extra_downloads), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [price](#price), [release_downloads](#release_downloads), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -560,6 +560,24 @@ specifically refers to the type of content you are providing there, the
 `more_label` field allows you to do that. Some typical examples of custom
 labels one might use in the context of the catalog homepage: "About",
  "Biography", "Artist Statement", "Read on", "Artist roster" etc.
+
+## <a name="opengraph"></a> `opengraph`
+
+Facebook's [Open Graph](https://ogp.me) protocol is used by many platforms to
+crawl and harvest content from (linked) websites in order to present them
+using a uniform "card" design pattern inside social feeds and timelines.
+
+By default, faircamp does not render Open Graph tags, but this can be enabled with:
+
+```eno
+opengraph: enabled
+```
+
+Open Graph properties always rendered are the mandatory `og:title`, `og:image`
+(including `alt`, `height` and `width`), `og:type` (always as `website`) and
+`og:url` properties, as well as `og:locale` and `og:site_name`.
+Where present, the `synopsis` field is rendered as the
+`og:description` property additionally.
 
 ## <a name="payment_info"></a> `payment_info`
 

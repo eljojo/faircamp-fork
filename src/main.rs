@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs;
@@ -74,7 +74,7 @@ use manifest::{LocalOptions, Overrides};
 use markdown::HtmlAndStripped;
 use permalink::{Permalink, PermalinkUsage};
 use release::{Extra, Release, ReleaseRc};
-use render::CrawlerMeta;
+use render::{CrawlerMeta, OpenGraphImage, OpenGraphMeta};
 use scripts::Scripts;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
@@ -212,6 +212,7 @@ fn main() -> ExitCode {
         let mut not_generated = Vec::new();
 
         if build.embeds_requested { not_generated.push("Embeds"); }
+        if catalog.opengraph { not_generated.push("Open Graph meta tags"); }
         if catalog.feed_enabled { not_generated.push("RSS Feed"); }
         if catalog.m3u ||
             catalog.artists.iter().any(|artist| artist.borrow().m3u) ||

@@ -1,10 +1,16 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
 use url::Url;
 
-use crate::{Build, Catalog, CrawlerMeta, Release, Scripts};
+use crate::{
+    Build,
+    Catalog,
+    CrawlerMeta,
+    Release,
+    Scripts
+};
 use crate::icons;
 use crate::render::{compact_release_identifier, copy_button, layout};
 use crate::util::{
@@ -175,12 +181,13 @@ pub fn embed_choices_html(
     layout(
         root_prefix,
         &body,
+        breadcrumb,
         build,
         catalog,
-        Scripts::Clipboard,
-        &release.theme,
-        &page_title,
         CrawlerMeta::NoIndexNoFollow,
-        breadcrumb
+        Scripts::Clipboard,
+        None,
+        &release.theme,
+        &page_title
     )
 }

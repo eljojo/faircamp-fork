@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use chrono::Datelike;
@@ -10,6 +10,7 @@ use crate::{
     CrawlerMeta,
     DownloadAccess,
     Downloads,
+    OpenGraphMeta,
     Release,
     Scripts,
     Track
@@ -156,8 +157,12 @@ pub fn track_html(
         Some(src) => format!(r#"<img aria-hidden="true" src="../{src}">"#),
         None => String::from(r#"<span class="cover_placeholder"></span>"#)
     };
-    let r_more = if track.text.is_some() {
-        String::from(r#"<a href="">More</a>&nbsp;&nbsp;"#)
+    let r_more = if track.more.is_some() {
+        let more_label = match &track.more_label {
+            Some(label) => label,
+            None => *build.locale.translations.more
+        };
+        format!(r##"<a href="#more">{more_label}</a>&nbsp;&nbsp;"##)
     } else {
         String::new()
     };
@@ -210,7 +215,7 @@ pub fn track_html(
     };
     let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
 
-    let r_more = if track.text.is_some() || artists_truncated.truncated {
+    let r_more = if track.more.is_some() || artists_truncated.truncated {
         let t_more = &build.locale.translations.more;
         let more_icon = icons::more(&build.locale.translations.more);
         let more_link = formatdoc!(r##"
@@ -226,7 +231,7 @@ pub fn track_html(
             None => String::new()
         };
 
-        let r_text = match &track.text {
+        let r_more = match &track.more {
             Some(html_and_stripped) => format!(
                 r#"<div class="text">{}</div>"#,
                 html_and_stripped.html
@@ -242,7 +247,7 @@ pub fn track_html(
                             <h1>{track_title_escaped} {release_year}</h1>
                             <div class="release_artists">{artists}</div>
                         </div>
-                        {r_text}
+                        {r_more}
                     </div>
                 </div>
             </div>
@@ -423,15 +428,56 @@ pub fn track_html(
     // TODO: Track-level unlisted properties?
     let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
 
+    let opengraph_meta = if catalog.opengraph {
+        if let Some(base_url) = &build.base_url {
+            let release_slug = &release.permalink.slug;
+            let track_url = base_url.join(&format!("{release_slug}/{track_number}{index_suffix}")).unwrap();
+            let mut meta = OpenGraphMeta::new(track.title(), track_url);
+
+            if let Some(synopsis) = &track.synopsis {
+                meta.description(synopsis);
+            }
+
+            if let Some(described_image) = &track.cover {
+                let image = described_image.image.borrow();
+                let image_url_prefix = base_url.join(&format!("{release_slug}/{track_number}/")).unwrap();
+                let opengraph_image = image.cover_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+
+                meta.image(opengraph_image);
+
+                if let Some(description) = &described_image.description {
+                    meta.image_alt(description);
+                }
+            } else if let Some(described_image) = &release.cover {
+                let image = described_image.image.borrow();
+                let image_url_prefix = base_url.join(&format!("{release_slug}/")).unwrap();
+                let opengraph_image = image.cover_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+
+                meta.image(opengraph_image);
+
+                if let Some(description) = &described_image.description {
+                    meta.image_alt(description);
+                }
+            }
+
+            Some(meta)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     layout(
         root_prefix,
         &body,
+        breadcrumb,
         build,
         catalog,
-        Scripts::ClipboardAndPlayer,
-        &track.theme,
-        &track_title,
         crawler_meta,
-        breadcrumb
+        Scripts::ClipboardAndPlayer,
+        opengraph_meta,
+        &track.theme,
+        &track_title
     )
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::cell::{Ref, RefCell, RefMut};
@@ -9,6 +9,7 @@ use std::rc::Rc;
 
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
+use url::Url;
 
 use crate::{
     Asset,
@@ -16,6 +17,7 @@ use crate::{
     Build,
     FileMeta,
     ImageInMemory,
+    OpenGraphImage,
     ResizeMode,
     SourceHash,
     View
@@ -163,14 +165,37 @@ impl ArtistAssets {
         ImgAttributes::new_for_artist(assets, hash, permalink, prefix)
     }
 
+    pub fn is_stale(&self) -> bool {
+        self.marked_stale.is_some()
+    }
+
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
             self.marked_stale = Some(*timestamp);
         }
     }
 
-    pub fn is_stale(&self) -> bool {
-        self.marked_stale.is_some()
+    pub fn opengraph_image(&self, url_prefix: &Url) -> OpenGraphImage {
+        let artist_asset = if let Some(fluid_max_960) = &self.fluid_max_960 {
+            fluid_max_960
+        } else if let Some(fixed_max_640) = &self.fixed_max_640 {
+            fixed_max_640
+        } else if let Some(fixed_max_480) = &self.fixed_max_480 {
+            fixed_max_480
+        } else {
+            &self.fixed_max_320
+        };
+
+        let format = &artist_asset.format;
+        let height = artist_asset.height;
+        let width = artist_asset.width;
+        let file_name = format!("__home___{format}_{width}x{height}.jpg");
+
+        OpenGraphImage {
+            height,
+            url: url_prefix.join(&file_name).unwrap(),
+            width
+        }
     }
 
     pub fn playlist_image(&self) -> String {
@@ -257,6 +282,27 @@ impl CoverAssets {
     pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
         if self.marked_stale.is_none() {
             self.marked_stale = Some(*timestamp);
+        }
+    }
+
+    pub fn opengraph_image(&self, url_prefix: &Url) -> OpenGraphImage {
+        let cover_asset = if let Some(max_800) = &self.max_800 {
+            max_800
+        } else if let Some(max_480) = &self.max_480 {
+            max_480
+        } else if let Some(max_320) = &self.max_320 {
+            max_320
+        } else {
+            &self.max_160
+        };
+
+        let edge_size = cover_asset.edge_size;
+        let file_name = format!("cover_{edge_size}.jpg");
+
+        OpenGraphImage {
+            height: edge_size,
+            url: url_prefix.join(&file_name).unwrap(),
+            width: edge_size
         }
     }
 

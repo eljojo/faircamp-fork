@@ -1,9 +1,15 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog, CrawlerMeta, Scripts};
+use crate::{
+    Build,
+    Catalog,
+    CrawlerMeta,
+    OpenGraphMeta,
+    Scripts
+};
 use crate::icons;
 use crate::render::{
     artist_image,
@@ -199,15 +205,44 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         {templates}
     "#);
 
+    let opengraph_meta = if catalog.opengraph {
+        if let Some(base_url) = &build.base_url {
+            let catalog_url = base_url.join(build.index_suffix_file_only()).unwrap();
+            let mut meta = OpenGraphMeta::new(catalog.title(), catalog_url);
+
+            if let Some(synopsis) = &catalog.synopsis {
+                meta.description(synopsis);
+            }
+
+            if let Some(described_image) = &catalog.home_image {
+                let image = described_image.image.borrow();
+                let opengraph_image = image.artist_assets.as_ref().unwrap().opengraph_image(&base_url);
+
+                meta.image(opengraph_image);
+
+                if let Some(description) = &described_image.description {
+                    meta.image_alt(description);
+                }
+            }
+
+            Some(meta)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     layout(
         root_prefix,
         &body,
+        None,
         build,
         catalog,
-        Scripts::Clipboard,
-        &catalog.theme,
-        &catalog_title,
         CrawlerMeta::None,
-        None
+        Scripts::Clipboard,
+        opengraph_meta,
+        &catalog.theme,
+        &catalog_title
     )
 }

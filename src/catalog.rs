@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::cmp::Ordering;
@@ -70,6 +70,9 @@ pub struct Catalog {
     /// Optional custom label for the button that (by default) says "More" on the
     /// catalog homepage and points to additional long-form content for the catalog.
     pub more_label: Option<String>,
+    /// Whether to include Open Graph metadata tags on all major pages (pages not intended
+    /// for sharing generally don't render Open graph tags)
+    pub opengraph: bool,
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
     pub support_artists: Vec<ArtistRc>,
@@ -325,6 +328,7 @@ impl Catalog {
             main_artists: Vec::new(),
             more: None,
             more_label: None,
+            opengraph: false,
             releases: Vec::new(),
             show_support_artists: false,
             support_artists: Vec::new(),

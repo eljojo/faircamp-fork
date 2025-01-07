@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
@@ -105,12 +105,13 @@ pub fn unlock_html(
     layout(
         root_prefix,
         &body,
+        breadcrumb,
         build,
         catalog,
-        Scripts::None,
-        &release.theme,
-        &page_title,
         CrawlerMeta::NoIndexNoFollow,
-        breadcrumb
+        Scripts::None,
+        None,
+        &release.theme,
+        &page_title
     )
 }

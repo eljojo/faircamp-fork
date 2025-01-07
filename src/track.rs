@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -10,6 +10,7 @@ use crate::{
     AssetIntent,
     AudioFormat,
     Build,
+    DescribedImage,
     ffmpeg,
     HeuristicAudioMeta,
     HtmlAndStripped,
@@ -33,8 +34,14 @@ pub struct Track {
     /// Used to compute the download/stream asset filenames.
     pub asset_basename: Option<String>,
     pub copy_link: bool,
+    pub cover: Option<DescribedImage>,
     pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
-    pub text: Option<HtmlAndStripped>,
+    pub more: Option<HtmlAndStripped>,
+    /// Optional custom label for the button that (by default) says "More" on the
+    /// track page and points to additional long-form content for the track.
+    /// For tracks this label is also displayed in the track list on a release page.
+    pub more_label: Option<String>,
+    pub synopsis: Option<String>,
     pub theme: Theme,
     pub transcodes: TranscodesRcView
 }
@@ -83,9 +90,11 @@ impl Track {
             artists_to_map,
             asset_basename: None,
             copy_link,
+            cover: None,
             heuristic_audio_meta: None,
-            // TODO: Wire up with manifests so it can be set
-            text: None,
+            more: None, // TODO: Wire up with manifests so it can be set
+            more_label: None, // TODO: Wire up with manifests so it can be set
+            synopsis: None, // TODO: Wire up with manifests so it can be set
             transcodes,
             theme
         }

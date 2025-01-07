@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs;
@@ -50,6 +50,7 @@ const CATALOG_OPTIONS: &[&str] = &[
     "language",
     "m3u",
     "more",
+    "opengraph",
     "rotate_download_urls",
     "show_support_artists",
     "synopsis",
@@ -354,6 +355,33 @@ pub fn read_catalog_manifest(
                     let error = element_error_with_snippet(element, &manifest_path, message);
                     build.error(&error);
                 }
+            }
+            "opengraph" => 'opengraph: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            match value {
+                                "disabled" => {
+                                    catalog.opengraph = false;
+                                }
+                                "enabled" => {
+                                    catalog.opengraph = true;
+                                }
+                                _ => {
+                                    let message = "This opengraph setting was not recognized (supported values are 'disabled' and 'enabled)";
+                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    build.error(&error);
+                                }
+                            }
+                        }
+
+                        break 'opengraph;
+                    }
+                }
+
+                let message = "The opengraph option needs to be provided as a field with the value 'disabled' or 'enabled', e.g.: 'opengraph: disabled'";
+                let error = element_error_with_snippet(element, &manifest_path, message);
+                build.error(&error);
             }
             "rotate_download_urls" => {
                 // TODO: Would make sense to report if both rotate_download_urls and
