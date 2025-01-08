@@ -83,7 +83,7 @@ pub fn embed_release_html(
                     <div class="track_header">
                         <span class="number">{track_number_formatted}</span>
                         <span>
-                            <a class="title" href="{release_prefix}{track_number}{index_suffix}" title="{track_title_attribute_escaped}">{track_title_escaped}</a>{track_artists}
+                            <a class="title" href="{release_prefix}{track_number}{index_suffix}" target="_parent" title="{track_title_attribute_escaped}">{track_title_escaped}</a>{track_artists}
                         </span>
                     </div>
                     <audio controls preload="none">
