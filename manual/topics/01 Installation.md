@@ -7,7 +7,7 @@
 
 ## Windows
 
-Download and run the [Windows Installer](https://simonrepp.com/faircamp/packages/faircamp-1.0.0-windows-x64.exe) (64-bit)
+Download and run the [Windows Installer](https://simonrepp.com/faircamp/packages/faircamp-1.1.0-windows-x64.exe) (64-bit)
 
 Alternatively, you can also run faircamp non-natively via [Docker](https://github.com/n3wjack/faircamp-docker) or via
 [WSL](https://www.meljoann.com/posts/faircamp/), or build it yourself using the
@@ -26,11 +26,11 @@ Install the [faircamp AUR package](https://aur.archlinux.org/packages/faircamp)
 
 **Debian 12, elementary OS 8, Linux Mint 22, Ubuntu 23.04 - 24.10**
 
-Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_1.0.0-1+deb12_amd64.deb) (amd64)
+Install the [latest debian 12 package](https://simonrepp.com/faircamp/packages/faircamp_1.1.0-1+deb12_amd64.deb) (amd64)
 
 **Debian 11, elementary OS 7, Linux Mint 21, Ubuntu 22.04 LTS - 22.10**
 
-Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_1.0.0-1+deb11_amd64.deb) (amd64)
+Install the [latest debian 11 package](https://simonrepp.com/faircamp/packages/faircamp_1.1.0-1+deb11_amd64.deb) (amd64)
 
 **Fedora, CentOS, RHEL**
 

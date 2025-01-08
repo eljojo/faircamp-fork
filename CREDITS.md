@@ -82,6 +82,7 @@ Damian Szetela<br>
 [Samæ](https://samae.demer.se/)<br>
 [session](https://codeberg.org/session)<br>
 [sknob](https://sknob.fr/)<br>
+[Sunny](https://sny.sh)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>
 [thirdwheel](https://codeberg.org/thirdwheel)<br>
 [thurti](https://t3000.uber.space)<br>
