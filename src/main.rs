@@ -186,6 +186,8 @@ fn main() -> ExitCode {
         let artist_ref = artist.borrow();
         let artist_dir = build.build_dir.join(&artist_ref.permalink.slug);
 
+        fs::create_dir(&artist_dir).unwrap();
+
         // Render m3u playlist
         if let Some(base_url) = &build.base_url {
             if artist_ref.m3u {
@@ -195,7 +197,6 @@ fn main() -> ExitCode {
         }
 
         let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
-        fs::create_dir(&artist_dir).unwrap();
         fs::write(artist_dir.join("index.html"), artist_html).unwrap();
     }
 
