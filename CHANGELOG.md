@@ -5,31 +5,38 @@
 
 # Changelog
 
-# 1.1.0
+## 1.1.1
 
-## New functionality
+- Update french translations (Élie Khalil, 1173b6b)
+- Open release embed track links in parent context (Sunny, 65128dc)
+- Fix critical artist M3U playlist generation issue (Sunny, 3336f57)
+- Fix release embed track links (Sunny, 5aa03e3)
+
+## 1.1.0
+
+### New functionality
 
 - Introduce opt-in opengraph metadata provision (159e717)
 - Implement M3U playlists for artists (2ed079c)
 - Implement tags option in catalog and artist manifests (4782110)
 - Return exit code for failure/success on process termination (f018070)
 
-## Bugfixes
+### Bugfixes
 
 - Fix more_label assignment in the catalog manifest (92f2005)
 - Add missing ffmpeg qscale arguments for MP3 V5/V7 audio format encoding (a4a8409)
 - Fix decoding of opus files originally encoded from non-native sample rates (8fae371)
 - Fix oklch computation glitch at 100% background alpha in theming widget (a2572c2)
 
-## Translations
+### Translations
 
 - Add Japanese translations (naskya, e989fe1)
 - Update swedish translations (Filip, cc0dc7e)
 - Update norwegian translations (Mathias, d80e5a6)
 
-# 1.0.0
+## 1.0.0
 
-## Manifests
+### Manifests
 
 - Switch to dedicated artist.eno, catalog.eno and release.eno manifests, overhaul error handling (df6454a)
 - Switch to case-sensitive matching when comparing/associating artists by name (34651bc)
@@ -42,7 +49,7 @@
 - Provide a short-hand link option, improve/extend link documentation to artists (c228e88)
 - Support track_numbering option at the catalog level as well (17439a2)
 
-## Terminal usability
+### Terminal usability
 
 - Always abort builds on error, allow forced override with --ignore-errors flag (0a85676)
 - List all options supported by the manifest when an unsupported option is found (fcb9668)
@@ -54,12 +61,12 @@
 - Adaptively format build time metric in milliseconds, seconds or minutes (d1ef0b7)
 - Minor readability tweaks in misc manifest error messages (97c18ee)
 
-## Layout
+### Layout
 
 - Introduce global footer and configurable faircamp signature (9435de4)
 - Compact the layout further, implement responsive/sticky footer behavior (c7eb3a5, 52e33be)
 
-## Misc
+### Misc
 
 - Change M3U playlists to be opt-in (f7db4d7)
 - Change the default track numbering style to arabic-dotted (e112267)
@@ -67,7 +74,7 @@
 - Update lithuanian translations (Vac, 43f91f1, db143c4)
 - Improve debug feature output (2647f9a)
 
-## Manual
+### Manual
 
 - Add label example in manual, improve artist example titles and intros (96c9eaf)
 - Introduce cross-links, options overview and extend content on reference pages (161ab10)
@@ -76,19 +83,19 @@
 - Reorder and structure shuffled docs around copy_link, date and track sorting (9a4e4eb)
 - Remove redundant manual instructions for rel="me" link placement (39f96ca)
 
-## Bugfixes
+### Bugfixes
 
 - Ensure mutually exclusive artist assignment to catalog's main/support artists (6a860ba)
 - Ensure mutually exclusive artist assignment to release's main/support artists (9aa9bd5)
 - Fix printing of unsupported color codes in windows command prompt (514c30b)
 
-## Build integrity
+### Build integrity
 
 - Pin pacmog crate dependency to an exact version (4fba9ee)
 - Pin libvips crate dependency to an exact version (281c447)
 - Mirror version in translations subcrate to work around build/tooling issues (f9904d2)
 
-# 0.23.0
+## 0.23.0
 
 - Implement hybrid ltr/rtl layouting and better space usage for docked and embedded players (8f8b3c4, 0198081)
 - Communicate muted state through the volume icon, remove dimmed volume hint (242e289)
@@ -107,11 +114,11 @@
 - Update italian translations (Tommaso Croce, efe02fa)
 - Update lithuanian translations (Vac, b2e4547)
 
-# 0.22.1
+## 0.22.1
 
 - Fix critical build issue related to accidental commit of a subcrate versioning change (31a4b0f)
 
-# 0.22.0
+## 0.22.0
 
 - Reimplement handling of disabled js for player, browser and copy link buttons (099272c)
 - Reimplement handling of disabled js for purchase/unlock flows (f04687f)
@@ -119,7 +126,7 @@
 - Expand "more" section to full width on narrow viewports (bfef577)
 - Map support artists also when main artists are explicitly set (91c5f26)
 
-# 0.21.0
+## 0.21.0
 
 - Introduce configurable M3U playlist option for the entire catalog (0cebc42)
 - Add hash-based cache invalidation for all linked assets and images (041cf4f, 482f9ba)
