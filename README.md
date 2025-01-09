@@ -13,7 +13,7 @@ resulting site requires no database, no programming, no maintenance, and is
 compatible with virtually every webhost on this planet.
 
 
-Latest Release: **`1.1.1`** (builds available shortly) – Visit the [website](https://simonrepp.com/faircamp) to get started.
+Latest Release: **`1.1.1`** – Visit the [website](https://simonrepp.com/faircamp) to get started.
 
 <img src="https://simonrepp.com/faircamp/readme.jpg?2" alt="Screenshot of a pink/violet-colored website presenting an album called 'Valedictions EP' by artist 'Turnus'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Extra info', a short synopsis text, smaller buttons labelled 'Copy link' and 'M3U Playlist', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Distances'."/>
 
