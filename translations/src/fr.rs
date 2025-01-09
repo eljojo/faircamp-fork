@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2025 Élie Khalil
 // SPDX-FileCopyrightText: 2024 sknob
 // SPDX-FileCopyrightText: 2023 Florian Antoine
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
@@ -42,6 +43,8 @@ pub const FR: Translations = Translations {
     image_descriptions: Reviewed("Descriptions des images"),
     image_descriptions_guide: Reviewed("Des millions des personnes naviguent sur le Web à l'aide de lecteurs d'écran parce qu'elles ne voient pas (ou pas assez bien). Les images sans descriptions textuelles leur sont inaccessibles, et c'est pourquoi nous devons faire l'effort de leur fournir des descriptions d'images. <br><br>Consultez le fichier README de Faircamp pour savoir comment ajouter des descriptions d'images. C'est facile et c'est faire preuve de bienveillance.<br><br>Voici quelques conseils pour rédiger de bonnes descriptions d'images :<br>- Une description quelle qu’elle soit vaut mieux que l’absence de description, et n’ayez pas peur de vous tromper.<br>- Soyez concis. Rédigez autant que nécessaire, tout en étant le plus bref que possible.<br>- N'interprétez pas. Décrivez ce qui est présent et pertinent pour la compréhension, n'analysez pas au-delà.<br>- Vous pouvez mentionner les couleurs lorsque ça a du sens, car beaucoup de gens qui ont perdu la vue comprennent et apprécient les couleurs."),
     image_descriptions_permalink: Reviewed("descriptions-des-images"),
+    javascript_is_disabled_listen_at_xxx: Reviewed("JavaScript est désactivé - Écoutez sur {link}"),
+    javascript_is_disabled_text: Reviewed("JavaScript est désactivé - Certaines fonctionnalités ne sont pas disponibles"),
     listen: Reviewed("Écouter"),
     loading: Reviewed("Chargement"),
     m3u_playlist: Reviewed("Playlist M3U"),
@@ -65,6 +68,7 @@ pub const FR: Translations = Translations {
     search: Reviewed("Rechercher"),
     showing_featured_items: Reviewed("Affichage des éléments en vedette"),
     showing_xxx_results_for_xxx: Reviewed("Affichage de {count} résultats pour '{query}'"),
+    skip_to_main_content: Reviewed("Passer au contenu principal"),
     unlisted: Reviewed("Non répertorié"),
     unlock: Reviewed("Déverouiller"),
     unlock_downloads: Reviewed("Déverouiller les téléchargements"),
