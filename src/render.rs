@@ -99,7 +99,8 @@ impl OpenGraphMeta {
         let mut tags = Vec::new();
 
         if let Some(description) = &self.description {
-            tags.push(format!(r#"<meta property="og:description" content="{}"/>"#, description));
+            let description_escaped = html_escape_inside_attribute(description);
+            tags.push(format!(r#"<meta property="og:description" content="{description_escaped}"/>"#));
         }
 
         if let Some(image) = &self.image {
@@ -109,13 +110,19 @@ impl OpenGraphMeta {
         }
 
         if let Some(image_alt) = &self.image_alt {
-            tags.push(format!(r#"<meta property="og:image:alt" content="{image_alt}"/>"#));
+            let image_alt_escaped = html_escape_inside_attribute(image_alt);
+            tags.push(format!(r#"<meta property="og:image:alt" content="{image_alt_escaped}"/>"#));
         }
 
         tags.push(format!(r#"<meta property="og:locale" content="{}"/>"#, &build.locale.language));
-        tags.push(format!(r#"<meta property="og:site_name" content="{}"/>"#, catalog.title()));
-        tags.push(format!(r#"<meta property="og:title" content="{}"/>"#, self.title));
-        tags.push(format!(r#"<meta property="og:type" content="website"/>"#));
+
+        let site_name_escaped = html_escape_inside_attribute(&catalog.title());
+        tags.push(format!(r#"<meta property="og:site_name" content="{site_name_escaped}"/>"#));
+
+        let title_escaped = html_escape_inside_attribute(&self.title);
+        tags.push(format!(r#"<meta property="og:title" content="{title_escaped}"/>"#));
+
+        tags.push(String::from(r#"<meta property="og:type" content="website"/>"#));
         tags.push(format!(r#"<meta property="og:url" content="{}"/>"#, self.url));
 
         tags.join("\n")
