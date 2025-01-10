@@ -30,7 +30,7 @@ pub fn read_artist_release_option(
                             "enabled" => overrides.m3u_enabled = true,
                             _ => {
                                 let message = format!("The value '{value}' is not recognized for the m3u option, allowed values are 'enabled' and 'disabled'");
-                                let error = element_error_with_snippet(element, &manifest_path, &message);
+                                let error = element_error_with_snippet(element, manifest_path, &message);
                                 build.error(&error);
                             }
                         }
@@ -41,7 +41,7 @@ pub fn read_artist_release_option(
             }
 
             let message = "m3u needs to be provided as a field with the value 'enabled' or 'disabled', e.g.: 'm3u: enabled'";
-            let error = element_error_with_snippet(element, &manifest_path, message);
+            let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
         "permalink" => 'permalink: {

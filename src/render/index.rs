@@ -216,7 +216,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
             if let Some(described_image) = &catalog.home_image {
                 let image = described_image.image.borrow();
-                let opengraph_image = image.artist_assets.as_ref().unwrap().opengraph_image(&base_url);
+                let opengraph_image = image.artist_assets.as_ref().unwrap().opengraph_image(base_url);
 
                 meta.image(opengraph_image);
 
