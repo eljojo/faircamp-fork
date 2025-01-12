@@ -42,7 +42,7 @@ Install the [faircamp package](https://search.nixos.org/packages?show=faircamp&t
 
 **openSUSE**
 
-Install the [faircamp package](https://build.opensuse.org/package/show/home:edogawa/faircamp)
+Install the [faircamp package](https://software.opensuse.org/download.html?project=multimedia%3Aproaudio&package=faircamp)
 
 ## FreeBSD
 
