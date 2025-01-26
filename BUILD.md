@@ -124,6 +124,33 @@ That's it! If you want to uninstall faircamp at any point, run:
 cargo uninstall faircamp
 ```
 
+## Alpine Linux
+
+> Alpine Linux has not been tested, but technically should work
+> as long as there's no major oddities between musl and glibc -
+> please report if there are any issues.
+
+Install all required dependencies (if you manually installed rust
+via [rustup](https://rustup.rs/) remove it from the list):
+
+```bash
+doas apk add alpine-sdk rust cargo ffmpeg opus-dev vips-dev
+```
+
+Check out, build and install faircamp:
+
+```bash
+git clone https://codeberg.org/simonrepp/faircamp.git
+cd faircamp
+cargo install --features libvips --locked --path .
+```
+
+That's it! If you want to uninstall faircamp at any point, run:
+
+```bash
+cargo uninstall faircamp
+```
+
 ## FreeBSD
 
 First install the required dependencies via FreeBSD's default package manager (ffmpeg, rust, vips).
