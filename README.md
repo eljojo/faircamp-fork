@@ -12,7 +12,6 @@ minutes, Faircamp builds a complete website presenting your work. The
 resulting site requires no database, no programming, no maintenance, and is
 compatible with virtually every webhost on this planet.
 
-
 Latest Release: **`1.1.1`** – Visit the [website](https://simonrepp.com/faircamp) to get started.
 
 <img src="https://simonrepp.com/faircamp/readme.jpg?2" alt="Screenshot of a pink/violet-colored website presenting an album called 'Valedictions EP' by artist 'Turnus'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Extra info', a short synopsis text, smaller buttons labelled 'Copy link' and 'M3U Playlist', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Distances'."/>
@@ -34,15 +33,15 @@ The [manual](https://simonrepp.com/faircamp/manual) covers specific aspects:
 - Usage examples
 - Information on various topics
 
-## Faircamp 1.0
+## Faircamp 1.0 and beyond
 
-Development on Faircamp 1.0 in 2024 was financed by the European Commission's
-[Next Generation Internet](https://www.ngi.eu/) programme through the
-[NGI0 Entrust](https://nlnet.nl/entrust/) fund established by [NLnet](https://nlnet.nl/)
-(see the [project grant website](https://nlnet.nl/project/Faircamp/) for more details).
-On behalf of myself and all the people and communities benefitting from this work,
-I'd like to express my gratefulness for having been given this amazing opportunity
-and incredible support, thank you so much!
+Major developments on Faircamp (Faircamp 1.0 in 2024, and also beyond it in
+2025) are being financed by the European Commission's [Next Generation Internet](https://www.ngi.eu/)
+programme through the [NGI0 Entrust](https://nlnet.nl/entrust/) fund established
+by [NLnet](https://nlnet.nl/) (see the [project grant website](https://nlnet.nl/project/Faircamp/)
+for more details). On behalf of myself and all the people and communities benefitting
+from this work, I'd like to express my gratefulness for being given this
+amazing opportunity and incredible support, thank you so much!
 
 ## Development
 
