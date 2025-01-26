@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Tommaso Croce
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations, Unreviewed};
+use super::{Reviewed, Translations};
 
 pub const IT: Translations = Translations {
     audio_format_alac: Reviewed("Lossless e compresso, se utilizzi esclusivamente prodotti Apple scegli questo invece di FLAC"),
@@ -26,7 +26,7 @@ pub const IT: Translations = Translations {
     cover_image: Reviewed("Immagine di copertina"),
     default_unlock_info: Reviewed("Devi inserire un codice per sbloccare questi download. Chiedi ai gestori del sito come ottenerne uno."),
     download: Reviewed("Scarica"),
-    download_code_seems_incorrect: Unreviewed("Il codice di sblocco sembra essere errato, controlla eventuali errori di battitura."),
+    download_code_seems_incorrect: Reviewed("Il codice di sblocco sembra essere errato, controlla eventuali errori di battitura."),
     downloads: Reviewed("Download"),
     downloads_permalink: Reviewed("downloads"),
     embed: Reviewed("Incorpora"),
@@ -79,6 +79,7 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     search: Reviewed("Cerca"),
     showing_featured_items: Reviewed("Mostrando gli elementi in evidenza"),
     showing_xxx_results_for_xxx: Reviewed("Mostrando {count} risultati per '{query}'"),
+    skip_to_main_content: Reviewed("Salta al contenuto principale"),
     unlisted: Reviewed("Non elencato"),
     unlock: Reviewed("Sblocca"),
     unlock_downloads: Reviewed("Sblocca download"),
