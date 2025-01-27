@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -56,6 +56,7 @@ Damian Szetela<br>
 [Harald Eilertsen](https://volse.net/)<br>
 [James](https://strangetextures.com)<br>
 [James Fenn](https://jfenn.me/)<br>
+[JΛПIПΛIПFΛ](https://janinainfa.surge.sh/)<br>
 [jd42](https://codeberg.org/jd42)<br>
 [keef](https://key13.uk)<br>
 [kel](https://mastodon.online/@kel)<br>

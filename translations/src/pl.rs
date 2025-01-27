@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2025 janinainfa
 // SPDX-FileCopyrightText: 2024 Damian Szetela
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -18,16 +19,19 @@ pub const PL: Translations = Translations {
     close: Reviewed("Zamknij"),
     copied: Reviewed("Skopiowane"),
     copy: Reviewed("Kopiuj"),
+    copy_link: Reviewed("Kopiuj link"),
     confirm: Reviewed("Potwierdź"),
     r#continue: Reviewed("Kontynuuj"),
     cover_image: Reviewed("Okładka"),
     default_unlock_info: Reviewed("Musisz podać kod aby odblokować pobieranie. Spytaj administratora strony jak dostać jeden."),
+    download: Reviewed("Pobierz"),
     download_code_seems_incorrect: Unreviewed("Kod do odblokowania nie jest prawidłowy, sprawdź literówki."),
     downloads: Reviewed("Pobieranie"),
     downloads_permalink: Reviewed("pobieranie"),
     embed: Reviewed("Osadź"),
     embed_entire_release: Reviewed("Osadź całe wydanie"),
     enter_code_here: Reviewed("Wpisz kod tutaj"),
+    external_link: Reviewed("Zewnętrzny Link"),
     extras: Reviewed("Ekstra"),
     failed: Reviewed("Niepowodzenie"),
     feed: Reviewed("Żródło RSS"),
@@ -50,13 +54,26 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
 - Nie interpretuj. Opisz co tam jest co jest niezbędne do zrozumienia, nie analizuj ponad to.<br>\
 - Używaj kolorów jeśli to ma sens - wiele ludzi straciło wzrok później i rozumieją i doceniają kolory."),
     image_descriptions_permalink: Reviewed("opisy-obrazkow"),
+    javascript_is_disabled_text: Reviewed("JavaScript jest wyłączony - Niektóre funkcje nie są dostępne"),
+    listen: Reviewed("Posłuchaj"),
+    loading: Reviewed("Ładowanie"),
+    m3u_playlist: Reviewed("Playlista M3U"),
     made_or_arranged_payment: Reviewed("Zrobiłem albo ustawiłem zapłatę"),
     missing_image_description_note: Reviewed("Brakujący opis obrazka<br>Kliknij by dowiedzieć się więcej"),
+    more: Reviewed("Więcej"),
+    mute: Reviewed("Wycisz"),
     name_your_price: Reviewed("Ustal swoją cenę"),
+    next_track: Reviewed("Następna ścieżka"),
+    nothing_found_for_xxx: Reviewed("Nie znaleziono nic dla '{query}'"),
+    pause: Reviewed("Pauza"),
+    play: Reviewed("Odtwórz"),
+    previous_track: Reviewed("Poprzednia ścieżka"),
     purchase_downloads: Reviewed("Kup pobranie"),
     purchase_permalink: Reviewed("zakup"),
     recommended_format: Reviewed("Polecany Format"),
     rss_feed: Reviewed("Źródło RSS"),
+    search: Reviewed("Szukaj"),
+    unlisted: Reviewed("Nielistowany"),
     unlock: Reviewed("Odblokuj"),
     unlock_downloads: Reviewed("Odblokuj pobieranie"),
     unlock_manual_instructions: Reviewed("\
@@ -70,7 +87,12 @@ użyj guzika Wstecz i precyzyjnie podążaj za instrukcjami.\
 Zamień ostatnią część adresu - /{unlock_permalink}/{page_hash}{index_suffix} - \
 na /{downloads_permalink}/[twój-kod-odblokowujący]{index_suffix} i naciśnij Enter."),
     unlock_permalink: Reviewed("odblokuj"),
+    unmute: Reviewed("Wyłącz wyciszenie"),
     up_to_xxx: Reviewed("Aż do {xxx}"),
+    volume: Reviewed("Głośność"),
+    xxx_hours: Reviewed("{xxx} godzin"),
+    xxx_minutes: Reviewed("{xxx} minut"),
     xxx_or_more: Reviewed("{xxx} i więcej"),
+    xxx_seconds: Reviewed("{xxx} sekund"),
     ..Translations::UNTRANSLATED
 };
