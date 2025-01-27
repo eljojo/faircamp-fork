@@ -1,8 +1,9 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::ops::Deref;
 
+mod ca;
 mod de;
 mod en;
 mod es;
@@ -21,6 +22,7 @@ mod sv;
 mod tr;
 mod uk;
 
+pub use ca::CA;
 pub use de::DE;
 pub use en::EN;
 pub use es::ES;
@@ -43,6 +45,7 @@ pub use Translation::{Reviewed, Unreviewed, Untranslated};
 
 pub fn all_languages() -> Vec<LabelledTranslations> {
     vec![
+        LabelledTranslations { code: "ca", name: "Catalan", translations: CA },
         LabelledTranslations { code: "de", name: "German", translations: DE },
         LabelledTranslations { code: "en", name: "English", translations: EN },
         LabelledTranslations { code: "es", name: "Spanish", translations: ES },
@@ -545,7 +548,7 @@ impl Translations {
 
 #[test]
 fn check_translations() {
-    let locales = [DE, EN, ES, FR, HE, IT, JA, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR];
+    let locales = [CA, DE, EN, ES, FR, HE, IT, JA, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR];
 
     for translations in &locales {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));

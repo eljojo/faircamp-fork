@@ -436,6 +436,7 @@ language: fr
 
 Faircamp currently ships with these languages:
 
+- Catalan `ca`
 - Dutch `nl`
 - English `en` (default)
 - French `fr`

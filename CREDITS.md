@@ -43,6 +43,7 @@ Damian Szetela<br>
 [DURAD](https://durad.xyz)<br>
 [Edgar Aichinger](https://build.opensuse.org/users/edogawa)<br>
 Élie Khalil<br>
+[Elx Cat](https://mastodont.cat/@elx)<br>
 [Emanuel Pesendorfer](https://emanuel-pesendorfer.at/)<br>
 [Esi Jóhannes G.](https://esi.is/)<br>
 [Filip](https://autom.zone/)<br>

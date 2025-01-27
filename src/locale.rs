@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-FileCopyrightText: 2024 Damian Szetela
 // SPDX-FileCopyrightText: 2023 Harald Eilertsen
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use translations::{DE, EN, ES, FR, HE, IT, JA, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR, UK};
+use translations::{CA, DE, EN, ES, FR, HE, IT, JA, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR, UK};
 use translations::Translations;
 
 pub struct Locale {
@@ -31,6 +31,7 @@ impl Locale {
 
     pub fn from_code(language: &str) -> Locale {
         match language {
+            "ca" => Locale::new("ca", CA, TextDirection::Ltr),
             "de" => Locale::new("de", DE, TextDirection::Ltr),
             "en" => Locale::new("en", EN, TextDirection::Ltr),
             "es" => Locale::new("es", ES, TextDirection::Ltr),
