@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::hash::Hash;
+
 use indoc::formatdoc;
 
 use crate::{
@@ -13,7 +15,8 @@ use crate::{
 use crate::render::{compact_release_identifier, layout};
 use crate::util::html_escape_outside_attribute;
 
-pub fn unlock_html(
+/// Renders content for pages found under /[release_permalink]/[unlock_permalink]/[hash]/index.html
+pub fn release_unlock_html(
     build: &Build,
     catalog: &Catalog,
     release: &Release,
@@ -29,7 +32,10 @@ pub fn unlock_html(
         .unwrap_or(build.locale.translations.default_unlock_info.to_string());
 
     let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
+    let page_hash = build.hash_with_salt(|hasher| {
+        release.permalink.slug.hash(hasher);
+        t_unlock_permalink.hash(hasher);
+    });
 
     let t_download_code_seems_incorrect = &build.locale.translations.download_code_seems_incorrect;
     let t_downloads_permalink = &build.locale.translations.downloads_permalink;

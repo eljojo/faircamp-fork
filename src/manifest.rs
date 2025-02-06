@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::path::Path;
@@ -9,8 +9,9 @@ use enolib::{Attribute, Item};
 
 use crate::{
     DescribedImage,
-    DownloadOption,
-    DownloadsConfig,
+    DownloadAccessOption,
+    DownloadFormat,
+    ExtraDownloads,
     HtmlAndStripped,
     Link,
     Permalink,
@@ -25,16 +26,23 @@ const MAX_SYNOPSIS_CHARS: usize = 256;
 
 mod artist;
 mod artist_catalog_release;
+mod artist_catalog_release_track;
 mod artist_release;
 mod catalog;
 mod catalog_release;
 mod obsolete;
 mod release;
+mod release_track;
+mod track;
 
 pub use artist::read_artist_manifest;
 pub use artist_catalog_release::{
     ARTIST_CATALOG_RELEASE_OPTIONS,
     read_artist_catalog_release_option
+};
+pub use artist_catalog_release_track::{
+    ARTIST_CATALOG_RELEASE_TRACK_OPTIONS,
+    read_artist_catalog_release_track_option
 };
 pub use artist_release::{
     ARTIST_RELEASE_OPTIONS,
@@ -47,17 +55,29 @@ pub use catalog_release::{
 };
 pub use obsolete::{read_obsolete_option, read_obsolete_theme_attribute};
 pub use release::read_release_manifest;
+pub use release_track::{
+    RELEASE_TRACK_OPTIONS,
+    read_release_track_option
+};
+pub use track::read_track_manifest;
 
 /// Options specified in a manifest that only apply to everything found in the
 /// same folder as the manifest. For instance a permalink can only uniquely
 /// apply to one artist or release, thus it is a local option only.
 #[derive(Clone)]
 pub struct LocalOptions {
+    /// Used by release and track
+    pub cover: Option<DescribedImage>,
     pub links: Vec<Link>,
-    /// Applies to artist or release
+    /// Used by artist, release and track
+    pub more: Option<HtmlAndStripped>,
+    /// Used by artist and release
     pub permalink: Option<Permalink>,
     pub release_date: Option<NaiveDate>,
-    pub release_title: Option<String>,
+    /// Used by artist, release and track
+    pub synopsis: Option<String>,
+    /// Used by release and track
+    pub title: Option<String>,
     pub unlisted_release: bool
 }
 
@@ -71,32 +91,37 @@ pub struct LocalOptions {
 pub struct Overrides {
     pub copy_link: bool,
     pub download_codes: Vec<String>,
-    pub downloads: DownloadOption,
-    pub downloads_config: DownloadsConfig,
     pub embedding: bool,
     pub m3u_enabled: bool,
     pub more_label: Option<String>,
     pub payment_info: Option<String>,
-    pub price: Price,
     pub release_artists: Vec<String>,
-    pub release_cover: Option<DescribedImage>,
-    pub release_more: Option<HtmlAndStripped>,
-    pub release_synopsis: Option<String>,
+    pub release_download_access: DownloadAccessOption,
+    pub release_downloads: Vec<DownloadFormat>,
+    pub release_extras: ExtraDownloads,
+    pub release_price: Price,
     pub streaming_quality: StreamingQuality,
     pub tag_agenda: TagAgenda,
     pub theme: Theme,
     pub track_artists: Vec<String>,
+    pub track_download_access: DownloadAccessOption,
+    pub track_downloads: Vec<DownloadFormat>,
+    pub track_extras: bool,
     pub track_numbering: TrackNumbering,
+    pub track_price: Price,
     pub unlock_info: Option<String>
 }
 
 impl LocalOptions {
     pub fn new() -> LocalOptions {
         LocalOptions {
+            cover: None,
             links: Vec::new(),
-            release_date: None,
+            more: None,
             permalink: None,
-            release_title: None,
+            release_date: None,
+            synopsis: None,
+            title: None,
             unlisted_release: false
         }
     }
@@ -107,22 +132,24 @@ impl Overrides {
         Overrides {
             copy_link: true,
             download_codes: Vec::new(),
-            downloads: DownloadOption::Free,
-            downloads_config: DownloadsConfig::default(),
             embedding: false,
             m3u_enabled: false,
             more_label: None,
             payment_info: None,
-            price: Price::default(),
             release_artists: Vec::new(),
-            release_cover: None,
-            release_more: None,
-            release_synopsis: None,
+            release_download_access: DownloadAccessOption::Free,
+            release_downloads: Vec::new(),
+            release_extras: ExtraDownloads::BUNDLED,
+            release_price: Price::default(),
             streaming_quality: StreamingQuality::Standard,
             tag_agenda: TagAgenda::normalize(),
             theme: Theme::new(),
             track_artists: Vec::new(),
+            track_download_access: DownloadAccessOption::Free,
+            track_downloads: Vec::new(),
+            track_extras: true,
             track_numbering: TrackNumbering::ArabicDotted,
+            track_price: Price::default(),
             unlock_info: None
         }
     }

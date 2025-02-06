@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs;
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog};
+use crate::{Build, Catalog, TRACK_NUMBERS};
 use crate::util::url_safe_hash_base64;
 
 pub enum Scripts {
@@ -61,10 +61,15 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
 
             let r_tracks = release_ref.tracks
                 .iter()
-                .enumerate()
-                .map(|(index, track)| {
-                    let track_number = index + 1;
+                .zip(TRACK_NUMBERS)
+                .map(|(track, track_number)| {
                     let track_number_formatted = release_ref.track_numbering.format(track_number);
+
+                    let r_cover = match track.cover_image_micro_src() {
+                        Some(src) => format!("cover: '{src}',"),
+                        None => String::new()
+                    };
+
                     let track_title_escaped = js_escape_inside_single_quoted_string(&track.title());
 
                     let r_artists = if catalog.label_mode {
@@ -91,6 +96,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                     formatdoc!(r#"
                         {{
                             {r_artists}
+                            {r_cover}
                             number: '{track_number_formatted}',
                             title: '{track_title_escaped}',
                             url: '{release_slug}/{track_number}{index_suffix}'

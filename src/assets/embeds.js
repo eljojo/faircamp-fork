@@ -236,7 +236,6 @@ function togglePlayback(track, seekTo = null) {
                 activeTrack.onPause = resetCurrentStartNext;
                 activeTrack.audio.pause();
             }
-
         }
     }
 }

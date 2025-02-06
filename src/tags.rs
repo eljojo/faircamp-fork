@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use serde_derive::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ pub enum TagAction {
     Rewrite
 }
 
-/// Set behavior for a all tags:
+/// Set behavior for all tags:
 /// Copy - Copy all tags 1:1 from source audio file
 /// Custom - Define behavior on a per-tag basis (see [TagAction])
 /// Remove - Write no tags at all to the output file
@@ -147,23 +147,23 @@ impl TagMapping {
         track: &Track,
         track_number: usize
     ) -> TagMapping {
-        match &release.tag_agenda {
+        match &track.tag_agenda {
             TagAgenda::Copy => TagMapping::Copy,
             TagAgenda::Custom {
-                album: album_custom,
-                album_artist: album_artist_custom,
-                artist: artist_custom,
-                image: image_custom,
-                title: title_custom,
-                track: track_custom
+                album: album_action,
+                album_artist: album_artist_action,
+                artist: artist_action,
+                image: image_action,
+                title: title_actiion,
+                track: track_action
             } => {
-                let album_mapped = match album_custom {
+                let album_mapped = match album_action {
                     TagAction::Copy => track.transcodes.borrow().source_meta.album.clone(),
                     TagAction::Remove => None,
                     TagAction::Rewrite => Some(release.title.clone())
                 };
 
-                let album_artist_mapped = match album_artist_custom {
+                let album_artist_mapped = match album_artist_action {
                     TagAction::Copy => {
                         let transcodes_ref = track.transcodes.borrow();
                         match transcodes_ref.source_meta.album_artists.is_empty() {
@@ -173,29 +173,31 @@ impl TagMapping {
                     }
                     TagAction::Remove => None,
                     TagAction::Rewrite => {
-                        let same_track_artists = release.tracks
-                            .iter()
-                            .all(|track| {
+                        if release.main_artists.is_empty() ||
+                            release.tracks.iter().all(|track| {
+                                track.artists.len() == release.main_artists.len() &&
                                 track.artists
                                     .iter()
                                     .zip(release.main_artists.iter())
                                     .all(|(track_artist, main_artist)| ArtistRc::ptr_eq(track_artist, main_artist))
-                            });
-
-                        match !release.main_artists.is_empty() && !same_track_artists {
-                            true => Some(
-                                release.main_artists
+                            }) {
+                            // The album artist tag is not needed when ...
+                            // - We don't know the release's main artist(s) (not sure if that can even be the case, but for correctness sake)
+                            // - Each track is by the same artist(s), which are at the same time also the release's main artist(s)
+                            None
+                        } else {
+                            let album_artists = release.main_artists
                                 .iter()
                                 .map(|artist| artist.borrow().name.clone())
                                 .collect::<Vec<String>>()
-                                .join(", ")
-                            ),
-                            false => None
+                                .join(", ");
+
+                            Some(album_artists)
                         }
                     }
                 };
 
-                let artist_mapped = match artist_custom {
+                let artist_mapped = match artist_action {
                     TagAction::Copy => {
                         let transcodes_ref = track.transcodes.borrow();
                         match transcodes_ref.source_meta.artists.is_empty() {
@@ -219,22 +221,27 @@ impl TagMapping {
                     }
                 };
 
-                let image_mapped = match image_custom {
+                let image_mapped = match image_action {
                     TagAction::Copy => Some(ImageEmbed::Copy),
                     TagAction::Remove => None,
-                    TagAction::Rewrite => match &release.cover {
-                        Some(described_image) => Some(ImageEmbed::Write(described_image.image.borrow().hash.clone())),
-                        None => None
+                    TagAction::Rewrite => {
+                        if let Some(described_image) = &track.cover {
+                            Some(ImageEmbed::Write(described_image.image.borrow().hash.clone()))
+                        } else if let Some(described_image) = &release.cover {
+                            Some(ImageEmbed::Write(described_image.image.borrow().hash.clone()))
+                        } else {
+                            None
+                        }
                     }
                 };
 
-                let title_mapped = match title_custom {
+                let title_mapped = match title_actiion {
                     TagAction::Copy => track.transcodes.borrow().source_meta.title.clone(),
                     TagAction::Remove => None,
                     TagAction::Rewrite => Some(track.title())
                 };
 
-                let track_mapped = match track_custom {
+                let track_mapped = match track_action {
                     TagAction::Copy => track.transcodes.borrow().source_meta.track_number.map(|track_number| track_number as usize),
                     TagAction::Remove => None,
                     // TODO: Maybe rethink this one (also with new additions of heuristic audio meta)
@@ -262,7 +269,7 @@ impl TagMapping {
                     track: track_mapped
                 }
             }
-            TagAgenda::Remove => TagMapping::Remove,
+            TagAgenda::Remove => TagMapping::Remove
         }
     }
 }

@@ -1,5 +1,7 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
+use std::hash::Hash;
 
 use indoc::formatdoc;
 use url::Url;
@@ -9,7 +11,7 @@ use crate::icons;
 use crate::render::{embed_layout, player_icon_templates};
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
-pub fn embed_track_html(
+pub fn track_embed_html(
     base_url: &Url,
     build: &Build,
     release: &Release,
@@ -20,7 +22,7 @@ pub fn embed_track_html(
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
-    let audio_sources = release.streaming_quality
+    let audio_sources = track.streaming_quality
         .formats()
         .iter()
         .map(|format| {
@@ -32,14 +34,15 @@ pub fn embed_track_html(
                 basename = track.asset_basename.as_ref().unwrap()
             );
 
-            let track_hash = build.hash_path_with_salt(
-                &release.permalink.slug,
-                format_dir,
-                &track_filename
-            );
+            let track_hash = build.hash_with_salt(|hasher| {
+                release.permalink.slug.hash(hasher);
+                track_number.hash(hasher);
+                format_dir.hash(hasher);
+                track_filename.hash(hasher);
+            });
 
             let source_type = format.source_type();
-            let src = format!("{release_prefix}{format_dir}/{track_hash}/{track_filename}");
+            let src = format!("{release_prefix}{track_number}/{format_dir}/{track_hash}/{track_filename}");
 
             format!(r#"<source src="{src}" type="{source_type}">"#)
         })

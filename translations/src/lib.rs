@@ -162,6 +162,8 @@ pub struct Translations {
     pub embed_entire_release: Translation,
     pub enter_code_here: Translation,
     pub external_link: Translation,
+    // Must only contain filesystem-safe characters (because it is interpolated
+    // inside the name of track extras directories inside release archives).
     pub extras: Translation,
     pub failed: Translation,
     pub feed: Translation,
@@ -548,6 +550,8 @@ impl Translations {
 
 #[test]
 fn check_translations() {
+    use sanitize_filename::sanitize;
+
     let locales = [CA, DE, EN, ES, FR, HE, IT, JA, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR];
 
     for translations in &locales {
@@ -569,11 +573,15 @@ fn check_translations() {
         assert!(&translations.xxx_or_more.contains("{xxx}"));
         assert!(&translations.xxx_seconds.contains("{xxx}"));
 
-        let disallowed_char = |c: char| !c.is_ascii_alphanumeric() && c != '-' ;
+        let disallowed_char = |c: char| !c.is_ascii_alphanumeric() && c != '-';
 
         assert!(!&translations.downloads_permalink.contains(disallowed_char));
         assert!(!&translations.image_descriptions_permalink.contains(disallowed_char));
         assert!(!&translations.purchase_permalink.contains(disallowed_char));
         assert!(!&translations.unlock_permalink.contains(disallowed_char));
+
+        // The translation for "Extras" must be file-system safe because we interpolate
+        // it into the track extras directory names when be build zip archives for releases.
+        assert!(*translations.extras == sanitize(*translations.extras));
     }
 }

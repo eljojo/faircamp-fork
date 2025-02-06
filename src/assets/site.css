@@ -14,6 +14,10 @@ button.link:hover {
     color: var(--fg-1-focus);
 }
 a * { pointer-events: none; }
+.abstract .number {
+    color: var(--fg-3);
+    margin-inline-end: .2rem;
+}
 .abstract .release_artists a,
 .release_info .release_artists a {
     text-decoration: underline;

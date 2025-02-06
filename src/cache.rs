@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::collections::HashMap;
@@ -83,7 +83,7 @@ fn recompute_hash(build: &Build, views: &[View]) -> Option<SourceHash> {
                 "Recomputing hash for {} with new algorithm.",
                 &view.file_meta.path.display()
             );
-            return Some(SourceHash::new(&build.catalog_dir.join(&view.file_meta.path)))
+            return Some(SourceHash::new(&build.catalog_dir.join(&view.file_meta.path)));
         }
     }
 
@@ -509,7 +509,7 @@ impl Cache {
                 info!("Existing cache data is in an incompatible format (from a different faircamp version), the cache will be purged and regenerated.");
                 util::ensure_empty_dir(&build.cache_dir);
             } else {
-                util::ensure_dir(&build.cache_dir);
+                util::ensure_dir_all(&build.cache_dir);
             }
             fs::write(version_marker_file, "").unwrap();
         }

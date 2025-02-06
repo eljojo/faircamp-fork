@@ -11,9 +11,15 @@ use crate::{
     AudioFormat,
     Build,
     DescribedImage,
+    DownloadAccess,
+    DownloadFormat,
+    Extra,
     ffmpeg,
     HeuristicAudioMeta,
     HtmlAndStripped,
+    Link,
+    StreamingQuality,
+    TagAgenda,
     TagMapping,
     Theme,
     Transcode,
@@ -35,18 +41,117 @@ pub struct Track {
     pub asset_basename: Option<String>,
     pub copy_link: bool,
     pub cover: Option<DescribedImage>,
+    pub download_access: DownloadAccess,
+    pub download_formats: Vec<DownloadFormat>,
+    pub embedding: bool,
+    pub extra_downloads: bool,
+    pub extras: Vec<Extra>,
+    // TODO: Re-check if we need this post-creation (if not we don't need to store it on Track)
     pub heuristic_audio_meta: Option<HeuristicAudioMeta>,
+    pub links: Vec<Link>,
     pub more: Option<HtmlAndStripped>,
     /// Optional custom label for the button that (by default) says "More" on the
     /// track page and points to additional long-form content for the track.
     /// For tracks this label is also displayed in the track list on a release page.
     pub more_label: Option<String>,
+    pub streaming_quality: StreamingQuality,
     pub synopsis: Option<String>,
+    /// Describes if/how audio file tags (metadata) should be written to the
+    /// transcoded track assets (e.g. copying original tags, removing all tags,
+    /// or some other specified behavior).
+    pub tag_agenda: TagAgenda,
     pub theme: Theme,
+    /// An explicit title coming from the manifest, but this can also be
+    /// missing and instead be given by audio file metadata, or the audio
+    /// file name itself (either as heuristic audio meta or taking the raw
+    /// file name).
+    title: Option<String>,
     pub transcodes: TranscodesRcView
 }
 
 impl Track {
+    /// Returns - if available - the file name of the track cover,
+    /// without any prefixing (i.e. in the context of the track directory)
+    pub fn cover_image_micro_src(&self) -> Option<String> {
+        self.cover
+            .as_ref()
+            .map(|described_image| {
+                let image_ref = described_image.image.borrow();
+                let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+                let edge_size = asset.edge_size;
+                let hash = image_ref.hash.as_url_safe_base64();
+                format!("cover_{edge_size}.jpg?{hash}")
+            })
+    }
+
+    pub fn download_assets_available(&self) -> bool {
+        !self.download_formats.is_empty() ||
+        (self.extra_downloads && !self.extras.is_empty())
+    }
+
+    pub fn new(
+        artists_to_map: Vec<String>,
+        copy_link: bool,
+        cover: Option<DescribedImage>,
+        download_access: DownloadAccess,
+        download_formats: Vec<DownloadFormat>,
+        embedding: bool,
+        extra_downloads: bool,
+        extras: Vec<Extra>,
+        links: Vec<Link>,
+        more: Option<HtmlAndStripped>,
+        more_label: Option<String>,
+        streaming_quality: StreamingQuality,
+        synopsis: Option<String>,
+        tag_agenda: TagAgenda,
+        theme: Theme,
+        title: Option<String>,
+        transcodes: TranscodesRcView
+    ) -> Track {
+        Track {
+            artists: Vec::new(),
+            artists_to_map,
+            asset_basename: None,
+            copy_link,
+            cover,
+            download_access,
+            download_formats,
+            embedding,
+            extra_downloads,
+            extras,
+            heuristic_audio_meta: None,
+            links,
+            more,
+            more_label,
+            streaming_quality,
+            synopsis,
+            tag_agenda,
+            title,
+            transcodes,
+            theme
+        }
+    }
+
+    pub fn title(&self) -> String {
+        match &self.title {
+            Some(title) => title.clone(),
+            None => {
+                if let Some(title) = &self.transcodes.borrow().source_meta.title {
+                    title.clone()
+                } else if let Some(heuristic_audio_meta) = &self.heuristic_audio_meta {
+                    heuristic_audio_meta.title.clone()
+                } else {
+                    self.transcodes.file_meta.path
+                        .file_stem()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                }
+            }
+        }
+    }
+
     pub fn transcode_as(
         &mut self,
         target_format: AudioFormat,
@@ -76,42 +181,6 @@ impl Track {
 
             let asset = Asset::new(build, target_filename, asset_intent);
             transcodes_mut.formats.push(Transcode::new(asset, target_format, generic_hash(tag_mapping)));
-        }
-    }
-    
-    pub fn new(
-        artists_to_map: Vec<String>,
-        copy_link: bool,
-        theme: Theme,
-        transcodes: TranscodesRcView
-    ) -> Track {
-        Track {
-            artists: Vec::new(),
-            artists_to_map,
-            asset_basename: None,
-            copy_link,
-            cover: None,
-            heuristic_audio_meta: None,
-            more: None, // TODO: Wire up with manifests so it can be set
-            more_label: None, // TODO: Wire up with manifests so it can be set
-            synopsis: None, // TODO: Wire up with manifests so it can be set
-            transcodes,
-            theme
-        }
-    }
-
-    pub fn title(&self) -> String {
-        if let Some(title) = &self.transcodes.borrow().source_meta.title {
-            title.clone()
-        } else if let Some(heuristic_audio_meta) = &self.heuristic_audio_meta {
-            heuristic_audio_meta.title.clone()
-        } else {
-            self.transcodes.file_meta.path
-                .file_stem()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string()
         }
     }
 }

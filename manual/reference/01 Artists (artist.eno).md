@@ -1,11 +1,11 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
 # Artist manifests – artist.eno
 
-> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [download_code(s)](#download_codes), [downloads](#downloads), [embedding](#embedding), [external_page](#external_page), [extra_downloads](#extra_downloads), [image](#image), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [name](#name), [payment_info](#payment_info), [permalink](#permalink), [price](#price), [release_downloads](#release_downloads), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_downloads](#track_downloads), [track_numbering](#track_numbering), [unlock_info](#unlock_info)
+> All options at a glance: [alias(es)](#aliases), [copy_link](#copy_link), [download_code(s)](#download_codes), [embedding](#embedding), [external_page](#external_page), [image](#image), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [name](#name), [payment_info](#payment_info), [permalink](#permalink), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
 
 Artists are automatically created by faircamp when they are encountered in
 audio file metadata (e.g. the artist "Alice" will be created if any ID3 tag
@@ -93,83 +93,10 @@ download_codes:
 - SILVERsupporter
 ```
 
-Note that you also need to use the [downloads](#downloads) option
-(e.g. `downloads: code`) to activate download codes. In addition it is highly
-recommended to use the [unlock_info](#unlock_info) option to provide a text
-that is displayed alongside the code input prompt.
-
-## <a name="downloads"></a> `downloads`
-
-By default your visitors can only stream your releases.
-
-To enable simple free downloads all you need to do is set one or more download
-formats with the [release_downloads](#release_downloads) and/or
-[track_downloads](#track_downloads) option.
-
-The `downloads` option gives you further control over the general download
-mode, which by default is free downloads, but can be changed to external
-downloads, downloads accessible through download codes, or downloads placed
-behind a soft paycurtain, and you can also disable downloads here.
-
-### Free downloads
-
-This is the default (you don't need to set it yourself), but in case you want
-to re-enable it in a manifest:
-
-```eno
-downloads: free
-```
-
-### External downloads
-
-If you want to use your faircamp site purely to let people stream your audio,
-but there is another place on the web where your release(s) can be
-downloaded, external downloads allow you to display a download button that
-merely takes people to the external download page.
-
-For example, to display a download button that takes people to `https://example.com/artist/purchase/`, simply use that url as the setting value:
-
-```eno
-downloads: https://example.com/artist/purchase/
-```
-
-### Download code(s)
-
-A download code (like a coupon/token) needs to be entered to access downloads.
-
-To protect downloads with a code:
-
-```eno
-downloads: code
-```
-
-In combination with this use the [download_code(s)](#download_codes) option to
-set the codes for accessing downloads and the [payment_info]
-(#payment_info) option to provide a text that is displayed with the code
-input field (to give your audience directions on how to obtain an download
-code).
-
-### Soft Paycurtain
-
-A soft (i.e. not technically enforced) paycurtain needs to be passed before downloading.
-
-To provide downloads behind a soft paycurtain:
-
-```eno
-downloads: paycurtain
-```
-
-In combination with this option, use the [price](#price) and
-[payment_info](#payment_info) options to set a price and give instructions
-for where the payment can be made.
-
-### Disable downloads
-
-Downloads can also be disabled explicitly (e.g. if you quickly want to take them offline at some point):
-
-```eno
-downloads: disabled
-```
+Note that you also need to use the [release_download_access](#release_download_access)
+and/or [track_download_access](#track_download_access) options (e.g. `release_download_access: code`)
+to activate download codes. In addition it is highly recommended to use the [unlock_info](#unlock_info)
+option to provide a text that is displayed alongside the code input prompt.
 
 ## <a name="embedding"></a> `embedding`
 
@@ -180,7 +107,7 @@ Embedding is disabled by default. If you want to enable it you also need to
 set the catalog's [base_url](catalog-catalog-eno.html#base_url) (embeds work
 by displaying something from your site on another site, for this the other site
 needs to point to your site's address), and then set `embedding: enabled`,
-either for the catalog or for artist or releases. If you set it `enabled`
+either in a catalog, artist, release or track manifest. If you set it `enabled`
 at the catalog level, you can also use `disabled` at lower level to
 re-disable it for specific releases.
 
@@ -207,33 +134,6 @@ When using this option, it often makes more sense to use a shortcut artist
 definition using the [artist](catalog-catalog-eno.html#artist) field in a
 [catalog.eno](catalog-catalog-eno.html) or [release.eno](releases-release-eno.html)
 manifest.
-
-## <a name="extra_downloads"></a> `extra_downloads`
-
-Any additional files in a release directory besides the audio files, cover
-image and manifests (.eno files) are considered "extras" and by default
-`bundled` with archive downloads (think artwork, liner notes, lyrics,
-etc.).
-
-To turn this off and entirely omit extra files:
-
-```eno
-extra_downloads: disabled
-```
-
-To provide extra files as separate downloads only:
-
-```eno
-extra_downloads: separate
-```
-
-To provide extra files both as separately downloadable and bundled with archive downloads:
-
-```eno
-extra_downloads:
-- bundled
-- separate
-```
 
 ## <a name="image"></a> `image`
 
@@ -348,9 +248,9 @@ aliases:
 
 ## <a name="payment_info"></a> `payment_info`
 
-This is used together with the `paycurtain` [downloads](#downloads) option
-(`downloads: paycurtain`) to set the text that is displayed before downloads
-are accessed.
+This is used together with the `paycurtain` setting of the [release_download_access](#release_download_access)
+and/or [track_download_access](#track_download_access) options (e.g. `release_download_access: paycurtain`)
+to set the text that is displayed before downloads are accessed.
 
 The general idea here is to provide external links to one or more payment,
 donation or patronage platforms that you use, be it liberapay, ko-fi, paypal,
@@ -382,25 +282,77 @@ permalink: alice-artist
 
 For an explanation what a `permalink` is please see the [Concepts Explained](concepts-explained.html) page.
 
-## <a name="price"></a> `price`
+# <a name="release_download_access"></a> `release_download_access`
 
-This is used together with the `paycurtain` [downloads](#downloads) option
-(`downloads: paycurtain`) to set the price that is
-displayed before downloads are accessed.
+By default your visitors can only *stream* your releases.
 
-For example in order to ask for 4€ for accessing the downloads of a release:
+To enable free downloads all you need to do is set one or more download
+formats with the [release_downloads](#release_downloads) option.
+
+Beyond this, the `release_download_access` option controls how visitors can
+access downloads - by default as free downloads - but this can be changed to
+external downloads, downloads accessible through download codes, or downloads
+placed behind a soft paycurtain, and you can also disable access to downloads
+here.
+
+### Free downloads
+
+This is the default (you don't need to set it yourself), but in case you want
+to re-enable it in a manifest:
 
 ```eno
-price: EUR 4+
+release_download_access: free
 ```
 
-The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+### External downloads
 
-- `USD 0+` (Name your price, including zero dollars as a valid option)
-- `3.50 GBP` (Exactly 3.50 Pounds)
-- `KRW 9080` (Exactly 9080 south korean won)
-- `INR 230+` (230 indian rupees or more)
-- `JPY 400-800` (Between 400 and 800 japanese yen)
+If you want to use your faircamp site purely to let people stream your audio,
+but there is another place on the web where your release(s) can be
+downloaded, external downloads allow you to display a download button that
+merely takes people to the external download page.
+
+For example, to display a download button that takes people to `https://example.com/artist/purchase/`, simply use that url as the value for this setting:
+
+```eno
+release_download_access: https://example.com/artist/purchase/
+```
+
+### Download code(s)
+
+A download code (like a coupon/token) needs to be entered to access downloads.
+
+To protect downloads with a code:
+
+```eno
+release_download_access: code
+```
+
+In combination with this use the [download_code(s)](#download_codes) option to
+set the codes for accessing downloads and the [payment_info](#payment_info)
+option to provide a text that is displayed with the code input field (to give
+your audience directions on how to obtain a download code).
+
+### Soft Paycurtain
+
+A soft (i.e. not technically enforced) paycurtain needs to be passed before downloading.
+
+To provide downloads behind a soft paycurtain:
+
+```eno
+release_download_access: paycurtain
+```
+
+In combination with this option, use the [release_price](#release_price) and
+[payment_info](#payment_info) options to set a price and give instructions
+for where the payment can be made.
+
+### Disable downloads
+
+Downloads can also be disabled explicitly (e.g. if you quickly want to take them offline at some point):
+
+```eno
+release_download_access: disabled
+```
 
 ## <a name="release_downloads"></a> `release_downloads`
 
@@ -440,6 +392,53 @@ All currently available formats:
 In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
+
+## <a name="release_extras"></a> `release_extras`
+
+Any additional files in a release directory besides the audio files, cover
+image and release.eno manifest are considered "extras" and by default
+`bundled` with archive downloads (think artwork, liner notes, lyrics,
+etc.).
+
+To turn this off and entirely omit release extras:
+
+```eno
+release_extras: disabled
+```
+
+To provide release extras as separate downloads only:
+
+```eno
+release_extras: separate
+```
+
+To provide release extras both as separately downloadable and bundled with archive downloads:
+
+```eno
+release_extras:
+- bundled
+- separate
+```
+
+## <a name="release_price"></a> `release_price`
+
+This is used together with the `paycurtain` setting of the [release_download_access](#release_download_access)
+option (`release_download_access: paycurtain`) to set the price for release downloads that is
+displayed before the downloads are accessed.
+
+For example in order to ask for 4€ for accessing the downloads of a release:
+
+```eno
+price: EUR 4+
+```
+
+The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+
+- `USD 0+` (Name your price, including zero dollars as a valid option)
+- `3.50 GBP` (Exactly 3.50 Pounds)
+- `KRW 9080` (Exactly 9080 south korean won)
+- `INR 230+` (230 indian rupees or more)
+- `JPY 400-800` (Between 400 and 800 japanese yen)
 
 ## <a name="streaming_quality"></a> `streaming_quality`
 
@@ -674,6 +673,79 @@ theme:
 custom_font = MyCustomSans.woff2
 ```
 
+## <a name="track_download_access"></a> `track_download_access`
+
+By default your visitors can only *stream* your tracks.
+
+To enable free downloads of a track all you need to do is set one or more
+download formats with the [track_downloads](#track_downloads) option.
+
+Beyond this, the `track_download_access` option controls how visitors can
+access downloads - by default as free downloads - but this can be changed to
+external downloads, downloads accessible through download codes, or downloads
+placed behind a soft paycurtain, and you can also disable access to downloads
+here.
+
+### Free downloads
+
+This is the default (you don't need to set it yourself), but in case you want
+to re-enable it in a manifest:
+
+```eno
+track_download_access: free
+```
+
+### External downloads
+
+If you want to use your faircamp site purely to let people stream your audio,
+but there is another place on the web where your track(s) can be
+downloaded, external downloads allow you to display a download button that
+merely takes people to the external download page.
+
+For example, to display a download button that takes people to `https://example.com/artist/purchase/`,
+simply use that url as the value for this setting:
+
+```eno
+track_download_access: https://example.com/artist/purchase/
+```
+
+### Download code(s)
+
+A download code (like a coupon/token) needs to be entered to access downloads.
+
+To protect downloads with a code:
+
+```eno
+track_download_access: code
+```
+
+In combination with this use the [download_code(s)](#download_codes) option to
+set the codes for accessing downloads and the [payment_info](#payment_info)
+option to provide a text that is displayed with the code input field (to give
+your audience directions on how to obtain a download code).
+
+### Soft Paycurtain
+
+A soft (i.e. not technically enforced) paycurtain needs to be passed before downloading.
+
+To provide downloads behind a soft paycurtain:
+
+```eno
+track_download_access: paycurtain
+```
+
+In combination with this option, use the [track_price](#track_price) and
+[payment_info](#payment_info) options to set a price and give instructions
+for where the payment can be made.
+
+### Disable downloads
+
+Downloads can also be disabled explicitly (e.g. if you quickly want to take them offline at some point):
+
+```eno
+track_download_access: disabled
+```
+
 ## <a name="track_downloads"></a> `track_downloads`
 
 Sets the formats in which single tracks can be separately downloaded.
@@ -712,6 +784,29 @@ In practice a minimal combination of a lossy state of the art format
 (e.g. `opus`), a lossy format with high compatibility (e.g. `mp3`) and a
 lossless format (e.g. `flac`) is recommended.
 
+## <a name="track_extras"></a> `track_extras`
+
+Any additional files in a track directory besides the audio file, cover
+image and track.eno manifest are considered "extras" and by default
+offered as separate downloads on the track download page (think artwork, liner notes, lyrics,
+etc.).
+
+To turn this off and entirely omit track extras:
+
+```eno
+track_extras: disabled
+```
+
+To provide track extras as separate downloads (default behavior):
+
+```eno
+track_extras: enabled
+```
+
+Release downloads (zip archives) that include a track will also include the
+extras of that track if `track_extras` is `enabled` for the track and the
+`release_extras` option for the release is (or includes) `bundled`.
+
 ## <a name="track_numbering"></a> `track_numbering`
 
 ```eno
@@ -730,13 +825,33 @@ used for the track numbers of releases, offering the following choices:
 - `roman` (I II III …)
 - `roman-dotted` (I. II. III. …)
 
+## <a name="track_price"></a> `track_price`
+
+This is used together with the `paycurtain` setting of the [track_download_access](#track_download_access)
+option (`track_download_access: paycurtain`) to set the price for track downloads that is
+displayed before the downloads are accessed.
+
+For example in order to ask for 4€ for accessing the downloads of a track:
+
+```eno
+price: EUR 4+
+```
+
+The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+
+- `USD 0+` (Name your price, including zero dollars as a valid option)
+- `3.50 GBP` (Exactly 3.50 Pounds)
+- `KRW 9080` (Exactly 9080 south korean won)
+- `INR 230+` (230 indian rupees or more)
+- `JPY 400-800` (Between 400 and 800 japanese yen)
+
 ## <a name="unlock_info"></a> `unlock_info`
 
-In combination with the `code` [downloads](#downloads) option
-(`downloads: code`) and [download_code(s)](#download_codes) option, this
-option lets you set the text that is displayed to your visitors when they are
-prompted for a download code. Usually you will want to put instructions in
-the text that tell your visitors how they can obtain a download code.
+In combination with the `code` setting of the [release_download_access](#release_download_access)
+and/or [track_download_access](#track_download_access) options (e.g. `release_download_access: code`) and
+[download_code(s)](#download_codes) option, this option lets you set the text that is displayed
+to your visitors when they are prompted for a download code. Usually you will want to put
+instructions in the text that tell your visitors how they can obtain a download code.
 
 ```eno
 -- unlock_info

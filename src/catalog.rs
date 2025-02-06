@@ -3,8 +3,9 @@
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::mem;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use indoc::formatdoc;
 use sanitize_filename::sanitize;
@@ -16,10 +17,8 @@ use crate::{
     Build,
     Cache,
     DescribedImage,
-    DownloadAccess,
-    DownloadOption,
-    Downloads,
     Extra,
+    FairDir,
     Favicon,
     FileMeta,
     HeuristicAudioMeta,
@@ -32,16 +31,12 @@ use crate::{
     TagMapping,
     Theme,
     Track,
+    TRACK_NUMBERS,
     TranscodesRcView,
     util
 };
 use crate::manifest::{self, LocalOptions, Overrides};
 use crate::util::{generic_hash, url_safe_hash_base64};
-
-const SUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aif", "aifc", "aiff", "alac", "flac", "mp3", "ogg", "opus", "wav"];
-const SUPPORTED_IMAGE_EXTENSIONS: &[&str] = &["gif", "heif", "jpeg", "jpg", "png", "webp"];
-
-const UNSUPPORTED_AUDIO_EXTENSIONS: &[&str] = &["aac", "m4a"];
 
 const PERMALINK_CONFLICT_RESOLUTION_HINT: &str = "In order to resolve the conflict, explicitly specify non-conflicting permalinks for all involved artists/releases through manifests using the 'permalink: example' option.";
 
@@ -159,7 +154,7 @@ impl Catalog {
 
             release_mut.asset_basename = Some(release_basename);
 
-            for (index, track) in release_mut.tracks.iter_mut().enumerate() {
+            for (track, track_number) in release_mut.tracks.iter_mut().zip(TRACK_NUMBERS) {
                 let track_artists = if track.artists.is_empty() {
                     String::new()
                 } else {
@@ -171,7 +166,6 @@ impl Catalog {
 
                     format!("{list} - ")
                 };
-                let track_number = index + 1;
                 let track_title = sanitize(track.title());
 
                 let track_basename = format!("{track_number:02} {track_artists}{track_title}");
@@ -353,12 +347,19 @@ impl Catalog {
     pub fn read(build: &mut Build, cache: &mut Cache) -> Result<Catalog, ()> {
         let mut catalog = Catalog::new();
 
-        catalog.read_dir(&build.catalog_dir.clone(), build, cache, &Overrides::default());
+        catalog.read_catalog_dir(build, cache);
 
         if build.errors > 0 && !build.ignore_errors {
             info!("Build was aborted because {} errors were encountered while reading the catalog.", build.errors);
             info!("You can run faircamp with --ignore-errors if you want to build in spite of errors.");
             return Err(());
+        }
+
+        if catalog.releases.iter().any(|release| {
+            let release_ref = release.borrow();
+            release_ref.embedding || release_ref.tracks.iter().any(|track| track.embedding)
+        }) {
+            build.embeds_requested = true;
         }
 
         if catalog.home_image.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
@@ -416,487 +417,460 @@ impl Catalog {
         Ok(catalog)
     }
 
-    fn read_dir(
+    fn read_artist_dir(
         &mut self,
-        dir: &Path,
         build: &mut Build,
         cache: &mut Cache,
+        fair_dir: FairDir,
         parent_overrides: &Overrides
     ) {
-        let dir_canonicalized = dir.canonicalize().unwrap();
-        for special_dir in &[&build.build_dir, &build.cache_dir] {
-            if let Ok(special_dir_canonicalized) = special_dir.canonicalize() {
-                if dir_canonicalized == special_dir_canonicalized {
-                    if build.verbose {
-                        info!("Ignoring special directory {}", special_dir.display());
-                    }
-                    return;
-                }
-            }
+        if !fair_dir.audio_files.is_empty() {
+            let error = format!("Audio files were encountered in the artist directory '{}' but will be ignored - if you meant to create a release, move these audio files to a separate directory", fair_dir.path.display());
+            build.error(&error);
         }
 
-        for exclude_pattern in &build.exclude_patterns {
-            if let Some(dir_str) = dir.to_str() {
-                if dir_str.contains(exclude_pattern) {
-                    if build.verbose {
-                        info!("Ignoring directory {} and all below (excluded by pattern '{}')", dir.display(), exclude_pattern);
-                    }
-                    return;
-                }
-            }
-        }
+        let artist_manifest = fair_dir.artist_manifest.as_ref().unwrap();
+
+        let mut overrides = parent_overrides.clone();
 
         if build.verbose {
-            info!("Reading directory {}", dir.display());
+            info!("Reading artist manifest {}", artist_manifest.display());
+        }
+        manifest::read_artist_manifest(
+            build,
+            cache,
+            self,
+            &fair_dir.path,
+            artist_manifest,
+            &mut overrides
+        );
+
+        for dir_path in &fair_dir.dirs {
+            self.read_unknown_dir(build, cache, &overrides, dir_path);
+        }
+    }
+
+    fn read_catalog_dir(
+        &mut self,
+        build: &mut Build,
+        cache: &mut Cache
+    ) {
+        if build.verbose {
+            info!("Reading catalog directory {}", build.catalog_dir.display());
         }
 
+        let fair_dir = FairDir::read(build, &build.catalog_dir.clone());
+
+        if fair_dir.release_manifest.is_some() {
+            let error = format!("A release.eno manifest may not be placed at the root of the catalog directory, however it was found there (at '{}'). Please move it into its own (release) directory", build.catalog_dir.display());
+            build.error(&error);
+        }
+
+        if fair_dir.track_manifest.is_some() {
+            let error = format!("A track.eno manifest may not be placed at the root of the catalog directory, however it was found there (at '{}'). Please move it into its own (track) directory", build.catalog_dir.display());
+            build.error(&error);
+        }
+
+        let mut catalog_overrides = Overrides::default();
         let mut local_options = LocalOptions::new();
-        let mut local_overrides = None;
 
-        // We get the 'album' metadata from each track in a release. As each track in a
-        // release could have a different 'album' specified, we count how often each
-        // distinct 'album' tag is present on a track in the release, and then when we
-        // create the release struct, we assign the 'album' title we've encountered most.
-        // (this is what release_title_metrics is for => Vec<count, title>)
-        let mut release_title_metrics: Vec<(u32, String)> = Vec::new();
-        let mut release_tracks: Vec<Track> = Vec::new();
-
-        let mut dir_paths: Vec<PathBuf> = Vec::new();
-        let mut extra_paths: Vec<PathBuf> = Vec::new();
-        let mut image_paths: Vec<PathBuf> = Vec::new();
-        let mut track_paths: Vec<(PathBuf, String)> = Vec::new();
-
-        let mut artist_manifest_present = false;
-        let mut catalog_manifest_present = false;
-        let mut release_manifest_present = false;
-
-        match dir.read_dir() {
-            Ok(dir_entries) => {
-                'dir_entry_iter: for dir_entry_result in dir_entries {
-                    if let Ok(dir_entry) = dir_entry_result {
-                        if let Some(filename) = dir_entry.file_name().to_str() {
-                            if filename.starts_with('.') {
-                                if build.verbose {
-                                    info!("Ignoring hidden file '{}'", filename);
-                                }
-                                continue
-                            }
-                        }
-
-                        if let Ok(file_type) = dir_entry.file_type() {
-                            let path = dir_entry.path();
-
-                            if file_type.is_dir() {
-                                dir_paths.push(path);
-                            } else if file_type.is_file() {
-                                for exclude_pattern in &build.exclude_patterns {
-                                    if let Some(dir_entry_str) = dir_entry.path().to_str() {
-                                        if dir_entry_str.contains(exclude_pattern) {
-                                            if build.verbose {
-                                                info!("Ignoring file {} (excluded by pattern '{}')", dir_entry.path().display(), exclude_pattern);
-                                            }
-                                            continue 'dir_entry_iter
-                                        }
-                                    }
-                                }
-
-                                if !build.include_patterns.is_empty() {
-                                    let mut include = false;
-
-                                    for include_pattern in &build.include_patterns {
-                                        if let Some(dir_entry_str) = dir_entry.path().to_str() {
-                                            if dir_entry_str.contains(include_pattern) {
-                                                include = true;
-                                                break
-                                            }
-                                        }
-                                    }
-
-                                    if !include {
-                                        if build.verbose {
-                                            info!("Ignoring file {} (matches no include pattern)", dir_entry.path().display());
-                                        }
-                                        continue 'dir_entry_iter
-                                    }
-                                }
-
-                                if path.ends_with("artist.eno") {
-                                    artist_manifest_present = true;
-                                } else if path.ends_with("catalog.eno") {
-                                    if dir != build.catalog_dir {
-                                        let error = format!("The catalog.eno manifest can only be placed at the root of the catalog directory, however it was found at '{}'. Please move it to the folder '{}'", path.display(), build.catalog_dir.display());
-                                        build.error(&error);
-                                    } else {
-                                        catalog_manifest_present = true;
-                                    }
-                                } else if path.ends_with("release.eno") {
-                                    release_manifest_present = true;
-                                } else if let Some(extension) = path
-                                    .extension()
-                                    .and_then(|osstr|
-                                        osstr.to_str().map(|str|
-                                            str.to_lowercase().as_str().to_string()
-                                        )
-                                    ) {
-                                    if extension == "eno" {
-                                        let error = format!("A manifest named '{}' was encountered at '{}', but this name is not recognized (allowed ones are 'artist.eno', 'catalog.eno' and 'release.eno')", path.file_name().unwrap().to_string_lossy(), path.display());
-                                        build.error(&error);
-                                    } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
-                                        track_paths.push((path, extension));
-                                    } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
-                                        image_paths.push(path);
-                                    } else if UNSUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
-                                        let error = format!("Support for reading audio files with the extension '{extension}' from the catalog is not yet supported - please get in touch or open an issue if you need this");
-                                        build.error(&error);
-                                    } else {
-                                        extra_paths.push(path);
-                                    }
-                                } else {
-                                    extra_paths.push(path);
-                                }
-                            } else if file_type.is_symlink() {
-                                warn!("Ignoring symlink '{}'", path.display());
-                            } else {
-                                warn!("Ignoring unsupported file '{}'", path.display());
-                            }
-                        }
-                    }
-                }
-            }
-            Err(err) => {
-                let error = format!("Cannot read directory '{}' ({err})", dir.display());
-                build.error(&error);
-            }
-        }
-
-        if catalog_manifest_present {
+        if let Some(catalog_manifest) = &fair_dir.catalog_manifest {
             if build.verbose {
-                info!("Reading catalog manifest {}", dir.join("catalog.eno").display());
+                info!("Reading catalog manifest {}", catalog_manifest.display());
             }
             manifest::read_catalog_manifest(
                 build,
                 cache,
                 self,
-                dir,
+                &fair_dir.path,
                 &mut local_options,
-                local_overrides.get_or_insert_with(|| parent_overrides.clone())
+                catalog_manifest,
+                &mut catalog_overrides
             );
         }
 
-        if artist_manifest_present {
-            if release_manifest_present {
-                let error = format!("Directory '{}' contains both an artist.eno and release.eno manifest, but this is not allowed. Create a separate artist or release directory respectively to put the second manifest and associated files in.", dir.display());
-                build.error(&error);
-            } else {
-                if build.verbose {
-                    info!("Reading artist manifest {}", dir.join("artist.eno").display());
-                }
-                manifest::read_artist_manifest(
-                    build,
-                    cache,
-                    self,
-                    dir,
-                    &mut local_options,
-                    local_overrides.get_or_insert_with(|| parent_overrides.clone())
-                );
-            }
-        } else if release_manifest_present {
+        if let Some(artist_manifest) = &fair_dir.artist_manifest {
             if build.verbose {
-                info!("Reading release manifest {}", dir.join("release.eno").display());
+                info!("Reading artist manifest {}", artist_manifest.display());
+            }
+            manifest::read_artist_manifest(
+                build,
+                cache,
+                self,
+                &fair_dir.path,
+                artist_manifest,
+                &mut catalog_overrides
+            );
+        }
+
+        self.copy_link = catalog_overrides.copy_link;
+
+        if local_options.more.is_some() {
+            self.more = local_options.more;
+        }
+        self.more_label = catalog_overrides.more_label.clone();
+
+        if !local_options.links.is_empty() {
+            self.links = local_options.links;
+        }
+
+        if local_options.synopsis.is_some() {
+            self.synopsis = local_options.synopsis;
+        }
+
+        self.theme = catalog_overrides.theme.clone();
+
+        for dir_path in &fair_dir.dirs {
+            self.read_unknown_dir(build, cache, &catalog_overrides, dir_path);
+        }
+    }
+
+    fn read_release_dir(
+        &mut self,
+        build: &mut Build,
+        cache: &mut Cache,
+        fair_dir: FairDir,
+        parent_overrides: &Overrides
+    ) {
+        let mut local_overrides = None;
+        let mut local_options = LocalOptions::new();
+
+        let mut release_tracks: Vec<Track> = Vec::new();
+
+        if let Some(release_manifest) = &fair_dir.release_manifest {
+            if build.verbose {
+                info!("Reading release manifest {}", release_manifest.display());
             }
             manifest::read_release_manifest(
                 build,
                 cache,
                 self,
-                dir,
+                &fair_dir.path,
                 &mut local_options,
+                release_manifest,
                 local_overrides.get_or_insert_with(|| parent_overrides.clone())
             );
         }
 
-        // At this point all overrides have been read and we can consolidate things.
-        let merged_overrides = local_overrides.as_ref().unwrap_or(parent_overrides);
+        let finalized_overrides = local_overrides.as_ref().unwrap_or(parent_overrides);
 
-        if !artist_manifest_present {
-            for (track_path, extension) in &track_paths {
-                let path_relative_to_catalog = track_path.strip_prefix(&build.catalog_dir).unwrap();
+        for dir_path in &fair_dir.dirs {
+            let fair_subdir = FairDir::read(build, dir_path);
 
-                if build.verbose {
-                    info!("Reading track {}", path_relative_to_catalog.display());
-                }
-
-                let transcodes = match cache.get_or_create_transcodes(build, path_relative_to_catalog, extension) {
-                    Ok(transcodes) => transcodes,
-                    Err(err) => {
-                        let error = format!("Skipping track {} due to decoding error ({err})", path_relative_to_catalog.display());
-                        build.error(&error);
-                        continue;
-                    }
-                };
-
-                if let Some(release_title) = &transcodes.borrow().source_meta.album {
-                    if let Some(metric) = &mut release_title_metrics
-                        .iter_mut()
-                        .find(|(_count, title)| title == release_title) {
-                        metric.0 += 1;
-                    } else {
-                        release_title_metrics.push((1, release_title.to_string()));
-                    }
-                }
-
-                let track = self.read_track(merged_overrides, transcodes);
-
-                release_tracks.push(track);
+            if fair_subdir.catalog_manifest.is_some() {
+                let error = format!("A catalog.eno manifest may only be placed at the root of the catalog directory, however it was found in a subdirectory (at '{}'). Please move it to the folder '{}'", fair_subdir.path.display(), build.catalog_dir.display());
+                build.error(&error);
             }
 
-            if !release_tracks.is_empty() {
-                // Process bare image paths into ImageRc representations
-                let images: Vec<ImageRcView> = image_paths
-                    .into_iter()
-                    .map(|image_path| {
-                        let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
+            let mutually_exclusive_manifests =
+                fair_subdir.artist_manifest.is_some() as usize +
+                fair_subdir.release_manifest.is_some() as usize +
+                fair_subdir.track_manifest.is_some() as usize;
 
-                        if build.verbose {
-                            info!("Reading image {}", path_relative_to_catalog.display());
-                        }
+            if mutually_exclusive_manifests > 1 {
+                let error = format!("A directory in a faircamp catalog may only ever contain a catalog.eno, release.eno or track.eno manifest (one of them), but the directory '{}' contains {mutually_exclusive_manifests} of these. The directory will be ignored until this is resolved.", fair_subdir.path.display());
+                build.error(&error);
+                continue;
+            }
 
-                        cache.get_or_create_image(build, path_relative_to_catalog)
-                    })
-                    .collect();
+            if fair_subdir.artist_manifest.is_some() {
+                self.read_artist_dir(
+                    build,
+                    cache,
+                    fair_subdir,
+                    finalized_overrides
+                );
+                continue;
+            }
 
-                HeuristicAudioMeta::compute(&mut release_tracks);
+            if fair_subdir.release_manifest.is_some() {
+                self.read_release_dir(
+                    build,
+                    cache,
+                    fair_subdir,
+                    finalized_overrides
+                );
+                continue;
+            }
 
-                // TODO: Print warning if all tracks have track numbers as tags but they don't start a 0/1 and don't increase monotonically
-                // TODO: Print warning if only some tracks have track numbers as tags
+            if fair_subdir.audio_files.len() == 1 {
+                let result = self.read_track_dir(
+                    build,
+                    cache,
+                    fair_subdir,
+                    finalized_overrides
+                );
 
-                release_tracks.sort_by(|track_a, track_b| {
-                    let transcodes_ref_a = track_a.transcodes.borrow();
-                    let transcodes_ref_b = track_b.transcodes.borrow();
+                if let Some(track) = result {
+                    release_tracks.push(track);
+                }
 
-                    let track_numbers = (
-                        transcodes_ref_a.source_meta.track_number.or(track_a.heuristic_audio_meta.as_ref().map(|meta| meta.track_number)),
-                        transcodes_ref_b.source_meta.track_number.or(track_b.heuristic_audio_meta.as_ref().map(|meta| meta.track_number))
-                    );
+                continue;
+            }
 
-                    match track_numbers {
-                        (Some(a_track_number), Some(b_track_number)) => a_track_number.cmp(&b_track_number),
-                        (Some(_), None) => Ordering::Less,
-                        (None, Some(_)) => Ordering::Greater,
+            warn!("Ignoring release subdirectory '{}' - if you meant to make it a track directory it must contain exactly one audio file (plus a track.eno manifest and auxiliary files potentially)", fair_subdir.path.display());
+        }
+
+        for audio_path in &fair_dir.audio_files {
+            let extension = audio_path.extension().unwrap().to_str().unwrap().to_lowercase().as_str().to_string();
+            let path_relative_to_catalog = audio_path.strip_prefix(&build.catalog_dir).unwrap();
+
+            if build.verbose {
+                info!("Reading track {}", path_relative_to_catalog.display());
+            }
+
+            let transcodes = match cache.get_or_create_transcodes(build, path_relative_to_catalog, &extension) {
+                Ok(transcodes) => transcodes,
+                Err(err) => {
+                    let error = format!("Skipping track {} due to decoding error ({err})", path_relative_to_catalog.display());
+                    build.error(&error);
+                    continue;
+                }
+            };
+
+            let track = self.read_track(
+                None,
+                Vec::new(),
+                LocalOptions::new(),
+                finalized_overrides,
+                transcodes
+            );
+
+            release_tracks.push(track);
+        }
+
+        if !release_tracks.is_empty() {
+            // Process bare image paths into ImageRc representations
+            let images: Vec<ImageRcView> = fair_dir.image_files
+                .into_iter()
+                .map(|image_path| {
+                    let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
+
+                    if build.verbose {
+                        info!("Reading image {}", path_relative_to_catalog.display());
+                    }
+
+                    cache.get_or_create_image(build, path_relative_to_catalog)
+                })
+                .collect();
+
+            HeuristicAudioMeta::compute(&mut release_tracks);
+
+            // TODO: Print warning if all tracks have track numbers as tags but they don't start at 0/1 and don't increase monotonically
+            // TODO: Print warning if only some tracks have track numbers as tags
+
+            release_tracks.sort_by(|track_a, track_b| {
+                let transcodes_ref_a = track_a.transcodes.borrow();
+                let transcodes_ref_b = track_b.transcodes.borrow();
+
+                let track_numbers = (
+                    transcodes_ref_a.source_meta.track_number.or(track_a.heuristic_audio_meta.as_ref().map(|meta| meta.track_number)),
+                    transcodes_ref_b.source_meta.track_number.or(track_b.heuristic_audio_meta.as_ref().map(|meta| meta.track_number))
+                );
+
+                match track_numbers {
+                    (Some(a_track_number), Some(b_track_number)) => a_track_number.cmp(&b_track_number),
+                    (Some(_), None) => Ordering::Less,
+                    (None, Some(_)) => Ordering::Greater,
+                    (None, None) => {
                         // If both tracks have no track number, sort by original source file name instead
-                        (None, None) => track_a.transcodes.file_meta.path.cmp(
-                            &track_b.transcodes.file_meta.path
-                        )
+                        let file_name_a = track_a.transcodes.file_meta.path.file_name().unwrap();
+                        let file_name_b = track_b.transcodes.file_meta.path.file_name().unwrap();
+
+                        file_name_a.cmp(file_name_b)
                     }
-                });
+                }
+            });
 
-                // Sort most often occuring title to the end of the Vec
-                release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0));
+            let mut main_artists_to_map: Vec<String> = Vec::new();
+            let mut support_artists_to_map: Vec<String> = Vec::new();
 
-                let mut main_artists_to_map: Vec<String> = Vec::new();
-                let mut support_artists_to_map: Vec<String> = Vec::new();
+            // This sets main_artists_to_map and support_artists_to_map in
+            // one of three ways, see comments in branches
+            if !finalized_overrides.release_artists.is_empty() {
+                // Here, main_artists_to_map is set manually through manifest metadata.
+                for artist_name in &finalized_overrides.release_artists {
+                    main_artists_to_map.push(artist_name.to_string());
+                }
 
-                // This sets main_artists_to_map and support_artists_to_map in
-                // one of three ways, see comments in branches
-                if !merged_overrides.release_artists.is_empty() {
-                    // Here, main_artists_to_map is set manually through manifest metadata.
-                    for artist_name in &merged_overrides.release_artists {
-                        main_artists_to_map.push(artist_name.to_string());
-                    }
-
-                    // All artists that were associated with a track but not
-                    // manually set as main_artists_to_map are now added as
-                    // support_artists_to_map.
-                    for release_track in &release_tracks {
-                        for track_artist_to_map in &release_track.artists_to_map {
-                            if !main_artists_to_map.contains(track_artist_to_map) && !support_artists_to_map.contains(track_artist_to_map) {
-                                support_artists_to_map.push(track_artist_to_map.clone());
-                            }
+                // All artists that were associated with a track but not
+                // manually set as main_artists_to_map are now added as
+                // support_artists_to_map.
+                for release_track in &release_tracks {
+                    for track_artist_to_map in &release_track.artists_to_map {
+                        if !main_artists_to_map.contains(track_artist_to_map) && !support_artists_to_map.contains(track_artist_to_map) {
+                            support_artists_to_map.push(track_artist_to_map.clone());
                         }
                     }
-                } else if release_tracks
-                    .iter()
-                    .any(|track| !track.transcodes.borrow().source_meta.album_artists.is_empty()) {
-                    // Here, main_artists_to_map is set through "album artist" tags found on at least one track
-                    for release_track in &release_tracks {
-                        let album_artists = &release_track.transcodes.borrow().source_meta.album_artists;
+                }
+            } else if release_tracks
+                .iter()
+                .any(|track| !track.transcodes.borrow().source_meta.album_artists.is_empty()) {
+                // Here, main_artists_to_map is set through "album artist" tags found on at least one track
+                for release_track in &release_tracks {
+                    let album_artists = &release_track.transcodes.borrow().source_meta.album_artists;
 
-                        for artist in album_artists {
-                            if !main_artists_to_map.contains(artist) {
-                                main_artists_to_map.push(artist.clone());
-                            }
-                        }
-                    }
-
-                    // All artists that were associated with a track but not
-                    // set as "album artist" on any of them are now added as
-                    // support_artists_to_map.
-                    for release_track in &release_tracks {
-                        for track_artist_to_map in &release_track.artists_to_map {
-                            if !main_artists_to_map.contains(track_artist_to_map) && !support_artists_to_map.contains(track_artist_to_map) {
-                                support_artists_to_map.push(track_artist_to_map.clone());
-                            }
-                        }
-                    }
-                } else {
-                    // Here, main_artists_to_map is set through finding the artist(s)
-                    // that appear in the "artist" tag on the highest number of tracks.
-                    let mut track_artist_metrics = Vec::new();
-
-                    for release_track in &release_tracks {
-                        for track_artist_to_map in &release_track.artists_to_map {
-                            if let Some((count, _artist)) = &mut track_artist_metrics
-                                .iter_mut()
-                                .find(|(_count, artist)| artist == track_artist_to_map) {
-                                *count += 1;
-                            } else {
-                                track_artist_metrics.push((1, track_artist_to_map.to_string()));
-                            }
-                        }
-                    }
-
-                    // Sort most often occuring artist(s) to the start of the Vec
-                    track_artist_metrics.sort_by(|a, b| b.0.cmp(&a.0));
-
-                    let max_count = track_artist_metrics
-                        .first()
-                        .map(|(count, _artist)| count.to_owned())
-                        .unwrap_or(0);
-                    for (count, artist) in track_artist_metrics {
-                        if count == max_count {
-                            main_artists_to_map.push(artist);
-                        } else {
-                            support_artists_to_map.push(artist);
+                    for artist in album_artists {
+                        if !main_artists_to_map.contains(artist) {
+                            main_artists_to_map.push(artist.clone());
                         }
                     }
                 }
 
-                let title = &local_options
-                    .release_title
-                    .as_ref()
-                    .cloned()
-                    .unwrap_or_else(||
-                        release_title_metrics
-                            .pop()
-                            .map(|(_count, title)| title)
-                            .unwrap_or_else(||
-                                dir
+                // All artists that were associated with a track but not
+                // set as "album artist" on any of them are now added as
+                // support_artists_to_map.
+                for release_track in &release_tracks {
+                    for track_artist_to_map in &release_track.artists_to_map {
+                        if !main_artists_to_map.contains(track_artist_to_map) && !support_artists_to_map.contains(track_artist_to_map) {
+                            support_artists_to_map.push(track_artist_to_map.clone());
+                        }
+                    }
+                }
+            } else {
+                // Here, main_artists_to_map is set through finding the artist(s)
+                // that appear in the "artist" tag on the highest number of tracks.
+                let mut track_artist_metrics = Vec::new();
+
+                for release_track in &release_tracks {
+                    for track_artist_to_map in &release_track.artists_to_map {
+                        if let Some((count, _artist)) = &mut track_artist_metrics
+                            .iter_mut()
+                            .find(|(_count, artist)| artist == track_artist_to_map) {
+                            *count += 1;
+                        } else {
+                            track_artist_metrics.push((1, track_artist_to_map.to_string()));
+                        }
+                    }
+                }
+
+                // Sort most often occuring artist(s) to the start of the Vec
+                track_artist_metrics.sort_by(|a, b| b.0.cmp(&a.0));
+
+                let max_count = track_artist_metrics
+                    .first()
+                    .map(|(count, _artist)| count.to_owned())
+                    .unwrap_or(0);
+                for (count, artist) in track_artist_metrics {
+                    if count == max_count {
+                        main_artists_to_map.push(artist);
+                    } else {
+                        support_artists_to_map.push(artist);
+                    }
+                }
+            }
+
+            let title = match local_options.title {
+                Some(title) => title,
+                None => {
+                    // To implicitly obtain the release title we get
+                    // the 'album' metadata from each track in a release. As
+                    // each track in a release could have a different 'album'
+                    // specified, we count how often each distinct 'album'
+                    // tag is present on a track in the release, and then
+                    // when we create the release struct, we assign
+                    // the 'album' title we've encountered most. (and this is
+                    // what release_title_metrics is for => Vec<count, title>)
+                    let mut release_title_metrics: Vec<(u32, String)> = Vec::new();
+
+                    for track in &release_tracks {
+                        if let Some(release_title) = &track.transcodes.borrow().source_meta.album {
+                            if let Some(metric) = &mut release_title_metrics
+                                .iter_mut()
+                                .find(|(_count, title)| title == release_title) {
+                                metric.0 += 1;
+                            } else {
+                                release_title_metrics.push((1, release_title.to_string()));
+                            }
+                        }
+                    }
+
+                    // Sort most often occuring title to the end of the Vec
+                    release_title_metrics.sort_by(|a, b| a.0.cmp(&b.0));
+
+                    release_title_metrics
+                        .pop()
+                        .map(|(_count, title)| title)
+                        .unwrap_or_else(||
+                            fair_dir.path
                                 .file_name()
                                 .unwrap()
                                 .to_str()
                                 .unwrap()
                                 .to_string()
-                            )
-                    );
+                        )
 
-                if merged_overrides.embedding {
-                    build.embeds_requested = true;
                 }
+            };
 
-                let cover = match &merged_overrides.release_cover {
-                    Some(described_image) => Some(described_image.clone()),
-                    None => pick_best_cover_image(&images)
-                };
+            let cover = match &local_options.cover {
+                Some(described_image) => Some(described_image.clone()),
+                None => pick_best_cover_image(&images)
+            };
 
-                if cover.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
-                    warn_discouraged!("The cover image for release '{}' is missing an image description.", title);
-                    build.missing_image_descriptions = true;
-                }
-
-                let mut extras = Vec::new();
-                for image in images {
-                    if let Some(ref described_image) = cover {
-                        // If the image we're iterating is the cover image for this release
-                        // we don't include it as an extra (as it would be redundant).
-                        if image.file_meta.path == described_image.image.file_meta.path {
-                            continue
-                        }
-                    }
-
-                    let extra = Extra::new(image.file_meta.clone());
-                    extras.push(extra);
-                }
-
-                for extra_path in extra_paths {
-                    let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
-                    let file_meta = FileMeta::new(build, path_relative_to_catalog);
-                    extras.push(Extra::new(file_meta));
-                }
-
-                let downloads = match &merged_overrides.downloads {
-                    DownloadOption::Code |
-                    DownloadOption::Free |
-                    DownloadOption::Paycurtain if merged_overrides.downloads_config.is_empty() => Downloads::Empty,
-                    DownloadOption::Code => Downloads::Enabled {
-                        download_access: DownloadAccess::Code {
-                            download_codes: merged_overrides.download_codes.clone(),
-                            unlock_info: merged_overrides.unlock_info.clone()
-                        },
-                        downloads_config: merged_overrides.downloads_config.clone()
-                    },
-                    DownloadOption::Disabled => Downloads::Disabled,
-                    DownloadOption::External { link } => Downloads::External { link: link.clone() },
-                    DownloadOption::Free => Downloads::Enabled {
-                        download_access: DownloadAccess::Free,
-                        downloads_config: merged_overrides.downloads_config.clone()
-                    },
-                    DownloadOption::Paycurtain => Downloads::Enabled {
-                        download_access: DownloadAccess::Paycurtain {
-                            payment_info: merged_overrides.payment_info.clone(),
-                            price: merged_overrides.price.clone()
-                        },
-                        downloads_config: merged_overrides.downloads_config.clone()
-                    }
-                };
-
-                let release_dir_relative_to_catalog = dir.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
-
-                let release = Release::new(
-                    merged_overrides.copy_link,
-                    cover,
-                    local_options.release_date.take(),
-                    downloads,
-                    merged_overrides.embedding,
-                    extras,
-                    mem::take(&mut local_options.links),
-                    merged_overrides.m3u_enabled,
-                    main_artists_to_map,
-                    merged_overrides.release_more.clone(),
-                    merged_overrides.more_label.clone(),
-                    local_options.permalink.take(),
-                    release_dir_relative_to_catalog,
-                    merged_overrides.streaming_quality,
-                    support_artists_to_map,
-                    merged_overrides.release_synopsis.clone(),
-                    merged_overrides.tag_agenda.clone(),
-                    merged_overrides.theme.clone(),
-                    title.to_string(),
-                    merged_overrides.track_numbering.clone(),
-                    release_tracks,
-                    local_options.unlisted_release
-                );
-
-                self.releases.push(ReleaseRc::new(release));
-            }
-        }
-
-        if dir == build.catalog_dir {
-            self.copy_link = merged_overrides.copy_link;
-            self.more_label = merged_overrides.more_label.clone();
-
-            if !local_options.links.is_empty() {
-                self.links = local_options.links;
+            if cover.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
+                warn_discouraged!("The cover image for release '{}' is missing an image description.", title);
+                build.missing_image_descriptions = true;
             }
 
-            self.theme = merged_overrides.theme.clone();
-        }
+            let mut extras = Vec::new();
+            for image in images {
+                if let Some(ref described_image) = cover {
+                    // If the image we're iterating is the cover image for this release
+                    // we don't include it as an extra (as it would be redundant).
+                    if image.file_meta.path == described_image.image.file_meta.path {
+                        continue
+                    }
+                }
 
-        for dir_path in &dir_paths {
-            self.read_dir(dir_path, build, cache, merged_overrides);
+                let extra = Extra::new(image.file_meta.clone());
+                extras.push(extra);
+            }
+
+            for extra_path in fair_dir.extra_files {
+                let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
+                let file_meta = FileMeta::new(build, path_relative_to_catalog);
+                extras.push(Extra::new(file_meta));
+            }
+
+            let download_access = finalized_overrides.release_download_access.assemble(&finalized_overrides);
+
+            let release_dir_relative_to_catalog = fair_dir.path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
+
+            let release = Release::new(
+                finalized_overrides.copy_link,
+                cover,
+                local_options.release_date.take(),
+                download_access,
+                finalized_overrides.release_downloads.clone(),
+                finalized_overrides.embedding,
+                finalized_overrides.release_extras.clone(),
+                extras,
+                mem::take(&mut local_options.links),
+                finalized_overrides.m3u_enabled,
+                main_artists_to_map,
+                local_options.more.take(),
+                finalized_overrides.more_label.clone(),
+                local_options.permalink.take(),
+                release_dir_relative_to_catalog,
+                support_artists_to_map,
+                local_options.synopsis.take(),
+                finalized_overrides.theme.clone(),
+                title.to_string(),
+                finalized_overrides.track_numbering.clone(),
+                release_tracks,
+                local_options.unlisted_release
+            );
+
+            self.releases.push(ReleaseRc::new(release));
         }
     }
 
     pub fn read_track(
         &mut self,
+        cover: Option<DescribedImage>,
+        extras: Vec<Extra>,
+        mut local_options: LocalOptions,
         overrides: &Overrides,
         transcodes: TranscodesRcView
     ) -> Track {
@@ -906,14 +880,221 @@ impl Catalog {
             transcodes.borrow().source_meta.artists.to_vec()
         };
 
+        let download_access = overrides.track_download_access.assemble(&overrides);
         let theme = overrides.theme.clone();
 
         Track::new(
             artists_to_map,
             overrides.copy_link,
+            cover,
+            download_access,
+            overrides.track_downloads.clone(),
+            overrides.embedding,
+            overrides.track_extras,
+            extras,
+            local_options.links,
+            local_options.more.take(),
+            // TODO: There is a general design issue here: Overriding (= inheriting across
+            // catalog/artist/release/track) the more_label makes sense from the perspective
+            // of a generic term like "Learn more", but it's the wrong behavior if it's used
+            // in a matter of "About the label", "About the album", "lyrics", etc.
+            // Possibly needs different ways of specifying the more_label generically or for
+            // catalog/release/track/artist specifically (without inheritance or with "targeted"
+            // inheritance towards certain child nodes). But this needs to be carefully considered
+            // as to stay manageable/compatible with potential future GUI usage.
+            overrides.more_label.clone(),
+            overrides.streaming_quality,
+            local_options.synopsis.take(),
+            overrides.tag_agenda.clone(),
             theme,
+            local_options.title.take(),
             transcodes
         )
+    }
+
+    fn read_track_dir(
+        &mut self,
+        build: &mut Build,
+        cache: &mut Cache,
+        fair_dir: FairDir,
+        parent_overrides: &Overrides
+    ) -> Option<Track> {
+        let mut local_options = LocalOptions::new();
+        let mut local_overrides = None;
+
+        if let Some(track_manifest) = &fair_dir.track_manifest {
+            if build.verbose {
+                info!("Reading track manifest {}", track_manifest.display());
+            }
+            manifest::read_track_manifest(
+                build,
+                cache,
+                &fair_dir.path,
+                &mut local_options,
+                track_manifest,
+                local_overrides.get_or_insert_with(|| parent_overrides.clone())
+            );
+        }
+
+        let finalized_overrides = local_overrides.as_ref().unwrap_or(parent_overrides);
+
+        let audio_path = fair_dir.audio_files.first().unwrap();
+
+        let extension = audio_path.extension().unwrap().to_str().unwrap().to_lowercase().as_str().to_string();
+        let path_relative_to_catalog = audio_path.strip_prefix(&build.catalog_dir).unwrap();
+
+        if build.verbose {
+            info!("Reading track {}", path_relative_to_catalog.display());
+        }
+
+        let transcodes = match cache.get_or_create_transcodes(build, path_relative_to_catalog, &extension) {
+            Ok(transcodes) => transcodes,
+            Err(err) => {
+                let error = format!("Skipping track {} due to decoding error ({err})", path_relative_to_catalog.display());
+                build.error(&error);
+                return None;
+            }
+        };
+
+        // Process bare image paths into ImageRc representations
+        let images: Vec<ImageRcView> = fair_dir.image_files
+            .into_iter()
+            .map(|image_path| {
+                let path_relative_to_catalog = image_path.strip_prefix(&build.catalog_dir).unwrap();
+
+                if build.verbose {
+                    info!("Reading image {}", path_relative_to_catalog.display());
+                }
+
+                cache.get_or_create_image(build, path_relative_to_catalog)
+            })
+            .collect();
+
+        let title = &local_options
+            .title
+            .as_ref()
+            .cloned()
+            .unwrap_or_else(||
+                if let Some(album) = &transcodes.borrow().source_meta.album {
+                    album.clone()
+                } else {
+                    transcodes.file_meta.path
+                        .file_stem()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                }
+            );
+
+        let cover = match &local_options.cover {
+            Some(described_image) => Some(described_image.clone()),
+            None => pick_best_cover_image(&images)
+        };
+
+        if cover.as_ref().is_some_and(|described_image| described_image.description.is_none()) {
+            warn_discouraged!("The cover image for track '{}' is missing an image description.", title);
+            build.missing_image_descriptions = true;
+        }
+
+        let mut extras = Vec::new();
+        for image in images {
+            if let Some(ref described_image) = cover {
+                // If the image we're iterating is the cover image for this release
+                // we don't include it as an extra (as it would be redundant).
+                if image.file_meta.path == described_image.image.file_meta.path {
+                    continue
+                }
+            }
+
+            let extra = Extra::new(image.file_meta.clone());
+            extras.push(extra);
+        }
+
+        for extra_path in fair_dir.extra_files {
+            let path_relative_to_catalog = extra_path.strip_prefix(&build.catalog_dir).unwrap();
+            let file_meta = FileMeta::new(build, path_relative_to_catalog);
+            extras.push(Extra::new(file_meta));
+        }
+
+        let track = self.read_track(
+            cover,
+            extras,
+            local_options,
+            finalized_overrides,
+            transcodes
+        );
+
+        for dir_path in &fair_dir.dirs {
+            // TODO: We could consider supporting artist directories as
+            // subdirectories of track directories, as that somehow would
+            // make sense.
+            let error = format!("Subdirectories of track directories are currently not handled by faircamp, ignoring directory '{}'", dir_path.display());
+            build.error(&error);
+        }
+
+        Some(track)
+    }
+
+    fn read_unknown_dir(
+        &mut self,
+        build: &mut Build,
+        cache: &mut Cache,
+        parent_overrides: &Overrides,
+        path: &Path
+    ) {
+        let fair_dir = FairDir::read(build, path);
+
+        if fair_dir.catalog_manifest.is_some() {
+            let error = format!("A catalog.eno manifest may only be placed at the root of the catalog directory, however it was found in a subdirectory (at '{}'). Please move it to the folder '{}'", path.display(), build.catalog_dir.display());
+            build.error(&error);
+        }
+
+        let mutually_exclusive_manifests =
+            fair_dir.artist_manifest.is_some() as usize +
+            fair_dir.release_manifest.is_some() as usize +
+            fair_dir.track_manifest.is_some() as usize;
+
+        if mutually_exclusive_manifests > 1 {
+            let error = format!("A directory in a faircamp catalog may only ever contain a catalog.eno, release.eno or track.eno manifest (one of them), but the directory '{}' contains {mutually_exclusive_manifests} of these. The directory will be ignored until this is resolved.", path.display());
+            build.error(&error);
+            return;
+        }
+
+        if fair_dir.artist_manifest.is_some() {
+            self.read_artist_dir(
+                build,
+                cache,
+                fair_dir,
+                parent_overrides
+            );
+            return;
+        }
+
+        if fair_dir.release_manifest.is_some() {
+            self.read_release_dir(
+                build,
+                cache,
+                fair_dir,
+                parent_overrides
+            );
+            return;
+        }
+
+        if fair_dir.track_manifest.is_some() {
+            let error = format!("A track.eno manifest may only be placed inside a track directory (that is, a subdirectory of a release directory), however it was found outside of any such directory configuration (at '{}'). Please move it accordingly.", path.display());
+            build.error(&error);
+            return;
+        }
+
+        if !fair_dir.audio_files.is_empty() {
+            self.read_release_dir(
+                build,
+                cache,
+                fair_dir,
+                parent_overrides
+            );
+        }
     }
 
     // TODO: Should we have a manifest option for setting the catalog.artist manually in edge cases?
@@ -1108,6 +1289,8 @@ impl Catalog {
         no_conflicts
     }
 
+    /// Writes all images (catalog home image, release/track covers, theme
+    /// background images) and streaming audio files.
     pub fn write_assets(&mut self, build: &mut Build) {
         if let Some(image) = &self.theme.background_image {
             write_background_image(build, image);
@@ -1182,12 +1365,14 @@ impl Catalog {
 
             let release_dir = build.build_dir.join(&release_mut.permalink.slug);
 
-            util::ensure_dir(&release_dir);
+            util::ensure_dir_all(&release_dir);
 
+            // Write release theme background image
             if let Some(image) = &release_mut.theme.background_image {
                 write_background_image(build, image);
             }
 
+            // Write release cover image
             if let Some(described_image) = &release_mut.cover {
                 let mut image_mut = described_image.image.borrow_mut();
                 let source_path = &described_image.image.file_meta.path;
@@ -1209,26 +1394,50 @@ impl Catalog {
                 release_mut.procedural_cover = Some(procedural_cover);
             }
 
-            for streaming_format in release_mut.streaming_quality.formats() {
-                let streaming_format_dir = build.build_dir
-                    .join(&release_mut.permalink.slug)
-                    .join(streaming_format.asset_dirname());
+            let cover_path = release_mut.cover
+                .as_ref()
+                .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
 
-                util::ensure_dir(&streaming_format_dir);
+            let release_slug = release_mut.permalink.slug.clone();
 
-                let release_slug = release_mut.permalink.slug.clone();
+            let tag_mappings: Vec<TagMapping> = release_mut.tracks.iter().zip(TRACK_NUMBERS)
+                .map(|(track, track_number)| TagMapping::new(&release_mut, track, track_number))
+                .collect();
 
-                let cover_path = release_mut.cover
-                    .as_ref()
-                    .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+            for ((track, tag_mapping), track_number) in release_mut.tracks.iter_mut().zip(tag_mappings.iter()).zip(TRACK_NUMBERS) {
+                let track_dir = release_dir.join(track_number.to_string());
 
-                let tag_mappings: Vec<TagMapping> = release_mut.tracks
-                    .iter()
-                    .enumerate()
-                    .map(|(track_index, track)| TagMapping::new(&release_mut, track, track_index + 1))
-                    .collect();
+                util::ensure_dir_all(&track_dir);
 
-                for (track, tag_mapping) in release_mut.tracks.iter_mut().zip(tag_mappings.iter()) {
+                // Write track theme background image
+                if let Some(image) = &track.theme.background_image {
+                    write_background_image(build, image);
+                }
+
+                // Write track cover image
+                if let Some(described_image) = &track.cover {
+                    let mut image_mut = described_image.image.borrow_mut();
+                    let source_path = &described_image.image.file_meta.path;
+                    let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
+
+                    for asset in &cover_assets.all() {
+                        util::hard_link_or_copy(
+                            build.cache_dir.join(&asset.filename),
+                            track_dir.join(format!("cover_{}.jpg", asset.edge_size))
+                        );
+
+                        build.stats.add_image(asset.filesize_bytes);
+                    }
+
+                    image_mut.persist_to_cache(&build.cache_dir);
+                }
+
+                // Write track streaming audio files
+                for streaming_format in track.streaming_quality.formats() {
+                    let streaming_format_dir = track_dir.join(streaming_format.asset_dirname());
+
+                    util::ensure_dir_all(&streaming_format_dir);
+
                     track.transcode_as(
                         streaming_format,
                         build,
@@ -1243,15 +1452,16 @@ impl Catalog {
                         extension = streaming_format.extension()
                     );
 
-                    let hash = build.hash_path_with_salt(
-                        &release_slug,
-                        streaming_format.asset_dirname(),
-                        &track_filename
-                    );
+                    let hash = build.hash_with_salt(|hasher| {
+                        release_slug.hash(hasher);
+                        track_number.hash(hasher);
+                        streaming_format.asset_dirname().hash(hasher);
+                        track_filename.hash(hasher);
+                    });
 
                     let hash_dir = streaming_format_dir.join(hash);
 
-                    util::ensure_dir(&hash_dir);
+                    util::ensure_dir_all(&hash_dir);
 
                     let transcodes_ref = track.transcodes.borrow();
                     let streaming_transcode = transcodes_ref.get_unchecked(streaming_format, generic_hash(&tag_mapping));

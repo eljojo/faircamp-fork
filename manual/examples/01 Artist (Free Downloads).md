@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 

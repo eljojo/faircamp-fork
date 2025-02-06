@@ -1,14 +1,23 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /// M3U format reference:
 /// - https://en.wikipedia.org/wiki/M3U
 /// - https://docs.fileformat.com/audio/m3u/
 
+use std::hash::Hash;
+
 use indoc::formatdoc;
 use url::Url;
 
-use crate::{Artist, Build, Catalog, Release, Track};
+use crate::{
+    Artist,
+    Build,
+    Catalog,
+    Release,
+    Track,
+    TRACK_NUMBERS
+};
 
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// an artist.
@@ -165,10 +174,8 @@ pub fn generate_tracks(
 ) -> String {
     tracks
         .iter()
-        .enumerate()
-        .map(|(index, track)| {
-            let track_number = index + 1;
-
+        .zip(TRACK_NUMBERS)
+        .map(|(track, track_number)| {
             let track_number_formatted = release.track_numbering.format(track_number);
 
             let artists = track.artists
@@ -187,7 +194,7 @@ pub fn generate_tracks(
 
             let extinf = format!("#EXTINF:{duration_seconds}, {title}");
 
-            let primary_streaming_format = release.streaming_quality.formats()[0];
+            let primary_streaming_format = track.streaming_quality.formats()[0];
             let format_dir = primary_streaming_format.asset_dirname();
             let format_extension = primary_streaming_format.extension();
 
@@ -196,14 +203,15 @@ pub fn generate_tracks(
                 basename = track.asset_basename.as_ref().unwrap()
             );
 
-            let track_hash = build.hash_path_with_salt(
-                &release.permalink.slug,
-                format_dir,
-                &track_filename
-            );
+            let track_hash = build.hash_with_salt(|hasher| {
+                release.permalink.slug.hash(hasher);
+                track_number.hash(hasher);
+                format_dir.hash(hasher);
+                track_filename.hash(hasher);
+            });
 
             let track_filename_urlencoded = urlencoding::encode(&track_filename);
-            let src = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+            let src = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
             let file_url = release_url.join(&src).unwrap();
 
             format!("{extinf}\n{file_url}")

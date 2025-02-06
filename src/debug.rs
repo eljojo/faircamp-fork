@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Simon Repp
+// SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
@@ -6,8 +6,7 @@ use indoc::formatdoc;
 use crate::{
     ArtistRc,
     Catalog,
-    DownloadAccess,
-    Downloads
+    DownloadAccess
 };
 
 fn format_artist(artist: &ArtistRc) -> String {
@@ -56,22 +55,16 @@ pub fn debug_catalog(catalog: &Catalog) {
             .map(|release| {
                 let release_ref = release.borrow();
 
-                let r_downloads = match &release_ref.downloads {
-                    Downloads::Disabled => String::from("Disabled"),
-                    Downloads::Empty => String::from("Enabled but no formats set"),
-                    Downloads::Enabled { download_access, downloads_config } => {
-                        let r_access = match download_access {
-                            DownloadAccess::Code { .. } => "Code",
-                            DownloadAccess::Free => "Free",
-                            DownloadAccess::Paycurtain { .. } => "Paycurtain"
-                        };
-
-                        let r_formats = format!("({} release formats/{} track formats)", downloads_config.release_formats.len(), downloads_config.track_formats.len());
-
-                        format!("{r_access} {r_formats}")
-                    }
-                    Downloads::External { link } => format!("External ({link})")
+                let r_download_access = match &release_ref.download_access {
+                    DownloadAccess::Disabled => String::from("Disabled"),
+                    DownloadAccess::Code { .. } => String::from("Code"),
+                    DownloadAccess::External { link } => format!("External ({link})"),
+                    DownloadAccess::Free => String::from("Free"),
+                    DownloadAccess::Paycurtain { .. } => String::from("Paycurtain")
                 };
+
+                let r_release_formats = format!("({} release formats)", release_ref.download_formats.len());
+                // TODO: Somewhere restore "{} track formats" track.download_formats.len() information (Enumerate tracks probably!)
 
                 let r_main_artists = match release_ref.main_artists.is_empty() {
                     true => String::from("Empty"),
@@ -90,7 +83,7 @@ pub fn debug_catalog(catalog: &Catalog) {
                         .join(", ")
                 };
 
-                format!("\n- Title: {}\n  Main Artists: {r_main_artists}\n  Support Artists: {r_support_artists}\n  Downloads: {r_downloads}", release_ref.title)
+                format!("\n- Title: {}\n  Main Artists: {r_main_artists}\n  Support Artists: {r_support_artists}\n  Downloads: {r_download_access}\n Download Formats: {r_release_formats}", release_ref.title)
             })
             .collect::<Vec<String>>()
             .join("")

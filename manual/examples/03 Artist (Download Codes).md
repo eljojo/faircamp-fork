@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -73,7 +73,7 @@ release_downloads:
 > special tier and got the download code "magicsuperfanspectacular" which
 > the artist will then also add to the upcoming releases, so these patrons
 > can access all downloads by the artist.
-downloads: code
+release_download_access: code
 download_codes:
 - magicfanlove
 - magicsuperfanspectacular

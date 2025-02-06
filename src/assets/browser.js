@@ -59,13 +59,13 @@ function truncateArtistList(artists, othersLink)  {
 }
 
 for (const release of RELEASES) {
-    let img;
+    let imgRelease;
     if (release.cover) {
-        img = document.createElement('img');
-        img.src = rootPrefix + release.url + release.cover;
+        imgRelease = document.createElement('img');
+        imgRelease.src = rootPrefix + release.url + release.cover;
     } else {
-        img = document.createElement('span');
-        img.classList.add('placeholder');
+        imgRelease = document.createElement('span');
+        imgRelease.classList.add('placeholder');
     }
 
     const aText = document.createElement('a');
@@ -73,7 +73,7 @@ for (const release of RELEASES) {
 
     const aImage = aText.cloneNode(true);
     aImage.tabIndex = -1;
-    aImage.appendChild(img);
+    aImage.appendChild(imgRelease);
 
     aText.dataset.searchable = 'true';
     aText.textContent = release.title;
@@ -94,6 +94,14 @@ for (const release of RELEASES) {
     browseResults.appendChild(row);
 
     for (const track of release.tracks) {
+        let imgTrack;
+        if (track.cover) {
+            imgTrack = document.createElement('img');
+            imgTrack.src = rootPrefix + track.url + track.cover;
+        } else {
+            imgTrack = imgRelease.cloneNode(true);
+        }
+
         const number = document.createElement('span');
         number.classList.add('number');
         number.textContent = track.number;
@@ -103,7 +111,7 @@ for (const release of RELEASES) {
 
         const aImage = aTitle.cloneNode(true);
         aImage.tabIndex = -1;
-        aImage.appendChild(img.cloneNode(true));
+        aImage.appendChild(imgTrack);
 
         aTitle.dataset.searchable = 'true';
         aTitle.textContent = track.title;

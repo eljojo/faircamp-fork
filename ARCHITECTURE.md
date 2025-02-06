@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2022-2024 Simon Repp
+    SPDX-FileCopyrightText: 2022-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -136,3 +136,13 @@ load phase. At the time of writing this mechanism is also likely to be more
 robust than the `@media (scripting)` feature (which is not yet sufficiently
 available in all browsers and also misses JavaScript being blocked by way
 of plugins sometimes).
+
+## Behavior around release and track extras
+
+Release extras are by default bundled inside release downloads (zip archives).
+If bundled release extras and track extras are enabled, track extras will
+be included inside release downloads.
+
+The presence of release and track extras can cause downloads (archive or
+seperate) to be generated even if there are no download formats
+(release_downloads/track_downloads) configured (!).

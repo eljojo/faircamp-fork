@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2024-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::hash::Hash;
+
 use chrono::Datelike;
 use indoc::formatdoc;
 
@@ -9,7 +11,6 @@ use crate::{
     Catalog,
     CrawlerMeta,
     DownloadAccess,
-    Downloads,
     OpenGraphMeta,
     Release,
     Scripts,
@@ -18,10 +19,11 @@ use crate::{
 use crate::icons;
 use crate::render::{
     copy_button,
-    cover_image,
     layout,
     list_track_artists,
     player_icon_templates,
+    release_cover_image,
+    track_cover_image,
     Truncation,
     waveform
 };
@@ -37,61 +39,34 @@ pub fn track_html(
     let index_suffix = build.index_suffix();
     let root_prefix = "../../";
 
-    // TODO: Could we/should we have a track-only flow here?
-    //       (Also implies track-level download configuration?)
-    let download_link = match &release.downloads {
-        Downloads::Disabled |
-        Downloads::Empty => None,
-        Downloads::Enabled { download_access, .. } => {
-            match download_access {
-                DownloadAccess::Code { .. } => {
-                    let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-                    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
+    let download_link = match &track.download_access {
+        DownloadAccess::Code { .. } => {
+            if track.download_assets_available() {
+                let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    track_number.hash(hasher);
+                    t_unlock_permalink.hash(hasher);
+                });
 
-                    let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-                    let t_downloads = &build.locale.translations.downloads;
-                    Some(formatdoc!(r#"
-                        <a href="../{t_unlock_permalink}/{page_hash}{index_suffix}">
-                            {unlock_icon}
-                            <span>{t_downloads}</span>
-                        </a>
-                    "#))
-                }
-                DownloadAccess::Free => {
-                    let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-                    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
+                let unlock_icon = icons::unlock(&build.locale.translations.unlock);
+                let t_downloads = &build.locale.translations.downloads;
 
-                    let download_icon = icons::download();
-                    let t_downloads = &build.locale.translations.downloads;
-                    Some(formatdoc!(r#"
-                        <a href="../{t_downloads_permalink}/{page_hash}{index_suffix}">
-                            {download_icon}
-                            <span>{t_downloads}</span>
-                        </a>
-                    "#))
-                }
-                DownloadAccess::Paycurtain { payment_info, .. } => {
-                    if payment_info.is_none() {
-                        None
-                    } else {
-                        let t_purchase_permalink = &build.locale.translations.purchase_permalink;
-                        let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_purchase_permalink]);
-
-                        let buy_icon = icons::buy(&build.locale.translations.buy);
-                        let t_downloads = &build.locale.translations.downloads;
-                        Some(formatdoc!(r#"
-                            <a href="../{t_purchase_permalink}/{page_hash}{index_suffix}">
-                                {buy_icon}
-                                <span>{t_downloads}</span>
-                            </a>
-                        "#))
-                    }
-                }
+                Some(formatdoc!(r#"
+                    <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
+                        {unlock_icon}
+                        <span>{t_downloads}</span>
+                    </a>
+                "#))
+            } else {
+                None
             }
         }
-        Downloads::External { link } => {
+        DownloadAccess::Disabled => None,
+        DownloadAccess::External { link } => {
             let external_icon = icons::external(&build.locale.translations.external_link);
             let t_download = &build.locale.translations.download;
+
             Some(formatdoc!(r#"
                 <a href="{link}" target="_blank">
                     {external_icon}
@@ -99,9 +74,52 @@ pub fn track_html(
                 </a>
             "#))
         }
+        DownloadAccess::Free => {
+            if track.download_assets_available() {
+                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    track_number.hash(hasher);
+                    t_downloads_permalink.hash(hasher);
+                });
+
+                let download_icon = icons::download();
+                let t_downloads = &build.locale.translations.downloads;
+
+                Some(formatdoc!(r#"
+                    <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
+                        {download_icon}
+                        <span>{t_downloads}</span>
+                    </a>
+                "#))
+            } else {
+                None
+            }
+        }
+        DownloadAccess::Paycurtain { payment_info, .. } => {
+            if track.download_assets_available() && payment_info.is_some() {
+                let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    track_number.hash(hasher);
+                    t_purchase_permalink.hash(hasher);
+                });
+
+                let buy_icon = icons::buy(&build.locale.translations.buy);
+                let t_downloads = &build.locale.translations.downloads;
+                Some(formatdoc!(r#"
+                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
+                        {buy_icon}
+                        <span>{t_downloads}</span>
+                    </a>
+                "#))
+            } else {
+                None
+            }
+        }
     };
 
-    let audio_sources = release.streaming_quality
+    let audio_sources = track.streaming_quality
         .formats()
         .iter()
         .map(|format| {
@@ -113,14 +131,15 @@ pub fn track_html(
                 basename = track.asset_basename.as_ref().unwrap()
             );
 
-            let track_hash = build.hash_path_with_salt(
-                &release.permalink.slug,
-                format_dir,
-                &track_filename
-            );
+            let track_hash = build.hash_with_salt(|hasher| {
+                release.permalink.slug.hash(hasher);
+                track_number.hash(hasher);
+                format_dir.hash(hasher);
+                track_filename.hash(hasher);
+            });
 
             let track_filename_urlencoded = urlencoding::encode(&track_filename);
-            let src = format!("../{format_dir}/{track_hash}/{track_filename_urlencoded}");
+            let src = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
 
             let source_type = format.source_type();
              format!(r#"<source src="{src}" type="{source_type}">"#)
@@ -153,18 +172,12 @@ pub fn track_html(
         r_waveform = String::new();
     };
 
-    let r_cover_micro = match release.cover_image_micro_src() {
-        Some(src) => format!(r#"<img aria-hidden="true" src="../{src}">"#),
-        None => String::from(r#"<span class="cover_placeholder"></span>"#)
-    };
-    let r_more = if track.more.is_some() {
-        let more_label = match &track.more_label {
-            Some(label) => label,
-            None => *build.locale.translations.more
-        };
-        format!(r##"<a href="#more">{more_label}</a>&nbsp;&nbsp;"##)
+    let r_cover_micro = if let Some(src) = track.cover_image_micro_src() {
+        format!(r#"<img aria-hidden="true" src="{src}">"#)
+    } else if let Some(src) = release.cover_image_micro_src() {
+        format!(r#"<img aria-hidden="true" src="../{src}">"#)
     } else {
-        String::new()
+        String::from(r#"<span class="cover_placeholder"></span>"#)
     };
 
     let play_icon = icons::play(&build.locale.translations.play);
@@ -187,7 +200,7 @@ pub fn track_html(
             </div>
             </span>
             <div>
-                {r_more} <span class="time">{track_duration_formatted}</span>
+                <span class="time">{track_duration_formatted}</span>
             </div>
         </div>
     "#);
@@ -216,11 +229,14 @@ pub fn track_html(
     let artists_truncated = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
 
     let r_more = if track.more.is_some() || artists_truncated.truncated {
-        let t_more = &build.locale.translations.more;
+        let more_label = match &track.more_label {
+            Some(label) => label,
+            None => *build.locale.translations.more
+        };
         let more_icon = icons::more(&build.locale.translations.more);
         let more_link = formatdoc!(r##"
             <a class="more" href="#more">
-                {more_icon} {t_more}
+                {more_icon} {more_label}
             </a>
         "##);
 
@@ -302,12 +318,17 @@ pub fn track_html(
         "#));
     }
 
-    if release.embedding && build.base_url.is_some() {
+    if track.embedding && build.base_url.is_some() {
         let embed_icon = icons::embed(&build.locale.translations.embed);
         let t_embed = &build.locale.translations.embed;
         // TODO: /embed/ uses no embed_permalink translation? Should(n't) it?
+        //       Later note: A reason against translation might be url stability.
+        //       The embed url is supposed to be as long-term stable as possible,
+        //       but interpolating a translation makes the url instable in case
+        //       of (intended or accidental) translation changes and changes of the
+        //       the locale of the faircamp page in general.
         let embed_link = formatdoc!(r#"
-            <a href="../embed{index_suffix}">
+            <a href="embed{index_suffix}">
                 {embed_icon}
                 <span>{t_embed}</span>
             </a>
@@ -315,8 +336,7 @@ pub fn track_html(
         secondary_actions.push(embed_link);
     }
 
-    // TODO: Get these from track (respectively think through if/how we want that implemented)
-    for link in &release.links {
+    for link in &track.links {
         let external_icon = icons::external(&build.locale.translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
@@ -352,11 +372,24 @@ pub fn track_html(
 
     templates.push_str(&player_icon_templates(build));
 
-    // TODO: Track-level cover support
-    let cover = cover_image(build, index_suffix, "../", root_prefix, release);
+    let cover = if let Some(described_image) = &track.cover {
+        track_cover_image(
+            build,
+            described_image,
+            index_suffix,
+            root_prefix
+        )
+    } else {
+        release_cover_image(
+            build,
+            index_suffix,
+            release,
+            "../",
+            root_prefix
+        )
+    };
 
-    let track_synopsis: Option<String> = None; // TODO: Think through/unmock/implement
-    let synopsis = match track_synopsis {
+    let synopsis = match &track.synopsis {
         Some(synopsis) => {
             formatdoc!(r#"
                 <div style="margin-bottom: 1rem; margin-top: 1rem;">
@@ -367,6 +400,8 @@ pub fn track_html(
         None => String::new()
     };
 
+    let track_number_formatted = release.track_numbering.format(track_number);
+
     let volume_icon = icons::volume();
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
@@ -374,7 +409,11 @@ pub fn track_html(
             <div class="page_split">
                 <div class="cover">{cover}</div>
                 <div class="abstract">
-                    <h1>{track_title_escaped}</h1> <!-- TODO: Unlisted badge -->
+                    <h1>
+                        <span class="number">{track_number_formatted}</span>
+                        {track_title_escaped}
+                        <!-- TODO: Unlisted badge -->
+                    </h1>
                     <div class="release_artists">{artists_truncated}</div>
                     {r_primary_actions}
                     {synopsis}

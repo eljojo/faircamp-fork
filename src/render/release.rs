@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::hash::Hash;
+
 use chrono::Datelike;
 use indoc::formatdoc;
 
@@ -9,18 +11,18 @@ use crate::{
     Catalog,
     CrawlerMeta,
     DownloadAccess,
-    Downloads,
     OpenGraphMeta,
     Release,
-    Scripts
+    Scripts,
+    TRACK_NUMBERS
 };
 use crate::render::{
     copy_button,
-    cover_image,
     layout,
     list_release_artists,
     list_track_artists,
     player_icon_templates,
+    release_cover_image,
     Truncation,
     unlisted_badge,
     waveform
@@ -28,68 +30,36 @@ use crate::render::{
 use crate::icons;
 use crate::util::{format_time, html_escape_outside_attribute};
 
-pub mod download;
-pub mod embed;
-pub mod purchase;
-pub mod unlock;
-
 /// The actual release page, featuring the track listing and streaming player, links
 /// to downloads, embeds, description, etc.
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
 
-    let download_link = match &release.downloads {
-        Downloads::Disabled |
-        Downloads::Empty => String::new(),
-        Downloads::Enabled { download_access, .. } => {
-            match download_access {
-                DownloadAccess::Code { .. } => {
-                    let t_unlock_permalink = &build.locale.translations.unlock_permalink;
-                    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_unlock_permalink]);
+    let download_link = match &release.download_access {
+        DownloadAccess::Code { .. } => {
+            if release.download_assets_available() {
+                let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    t_unlock_permalink.hash(hasher);
+                });
 
-                    let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-                    let t_download = &build.locale.translations.download;
-                    formatdoc!(r#"
-                        <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
-                            {unlock_icon}
-                            <span>{t_download}</span>
-                        </a>
-                    "#)
-                }
-                DownloadAccess::Free => {
-                    let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-                    let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
+                let unlock_icon = icons::unlock(&build.locale.translations.unlock);
+                let t_download = &build.locale.translations.download;
 
-                    let download_icon = icons::download();
-                    let t_download = &build.locale.translations.download;
-                    formatdoc!(r#"
-                        <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
-                            {download_icon}
-                            <span>{t_download}</span>
-                        </a>
-                    "#)
-                }
-                DownloadAccess::Paycurtain { payment_info, .. } => {
-                    if payment_info.is_none() {
-                        String::new()
-                    } else {
-                        let t_purchase_permalink = &build.locale.translations.purchase_permalink;
-                        let page_hash = build.hash_with_salt(&[&release.permalink.slug, t_purchase_permalink]);
-
-                        let buy_icon = icons::buy(&build.locale.translations.buy);
-                        let t_download = &build.locale.translations.download;
-                        formatdoc!(r#"
-                            <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
-                                {buy_icon}
-                                <span>{t_download}</span>
-                            </a>
-                        "#)
-                    }
-                }
+                formatdoc!(r#"
+                    <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
+                        {unlock_icon}
+                        <span>{t_download}</span>
+                    </a>
+                "#)
+            } else {
+                String::new()
             }
         }
-        Downloads::External { link } => {
+        DownloadAccess::Disabled => String::new(),
+        DownloadAccess::External { link } => {
             let external_icon = icons::external(&build.locale.translations.external_link);
             let t_download = &build.locale.translations.download;
             formatdoc!(r#"
@@ -98,6 +68,46 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <span>{t_download}</span>
                 </a>
             "#)
+        }
+        DownloadAccess::Free => {
+            if release.download_assets_available() {
+                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    t_downloads_permalink.hash(hasher);
+                });
+
+                let download_icon = icons::download();
+                let t_download = &build.locale.translations.download;
+                formatdoc!(r#"
+                    <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
+                        {download_icon}
+                        <span>{t_download}</span>
+                    </a>
+                "#)
+            } else {
+                String::new()
+            }
+        }
+        DownloadAccess::Paycurtain { payment_info, .. } => {
+            if release.download_assets_available() && payment_info.is_some() {
+                let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    t_purchase_permalink.hash(hasher);
+                });
+
+                let buy_icon = icons::buy(&build.locale.translations.buy);
+                let t_download = &build.locale.translations.download;
+                formatdoc!(r#"
+                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
+                        {buy_icon}
+                        <span>{t_download}</span>
+                    </a>
+                "#)
+            } else {
+                String::new()
+            }
         }
     };
 
@@ -113,11 +123,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let t_playback_position = &build.locale.translations.playback_position;
     let r_tracks = release.tracks
         .iter()
-        .enumerate()
-        .map(|(index, track)| {
-            let track_number = index + 1;
-
-            let audio_sources = release.streaming_quality
+        .zip(TRACK_NUMBERS)
+        .map(|(track, track_number)| {
+            let audio_sources = track.streaming_quality
                 .formats()
                 .iter()
                 .map(|format| {
@@ -129,14 +137,15 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         basename = track.asset_basename.as_ref().unwrap()
                     );
 
-                    let track_hash = build.hash_path_with_salt(
-                        &release.permalink.slug,
-                        format_dir,
-                        &track_filename
-                    );
+                    let track_hash = build.hash_with_salt(|hasher| {
+                        release.permalink.slug.hash(hasher);
+                        track_number.hash(hasher);
+                        format_dir.hash(hasher);
+                        track_filename.hash(hasher);
+                    });
 
                     let track_filename_urlencoded = urlencoding::encode(&track_filename);
-                    let src = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let src = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
 
                     let source_type = format.source_type();
                     format!(r#"<source src="{src}" type="{source_type}">"#)
@@ -177,9 +186,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 false => String::new()
             };
 
-            let r_cover_micro = match release.cover_image_micro_src() {
-                Some(src) => format!(r#"<img aria-hidden="true" src="{src}">"#),
-                None => String::from(r#"<span class="cover_placeholder"></span>"#)
+            let r_cover_micro = if let Some(src) = track.cover_image_micro_src() {
+                format!(r#"<img aria-hidden="true" src="{track_number}/{src}">"#)
+            } else if let Some(src) = release.cover_image_micro_src() {
+                format!(r#"<img aria-hidden="true" src="{src}">"#)
+            } else {
+                String::from(r#"<span class="cover_placeholder"></span>"#)
             };
 
             let r_more = if track.more.is_some() {
@@ -187,7 +199,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     Some(label) => label,
                     None => *build.locale.translations.more
                 };
-                format!(r#"<a href="track_number{index_suffix}#more">{more_label}</a>&nbsp;&nbsp;"#)
+                format!(r#"<a href="{track_number}{index_suffix}#more">{more_label}</a>&nbsp;&nbsp;"#)
             } else {
                 String::new()
             };
@@ -405,7 +417,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     templates.push_str(&player_icon_templates(build));
 
-    let cover = cover_image(build, index_suffix, "", root_prefix, release);
+    let cover = release_cover_image(build, index_suffix, release, "", root_prefix);
 
     let synopsis = match &release.synopsis {
         Some(synopsis) => {

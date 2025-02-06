@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -52,7 +52,7 @@ a gigantesque dystopian world of hard and harsh bass-driven synth.
 Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 -- more
 
-downloads: paycurtain
+relase_download_access: paycurtain
 
 > These settings apply to all releases, here we just set
 > the download format for all of them. As each of them
@@ -113,7 +113,7 @@ Inside the file `Electric Curtain/2023/Enter the Maze/release.eno`:
 permalink: enter-the-maze
 date: 2023-05-15
 
-price: 4+ USD
+release_price: 4+ USD
 
 cover:
 description = Enter the maze
@@ -126,7 +126,7 @@ Inside the file `Electric Curtain/2022/Network Angst/release.eno`:
 permalink: network-angst
 date: 2022-12-20
 
-price: 0+ USD
+release_price: 0+ USD
 
 cover:
 description = A 56k modem in neon colors
@@ -139,7 +139,7 @@ Inside the file `Electric Curtain/2022/Dark Cybernetic Beings/release.eno`:
 permalink: network-angst
 date: 2022-09-02
 
-price: 0+ USD
+release_price: 0+ USD
 
 cover:
 description = An abstract depiction of a crowd of people in a backalley, like in matrix, but more sinister

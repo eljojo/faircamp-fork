@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::hash::Hash;
 use std::ops::Range;
 
 use indoc::formatdoc;
@@ -9,7 +10,6 @@ use crate::{
     Build,
     Catalog,
     CrawlerMeta,
-    DownloadsConfig,
     Price,
     Release,
     Scripts
@@ -17,10 +17,10 @@ use crate::{
 use crate::render::{compact_release_identifier, layout};
 use crate::util::html_escape_outside_attribute;
 
-pub fn purchase_html(
+/// Renders content for pages found under /[release_permalink]/[purchase_permalink]/[hash]/index.html
+pub fn release_purchase_html(
     build: &Build,
     catalog: &Catalog,
-    downloads_config: &DownloadsConfig,
     payment_info: &str,
     price: &Price,
     release: &Release
@@ -91,9 +91,15 @@ pub fn purchase_html(
     }
 
     let t_downloads_permalink = &build.locale.translations.downloads_permalink;
-    let download_page_hash = build.hash_with_salt(&[&release.permalink.slug, t_downloads_permalink]);
+    let download_page_hash = build.hash_with_salt(|hasher| {
+        release.permalink.slug.hash(hasher);
+        t_downloads_permalink.hash(hasher);
+    });
 
-    let r_formats = downloads_config.all_formats_sorted()
+    let mut release_formats_sorted = release.download_formats.clone();
+    release_formats_sorted.sort_by_key(|format| format.download_rank());
+
+    let r_formats = release_formats_sorted
         .iter()
         .map(|audio_format| audio_format.user_label())
         .collect::<Vec<&str>>()

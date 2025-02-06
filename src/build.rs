@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::collections::hash_map::{DefaultHasher, HashMap};
@@ -71,7 +71,8 @@ pub struct Build {
     /// deployment, thereby invalidating all download asset urls on each
     /// deployment.
     pub url_salt: String,
-    pub verbose: bool
+    pub verbose: bool,
+    pub warnings: usize
 }
 
 #[derive(Debug, PartialEq)]
@@ -116,31 +117,13 @@ impl Build {
         self.errors += 1;
     }
 
-    pub fn hash_path_with_salt(
-        &self,
-        release_slug: &str,
-        format_dir: &str,
-        filename: &str
-    ) -> String {
-        let mut hasher = DefaultHasher::new();
-        
-        release_slug.hash(&mut hasher);
-        format_dir.hash(&mut hasher);
-        filename.hash(&mut hasher);
-        self.url_salt.hash(&mut hasher);
-
-        URL_SAFE_NO_PAD.encode(hasher.finish().to_le_bytes())
-    }
-
     pub fn hash_with_salt(
         &self,
-        inputs: &[&str]
+        closure: impl Fn(&mut DefaultHasher)
     ) -> String {
         let mut hasher = DefaultHasher::new();
 
-        for input in inputs {
-            input.hash(&mut hasher);
-        }
+        closure(&mut hasher);
 
         self.url_salt.hash(&mut hasher);
 
@@ -174,12 +157,12 @@ impl Build {
                 env::current_dir()
                     .expect("Current working directory can not be determined or is unaccessible")
             );
-            
+
         let build_dir = args.build_dir
             .as_ref()
             .map(|path| path.to_path_buf())
             .unwrap_or_else(|| catalog_dir.join(".faircamp_build"));
-            
+
         let cache_dir = args.cache_dir
             .as_ref()
             .map(|path| path.to_path_buf())
@@ -210,10 +193,11 @@ impl Build {
             stats: Stats::new(),
             theming_widget: args.theming_widget,
             url_salt: String::from(""), // changing this can invalidate urls of already deployed faircamp sites, handle with care
-            verbose: args.verbose
+            verbose: args.verbose,
+            warnings: 0
         }
     }
-    
+
     pub fn print_stats(&self) {
         let elapsed_time_delta = Utc::now().signed_duration_since(self.build_begin);
 
@@ -227,6 +211,11 @@ impl Build {
 
         info_stats!("{}", &self.stats.to_string());
         info_stats!("Build finished in {}", elapsed_time_string);
+    }
+
+    pub fn warning(&mut self, warning: &str) {
+        warn!("{}", warning);
+        self.warnings += 1;
     }
 }
 
@@ -263,12 +252,12 @@ impl Stats {
         self.bytes_used_images += filesize_bytes;
         self.num_images += 1;
     }
-    
+
     pub fn add_track(&mut self, filesize_bytes: u64) {
         self.bytes_used_tracks += filesize_bytes;
         self.num_tracks += 1;
     }
-    
+
     pub fn new() -> Stats {
         Stats {
             bytes_used_archives: 0,
@@ -281,7 +270,7 @@ impl Stats {
             num_tracks: 0
         }
     }
-    
+
     pub fn to_string(&self) -> String {
         format!(
             "{num_archives} archives ({bytes_used_archives}), {num_tracks} tracks ({bytes_used_tracks}), {num_images} images ({bytes_used_images}) and {num_extras} extras ({bytes_used_extras}) written",

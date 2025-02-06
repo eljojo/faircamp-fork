@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -23,10 +23,11 @@ definitely check out the reference to get the full picture.
 ## Reference
 
 A faircamp site is tweaked, configured, extended, themed, etc. through
-so called manifests. There are three different types of manifest files,
+so called manifests. There are four different types of manifest files,
 clearly identified by their respective filename ([artist.eno](artists-artist-eno.html),
-[catalog.eno](catalog-catalog-eno.html) and [release.eno](releases-release-eno.html)).
-The reference provides a detailed list of all available options for each type of manifest.
+[catalog.eno](catalog-catalog-eno.html), [release.eno](releases-release-eno.html),
+[track.eno](tracks-track-eno.html)). The reference provides a detailed
+list of all available options for each type of manifest.
 
 ## More resources
 

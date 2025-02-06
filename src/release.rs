@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -10,6 +10,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::ops::RangeFrom;
 
 use chrono::NaiveDate;
 use sanitize_filename::sanitize;
@@ -28,15 +29,14 @@ use crate::{
     Catalog,
     DescribedImage,
     DownloadAccess,
-    Downloads,
+    DownloadFormat,
+    ExtraDownloads,
     FileMeta,
     HtmlAndStripped,
     Link,
     m3u,
     Permalink,
     render,
-    StreamingQuality,
-    TagAgenda,
     TagMapping,
     Theme,
     Track,
@@ -45,7 +45,34 @@ use crate::{
 };
 use crate::util::generic_hash;
 
-#[derive(Clone, Debug, Deserialize, Hash, Serialize)]
+/// An unbounded iterator returning track numbers (1, 2, 3, ..) which
+/// we generally use with ".zip(TRACK_NUMBERS)" to augment an iteration
+/// of tracks with track numbers. We use this instead of a simple ".zip(1..)"
+/// statement to ensure that we always iterate over usize rather than some
+/// unknown type that rust elides based on local context. We care about type
+/// stability here specifically because the track number is often used to
+/// compute hashes, and unstable types would mean unstable hashes.
+pub const TRACK_NUMBERS: RangeFrom<usize> = RangeFrom { start: 1 };
+
+/// If candidate_filename is not among used_filenames, simply returns candidate_filename.
+/// Otherwise makes modifications to candidate_filename until it does not anymore collide
+/// with an already used filename.
+fn deduplicate_extra_filename(candidate_filename: &str, used_filenames: &HashSet<String>) -> String {
+    let mut filename = candidate_filename.to_string();
+
+    while used_filenames.contains(&filename) {
+        // TODO: At some point expand so it does a more elegant
+        //       "foo.jpg" -> "foo(1).jpg" -> "foo(2).jpg" (or similar)
+        filename = match filename.split_once('.') {
+            Some((prefix, postfix)) => format!("{prefix}_duplicate.{postfix}"),
+            None => format!("{filename}_duplicate")
+        };
+    }
+
+    filename
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Extra {
     pub file_meta: FileMeta,
     pub sanitized_filename: String
@@ -65,8 +92,10 @@ pub struct Release {
     pub copy_link: bool,
     pub cover: Option<DescribedImage>,
     pub date: Option<NaiveDate>,
-    pub downloads: Downloads,
+    pub download_access: DownloadAccess,
+    pub download_formats: Vec<DownloadFormat>,
     pub embedding: bool,
+    pub extra_downloads: ExtraDownloads,
     /// Additional files that are included in the download archive,
     /// such as additional images, liner notes, etc.
     pub extras: Vec<Extra>,
@@ -93,13 +122,11 @@ pub struct Release {
     /// This is used to augment permalink conflict errors with additional
     /// info for resolving the conflict.
     pub source_dir: PathBuf,
-    pub streaming_quality: StreamingQuality,
     /// Artists that appear on the release as collaborators, features, etc.
     pub support_artists: Vec<ArtistRc>,
     /// See `main_artists_to_map` for what this does
     pub support_artists_to_map: Vec<String>,
     pub synopsis: Option<String>,
-    pub tag_agenda: TagAgenda,
     pub theme: Theme,
     pub title: String,
     pub track_numbering: TrackNumbering,
@@ -118,6 +145,19 @@ pub struct Release {
 #[derive(Clone, Debug)]
 pub struct ReleaseRc {
     release: Rc<RefCell<Release>>,
+}
+
+impl Hash for Extra {
+    /// When we compute the hash of an extra we specifically don't factor in
+    /// its source path (file_meta.path). If the file has the same size,
+    /// modification date and target filename (sanitized_filename, as it is
+    /// used for a release archive or separate extra download asset) we
+    /// practically consider it the same file in two builds.
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.file_meta.modified.hash(state);
+        self.file_meta.size.hash(state);
+        self.sanitized_filename.hash(state);
+    }
 }
 
 impl Extra {
@@ -150,45 +190,70 @@ impl Release {
     /// stays the same - unless explicitly needed of course - because this signature
     /// makes or breaks finding cached archives.
     pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
-        if let Downloads::Enabled { downloads_config, .. } = &self.downloads {
-            if !downloads_config.release_formats.is_empty() {
-                let mut hasher = DefaultHasher::new();
+        match &self.download_access {
+            DownloadAccess::Code { .. } |
+            DownloadAccess::Free |
+            DownloadAccess::Paycurtain { .. } => {
+                if self.download_assets_available() {
+                    let mut hasher = DefaultHasher::new();
 
-                // TODO: Consider further if there are aspects of the dependency graph missing
-                //       that need to be included in the hash signature.
-                // TODO: Are the filenames represented at all? Should they? (With which filename
-                //       the tracks and extras and cover are written into the zip)
+                    // TODO: Consider further if there are aspects of the dependency graph missing
+                    //       that need to be included in the hash signature.
+                    // TODO: Are the filenames represented at all? Should they? (With which filename
+                    //       the tracks and extras and cover are written into the zip)
 
-                if let Some(described_image) = &self.cover {
-                    // The image description is not used for building release archives,
-                    // so we only hash the image itself
-                    described_image.image.hash(&mut hasher);
+                    if let Some(described_image) = &self.cover {
+                        // The image description is not used for building release archives,
+                        // so we only hash the image itself
+                        described_image.image.hash(&mut hasher);
+                    }
+
+                    if self.extra_downloads.bundled && !self.extras.is_empty() {
+                        // There is no relevant order for extras, they are just included in the zip as
+                        // files. For hashing we need to ensure a stable order, and as there is no such
+                        // guarantee coming from where they are initialized, we sort them here.
+                        let mut extras_sorted = self.extras.clone();
+                        extras_sorted.sort_by(|a, b| a.sanitized_filename.cmp(&b.sanitized_filename));
+                        extras_sorted.hash(&mut hasher);
+                    }
+
+                    self.title.hash(&mut hasher);
+
+                    // TODO: TrackNumbering could also be part of signature (how the files are numbered in the filename!)
+                    for (track, track_number) in self.tracks.iter().zip(TRACK_NUMBERS) {
+                        let tag_mapping = TagMapping::new(self, track, track_number);
+
+                        tag_mapping.hash(&mut hasher);
+                        track.transcodes.borrow().hash.hash(&mut hasher);
+
+                        if let Some(described_image) = &track.cover {
+                            // The image description is not used so we only hash the image itself
+                            described_image.image.hash(&mut hasher);
+                        }
+
+                        if self.extra_downloads.bundled && track.extra_downloads && !track.extras.is_empty() {
+                            // There is no relevant order for extras, they are just included in the zip as
+                            // files. For hashing we need to ensure a stable order, and as there is no such
+                            // guarantee coming from where they are initialized, we sort them here.
+                            let mut extras_sorted = track.extras.clone();
+                            extras_sorted.sort_by(|a, b| a.sanitized_filename.cmp(&b.sanitized_filename));
+                            extras_sorted.hash(&mut hasher);
+                        }
+                    }
+
+                    let signature = hasher.finish();
+
+                    self.archives = Some(cache.get_or_create_archives(signature));
                 }
-
-                if downloads_config.extra_downloads.bundled && !self.extras.is_empty() {
-                    // There is no relevant order for extras, they are just included in the zip as
-                    // files, but for hashing we need to ensure a stable order, as there is no such
-                    // guarantee coming from where they are initialized - so we sort them here.
-                    let mut extras_sorted = self.extras.clone();
-                    extras_sorted.sort_by(|a, b| a.sanitized_filename.cmp(&b.sanitized_filename));
-                    extras_sorted.hash(&mut hasher);
-                }
-
-                self.title.hash(&mut hasher);
-
-                // TODO: TrackNumbering could also be part of signature (how the files are numbered in the filename!)
-                for (track_index, track) in self.tracks.iter().enumerate() {
-                    let tag_mapping = TagMapping::new(self, track, track_index + 1);
-
-                    tag_mapping.hash(&mut hasher);
-                    track.transcodes.borrow().hash.hash(&mut hasher);
-                }
-
-                let signature = hasher.finish();
-
-                self.archives = Some(cache.get_or_create_archives(signature));
             }
+            DownloadAccess::Disabled |
+            DownloadAccess::External { .. } => ()
         }
+    }
+
+    pub fn download_assets_available(&self) -> bool {
+        !self.download_formats.is_empty() ||
+        ((self.extra_downloads.bundled || self.extra_downloads.separate) && !self.extras.is_empty())
     }
 
     pub fn longest_track_duration(&self) -> f32 {
@@ -206,8 +271,10 @@ impl Release {
         copy_link: bool,
         cover: Option<DescribedImage>,
         date: Option<NaiveDate>,
-        downloads: Downloads,
+        download_access: DownloadAccess,
+        download_formats: Vec<DownloadFormat>,
         embedding: bool,
+        extra_downloads: ExtraDownloads,
         extras: Vec<Extra>,
         links: Vec<Link>,
         m3u: bool,
@@ -216,10 +283,8 @@ impl Release {
         more_label: Option<String>,
         permalink: Option<Permalink>,
         source_dir: PathBuf,
-        streaming_quality: StreamingQuality,
         support_artists_to_map: Vec<String>,
         synopsis: Option<String>,
-        tag_agenda: TagAgenda,
         theme: Theme,
         title: String,
         track_numbering: TrackNumbering,
@@ -234,8 +299,10 @@ impl Release {
             copy_link,
             cover,
             date,
-            downloads,
+            download_access,
+            download_formats,
             embedding,
+            extra_downloads,
             extras,
             links,
             m3u,
@@ -246,11 +313,9 @@ impl Release {
             permalink,
             procedural_cover: None,
             source_dir,
-            streaming_quality,
             support_artists: Vec::new(),
             support_artists_to_map,
             synopsis,
-            tag_agenda,
             theme,
             title,
             track_numbering,
@@ -288,53 +353,51 @@ impl Release {
         false
     }
 
+    /// Writes release downloads (zip archives including track audio files,
+    /// covers and extras as well as release cover and extras) and track
+    /// downloads (separate track audio files, covers and extras) to the build
+    /// directory.
     pub fn write_downloadable_files(&mut self, build: &mut Build) {
-        if let Downloads::Enabled { downloads_config, .. } = &self.downloads {
-            let release_dir = build.build_dir.join(&self.permalink.slug);
+        let tag_mappings: Vec<TagMapping> = self.tracks
+            .iter()
+            .zip(TRACK_NUMBERS)
+            .map(|(track, track_number)| TagMapping::new(self, track, track_number))
+            .collect();
 
-            for (download_format, write_archive, write_tracks) in downloads_config.all_formats_for_writing() {
-                let format_dir = release_dir.join(download_format.as_audio_format().asset_dirname());
+        // Transcode and copy track downloads
+        for ((track, tag_mapping), track_number) in self.tracks.iter_mut().zip(tag_mappings.iter()).zip(TRACK_NUMBERS) {
+            match track.download_access {
+                DownloadAccess::Code { .. } |
+                DownloadAccess::Free |
+                DownloadAccess::Paycurtain { .. } => {
+                    // Transcode and copy track audio files
+                    let track_download_formats = track.download_formats.clone();
+                    for download_format in track_download_formats {
+                        // Transcode track to download format (to cache) if not yet available
+                        if !track.transcodes.borrow().has(download_format.as_audio_format(), generic_hash(&tag_mapping)) {
+                            if download_format.is_lossless() && !track.transcodes.borrow().source_meta.lossless {
+                                warn_discouraged!(
+                                    "Track {} comes from a lossy source format, offering it in a lossless download format is somewhat wasteful and misleading to those who will download it.",
+                                    &track.transcodes.file_meta.path.display()
+                                );
+                            }
 
-                util::ensure_dir(&format_dir);
+                            let cover_path = track.cover.as_ref().or(self.cover.as_ref())
+                                .as_ref()
+                                .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
 
-                let generate_archive = write_archive && !self.archives.as_ref().unwrap().borrow().has(download_format);
-
-                let cover_path = self.cover
-                    .as_ref()
-                    .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
-
-                let tag_mappings: Vec<TagMapping> = self.tracks
-                    .iter()
-                    .enumerate()
-                    .map(|(track_index, track)| TagMapping::new(self, track, track_index + 1))
-                    .collect();
-
-                for (track, tag_mapping) in self.tracks.iter_mut().zip(tag_mappings.iter()) {
-                    // Transcode track to required format if needed and not yet available
-                    if (generate_archive || write_tracks) &&
-                        !track.transcodes.borrow().has(download_format.as_audio_format(), generic_hash(&tag_mapping)) {
-                        if download_format.is_lossless() && !track.transcodes.borrow().source_meta.lossless {
-                            warn_discouraged!(
-                                "Track {} comes from a lossy format, offering it in a lossless format is wasteful and misleading to those who will download it.",
-                                &track.transcodes.file_meta.path.display()
+                            track.transcode_as(
+                                download_format.as_audio_format(),
+                                build,
+                                AssetIntent::Deliverable,
+                                tag_mapping,
+                                &cover_path
                             );
+
+                            track.transcodes.borrow().persist_to_cache(&build.cache_dir);
                         }
 
-                        let asset_intent = if write_archive { AssetIntent::Intermediate } else { AssetIntent::Deliverable };
-
-                        track.transcode_as(
-                            download_format.as_audio_format(),
-                            build,
-                            asset_intent,
-                            tag_mapping,
-                            &cover_path
-                        );
-
-                        track.transcodes.borrow().persist_to_cache(&build.cache_dir);
-                    }
-
-                    // If track downloads are enabled copy transcoded track to build
-                    if write_tracks {
+                        // Copy transcoded track (from cache) to build
                         let mut transcodes_mut = track.transcodes.borrow_mut();
                         let mut transcode_option = transcodes_mut.get_mut(download_format.as_audio_format(), generic_hash(&tag_mapping));
                         let transcode = transcode_option.as_mut().unwrap();
@@ -347,18 +410,20 @@ impl Release {
                             extension = download_format.as_audio_format().extension()
                         );
 
-                        let hash = build.hash_path_with_salt(
-                            &self.permalink.slug,
-                            download_format.as_audio_format().asset_dirname(),
-                            &track_filename
-                        );
+                        let hash = build.hash_with_salt(|hasher| {
+                            self.permalink.slug.hash(hasher);
+                            track_number.hash(hasher);
+                            download_format.as_audio_format().asset_dirname().hash(hasher);
+                            track_filename.hash(hasher);
+                        });
 
-                        // TODO: We should calculate this earlier and persist it so we can reuse it for copying
-                        // and for rendering the hrefs that point to it, however we need to figure out where 
-                        // (or on what) to store it - that's a bit tricky. (applies in a few places)
-                        let hash_dir = format_dir.join(hash);
+                        let hash_dir = build.build_dir
+                            .join(&self.permalink.slug)
+                            .join(track_number.to_string())
+                            .join(download_format.as_audio_format().asset_dirname())
+                            .join(hash);
 
-                        util::ensure_dir(&hash_dir);
+                        util::ensure_dir_all(&hash_dir);
 
                         let target_path = hash_dir.join(&track_filename);
 
@@ -374,15 +439,52 @@ impl Release {
                             build.stats.add_track(transcode.asset.filesize_bytes);
                         }
                     }
-                }
 
-                // If entire release downloads are enabled we copy the release archive to the build
-                if write_archive {
+                    // Copy track extras
+                    if track.extra_downloads {
+                        for extra in &track.extras {
+                            let hash = build.hash_with_salt(|hasher| {
+                                self.permalink.slug.hash(hasher);
+                                track_number.hash(hasher);
+                                "extras".hash(hasher);
+                                extra.sanitized_filename.hash(hasher);
+                            });
+
+                            let hash_dir = build.build_dir
+                                .join(&self.permalink.slug)
+                                .join(track_number.to_string())
+                                .join("extras")
+                                .join(hash);
+
+                            util::ensure_dir_all(&hash_dir);
+
+                            let target_path = hash_dir.join(&extra.sanitized_filename);
+
+                            util::hard_link_or_copy(
+                                build.catalog_dir.join(&extra.file_meta.path),
+                                target_path
+                            );
+
+                            build.stats.add_extra(extra.file_meta.size);
+                        }
+                    }
+                }
+                DownloadAccess::Disabled |
+                DownloadAccess::External { .. } => ()
+            }
+        }
+
+        // Write and copy release archives (includes transcoding of tracks where required)
+        match self.download_access {
+            DownloadAccess::Code { .. } |
+            DownloadAccess::Free |
+            DownloadAccess::Paycurtain { .. } => {
+                for download_format in &self.download_formats {
                     let archives_ref = self.archives.as_ref().unwrap();
                     let mut archives_mut = archives_ref.borrow_mut();
 
-                    // Create zip for required format if not yet available
-                    if generate_archive {
+                    // Write zip archive for required format (to cache) if not yet available
+                    if !archives_mut.has(*download_format) {
                         let cached_archive_filename = format!("{}.zip", util::uid());
 
                         info_zipping!(
@@ -391,9 +493,7 @@ impl Release {
                             download_format.as_audio_format()
                         );
 
-                        let zip_file = File::create(
-                            build.cache_dir.join(&cached_archive_filename)
-                        ).unwrap();
+                        let zip_file = File::create(build.cache_dir.join(&cached_archive_filename)).unwrap();
                         let mut zip_writer = ZipWriter::new(zip_file);
                         let options = SimpleFileOptions::default()
                             .compression_method(CompressionMethod::Deflated)
@@ -401,9 +501,32 @@ impl Release {
 
                         let mut buffer = Vec::new();
 
-                        let mut used_filenames = HashSet::new();
+                        let mut used_filenames_release_level = HashSet::new();
 
                         for (track, tag_mapping) in self.tracks.iter_mut().zip(tag_mappings.iter()) {
+                            // Transcode track to download format (to cache) if not yet available
+                            if !track.transcodes.borrow().has(download_format.as_audio_format(), generic_hash(&tag_mapping)) {
+                                if download_format.is_lossless() && !track.transcodes.borrow().source_meta.lossless {
+                                    warn_discouraged!(
+                                        "Track {} comes from a lossy source format, offering it in a lossless download format is somewhat wasteful and misleading to those who will download it.",
+                                        &track.transcodes.file_meta.path.display()
+                                    );
+                                }
+
+                                let cover_path = track.cover.as_ref().or(self.cover.as_ref())
+                                    .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+
+                                track.transcode_as(
+                                    download_format.as_audio_format(),
+                                    build,
+                                    AssetIntent::Intermediate,
+                                    tag_mapping,
+                                    &cover_path
+                                );
+
+                                track.transcodes.borrow().persist_to_cache(&build.cache_dir);
+                            }
+
                             let transcodes_ref = track.transcodes.borrow();
                             let transcode = transcodes_ref.get_unchecked(download_format.as_audio_format(), generic_hash(&tag_mapping));
 
@@ -414,7 +537,7 @@ impl Release {
                             );
 
                             zip_writer.start_file(&*filename, options).unwrap();
-                            used_filenames.insert(filename);
+                            used_filenames_release_level.insert(filename);
 
                             let mut zip_inner_file = File::open(
                                 build.cache_dir.join(&transcode.asset.filename)
@@ -425,17 +548,77 @@ impl Release {
                             buffer.clear();
 
                             track.transcodes.borrow().persist_to_cache(&build.cache_dir);
+
+                            // Write track cover and/or extras to a subdirectory named like the track
+                            if track.cover.is_some() ||
+                                (self.extra_downloads.bundled && track.extra_downloads && !track.extras.is_empty()) {
+                                let mut used_filenames_track_level = HashSet::new();
+
+                                let t_extras = &build.locale.translations.extras;
+                                let extra_dirname = format!(
+                                    "{basename} ({t_extras})",
+                                    basename = track.asset_basename.as_ref().unwrap()
+                                );
+
+                                zip_writer.add_directory(&extra_dirname, options).unwrap();
+
+                                // Write track cover
+                                if let Some(described_image) = &mut track.cover {
+                                    let mut image_mut = described_image.image.borrow_mut();
+                                    let source_path = &described_image.image.file_meta.path;
+                                    let cover_assets = image_mut.cover_assets(build, AssetIntent::Intermediate, source_path);
+
+                                    let cover_filename = String::from("cover.jpg");
+                                    let cover_path = format!("{extra_dirname}/{cover_filename}");
+
+                                    zip_writer.start_file(cover_path, options).unwrap();
+                                    used_filenames_track_level.insert(cover_filename);
+
+                                    let mut zip_inner_file = File::open(
+                                        build.cache_dir.join(&cover_assets.largest().filename)
+                                    ).unwrap();
+
+                                    zip_inner_file.read_to_end(&mut buffer).unwrap();
+                                    zip_writer.write_all(&buffer).unwrap();
+                                    buffer.clear();
+
+                                    image_mut.persist_to_cache(&build.cache_dir);
+                                }
+
+                                // Write track extras
+                                if self.extra_downloads.bundled && track.extra_downloads {
+                                    for extra in &track.extras {
+                                        let extra_filename = deduplicate_extra_filename(
+                                            &extra.sanitized_filename,
+                                            &used_filenames_track_level
+                                        );
+
+                                        let extra_path = format!("{extra_dirname}/{extra_filename}");
+
+                                        zip_writer.start_file(extra_path, options).unwrap();
+                                        used_filenames_track_level.insert(extra_filename);
+
+                                        let mut zip_inner_file = File::open(
+                                            build.catalog_dir.join(&extra.file_meta.path)
+                                        ).unwrap();
+
+                                        zip_inner_file.read_to_end(&mut buffer).unwrap();
+                                        zip_writer.write_all(&buffer).unwrap();
+                                        buffer.clear();
+                                    }
+                                }
+                            }
                         }
 
                         if let Some(described_image) = &mut self.cover {
                             let mut image_mut = described_image.image.borrow_mut();
                             let source_path = &described_image.image.file_meta.path;
-                            let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
+                            let cover_assets = image_mut.cover_assets(build, AssetIntent::Intermediate, source_path);
 
                             let cover_filename = String::from("cover.jpg");
 
                             zip_writer.start_file(&*cover_filename, options).unwrap();
-                            used_filenames.insert(cover_filename);
+                            used_filenames_release_level.insert(cover_filename);
 
                             let mut zip_inner_file = File::open(
                                 build.cache_dir.join(&cover_assets.largest().filename)
@@ -448,20 +631,15 @@ impl Release {
                             image_mut.persist_to_cache(&build.cache_dir);
                         }
 
-                        if downloads_config.extra_downloads.bundled {
+                        if self.extra_downloads.bundled {
                             for extra in &self.extras {
-                                let mut extra_filename = extra.sanitized_filename.clone();
-
-                                while used_filenames.contains(&extra_filename) {
-                                    // TODO: At some point expand so it does a more elegant "foo.jpg" -> "foo(1).jpg" -> "foo(2).jpg" (or similar)
-                                    extra_filename = match extra_filename.split_once('.') {
-                                        Some((prefix, postfix)) => format!("{prefix}_duplicate.{postfix}"),
-                                        None => format!("{extra_filename}_duplicate")
-                                    };
-                                }
+                                let extra_filename = deduplicate_extra_filename(
+                                    &extra.sanitized_filename,
+                                    &used_filenames_release_level
+                                );
 
                                 zip_writer.start_file(&*extra_filename, options).unwrap();
-                                used_filenames.insert(extra_filename);
+                                used_filenames_release_level.insert(extra_filename);
 
                                 let mut zip_inner_file = File::open(
                                     build.catalog_dir.join(&extra.file_meta.path)
@@ -476,14 +654,14 @@ impl Release {
                         match zip_writer.finish() {
                             Ok(_) => {
                                 let asset = Asset::new(build, cached_archive_filename, AssetIntent::Deliverable);
-                                archives_mut.formats.push(Archive::new(asset, download_format));
+                                archives_mut.formats.push(Archive::new(asset, *download_format));
                             }
                             Err(err) => panic!("{}", err)
                         };
                     }
 
-                    // Now we copy the zip to the build
-                    let archive_option = archives_mut.get_mut(download_format);
+                    // Copy the zip archive (from cache) to the build
+                    let archive_option = archives_mut.get_mut(*download_format);
                     let archive_mut = archive_option.unwrap();
 
                     archive_mut.asset.unmark_stale();
@@ -493,15 +671,18 @@ impl Release {
                         basename = self.asset_basename.as_ref().unwrap()
                     );
 
-                    let hash = build.hash_path_with_salt(
-                        &self.permalink.slug,
-                        download_format.as_audio_format().asset_dirname(),
-                        &archive_filename
-                    );
+                    let hash = build.hash_with_salt(|hasher| {
+                        self.permalink.slug.hash(hasher);
+                        download_format.as_audio_format().asset_dirname().hash(hasher);
+                        archive_filename.hash(hasher);
+                    });
 
-                    let hash_dir = format_dir.join(hash);
+                    let hash_dir = build.build_dir
+                        .join(&self.permalink.slug)
+                        .join(download_format.as_audio_format().asset_dirname())
+                        .join(hash);
 
-                    util::ensure_dir(&hash_dir);
+                    util::ensure_dir_all(&hash_dir);
 
                     util::hard_link_or_copy(
                         build.cache_dir.join(&archive_mut.asset.filename),
@@ -512,101 +693,124 @@ impl Release {
 
                     archives_mut.persist_to_cache(&build.cache_dir);
                 }
-            }
 
-            // Write extras for discrete download access (outside of archives/zips)
-            if downloads_config.extra_downloads.separate && !self.extras.is_empty() {
-                for extra in &self.extras {
-                    let extras_dir = release_dir.join("extras");
+                // Write extras for discrete download access (outside of archives/zips)
+                if self.extra_downloads.separate {
+                    for extra in &self.extras {
+                        let hash = build.hash_with_salt(|hasher| {
+                            self.permalink.slug.hash(hasher);
+                            "extras".hash(hasher);
+                            extra.sanitized_filename.hash(hasher);
+                        });
 
-                    util::ensure_dir(&extras_dir);
+                        let hash_dir = build.build_dir
+                            .join(&self.permalink.slug)
+                            .join("extras")
+                            .join(hash);
 
-                    let hash = build.hash_path_with_salt(
-                        &self.permalink.slug,
-                        "extras",
-                        &extra.sanitized_filename
-                    );
+                        util::ensure_dir_all(&hash_dir);
 
-                    // TODO: We should calculate this earlier and persist it so we can reuse it for copying
-                    // and for rendering the hrefs that point to it, however we need to figure out where 
-                    // (or on what) to store it - that's a bit tricky. (applies in a few places)
-                    let hash_dir = extras_dir.join(hash);
+                        let target_path = hash_dir.join(&extra.sanitized_filename);
 
-                    util::ensure_dir(&hash_dir);
+                        util::hard_link_or_copy(
+                            build.catalog_dir.join(&extra.file_meta.path),
+                            target_path
+                        );
 
-                    let target_path = hash_dir.join(&extra.sanitized_filename);
-
-                    util::hard_link_or_copy(
-                        build.catalog_dir.join(&extra.file_meta.path),
-                        target_path
-                    );
-
-                    build.stats.add_extra(extra.file_meta.size);
+                        build.stats.add_extra(extra.file_meta.size);
+                    }
                 }
             }
+            DownloadAccess::Disabled |
+            DownloadAccess::External { .. } => ()
         }
     }
 
-    pub fn write_files(&self, build: &mut Build, catalog: &Catalog) {
-        if let Downloads::Enabled { download_access, downloads_config } = &self.downloads {
-            let download_html = render::release::download::download_html(build, catalog, downloads_config, self);
-            let t_downloads_permalink = *build.locale.translations.downloads_permalink;
+    pub fn write_pages_and_playlist_files(&self, build: &mut Build, catalog: &Catalog) {
+        // Render release page
+        let release_dir = build.build_dir.join(&self.permalink.slug);
+        let release_html = render::release::release_html(build, catalog, self);
+        util::ensure_dir_all_and_write_index(&release_dir, &release_html);
 
-            match download_access {
+        // Render release download/purchase/unlock page
+        if !self.download_formats.is_empty() ||
+           ((self.extra_downloads.bundled || self.extra_downloads.separate) && !self.extras.is_empty()) {
+            match &self.download_access {
                 DownloadAccess::Code { download_codes, unlock_info } => {
                     let t_unlock_permalink = *build.locale.translations.unlock_permalink;
-                    let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_unlock_permalink]);
+                    let unlock_page_hash = build.hash_with_salt(|hasher| {
+                        self.permalink.slug.hash(hasher);
+                        t_unlock_permalink.hash(hasher);
+                    });
 
                     let unlock_page_dir = build.build_dir
                         .join(&self.permalink.slug)
                         .join(t_unlock_permalink)
-                        .join(page_hash);
+                        .join(unlock_page_hash);
 
-                    let unlock_html = render::release::unlock::unlock_html(build, catalog, self, unlock_info);
-                    util::ensure_dir_and_write_index(&unlock_page_dir, &unlock_html);
+                    let unlock_html = render::release_unlock::release_unlock_html(build, catalog, self, unlock_info);
+                    util::ensure_dir_all_and_write_index(&unlock_page_dir, &unlock_html);
+
+                    let download_html = render::release_download::release_download_html(build, catalog, self);
+                    let t_downloads_permalink = *build.locale.translations.downloads_permalink;
 
                     let download_dir = build.build_dir
                         .join(&self.permalink.slug)
                         .join(t_downloads_permalink);
 
                     for code in download_codes {
-                        // TODO: We will need to limit the code character set to url safe characters.
-                        //       Needs to be validated when reading the manifests.
                         let code_dir = download_dir.join(code);
-                        util::ensure_dir_and_write_index(&code_dir, &download_html);
+                        util::ensure_dir_all_and_write_index(&code_dir, &download_html);
                     }
                 }
+                DownloadAccess::Disabled => (),
+                DownloadAccess::External { .. } => (),
                 DownloadAccess::Free  => {
-                    let page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
+                    let download_html = render::release_download::release_download_html(build, catalog, self);
+                    let t_downloads_permalink = *build.locale.translations.downloads_permalink;
+
+                    let download_page_hash = build.hash_with_salt(|hasher| {
+                        self.permalink.slug.hash(hasher);
+                        t_downloads_permalink.hash(hasher);
+                    });
 
                     let download_page_dir = build.build_dir
                         .join(&self.permalink.slug)
                         .join(t_downloads_permalink)
-                        .join(page_hash);
+                        .join(download_page_hash);
 
-                    util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                    util::ensure_dir_all_and_write_index(&download_page_dir, &download_html);
                 }
                 DownloadAccess::Paycurtain { payment_info, price } => {
                     if let Some(payment_info) = payment_info {
                         let t_purchase_permalink = *build.locale.translations.purchase_permalink;
-                        let purchase_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_purchase_permalink]);
+                        let purchase_page_hash = build.hash_with_salt(|hasher| {
+                            self.permalink.slug.hash(hasher);
+                            t_purchase_permalink.hash(hasher);
+                        });
 
                         let purchase_page_dir = build.build_dir
                             .join(&self.permalink.slug)
                             .join(t_purchase_permalink)
                             .join(purchase_page_hash);
 
-                        let purchase_html = render::release::purchase::purchase_html(build, catalog, downloads_config, payment_info, price, self);
-                        util::ensure_dir_and_write_index(&purchase_page_dir, &purchase_html);
+                        let purchase_html = render::release_purchase::release_purchase_html(build, catalog, payment_info, price, self);
+                        util::ensure_dir_all_and_write_index(&purchase_page_dir, &purchase_html);
 
-                        let download_page_hash = build.hash_with_salt(&[&self.permalink.slug, t_downloads_permalink]);
+                        let download_html = render::release_download::release_download_html(build, catalog, self);
+                        let t_downloads_permalink = *build.locale.translations.downloads_permalink;
+
+                        let download_page_hash = build.hash_with_salt(|hasher| {
+                            self.permalink.slug.hash(hasher);
+                            t_downloads_permalink.hash(hasher);
+                        });
 
                         let download_page_dir = build.build_dir
                             .join(&self.permalink.slug)
                             .join(t_downloads_permalink)
                             .join(download_page_hash);
 
-                        util::ensure_dir_and_write_index(&download_page_dir, &download_html);
+                        util::ensure_dir_all_and_write_index(&download_page_dir, &download_html);
                     } else {
                         warn!(
                             "No payment info specified for release '{}', no purchase/download option will be displayed for this release.",
@@ -617,10 +821,6 @@ impl Release {
             }
         }
 
-        let release_dir = build.build_dir.join(&self.permalink.slug);
-        let release_html = render::release::release_html(build, catalog, self);
-        util::ensure_dir_and_write_index(&release_dir, &release_html);
-
         if let Some(base_url) = &build.base_url {
             // Render m3u playlist
             if self.m3u {
@@ -628,31 +828,153 @@ impl Release {
                 fs::write(release_dir.join("playlist.m3u"), r_m3u).unwrap();
             }
 
-            // Render embed pages
-            if self.embedding  {
-                let embed_choices_dir = release_dir.join("embed");
-                let embed_choices_html = render::release::embed::embed_choices_html(build, catalog, self, base_url);
-                util::ensure_dir_and_write_index(&embed_choices_dir, &embed_choices_html);
+            // Render release embed pages
+            if self.embedding {
+                let release_embed_codes_dir = release_dir.join("embed");
+                let release_embed_codes_html = render::release_embed_codes::release_embed_codes_html(base_url, build, catalog, self);
+                util::ensure_dir_all_and_write_index(&release_embed_codes_dir, &release_embed_codes_html);
 
-                let embed_release_dir = embed_choices_dir.join("all");
-                let embed_release_html = render::embed_release::embed_release_html(base_url, build, catalog, self);
-                util::ensure_dir_and_write_index(&embed_release_dir, &embed_release_html);
+                if self.embedding {
+                    let release_embed_dir = release_embed_codes_dir.join("all");
+                    let release_embed_html = render::release_embed::release_embed_html(base_url, build, catalog, self);
+                    util::ensure_dir_all_and_write_index(&release_embed_dir, &release_embed_html);
+                }
+            }
 
-                for (index, track) in self.tracks.iter().enumerate() {
-                    let track_number = index + 1;
-                    let embed_track_dir = embed_choices_dir.join(track_number.to_string());
-                    let embed_track_html = render::embed_track::embed_track_html(base_url, build, self, track, track_number);
-                    util::ensure_dir_and_write_index(&embed_track_dir, &embed_track_html);
+            // Render track embed pages
+            for (track, track_number) in self.tracks.iter().zip(TRACK_NUMBERS) {
+                if track.embedding {
+                    let track_embed_codes_dir = release_dir.join(track_number.to_string()).join("embed");
+                    let track_embed_codes_html = render::track_embed_codes::track_embed_codes_html(base_url, build, catalog, self, track, track_number);
+                    util::ensure_dir_all_and_write_index(&track_embed_codes_dir, &track_embed_codes_html);
+
+                    let track_embed_dir = release_dir.join("embed").join(track_number.to_string());
+                    let track_embed_html = render::track_embed::track_embed_html(base_url, build, self, track, track_number);
+                    util::ensure_dir_all_and_write_index(&track_embed_dir, &track_embed_html);
                 }
             }
         }
 
-        // Render page for each track
-        for (index, track) in self.tracks.iter().enumerate() {
-            let track_number = index + 1;
+        // Render pages for each track
+        for (track, track_number) in self.tracks.iter().zip(TRACK_NUMBERS) {
+            // Render track page
             let track_dir = release_dir.join(track_number.to_string());
             let track_html = render::track::track_html(build, catalog, self, track, track_number);
-            util::ensure_dir_and_write_index(&track_dir, &track_html);
+            util::ensure_dir_all_and_write_index(&track_dir, &track_html);
+
+            // Render track download/purchase/unlock page
+            if !track.download_formats.is_empty() ||
+               (track.extra_downloads && !track.extras.is_empty()) {
+                match &track.download_access {
+                    DownloadAccess::Code { download_codes, unlock_info } => {
+                        let t_unlock_permalink = *build.locale.translations.unlock_permalink;
+
+                        let unlock_page_hash = build.hash_with_salt(|hasher| {
+                            self.permalink.slug.hash(hasher);
+                            track_number.hash(hasher);
+                            t_unlock_permalink.hash(hasher);
+                        });
+
+                        let unlock_page_dir = build.build_dir
+                            .join(&self.permalink.slug)
+                            .join(track_number.to_string())
+                            .join(t_unlock_permalink)
+                            .join(unlock_page_hash);
+
+                        let unlock_html = render::track_unlock::track_unlock_html(
+                            build,
+                            catalog,
+                            self,
+                            track,
+                            track_number,
+                            unlock_info
+                        );
+                        util::ensure_dir_all_and_write_index(&unlock_page_dir, &unlock_html);
+
+                        let download_html = render::track_download::track_download_html(build, catalog, self, track, track_number);
+                        let t_downloads_permalink = *build.locale.translations.downloads_permalink;
+
+                        let download_dir = build.build_dir
+                            .join(&self.permalink.slug)
+                            .join(track_number.to_string())
+                            .join(t_downloads_permalink);
+
+                        for code in download_codes {
+                            let code_dir = download_dir.join(code);
+                            util::ensure_dir_all_and_write_index(&code_dir, &download_html);
+                        }
+                    }
+                    DownloadAccess::Disabled => (),
+                    DownloadAccess::External { .. } => (),
+                    DownloadAccess::Free  => {
+                        let download_html = render::track_download::track_download_html(build, catalog, self, track, track_number);
+                        let t_downloads_permalink = *build.locale.translations.downloads_permalink;
+
+                        let download_page_hash = build.hash_with_salt(|hasher| {
+                            self.permalink.slug.hash(hasher);
+                            track_number.hash(hasher);
+                            t_downloads_permalink.hash(hasher);
+                        });
+
+                        let download_page_dir = build.build_dir
+                            .join(&self.permalink.slug)
+                            .join(track_number.to_string())
+                            .join(t_downloads_permalink)
+                            .join(download_page_hash);
+
+                        util::ensure_dir_all_and_write_index(&download_page_dir, &download_html);
+                    }
+                    DownloadAccess::Paycurtain { payment_info, price } => {
+                        if let Some(payment_info) = payment_info {
+                            let t_purchase_permalink = *build.locale.translations.purchase_permalink;
+                            let purchase_page_hash = build.hash_with_salt(|hasher| {
+                                self.permalink.slug.hash(hasher);
+                                track_number.hash(hasher);
+                                t_purchase_permalink.hash(hasher);
+                            });
+
+                            let purchase_page_dir = build.build_dir
+                                .join(&self.permalink.slug)
+                                .join(track_number.to_string())
+                                .join(t_purchase_permalink)
+                                .join(purchase_page_hash);
+
+                            let purchase_html = render::track_purchase::track_purchase_html(
+                                build,
+                                catalog,
+                                payment_info,
+                                price,
+                                self,
+                                track,
+                                track_number
+                            );
+                            util::ensure_dir_all_and_write_index(&purchase_page_dir, &purchase_html);
+
+                            let download_html = render::track_download::track_download_html(build, catalog, self, track, track_number);
+                            let t_downloads_permalink = *build.locale.translations.downloads_permalink;
+
+                            let download_page_hash = build.hash_with_salt(|hasher| {
+                                self.permalink.slug.hash(hasher);
+                                track_number.hash(hasher);
+                                t_downloads_permalink.hash(hasher);
+                            });
+
+                            let download_page_dir = build.build_dir
+                                .join(&self.permalink.slug)
+                                .join(track_number.to_string())
+                                .join(t_downloads_permalink)
+                                .join(download_page_hash);
+
+                            util::ensure_dir_all_and_write_index(&download_page_dir, &download_html);
+                        } else {
+                            warn!(
+                                "No payment info specified for track '{}', no purchase/download option will be displayed for this track.",
+                                self.title
+                            );
+                        }
+                    }
+                }
+            }
         }
     }
 }

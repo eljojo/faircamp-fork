@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2024 Simon Repp
+    SPDX-FileCopyrightText: 2024-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -104,9 +104,8 @@ track_downloads:
 - opus
 - mp3
 
-downloads: paycurtain
-
-price: EUR 0+
+track_download_access: paycurtain
+track_price: EUR 0+
 
 -- payment_info
 Der Ferdl ist ein bescheidener Typ, braucht nicht viel im Leben,
@@ -124,7 +123,7 @@ file = Hauptsache Italien.png
 ```eno
 permalink: caorle-split-ep
 
-downloads: https://example.com
+release_download_access: https://example.com
 
 cover:
 description = Schwarz-Weiß-Foto vom Strand einer italienischen Küstenstadt

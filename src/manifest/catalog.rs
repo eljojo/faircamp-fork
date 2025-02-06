@@ -17,18 +17,18 @@ use crate::{
     Locale,
     Overrides
 };
-use crate::markdown;
-use crate::util::{html_escape_outside_attribute, uid};
+use crate::util::uid;
 
 use super::{
     ARTIST_CATALOG_RELEASE_OPTIONS,
+    ARTIST_CATALOG_RELEASE_TRACK_OPTIONS,
     CATALOG_RELEASE_OPTIONS,
-    MAX_SYNOPSIS_CHARS,
     attribute_error_with_snippet,
     element_error_with_snippet,
     not_supported_error,
     platform_printer,
     read_artist_catalog_release_option,
+    read_artist_catalog_release_track_option,
     read_catalog_release_option,
     read_obsolete_option
 };
@@ -49,11 +49,9 @@ const CATALOG_OPTIONS: &[&str] = &[
     "label_mode",
     "language",
     "m3u",
-    "more",
     "opengraph",
     "rotate_download_urls",
     "show_support_artists",
-    "synopsis",
     "title"
 ];
 
@@ -63,11 +61,10 @@ pub fn read_catalog_manifest(
     catalog: &mut Catalog,
     dir: &Path,
     local_options: &mut LocalOptions,
+    manifest_path: &Path,
     overrides: &mut Overrides
 ) {
-    let manifest_path = dir.join("catalog.eno");
-
-    let content = match fs::read_to_string(&manifest_path) {
+    let content = match fs::read_to_string(manifest_path) {
         Ok(content) => content,
         Err(err) => {
             let error = format!("Could not read catalog manifest {} ({err})", manifest_path.display());
@@ -87,7 +84,7 @@ pub fn read_catalog_manifest(
 
     for element in document.elements() {
         match element.key() {
-            _ if read_obsolete_option(build, element, &manifest_path) => (),
+            _ if read_obsolete_option(build, element, manifest_path) => (),
             "base_url" => 'base_url: {
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {
@@ -104,7 +101,7 @@ pub fn read_catalog_manifest(
                                 Ok(url) => build.base_url = Some(url),
                                 Err(err) => {
                                     let message = format!("The base_url setting value '{value}' is not a valid URL: {err}");
-                                    let error = element_error_with_snippet(element, &manifest_path, &message);
+                                    let error = element_error_with_snippet(element, manifest_path, &message);
                                     build.error(&error);
                                 }
                             }
@@ -117,7 +114,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "base_url needs to be provided as a field with a value, e.g.: 'base_url: https://example.com'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "cache_optimization" => 'cache_optimization: {
@@ -128,7 +125,7 @@ pub fn read_catalog_manifest(
                                 Some(strategy) => cache.optimization = strategy,
                                 None => {
                                     let message = "This cache_optimization setting was not recognized (supported values are 'delayed', 'immediate', 'manual' and 'wipe')";
-                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    let error = element_error_with_snippet(element, manifest_path, message);
                                     build.error(&error);
                                 }
                             }
@@ -139,7 +136,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "cache_optimization needs to be provided as a field with the value 'delayed', 'immediate', 'manual' or 'wipe', e.g.: 'cache_optimization: delayed'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "disable_feed" => {
@@ -147,7 +144,7 @@ pub fn read_catalog_manifest(
                     catalog.feed_enabled = false;
                 } else {
                     let message = "disable_feed needs to be provided as a flag, that is, exactly as 'disable_feed' (without colon and without value)";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
             }
@@ -164,7 +161,7 @@ pub fn read_catalog_manifest(
                                 }
                                 _ => {
                                     let message = "This faircamp_signature setting was not recognized (supported values are 'disabled' and 'enabled)";
-                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    let error = element_error_with_snippet(element, manifest_path, message);
                                     build.error(&error);
                                 }
                             }
@@ -175,7 +172,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "faircamp_signature needs to be provided as a field with the value 'disabled' or 'enabled', e.g.: 'faircamp_signature: disabled'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "favicon" => 'favicon: {
@@ -190,13 +187,13 @@ pub fn read_catalog_manifest(
                                     match Favicon::custom(absolute_path) {
                                         Ok(favicon) => catalog.favicon = favicon,
                                         Err(err) => {
-                                            let error = element_error_with_snippet(element, &manifest_path, &err);
+                                            let error = element_error_with_snippet(element, manifest_path, &err);
                                             build.error(&error);
                                         }
                                     }
                                 } else {
                                     let message = format!("The referenced file {} was not found", absolute_path.display());
-                                    let error = element_error_with_snippet(element, &manifest_path, &message);
+                                    let error = element_error_with_snippet(element, manifest_path, &message);
                                     build.error(&error);
                                 }
                             }
@@ -207,7 +204,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "favicon needs to be provided as a field with a value (relative path to an .ico/.png file), e.g.: 'favicon: favicon.png'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "feature_support_artists" => {
@@ -215,7 +212,7 @@ pub fn read_catalog_manifest(
                     catalog.feature_support_artists = true;
                 } else {
                     let message = "feature_support_artists needs to be provided as a flag, that is, exactly as 'feature_support_artists' (without colon and without value)";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
             }
@@ -231,7 +228,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "freeze_download_urls needs to be provided as a field with a value, e.g.: 'freeze_download_urls: April 2024'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "home_image" => 'home_image: {
@@ -255,7 +252,7 @@ pub fn read_catalog_manifest(
                                             path_relative_to_catalog = Some(absolute_path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf());
                                         } else {
                                             let message = format!("The referenced file was not found ({})", absolute_path.display());
-                                            let error = attribute_error_with_snippet(attribute, &manifest_path, &message);
+                                            let error = attribute_error_with_snippet(attribute, manifest_path, &message);
                                             build.error(&error);
                                         }
 
@@ -263,7 +260,7 @@ pub fn read_catalog_manifest(
                                 }
                                 _ => {
                                     let message = "The key/name of this attribute was not recognized, only 'description' and 'file' are recognized inside an home_image field";
-                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    let error = element_error_with_snippet(element, manifest_path, message);
                                     build.error(&error);
                                 }
                             }
@@ -279,7 +276,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "home_image needs to be provided as a field with attributes, e.g.:\n\nhome_image:\ndescription = Alice, looking amused\nfile = alice.jpg";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "label_mode" => {
@@ -287,7 +284,7 @@ pub fn read_catalog_manifest(
                     catalog.label_mode = true;
                 } else {
                     let message = "label_mode needs to be provided as a flag, that is, exactly as 'label_mode' (without colon and without value)";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
             }
@@ -303,7 +300,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "language needs to be provided as a field with a value, e.g.: 'language: fr'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "m3u" => 'm3u: {
@@ -328,8 +325,8 @@ pub fn read_catalog_manifest(
                                     overrides.m3u_enabled = true;
                                 }
                                 _ => {
-                                    let message = "This m3u setting was not recognized (supported values are 'catalog', 'disabled', 'enabled' and 'relases')";
-                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    let message = "This m3u setting was not recognized (supported values are 'catalog', 'disabled', 'enabled' and 'releases')";
+                                    let error = element_error_with_snippet(element, manifest_path, message);
                                     build.error(&error);
                                 }
                             }
@@ -339,22 +336,9 @@ pub fn read_catalog_manifest(
                     }
                 }
 
-                let message = "m3u needs to be provided as a field with the value 'catalog', 'disabled', 'enabled' or 'relases', e.g.: 'm3u: disable'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let message = "m3u needs to be provided as a field with the value 'catalog', 'disabled', 'enabled' or 'releases', e.g.: 'm3u: disable'";
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
-            }
-            "more" => {
-                if let Ok(embed) = element.as_embed() {
-                    if let Some(value) = embed.value() {
-                        catalog.more = Some(markdown::to_html_and_stripped(&build.base_url, value));
-                    } else {
-                        catalog.more = None;
-                    }
-                } else {
-                    let message = "The 'more' option to be provided as an embed, e.g.:\n-- more\nA text about the catalog\n--more";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
-                    build.error(&error);
-                }
             }
             "opengraph" => 'opengraph: {
                 if let Ok(field) = element.as_field() {
@@ -369,7 +353,7 @@ pub fn read_catalog_manifest(
                                 }
                                 _ => {
                                     let message = "This opengraph setting was not recognized (supported values are 'disabled' and 'enabled)";
-                                    let error = element_error_with_snippet(element, &manifest_path, message);
+                                    let error = element_error_with_snippet(element, manifest_path, message);
                                     build.error(&error);
                                 }
                             }
@@ -380,7 +364,7 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "The opengraph option needs to be provided as a field with the value 'disabled' or 'enabled', e.g.: 'opengraph: disabled'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
             "rotate_download_urls" => {
@@ -392,7 +376,7 @@ pub fn read_catalog_manifest(
                     build.url_salt = uid();
                 } else {
                     let message = "rotate_download_urls needs to be provided as a flag, that is, exactly as 'rotate_download_urls' (without colon and without value)";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
             }
@@ -401,29 +385,7 @@ pub fn read_catalog_manifest(
                     catalog.show_support_artists = true;
                 } else {
                     let message = "show_support_artists needs to be provided as a flag, that is, exactly as 'show_support_artists' (without colon and without value)";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
-                    build.error(&error);
-                }
-            }
-            "synopsis" => {
-                if let Ok(embed) = element.as_embed() {
-                    if let Some(value) = embed.value() {
-                        let synopsis_chars = value.chars().count();
-
-                        if synopsis_chars <= MAX_SYNOPSIS_CHARS {
-                            let synopsis_escaped = html_escape_outside_attribute(value);
-                            catalog.synopsis = Some(synopsis_escaped);
-                        } else {
-                            let message = format!("Synopsis is too long ({synopsis_chars}/{MAX_SYNOPSIS_CHARS} characters)");
-                            let error = element_error_with_snippet(element, &manifest_path, &message);
-                            build.error(&error);
-                        }
-                    } else {
-                        catalog.synopsis = None;
-                    }
-                } else {
-                    let message = "synopsis needs to be provided as an embed, e.g.:\n-- synopsis\nThe synopsis for the catalog\n--synopsis";
-                    let error = element_error_with_snippet(element, &manifest_path, message);
+                    let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
             }
@@ -439,18 +401,24 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "title needs to be provided as a field with a value, e.g.: 'title: My music'";
-                let error = element_error_with_snippet(element, &manifest_path, message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
-            _ if read_artist_catalog_release_option(build, cache, element, local_options, &manifest_path, overrides) => (),
-            _ if read_catalog_release_option(build, catalog, element, &manifest_path) => (),
+            _ if read_artist_catalog_release_option(build, element, manifest_path, overrides) => (),
+            _ if read_artist_catalog_release_track_option(build, cache, element, local_options, manifest_path, overrides) => (),
+            _ if read_catalog_release_option(build, catalog, element, manifest_path) => (),
             other => {
                 let message = not_supported_error(
                     "catalog.eno",
                     other,
-                    &[CATALOG_OPTIONS, ARTIST_CATALOG_RELEASE_OPTIONS, CATALOG_RELEASE_OPTIONS]
+                    &[
+                        CATALOG_OPTIONS,
+                        ARTIST_CATALOG_RELEASE_OPTIONS,
+                        ARTIST_CATALOG_RELEASE_TRACK_OPTIONS,
+                        CATALOG_RELEASE_OPTIONS
+                    ]
                 );
-                let error = element_error_with_snippet(element, &manifest_path, &message);
+                let error = element_error_with_snippet(element, manifest_path, &message);
                 build.error(&error);
             }
         }

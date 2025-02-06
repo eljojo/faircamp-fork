@@ -703,6 +703,10 @@ impl ImageRcView {
 }
 
 impl Hash for ImageRcView {
+    /// When we hash an ImageRcView we merely take into account
+    /// the source hash (based on the content of the file). This
+    /// avoids hash fluctuation based on irrelevant factors like
+    /// the source file name, location or modification date.
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.image.borrow().hash.hash(state);
     }

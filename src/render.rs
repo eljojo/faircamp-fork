@@ -20,15 +20,28 @@ use crate::{
     Track
 };
 use crate::icons;
-use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
+use crate::util::{
+    format_bytes,
+    html_double_escape_inside_attribute,
+    html_escape_inside_attribute,
+    html_escape_outside_attribute
+};
 
 pub mod artist;
 pub mod image_descriptions;
 pub mod index;
 pub mod release;
-pub mod embed_release;
-pub mod embed_track;
+pub mod release_download;
+pub mod release_embed;
+pub mod release_embed_codes;
+pub mod release_purchase;
+pub mod release_unlock;
 pub mod track;
+pub mod track_download;
+pub mod track_embed;
+pub mod track_embed_codes;
+pub mod track_purchase;
+pub mod track_unlock;
 
 pub enum CrawlerMeta {
     None,
@@ -215,7 +228,11 @@ fn compact_release_identifier(
     };
     let artists = list_release_artists(build, index_suffix, root_prefix, catalog, artists_truncation, release);
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let cover = cover_image_tiny_decorative(release_prefix, release, Some(release_link));
+    let cover = release_cover_image_tiny_decorative(
+        release,
+        release_link,
+        release_prefix
+    );
 
     format!(r#"
         <div class="release_compact">
@@ -224,6 +241,48 @@ fn compact_release_identifier(
                 <div style="font-size: 1.17rem;">
                     <a href="{release_link}">
                         {release_title_escaped}
+                    </a>
+                </div>
+                <div class="artists" style="font-size: 1.14rem;">
+                    {artists}
+                </div>
+            </div>
+        </div>
+    "#)
+}
+
+fn compact_track_identifier(
+    build: &Build,
+    catalog: &Catalog,
+    index_suffix: &str,
+    release: &Release,
+    release_prefix: &str,
+    root_prefix: &str,
+    track: &Track,
+    track_link: &str,
+    track_prefix: &str
+) -> String {
+    let artists_truncation = Truncation::Truncate {
+        max_chars: 40,
+        others_link: format!("{track_prefix}#more")
+    };
+    let artists = list_track_artists(build, index_suffix, root_prefix, catalog, artists_truncation, track);
+    let track_title_escaped = html_escape_outside_attribute(&track.title());
+    let cover = track_cover_image_tiny_decorative(
+        release,
+        release_prefix,
+        track,
+        track_link,
+        track_prefix
+    );
+
+    format!(r#"
+        <div class="release_compact">
+            {cover}
+            <div>
+                <div style="font-size: 1.17rem;">
+                    <a href="{track_link}">
+                        {track_title_escaped}
                     </a>
                 </div>
                 <div class="artists" style="font-size: 1.14rem;">
@@ -243,93 +302,6 @@ pub fn copy_button(content_key: &str, content_value: &str, copy_icon: &str, labe
             <span>{label}</span>
         </button>
     "##)
-}
-
-/// Used on release/tracks pages to display a large-size cover
-fn cover_image(
-    build: &Build,
-    index_suffix: &str,
-    release_prefix: &str,
-    root_prefix: &str,
-    release: &Release
-) -> String {
-    match &release.cover {
-        Some(described_image) => {
-            let image_ref = described_image.image.borrow();
-
-            let alt = match &described_image.description {
-                Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
-                None => String::new()
-            };
-
-            let hash = image_ref.hash.as_url_safe_base64();
-
-            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(&hash, release_prefix);
-            let thumbnail_src = thumbnail_img.src;
-            let thumbnail_srcset = thumbnail_img.srcset;
-            let thumbnail = formatdoc!(r#"
-                <a class="image" href="{thumbnail_src}" target="_blank">
-                    <img
-                        {alt}
-                        sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
-                        src="{thumbnail_src}"
-                        srcset="{thumbnail_srcset}">
-                </a>
-            "#);
-
-            let cover_ref = image_ref.cover_assets.as_ref().unwrap();
-            let overlay_img = cover_ref.img_attributes_up_to_1280(&hash, release_prefix);
-            let overlay_src = overlay_img.src;
-            let overlay_srcset = overlay_img.srcset;
-            let largest_edge_size = cover_ref.largest().edge_size;
-            let t_close = &build.locale.translations.close;
-            let overlay = formatdoc!(r#"
-                <dialog id="overlay">
-                    <form method="dialog">
-                        <button aria-label="{t_close}"></button>
-                    </form>
-                    <img
-                        {alt}
-                        height="{largest_edge_size}"
-                        loading="lazy"
-                        sizes="calc(100vmin - 4rem)"
-                        src="{overlay_src}"
-                        srcset="{overlay_srcset}"
-                        width="{largest_edge_size}">
-                </dialog>
-                <script>
-                    const overlay = document.querySelector('dialog#overlay');
-                    const thumbnailButton = document.querySelector('a.image');
-
-                    overlay.addEventListener('click', () => {{
-                        overlay.close();
-                    }});
-
-                    thumbnailButton.addEventListener('click', event => {{
-                        overlay.showModal();
-                        event.preventDefault();
-                    }});
-                </script>
-            "#);
-
-            if described_image.description.is_some() {
-                formatdoc!("
-                    {thumbnail}
-                    {overlay}
-                ")
-            } else {
-                wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
-            }
-        }
-        None => {
-            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
-            formatdoc!(r#"
-                <span aria-hidden="true" class="image">
-                    {procedural_cover_svg}
-                </span>
-            "#)
-        }
-    }
 }
 
 fn cover_tile_image(
@@ -387,34 +359,50 @@ fn cover_tile_image(
     }
 }
 
-fn cover_image_tiny_decorative(
-    release_prefix: &str,
-    release: &Release,
-    release_link: Option<&str>
-) -> String {
-    let image = match &release.cover {
-        Some(described_image) => {
-            let image_ref = described_image.image.borrow();
-            let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-            let edge_size = asset.edge_size;
-            let hash = image_ref.hash.as_url_safe_base64();
-            let src = format!("{release_prefix}cover_{edge_size}.jpg?{hash}");
+fn download_entry(href: String, label: &str, size: u64) -> String {
+    formatdoc!(
+        r#"
+            <div class="download_entry">
+                <a download href="{href}">
+                    {label}
+                </a>
+                <span class="download_underline"></span>
+                <span>{size}</span>
+            </div>
+        "#,
+        size = format_bytes(size)
+    )
+}
 
-            format!(r#"<img loading="lazy" src="{src}">"#)
-        }
-        None => {
-            release.procedural_cover.as_ref().unwrap().to_string()
-        }
-    };
+/// Returns a two-field tuple where the fields have the following use:
+/// .0 => Intended to be directly copied via copy-to-clipboard
+/// .1 => Intended to be rendered to the page, so people can copy it themselves.
+/// The title parameter provides a text that indicates to screen-reader users
+/// what to expect inside the iframe. See description at
+/// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
+fn embed_code(embed_url: &Url, title: &str) -> (String, String) {
+    let title_double_escaped = html_double_escape_inside_attribute(title);
+    let title_escaped = html_escape_inside_attribute(title);
 
-    match release_link {
-        Some(release_link) => formatdoc!(r#"
-            <a aria-hidden="true" href="{release_link}" tabindex="-1">
-                {image}
-            </a>
-        "#),
-        None => format!(r#"<span aria-hidden="true">{image}</span>"#)
-    }
+
+    let copy_code = html_escape_inside_attribute(
+        &formatdoc!(r#"
+            <iframe loading="lazy" src="{embed_url}" style="min-width: 480px;" title="{title_escaped}"></iframe>
+        "#)
+    );
+
+    let display_code = formatdoc!(r#"
+        <div class="embed_code_wrapper">
+            <pre class="embed_code"><span class="embed_syntax_special">&lt;</span>iframe
+            loading<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"lazy"</span>
+            src<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{embed_url}"</span>
+            style<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"min-width: 480px;"</span>
+            title<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{title_double_escaped}"</span><span class="embed_syntax_special">&gt;</span>
+        <span class="embed_syntax_special">&lt;/</span>iframe<span class="embed_syntax_special">&gt;</span></pre>
+        </div>
+    "#);
+
+    (copy_code, display_code)
 }
 
 fn embed_layout(
@@ -758,6 +746,120 @@ pub fn player_icon_templates(build: &Build) -> String {
     "#)
 }
 
+/// Used on release/tracks pages to display a large-size cover for the release
+fn release_cover_image(
+    build: &Build,
+    index_suffix: &str,
+    release: &Release,
+    release_prefix: &str,
+    root_prefix: &str,
+) -> String {
+    match &release.cover {
+        Some(described_image) => {
+            let image_ref = described_image.image.borrow();
+
+            let alt = match &described_image.description {
+                Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
+                None => String::new()
+            };
+
+            let hash = image_ref.hash.as_url_safe_base64();
+
+            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(&hash, release_prefix);
+            let thumbnail_src = thumbnail_img.src;
+            let thumbnail_srcset = thumbnail_img.srcset;
+            let thumbnail = formatdoc!(r#"
+                <a class="image" href="{thumbnail_src}" target="_blank">
+                    <img
+                        {alt}
+                        sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
+                        src="{thumbnail_src}"
+                        srcset="{thumbnail_srcset}">
+                </a>
+            "#);
+
+            let cover_ref = image_ref.cover_assets.as_ref().unwrap();
+            let overlay_img = cover_ref.img_attributes_up_to_1280(&hash, release_prefix);
+            let overlay_src = overlay_img.src;
+            let overlay_srcset = overlay_img.srcset;
+            let largest_edge_size = cover_ref.largest().edge_size;
+            let t_close = &build.locale.translations.close;
+            let overlay = formatdoc!(r#"
+                <dialog id="overlay">
+                    <form method="dialog">
+                        <button aria-label="{t_close}"></button>
+                    </form>
+                    <img
+                        {alt}
+                        height="{largest_edge_size}"
+                        loading="lazy"
+                        sizes="calc(100vmin - 4rem)"
+                        src="{overlay_src}"
+                        srcset="{overlay_srcset}"
+                        width="{largest_edge_size}">
+                </dialog>
+                <script>
+                    const overlay = document.querySelector('dialog#overlay');
+                    const thumbnailButton = document.querySelector('a.image');
+
+                    overlay.addEventListener('click', () => {{
+                        overlay.close();
+                    }});
+
+                    thumbnailButton.addEventListener('click', event => {{
+                        overlay.showModal();
+                        event.preventDefault();
+                    }});
+                </script>
+            "#);
+
+            if described_image.description.is_some() {
+                formatdoc!("
+                    {thumbnail}
+                    {overlay}
+                ")
+            } else {
+                wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
+            }
+        }
+        None => {
+            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
+            formatdoc!(r#"
+                <span aria-hidden="true" class="image">
+                    {procedural_cover_svg}
+                </span>
+            "#)
+        }
+    }
+}
+
+fn release_cover_image_tiny_decorative(
+    release: &Release,
+    release_link: &str,
+    release_prefix: &str
+) -> String {
+    let image = match &release.cover {
+        Some(described_image) => {
+            let image_ref = described_image.image.borrow();
+            let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+            let edge_size = asset.edge_size;
+            let hash = image_ref.hash.as_url_safe_base64();
+            let src = format!("{release_prefix}cover_{edge_size}.jpg?{hash}");
+
+            format!(r#"<img loading="lazy" src="{src}">"#)
+        }
+        None => {
+            release.procedural_cover.as_ref().unwrap().to_string()
+        }
+    };
+
+    formatdoc!(r#"
+        <a aria-hidden="true" href="{release_link}" tabindex="-1">
+            {image}
+        </a>
+    "#)
+}
+
 fn releases(
     build: &Build,
     index_suffix: &str,
@@ -813,6 +915,116 @@ fn releases(
         })
         .collect::<Vec<String>>()
         .join("\n")
+}
+
+/// Used on track pages to display a large-size cover for the track
+fn track_cover_image(
+    build: &Build,
+    cover: &DescribedImage,
+    index_suffix: &str,
+    root_prefix: &str
+) -> String {
+    let image_ref = cover.image.borrow();
+    let track_prefix = "";
+
+    let alt = match &cover.description {
+        Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
+        None => String::new()
+    };
+
+    let hash = image_ref.hash.as_url_safe_base64();
+
+    let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(&hash, track_prefix);
+    let thumbnail_src = thumbnail_img.src;
+    let thumbnail_srcset = thumbnail_img.srcset;
+    let thumbnail = formatdoc!(r#"
+        <a class="image" href="{thumbnail_src}" target="_blank">
+            <img
+                {alt}
+                sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
+                src="{thumbnail_src}"
+                srcset="{thumbnail_srcset}">
+        </a>
+    "#);
+
+    let cover_ref = image_ref.cover_assets.as_ref().unwrap();
+    let overlay_img = cover_ref.img_attributes_up_to_1280(&hash, track_prefix);
+    let overlay_src = overlay_img.src;
+    let overlay_srcset = overlay_img.srcset;
+    let largest_edge_size = cover_ref.largest().edge_size;
+    let t_close = &build.locale.translations.close;
+    let overlay = formatdoc!(r#"
+        <dialog id="overlay">
+            <form method="dialog">
+                <button aria-label="{t_close}"></button>
+            </form>
+            <img
+                {alt}
+                height="{largest_edge_size}"
+                loading="lazy"
+                sizes="calc(100vmin - 4rem)"
+                src="{overlay_src}"
+                srcset="{overlay_srcset}"
+                width="{largest_edge_size}">
+        </dialog>
+        <script>
+            const overlay = document.querySelector('dialog#overlay');
+            const thumbnailButton = document.querySelector('a.image');
+
+            overlay.addEventListener('click', () => {{
+                overlay.close();
+            }});
+
+            thumbnailButton.addEventListener('click', event => {{
+                overlay.showModal();
+                event.preventDefault();
+            }});
+        </script>
+    "#);
+
+    if cover.description.is_some() {
+        formatdoc!("
+            {thumbnail}
+            {overlay}
+        ")
+    } else {
+        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
+    }
+}
+
+fn track_cover_image_tiny_decorative(
+    release: &Release,
+    release_prefix: &str,
+    track: &Track,
+    track_link: &str,
+    track_prefix: &str
+) -> String {
+    let image = if let Some(described_image) = &track.cover {
+        let image_ref = described_image.image.borrow();
+        let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+        let edge_size = asset.edge_size;
+        let hash = image_ref.hash.as_url_safe_base64();
+        let src = format!("{track_prefix}cover_{edge_size}.jpg?{hash}");
+
+        format!(r#"<img loading="lazy" src="{src}">"#)
+    } else if let Some(described_image) = &release.cover {
+        let image_ref = described_image.image.borrow();
+        let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
+        let edge_size = asset.edge_size;
+        let hash = image_ref.hash.as_url_safe_base64();
+        let src = format!("{release_prefix}cover_{edge_size}.jpg?{hash}");
+
+        format!(r#"<img loading="lazy" src="{src}">"#)
+    } else {
+        // TODO: Do we want procedural track covers, in general?
+        release.procedural_cover.as_ref().unwrap().to_string()
+    };
+
+    formatdoc!(r#"
+        <a aria-hidden="true" href="{track_link}" tabindex="-1">
+            {image}
+        </a>
+    "#)
 }
 
 /// Pass in a Vec holding tuples containing the char count and plain name or

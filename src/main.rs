@@ -24,6 +24,7 @@ mod decode;
 mod deploy;
 mod download_format;
 mod downloads;
+mod fair_dir;
 mod favicon;
 mod feed;
 mod ffmpeg;
@@ -63,7 +64,8 @@ use cache::{Cache, CacheOptimization, View};
 use catalog::Catalog;
 use cover_generator::CoverGenerator;
 use download_format::DownloadFormat;
-use downloads::{DownloadAccess, DownloadOption, Downloads, DownloadsConfig, ExtraDownloads, Price};
+use downloads::{DownloadAccess, DownloadAccessOption, ExtraDownloads, Price};
+use fair_dir::FairDir;
 use favicon::Favicon;
 use heuristic_audio_meta::HeuristicAudioMeta;
 use crate::image::{DescribedImage, Image, ImageRc, ImageRcView};
@@ -73,7 +75,7 @@ use locale::Locale;
 use manifest::{LocalOptions, Overrides};
 use markdown::HtmlAndStripped;
 use permalink::{Permalink, PermalinkUsage};
-use release::{Extra, Release, ReleaseRc};
+use release::{Extra, Release, ReleaseRc, TRACK_NUMBERS};
 use render::{CrawlerMeta, OpenGraphImage, OpenGraphMeta};
 use scripts::Scripts;
 use source_file_signature::{FileMeta, SourceHash};
@@ -176,9 +178,9 @@ fn main() -> ExitCode {
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
     
-    // Render page for each release
+    // Render pages for each release (including playlists, track pages, embeds, etc.)
     for release in &catalog.releases {
-        release.borrow_mut().write_files(&mut build, &catalog);
+        release.borrow_mut().write_pages_and_playlist_files(&mut build, &catalog);
     }
 
     // Render pages for featured artists (these are populated only in label mode)

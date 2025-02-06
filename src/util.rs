@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::ffi::OsString;
@@ -34,12 +34,12 @@ impl Hash for HashableF32 {
     }
 }
 
-pub fn ensure_dir(dir: &Path) {
+pub fn ensure_dir_all(dir: &Path) {
     fs::create_dir_all(dir).unwrap();
 }
 
-pub fn ensure_dir_and_write_index(dir: &Path, html: &str) {
-    ensure_dir(dir);
+pub fn ensure_dir_all_and_write_index(dir: &Path, html: &str) {
+    ensure_dir_all(dir);
     fs::write(dir.join("index.html"), html).unwrap();
 }
 

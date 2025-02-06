@@ -5,22 +5,17 @@ use std::ops::Range;
 
 use iso_currency::Currency;
 
-use crate::DownloadFormat;
-
-#[derive(Clone, Debug)]
-pub enum DownloadOption {
-    Code,
-    Disabled,
-    External { link: String },
-    Free,
-    Paycurtain
-}
+use crate::Overrides;
 
 #[derive(Clone, Debug)]
 pub enum DownloadAccess {
     Code {
         download_codes: Vec<String>,
         unlock_info: Option<String>
+    },
+    Disabled,
+    External {
+        link: String
     },
     Free,
     Paycurtain {
@@ -29,24 +24,19 @@ pub enum DownloadAccess {
     }
 }
 
+/// This is the "proto-version" of DownloadAccess, which for us stores just
+/// the general setting that is supplied through "release_download_access"
+/// and "track_download_access" in the manifests. When we store download
+/// access settings on discrete instances of Release or Track, we combine
+/// this information with payment, price and/or unlock info and form the
+/// final DownloadAccess enum (see the assemble() method).
 #[derive(Clone, Debug)]
-pub enum Downloads {
+pub enum DownloadAccessOption {
+    Code,
     Disabled,
-    Empty,
-    Enabled {
-        download_access: DownloadAccess,
-        downloads_config: DownloadsConfig
-    },
-    External {
-        link: String
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct DownloadsConfig {
-    pub extra_downloads: ExtraDownloads,
-    pub release_formats: Vec<DownloadFormat>,
-    pub track_formats: Vec<DownloadFormat>
+    External { link: String },
+    Free,
+    Paycurtain
 }
 
 #[derive(Clone, Debug)]
@@ -61,58 +51,23 @@ pub struct Price {
     pub range: Range<f32>
 }
 
-impl DownloadsConfig {
-    pub fn all_formats(&self) -> Vec<DownloadFormat> {
-        let mut all_formats = self.release_formats.clone();
-
-        for format in &self.track_formats {
-            if !all_formats.contains(format) {
-                all_formats.push(*format);
+impl DownloadAccessOption {
+    /// Combines DownloadAccess with payment, price and/or unlock info
+    /// in order to form the final DownloadAccess data.
+    pub fn assemble(&self, overrides: &Overrides) -> DownloadAccess {
+        match &self {
+            DownloadAccessOption::Code => DownloadAccess::Code {
+                download_codes: overrides.download_codes.clone(),
+                unlock_info: overrides.unlock_info.clone()
+            },
+            DownloadAccessOption::Disabled => DownloadAccess::Disabled,
+            DownloadAccessOption::External { link } => DownloadAccess::External { link: link.clone() },
+            DownloadAccessOption::Free => DownloadAccess::Free,
+            DownloadAccessOption::Paycurtain => DownloadAccess::Paycurtain {
+                payment_info: overrides.payment_info.clone(),
+                price: overrides.release_price.clone()
             }
         }
-
-        all_formats
-    }
-
-    /// (format, write_archive, write_tracks)
-    pub fn all_formats_for_writing(&self) -> Vec<(DownloadFormat, bool, bool)> {
-        let mut all_specs: Vec<(DownloadFormat, bool, bool)> = self.release_formats
-            .iter()
-            .map(|format| (*format, true, false))
-            .collect();
-
-        for format in &self.track_formats {
-            if let Some(spec) = all_specs.iter_mut().find(|spec| spec.0 == *format) {
-                spec.2 = true;
-            } else {
-                all_specs.push((*format, false, true));
-            }
-        }
-
-        all_specs
-    }
-
-    pub fn all_formats_sorted(&self) -> Vec<DownloadFormat> {
-        let mut all_formats = self.all_formats();
-        all_formats.sort_by_key(|format| format.download_rank());
-        all_formats
-    }
-
-    pub fn default() -> DownloadsConfig {
-        DownloadsConfig {
-            extra_downloads: ExtraDownloads::BUNDLED,
-            release_formats: Vec::new(),
-            track_formats: Vec::new()
-        }
-    }
-
-    /// If there are no formats configured and no separate extras for
-    /// download, this download config provides no downloads at all, and this
-    /// is the check for that condition.
-    pub fn is_empty(&self) -> bool {
-        self.release_formats.is_empty() &&
-        self.track_formats.is_empty() &&
-        !self.extra_downloads.separate
     }
 }
 
