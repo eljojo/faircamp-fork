@@ -270,6 +270,7 @@ button:not(.link).disabled,
     align-items: center;
     display: flex;
 }
+.volume:not(.interactive) { display: none; }
 .volume input {
     opacity: 0;
     margin-inline-end: 0;

@@ -35,6 +35,24 @@ const volume = {
     level: 1
 };
 
+// When a page loads we start with the assumption that volume is read-only
+// (hence during the initial load, volume controls are hidden), but
+// immediately run an asynchronous routine to determine if volume is
+// adjustable - if it is we append a class to the volume controls container
+// so that by the time the visitor initiates audio playback they can see the
+// volume controls. The reason for this quirky stuff is that Apple's iOS
+// devices intentionally don't allow application-level volume control and
+// therefore the web audio API on these devices features a read-only volume
+// property on audio elements.
+let volumeProbe = new Audio();
+const volumeProbeHandler = () => {
+    volume.container.classList.add('interactive');
+    volumeProbe.removeEventListener('volumechange', volumeProbeHandler);
+    volumeProbe = null;
+};
+volumeProbe.addEventListener('volumechange', volumeProbeHandler);
+volumeProbe.volume = 0.123;
+
 const persistedVolume = localStorage.getItem('faircampVolume');
 if (persistedVolume !== null) {
     const level = parseFloat(persistedVolume);
