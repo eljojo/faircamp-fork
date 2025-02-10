@@ -13,6 +13,7 @@ use crate::{
     Build,
     Catalog,
     DescribedImage,
+    ImgAttributes,
     Release,
     ReleaseRc,
     Scripts,
@@ -163,12 +164,17 @@ fn artist_image(
     };
 
     let hash = image_ref.hash.as_url_safe_base64();
-    let poster_fixed_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fixed(&hash, permalink, root_prefix);
-    let poster_fluid_img = image_ref.artist_assets.as_ref().unwrap().img_attributes_fluid(&hash, permalink, root_prefix);
 
-    let src_fixed = poster_fixed_img.src;
-    let srcset_fixed = poster_fixed_img.srcset;
-    let srcset_fluid = poster_fluid_img.srcset;
+    let ImgAttributes { src: src_fixed, srcset: srcset_fixed } = image_ref.artist_assets
+        .as_ref()
+        .unwrap()
+        .img_attributes_fixed(&hash, permalink, root_prefix);
+
+    let ImgAttributes { srcset: srcset_fluid, .. } = image_ref.artist_assets
+        .as_ref()
+        .unwrap()
+        .img_attributes_fluid(&hash, permalink, root_prefix);
+
     let poster = formatdoc!(r#"
         <span class="home_image">
             <picture>
@@ -324,9 +330,12 @@ fn cover_tile_image(
 
             let hash = image_ref.hash.as_url_safe_base64();
 
-            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_320(&hash, release_prefix);
-            let thumbnail_src = thumbnail_img.src;
-            let thumbnail_srcset = thumbnail_img.srcset;
+            let ImgAttributes { src, srcset } = image_ref.cover_assets
+                .as_ref()
+                .unwrap()
+                .img_attributes_up_to_320(&hash, release_prefix);
+
+            // TODO: Re-evaluate if the 'sizes' attribute still reflects circumstances of the current layout
             let thumbnail = formatdoc!(r#"
                 <a href="{href}">
                     <img
@@ -338,8 +347,8 @@ fn cover_tile_image(
                             (min-width: 15rem) calc((100vw - 3rem) * 0.5),
                             calc(100vw - 2rem)
                         "
-                        src="{thumbnail_src}"
-                        srcset="{thumbnail_srcset}">
+                        src="{src}"
+                        srcset="{srcset}">
                 </a>
             "#);
 
@@ -350,10 +359,26 @@ fn cover_tile_image(
             }
         }
         None => {
-            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
+            let ImgAttributes { src, srcset } = release.procedural_cover
+                .as_ref()
+                .unwrap()
+                .borrow()
+                .img_attributes_all_sizes(release_prefix);
+
+            // TODO: Re-evaluate if the 'sizes' attribute still reflects circumstances of the current layout
             formatdoc!(r#"
                 <a aria-hidden="true" href="{href}">
-                    {procedural_cover_svg}
+                    <img
+                        class="procedural"
+                        loading="lazy"
+                        sizes="
+                            (min-width: 60rem) 20rem,
+                            (min-width: 30rem) calc((100vw - 4rem) * 0.333),
+                            (min-width: 15rem) calc((100vw - 3rem) * 0.5),
+                            calc(100vw - 2rem)
+                        "
+                        src="{src}"
+                        srcset="{srcset}">
                 </a>
             "#)
         }
@@ -765,24 +790,28 @@ fn release_cover_image(
 
             let hash = image_ref.hash.as_url_safe_base64();
 
-            let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(&hash, release_prefix);
-            let thumbnail_src = thumbnail_img.src;
-            let thumbnail_srcset = thumbnail_img.srcset;
+            let ImgAttributes { src: thumb_src, srcset: thumb_srcset } = image_ref.cover_assets
+                .as_ref()
+                .unwrap()
+                .img_attributes_up_to_480(&hash, release_prefix);
+
             let thumbnail = formatdoc!(r#"
-                <a class="image" href="{thumbnail_src}" target="_blank">
+                <a class="image" href="{thumb_src}" target="_blank">
                     <img
                         {alt}
                         sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
-                        src="{thumbnail_src}"
-                        srcset="{thumbnail_srcset}">
+                        src="{thumb_src}"
+                        srcset="{thumb_srcset}">
                 </a>
             "#);
 
             let cover_ref = image_ref.cover_assets.as_ref().unwrap();
-            let overlay_img = cover_ref.img_attributes_up_to_1280(&hash, release_prefix);
-            let overlay_src = overlay_img.src;
-            let overlay_srcset = overlay_img.srcset;
+
+            let ImgAttributes { src: overlay_src, srcset: overlay_srcset } = cover_ref
+                .img_attributes_up_to_1280(&hash, release_prefix);
+
             let largest_edge_size = cover_ref.largest().edge_size;
+
             let t_close = &build.locale.translations.close;
             let overlay = formatdoc!(r#"
                 <dialog id="overlay">
@@ -823,10 +852,26 @@ fn release_cover_image(
             }
         }
         None => {
-            let procedural_cover_svg = release.procedural_cover.as_ref().unwrap();
+            let ImgAttributes { src, srcset } = release.procedural_cover
+                .as_ref()
+                .unwrap()
+                .borrow()
+                .img_attributes_all_sizes(release_prefix);
+
+            // TODO: Re-evaluate if the 'sizes' attribute still reflects circumstances of the current layout
             formatdoc!(r#"
                 <span aria-hidden="true" class="image">
-                    {procedural_cover_svg}
+                    <img
+                        class="procedural"
+                        loading="lazy"
+                        sizes="
+                            (min-width: 60rem) 20rem,
+                            (min-width: 30rem) calc((100vw - 4rem) * 0.333),
+                            (min-width: 15rem) calc((100vw - 3rem) * 0.5),
+                            calc(100vw - 2rem)
+                        "
+                        src="{src}"
+                        srcset="{srcset}">
                 </span>
             "#)
         }
@@ -849,7 +894,10 @@ fn release_cover_image_tiny_decorative(
             format!(r#"<img loading="lazy" src="{src}">"#)
         }
         None => {
-            release.procedural_cover.as_ref().unwrap().to_string()
+            let procedural_cover = release.procedural_cover.as_ref().unwrap();
+            let filename = procedural_cover.borrow().filename_120();
+            let src = format!("{release_prefix}{filename}");
+            format!(r#"<img class="procedural" loading="lazy" src="{src}">"#)
         }
     };
 
@@ -934,24 +982,28 @@ fn track_cover_image(
 
     let hash = image_ref.hash.as_url_safe_base64();
 
-    let thumbnail_img = image_ref.cover_assets.as_ref().unwrap().img_attributes_up_to_480(&hash, track_prefix);
-    let thumbnail_src = thumbnail_img.src;
-    let thumbnail_srcset = thumbnail_img.srcset;
+    let ImgAttributes { src: thumb_src, srcset: thumb_srcset } = image_ref.cover_assets
+        .as_ref()
+        .unwrap()
+        .img_attributes_up_to_480(&hash, track_prefix);
+
     let thumbnail = formatdoc!(r#"
-        <a class="image" href="{thumbnail_src}" target="_blank">
+        <a class="image" href="{thumb_src}" target="_blank">
             <img
                 {alt}
                 sizes="(min-width: 20rem) 20rem, calc(100vw - 2rem)"
-                src="{thumbnail_src}"
-                srcset="{thumbnail_srcset}">
+                src="{thumb_src}"
+                srcset="{thumb_srcset}">
         </a>
     "#);
 
     let cover_ref = image_ref.cover_assets.as_ref().unwrap();
-    let overlay_img = cover_ref.img_attributes_up_to_1280(&hash, track_prefix);
-    let overlay_src = overlay_img.src;
-    let overlay_srcset = overlay_img.srcset;
+
+    let ImgAttributes { src: overlay_src, srcset: overlay_srcset } = cover_ref
+        .img_attributes_up_to_1280(&hash, track_prefix);
+
     let largest_edge_size = cover_ref.largest().edge_size;
+
     let t_close = &build.locale.translations.close;
     let overlay = formatdoc!(r#"
         <dialog id="overlay">
@@ -1017,7 +1069,10 @@ fn track_cover_image_tiny_decorative(
         format!(r#"<img loading="lazy" src="{src}">"#)
     } else {
         // TODO: Do we want procedural track covers, in general?
-        release.procedural_cover.as_ref().unwrap().to_string()
+        let procedural_cover = release.procedural_cover.as_ref().unwrap();
+        let filename = procedural_cover.borrow().filename_120();
+        let src = format!("{release_prefix}{filename}");
+        format!(r#"<img class="procedural" loading="lazy" src="{src}">"#)
     };
 
     formatdoc!(r#"

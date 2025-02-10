@@ -36,6 +36,7 @@ use crate::{
     Link,
     m3u,
     Permalink,
+    ProceduralCoverRc,
     render,
     TagMapping,
     Theme,
@@ -117,7 +118,7 @@ pub struct Release {
     pub more_label: Option<String>,
     pub permalink: Permalink,
     /// Lazily generated when there is no regular cover
-    pub procedural_cover: Option<String>,
+    pub procedural_cover: Option<ProceduralCoverRc>,
     /// Relative path of the release directory in the catalog directory.
     /// This is used to augment permalink conflict errors with additional
     /// info for resolving the conflict.
@@ -184,6 +185,14 @@ impl Release {
                 let hash = image_ref.hash.as_url_safe_base64();
                 format!("cover_{edge_size}.jpg?{hash}")
             })
+    }
+
+    /// Returns the file name of the procedural release cover without any
+    /// prefixing (i.e. in the context of the release directory). Only call if
+    /// you know there is one present, otherwise will panic.
+    pub fn cover_image_procedural_micro_src(&self) -> String {
+        let procedural_cover = self.procedural_cover.as_ref().unwrap();
+        procedural_cover.borrow().filename_120()
     }
 
     /// It is critical that every last detail of this hashing implementation

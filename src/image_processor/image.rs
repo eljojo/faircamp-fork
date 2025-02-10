@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use ::image::{DynamicImage, ImageFormat};
@@ -25,19 +25,38 @@ impl ImageProcessor {
         ImageProcessor
     }
 
-    pub fn open(&self, build: &Build, path: &Path) -> ImageInMemory {
-        let unknown_representation = image::open(build.catalog_dir.join(path)).unwrap();
+    /// Open an image and drop the alpha channel right away. This is used
+    /// when we process images with jpeg as target format, i.e. for all
+    /// user-supplied images.
+    pub fn open_opaque(&self, absolute_path: &Path) -> ImageInMemory {
+        let unknown_representation = image::open(absolute_path).unwrap();
 
-        // Since image 0.25.0, alpha channels must be manually dropped before saving to
-        // a format that does not support alpha channels. As we export exclusively to jpeg
-        // formats, we always drop any present alpha channels right after we open any image
-        // for further processing.
+        // Since image 0.25.0, alpha channels must be manually dropped before
+        // saving to a format that does not support alpha channels. As we
+        // export exclusively to jpeg formats in the
+        // open_opaque/resize_opaque chain, we always drop any present alpha
+        // channels right after we open any image for further processing.
         let dynamic_image = DynamicImage::ImageRgb8(unknown_representation.into_rgb8());
 
         ImageInMemory { dynamic_image }
     }
 
-    pub fn resize(
+    // TODO: This was initially implemented to resize procedural covers (png format)
+    //       to smaller sizes, but it turned out that generation at different sizes
+    //       is both faster and visually more attractive. We're keeping around this
+    //       code though because opening/resizing transparent images might be of
+    //       interest at a future point.
+    // /// Open an image and keep the alpha channel. This is used when we process
+    // /// procedural cover images with transparent png as target format.
+    // pub fn open_transparent(&self, absolute_path: &Path) -> ImageInMemory {
+    //     let dynamic_image = image::open(absolute_path).unwrap();
+
+    //     ImageInMemory { dynamic_image }
+    // }
+
+    /// Resizing for opaque images, targeting jpeg as output format. Coincidentally
+    /// this is for all user-supplied images.
+    pub fn resize_opaque(
         &self,
         build: &Build,
         image_in_memory: &ImageInMemory,
@@ -138,4 +157,31 @@ impl ImageProcessor {
             }
         }
     }
+
+    // TODO: This was initially implemented to resize procedural covers (png format)
+    //       to smaller sizes, but it turned out that generation at different sizes
+    //       is both faster and visually more attractive. We're keeping around this
+    //       code though because opening/resizing transparent images might be of
+    //       interest at a future point.
+    // /// Resizing for transparent images, targeting png as output format. Coincidentally
+    // /// this is for all procedurally generated cover images.
+    // pub fn resize_transparent(
+    //     &self,
+    //     build: &Build,
+    //     image_in_memory: &ImageInMemory,
+    //     _source_edge_size: u32, // Only used in the libvips implementation of this function
+    //     target_edge_size: u32
+    // ) -> String {
+    //     let original = &image_in_memory.dynamic_image;
+    //     let resized = original.resize(target_edge_size, target_edge_size, FilterType::Lanczos3);
+
+    //     let output_filename = format!("{}.png", util::uid());
+    //     let output_path = build.cache_dir.join(&output_filename);
+
+    //     let mut output_file = File::create(output_path).unwrap();
+
+    //     resized.write_to(&mut output_file, ImageFormat::Png).unwrap();
+
+    //     output_filename
+    // }
 }

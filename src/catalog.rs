@@ -26,6 +26,8 @@ use crate::{
     ImageRcView,
     Link,
     PermalinkUsage,
+    ProceduralCover,
+    ProceduralCoverAsset,
     Release,
     ReleaseRc,
     TagMapping,
@@ -1286,7 +1288,7 @@ impl Catalog {
 
     /// Writes all images (catalog home image, release/track covers, theme
     /// background images) and streaming audio files.
-    pub fn write_assets(&mut self, build: &mut Build) {
+    pub fn write_assets(&mut self, build: &mut Build, cache: &mut Cache) {
         if let Some(image) = &self.theme.background_image {
             write_background_image(build, image);
         }
@@ -1384,8 +1386,32 @@ impl Catalog {
 
                 image_mut.persist_to_cache(&build.cache_dir);
             } else {
-                let t_auto_generated_cover = &build.locale.translations.auto_generated_cover;
-                let procedural_cover = self.theme.cover_generator.generate(t_auto_generated_cover, &release_mut, max_tracks_in_release);
+                let procedural_cover = cache.get_or_create_procedural_cover(
+                    build,
+                    &release_mut.theme.cover_generator,
+                    max_tracks_in_release,
+                    &release_mut,
+                );
+
+                {
+                    let mut procedural_cover_mut = procedural_cover.borrow_mut();
+
+                    let mut write_to_build = |asset: &ProceduralCoverAsset, target_filename: &str| {
+                        util::hard_link_or_copy(
+                            build.cache_dir.join(&asset.filename),
+                            release_dir.join(target_filename)
+                        );
+                        build.stats.add_image(asset.filesize_bytes);
+                    };
+
+                    write_to_build(&procedural_cover_mut.asset_120, ProceduralCover::FILENAME_120);
+                    write_to_build(&procedural_cover_mut.asset_240, ProceduralCover::FILENAME_240);
+                    write_to_build(&procedural_cover_mut.asset_480, ProceduralCover::FILENAME_480);
+                    write_to_build(&procedural_cover_mut.asset_720, ProceduralCover::FILENAME_720);
+
+                    procedural_cover_mut.unmark_stale();
+                }
+
                 release_mut.procedural_cover = Some(procedural_cover);
             }
 

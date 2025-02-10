@@ -64,8 +64,9 @@ for (const release of RELEASES) {
         imgRelease = document.createElement('img');
         imgRelease.src = rootPrefix + release.url + release.cover;
     } else {
-        imgRelease = document.createElement('span');
-        imgRelease.classList.add('placeholder');
+        imgRelease = document.createElement('img');
+        imgRelease.classList.add('procedural');
+        imgRelease.src = rootPrefix + release.url + release.coverProcedural;
     }
 
     const aText = document.createElement('a');

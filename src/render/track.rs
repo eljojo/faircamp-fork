@@ -178,7 +178,8 @@ pub fn track_html(
     } else if let Some(src) = release.cover_image_micro_src() {
         format!(r#"<img aria-hidden="true" src="../{src}">"#)
     } else {
-        String::from(r#"<span class="cover_placeholder"></span>"#)
+        let src = release.cover_image_procedural_micro_src();
+        format!(r#"<img aria-hidden="true" class="procedural" src="../{src}">"#)
     };
 
     let play_icon = icons::play(&translations.play);

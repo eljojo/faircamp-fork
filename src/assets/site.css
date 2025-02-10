@@ -480,12 +480,10 @@ img {
     height: 100%;
     width: 100%;
 }
-.image img,
-.image svg {
+.image img {
     aspect-ratio: 1;
     width: 100%;
 }
-.image svg { height: 100%; }
 .large_type { font-size: 1.4rem; }
 .layout {
     display: grid;
@@ -612,10 +610,6 @@ pre { margin: 0; }
     margin-bottom: .5rem;
     width: 100%;
 }
-.release a svg {
-    max-height: 100%;
-    max-width: 100%;
-}
 .release img {
     border-radius: var(--cover-border-radius);
     width: 100%;
@@ -632,10 +626,6 @@ pre { margin: 0; }
 .release_compact > :first-child {
     height: 4rem;
     width: 4rem;
-}
-.release_compact > :first-child svg {
-    max-height: 100%;
-    max-width: 100%;
 }
 .release_compact img { border-radius: var(--cover-border-radius); }
 .release_info { font-size: 1.14rem; }
@@ -728,8 +718,6 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 .track.active .track_playback:hover {
     background: var(--mg-acc-overlay);
 }
-.track .track_playback .cover_placeholder { background: var(--mg); }
-.track .track_playback .cover_placeholder,
 .track .track_playback img {
     border-radius: .3rem;
     bottom: 0;

@@ -352,7 +352,8 @@ impl Image {
         } else {
             info_resizing!("{:?} for usage as an artist image", &source_path);
 
-            let image_in_memory = build.image_processor.open(build, source_path);
+            let absolute_source_path = build.catalog_dir.join(source_path);
+            let image_in_memory = build.image_processor.open_opaque(&absolute_source_path);
             let source_width = image_in_memory.width() as f32;
 
             // Compute fixed sizes.
@@ -455,10 +456,11 @@ impl Image {
         } else {
             info_resizing!("{:?} for usage as a background image", &source_path);
 
-            let image_in_memory = build.image_processor.open(build, source_path);
+            let absolute_source_path = build.catalog_dir.join(source_path);
+            let image_in_memory = build.image_processor.open_opaque(&absolute_source_path);
 
             let resize_mode = ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE };
-            let (filename, _dimensions) = build.image_processor.resize(build, &image_in_memory, resize_mode);
+            let (filename, _dimensions) = build.image_processor.resize_opaque(build, &image_in_memory, resize_mode);
 
             self.background_asset.replace(Asset::new(build, filename, asset_intent));
         }
@@ -472,7 +474,7 @@ impl Image {
         image_in_memory: &ImageInMemory,
         resize_mode: ResizeMode
     ) -> ArtistAsset {
-        let (filename, dimensions) = build.image_processor.resize(
+        let (filename, dimensions) = build.image_processor.resize_opaque(
             build,
             image_in_memory,
             resize_mode
@@ -494,7 +496,7 @@ impl Image {
         image_in_memory: &ImageInMemory,
         resize_mode: ResizeMode
     ) -> CoverAsset {
-        let (filename, dimensions) = build.image_processor.resize(
+        let (filename, dimensions) = build.image_processor.resize_opaque(
             build,
             image_in_memory,
             resize_mode
@@ -522,7 +524,8 @@ impl Image {
         } else {
             info_resizing!("{:?} for usage as a cover image", source_path);
 
-            let image_in_memory = build.image_processor.open(build, source_path);
+            let absolute_source_path = build.catalog_dir.join(source_path);
+            let image_in_memory = build.image_processor.open_opaque(&absolute_source_path);
             let source_width = image_in_memory.width() as f32;
 
             let resize_mode_max_160 = ResizeMode::CoverSquare { edge_size: 160 };
@@ -594,9 +597,10 @@ impl Image {
         } else {
             info_resizing!("{:?} for usage as a feed image", &source_path);
 
-            let image_in_memory = build.image_processor.open(build, source_path);
+            let absolute_source_path = build.catalog_dir.join(source_path);
+            let image_in_memory = build.image_processor.open_opaque(&absolute_source_path);
 
-            let (filename, _dimensions) = build.image_processor.resize(
+            let (filename, _dimensions) = build.image_processor.resize_opaque(
                 build,
                 &image_in_memory,
                 ResizeMode::ContainInSquare { max_edge_size: FEED_MAX_EDGE_SIZE }
@@ -713,6 +717,10 @@ impl Hash for ImageRcView {
 }
 
 impl ImgAttributes {
+    pub fn new(src: String, srcset: String) -> ImgAttributes {
+        ImgAttributes { src, srcset }
+    }
+
     /// Assets MUST be passed in ascending size
     pub fn new_for_artist(
         assets_ascending_by_size: Vec<&ArtistAsset>,

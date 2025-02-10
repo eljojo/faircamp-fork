@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 use std::fs;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::mem;
 use std::path::Path;
 
@@ -15,10 +16,14 @@ use crate::{
     Asset,
     AudioMeta,
     Build,
+    CoverGenerator,
     FileMeta,
     Image,
     ImageRc,
     ImageRcView,
+    ProceduralCover,
+    ProceduralCoverRc,
+    Release,
     SourceHash,
     Transcodes,
     TranscodesRc,
@@ -58,6 +63,7 @@ pub struct Cache {
     /// and can therefore be removed.
     manifests: Vec<String>,
     pub optimization: CacheOptimization,
+    pub procedural_covers: Vec<ProceduralCoverRc>,
     pub transcodes: Vec<TranscodesRc>
 }
 
@@ -142,6 +148,22 @@ fn report_stale_images(
     }
 }
 
+fn report_stale_procedural_cover(
+    procedural_cover: &ProceduralCoverRc,
+    num_unused: &mut u32,
+    unused_bytesize: &mut u64
+) {
+    let procedural_cover_ref = procedural_cover.borrow();
+
+    if procedural_cover_ref.is_stale() {
+        *num_unused += 1;
+        *unused_bytesize += procedural_cover_ref.asset_120.filesize_bytes;
+        *unused_bytesize += procedural_cover_ref.asset_240.filesize_bytes;
+        *unused_bytesize += procedural_cover_ref.asset_480.filesize_bytes;
+        *unused_bytesize += procedural_cover_ref.asset_720.filesize_bytes;
+    }
+}
+
 fn report_stale_transcodes(
     transcodes: &TranscodesRc,
     num_unused: &mut u32,
@@ -181,6 +203,10 @@ impl Cache {
 
         for image in &self.images {
             self.maintain_image(image, build);
+        }
+
+        for procedural_cover in &self.procedural_covers {
+            self.maintain_procedural_cover(procedural_cover, build);
         }
 
         for transcodes in &self.transcodes {
@@ -314,6 +340,24 @@ impl Cache {
         }
     }
 
+    fn maintain_procedural_cover(&self, procedural_cover: &ProceduralCoverRc, build: &Build) {
+        let procedural_cover_ref = procedural_cover.borrow();
+
+        if self.obsolete(build, &procedural_cover_ref.marked_stale) {
+            let signature = procedural_cover_ref.signature;
+
+            info_cache!("Removed cached procedural cover assets with signature {}.", signature);
+
+            let _ = fs::remove_file(build.cache_dir.join(&procedural_cover_ref.asset_120.filename));
+            let _ = fs::remove_file(build.cache_dir.join(&procedural_cover_ref.asset_240.filename));
+            let _ = fs::remove_file(build.cache_dir.join(&procedural_cover_ref.asset_480.filename));
+            let _ = fs::remove_file(build.cache_dir.join(&procedural_cover_ref.asset_720.filename));
+            let _ = fs::remove_file(procedural_cover_ref.manifest_path(&build.cache_dir));
+        } else {
+            procedural_cover_ref.persist_to_cache(&build.cache_dir);
+        }
+    }
+
     fn maintain_transcodes(&self, transcodes: &TranscodesRc, build: &Build) {
         let mut transcodes_mut = transcodes.borrow_mut();
 
@@ -375,6 +419,10 @@ impl Cache {
             image.borrow_mut().mark_all_stale(timestamp);
         }
 
+        for procedural_cover in self.procedural_covers.iter_mut() {
+            procedural_cover.borrow_mut().mark_stale(timestamp);
+        }
+
         for transcodes in self.transcodes.iter_mut() {
             transcodes.borrow_mut().mark_all_stale(timestamp);
         }
@@ -387,13 +435,15 @@ impl Cache {
             images: Vec::new(),
             manifests: Vec::new(),
             optimization: CacheOptimization::Default,
+            procedural_covers: Vec::new(),
             transcodes: Vec::new()
         }
     }
 
-    /// Gets passed the `marked_stale` option of some asset-like entity ([Asset], [ArtistAssets], [CoverAssets])
-    /// and based on cache_optimization and build begin time decides whether that entity can be considered
-    /// obsolete (i.e.: removable).
+    /// Gets passed the `marked_stale` option of some asset-like entity ([Asset],
+    /// [ArtistAssets], [CoverAssets], [ProceduralCoverAssets]) and based
+    /// on cache_optimization and build begin time decides whether that
+    /// entity can be considered obsolete (i.e.: removable).
     pub fn obsolete(&self, build: &Build, marked_stale: &Option<DateTime<Utc>>) -> bool {
         match marked_stale {
             Some(date_time) => {
@@ -416,6 +466,8 @@ impl Cache {
                 self.retrieve_archives(build, &file_name);
             } else if file_name.ends_with(&format!(".{}.bincode", Image::CACHE_SERIALIZATION_KEY)) {
                 self.retrieve_image(build, &file_name);
+            } else if file_name.ends_with(&format!(".{}.bincode", ProceduralCover::CACHE_SERIALIZATION_KEY)) {
+                self.retrieve_procedural_cover(build, &file_name);
             } else if file_name.ends_with(&format!(".{}.bincode", Transcodes::CACHE_SERIALIZATION_KEY)) {
                 self.retrieve_transcodes(build, &file_name);
             } else {
@@ -464,7 +516,7 @@ impl Cache {
         for (file_name, used) in self.assets.drain() {
             if !used {
                 info!(
-                    "Removing orphaned cache asset ({}) - it was probably created with a different version of faircamp.",
+                    "Removing orphaned cache asset ({}).",
                     file_name
                 );
                 let _ = fs::remove_file(cache_dir.join(file_name));
@@ -484,13 +536,17 @@ impl Cache {
             report_stale_images(image, &mut num_unused, &mut unused_bytesize);
         }
 
+        for procedural_cover in &self.procedural_covers {
+            report_stale_procedural_cover(procedural_cover, &mut num_unused, &mut unused_bytesize);
+        }
+
         for transcodes in &self.transcodes {
             report_stale_transcodes(transcodes, &mut num_unused, &mut unused_bytesize);
         }
 
         if num_unused > 0 {
             info_cache!(
-                "{} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to to remove them and reclaim {} of disk space.",
+                "{} cached assets were identified as obsolete - you can run 'faircamp --optimize-cache' to remove them and reclaim {} of disk space.",
                 num_unused,
                 util::format_bytes(unused_bytesize)
             );
@@ -653,7 +709,41 @@ impl Cache {
             let _ = fs::remove_file(manifest_path);
         }
     }
-    
+
+    fn retrieve_procedural_cover(&mut self, build: &Build, file_name: &str) {
+        let manifest_path = build.cache_dir.join(file_name);
+
+        if let Some(procedural_cover) = ProceduralCover::deserialize_cached(&manifest_path) {
+            if self.assets.contains_key(&procedural_cover.asset_120.filename) &&
+                self.assets.contains_key(&procedural_cover.asset_240.filename) &&
+                self.assets.contains_key(&procedural_cover.asset_480.filename) &&
+                self.assets.contains_key(&procedural_cover.asset_720.filename) {
+
+                // All asset references have been verified, mark all as used
+                *self.assets.get_mut(&procedural_cover.asset_120.filename).unwrap() = true;
+                *self.assets.get_mut(&procedural_cover.asset_240.filename).unwrap() = true;
+                *self.assets.get_mut(&procedural_cover.asset_480.filename).unwrap() = true;
+                *self.assets.get_mut(&procedural_cover.asset_720.filename).unwrap() = true;
+
+                self.procedural_covers.push(ProceduralCoverRc::new(procedural_cover));
+            } else {
+                // If a single procedural cover asset is in a corrupt state
+                // (cached file missing) we drop the entire procedural cover
+                // by letting all assets become orphaned so the cache removes
+                // them afterwards.
+
+                // Throw away the manifest
+                let _ = fs::remove_file(&manifest_path);
+            }
+        } else {
+            info!(
+                "Removing incompatible procedural cover cache manifest ({}) - it was probably created with a different version of faircamp.",
+                file_name
+            );
+            let _ = fs::remove_file(&manifest_path);
+        }
+    }
+
     fn retrieve_transcodes(&mut self, build: &Build, file_name: &str) {
         let manifest_path = build.cache_dir.join(file_name);
 
@@ -750,6 +840,51 @@ impl Cache {
         let image = ImageRc::new(file_meta.clone(), hash);
         self.images.push(image.clone());
         ImageRcView::new(file_meta, image)
+    }
+
+    /// This basically checks "Do we have a cached procedural cover with the
+    /// hash signature that uniquely identifies the procedural cover?"
+    pub fn get_or_create_procedural_cover(
+        &mut self,
+        build: &Build,
+        cover_generator: &CoverGenerator,
+        max_tracks_in_release: usize,
+        release: &Release
+    ) -> ProceduralCoverRc {
+        // Compute a signature for the needed cover, factoring in all data
+        // that is used in the generation of the cover (cover generator,
+        // maximum number of tracks on any release in the catalog, peaks of
+        // the tracks).
+        let mut hasher = DefaultHasher::new();
+        cover_generator.hash(&mut hasher);
+        max_tracks_in_release.hash(&mut hasher);
+        release.theme.base.hash(&mut hasher);
+        for track in &release.tracks {
+            track.transcodes.borrow().hash.hash(&mut hasher);
+        }
+        let signature = hasher.finish();
+
+        // If we already have a cached procedural cover matching the signature, return it
+        for procedural_cover in &self.procedural_covers {
+            if procedural_cover.borrow().signature == signature {
+                return procedural_cover.clone();
+            }
+        }
+
+        // Otherwise generate the cover, persist it to cache and return it
+        let procedural_cover = cover_generator.generate(
+            build,
+            max_tracks_in_release,
+            release,
+            signature
+        );
+
+        let procedural_cover_rc = ProceduralCoverRc::new(procedural_cover);
+
+        procedural_cover_rc.borrow().persist_to_cache(&build.cache_dir);
+
+        self.procedural_covers.push(procedural_cover_rc.clone());
+        procedural_cover_rc
     }
 
     /// Obtain transcodes by either reviving a view or computing a new

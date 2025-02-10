@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #[cfg(not(target_os = "windows"))]
@@ -54,6 +54,15 @@ macro_rules! info_decoding {
     ($format_str:expr $(,$args:expr)*) => {
         println!(
             concat!(color!(magenta), "[DECODING] ", $format_str, color!(reset))
+            $(,$args)*
+        )
+    };
+}
+
+macro_rules! info_generating {
+    ($format_str:expr $(,$args:expr)*) => {
+        println!(
+            concat!(color!(blue), "[GENERATING] ", $format_str, color!(reset))
             $(,$args)*
         )
     };

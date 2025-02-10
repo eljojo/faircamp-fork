@@ -1,3 +1,4 @@
+body.invert_procedural .procedural { filter: invert(100%); }
 .theming_widget {
     bottom: 6rem;
     box-sizing: border-box;

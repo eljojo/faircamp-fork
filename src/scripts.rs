@@ -65,9 +65,10 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                 .map(|(track, track_number)| {
                     let track_number_formatted = release_ref.track_numbering.format(track_number);
 
-                    let r_cover = match track.cover_image_micro_src() {
-                        Some(src) => format!("cover: '{src}',"),
-                        None => String::new()
+                    let r_cover = if let Some(src) = track.cover_image_micro_src() {
+                        format!("cover: '{src}',")
+                    } else {
+                        String::new()
                     };
 
                     let track_title_escaped = js_escape_inside_single_quoted_string(&track.title());
@@ -127,9 +128,11 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                 String::new()
             };
 
-            let r_cover = match release_ref.cover_image_micro_src() {
-                Some(src) => format!("cover: '{src}',"),
-                None => String::new()
+            let r_cover = if let Some(src) = release_ref.cover_image_micro_src() {
+                format!("cover: '{src}',")
+            } else {
+                let src = release_ref.cover_image_procedural_micro_src();
+                format!("coverProcedural: '{src}',")
             };
             let release_title_escaped = js_escape_inside_single_quoted_string(&release_ref.title);
 

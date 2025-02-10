@@ -43,7 +43,13 @@ pub fn generate_for_artist(base_url: &Url, build: &Build, artist: &Artist) -> St
 
                     format!("#EXTIMG:{file_url}?{hash}")
                 }
-                None => String::new()
+                None => {
+                    let procedural_cover = release_ref.procedural_cover.as_ref().unwrap();
+                    let file_name = procedural_cover.borrow().filename_480();
+                    let file_url = release_url.join(&file_name).unwrap();
+
+                    format!("#EXTIMG:{file_url}")
+                }
             };
 
             formatdoc!(r#"
@@ -100,7 +106,13 @@ pub fn generate_for_catalog(base_url: &Url, build: &Build, catalog: &Catalog) ->
 
                     format!("#EXTIMG:{file_url}?{hash}")
                 }
-                None => String::new()
+                None => {
+                    let procedural_cover = release_ref.procedural_cover.as_ref().unwrap();
+                    let file_name = procedural_cover.borrow().filename_480();
+                    let file_url = release_url.join(&file_name).unwrap();
+
+                    format!("#EXTIMG:{file_url}")
+                }
             };
 
             formatdoc!(r#"
@@ -150,7 +162,13 @@ pub fn generate_for_release(base_url: &Url, build: &Build, release: &Release) ->
 
             format!("#EXTIMG:{file_url}?{hash}")
         }
-        None => String::new()
+        None => {
+            let procedural_cover = release.procedural_cover.as_ref().unwrap();
+            let file_name = procedural_cover.borrow().filename_480();
+            let file_url = release_url.join(&file_name).unwrap();
+
+            format!("#EXTIMG:{file_url}")
+        }
     };
 
     formatdoc!(r#"

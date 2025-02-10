@@ -63,13 +63,13 @@ use audio_meta::AudioMeta;
 use build::{Build, PostBuildAction};
 use cache::{Cache, CacheOptimization, View};
 use catalog::Catalog;
-use cover_generator::CoverGenerator;
+use cover_generator::{CoverGenerator, ProceduralCover, ProceduralCoverAsset, ProceduralCoverRc};
 use download_format::DownloadFormat;
 use downloads::{DownloadAccess, DownloadAccessOption, ExtraDownloads, Price};
 use fair_dir::FairDir;
 use favicon::Favicon;
 use heuristic_audio_meta::HeuristicAudioMeta;
-use crate::image::{DescribedImage, Image, ImageRc, ImageRcView};
+use crate::image::{DescribedImage, Image, ImgAttributes, ImageRc, ImageRcView};
 use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
 use link::Link;
 use locale::Locale;
@@ -153,7 +153,7 @@ fn main() -> ExitCode {
     // Generation of scripts depends on final image assets and paths being
     // available, hence the assets (audio and image files) are the first
     // thing we compute.
-    catalog.write_assets(&mut build);
+    catalog.write_assets(&mut build, &mut cache);
 
     // Rendering of the actual pages (html) depends on assets hashes
     // (for css/favicon/js assets) being available, hence these are the

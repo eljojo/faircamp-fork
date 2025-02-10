@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use libvips::{VipsApp, VipsImage};
@@ -32,13 +32,32 @@ impl ImageProcessor {
         ImageProcessor { vips_app }
     }
 
-    pub fn open(&self, build: &Build, path: &Path) -> ImageInMemory {
-        let vips_image = VipsImage::new_from_file(&build.catalog_dir.join(path).to_string_lossy()).unwrap();
+    /// In the libvips implementation open_opaque and open_transparent are
+    /// identical, only for the image crate implementation the differentation
+    /// is necessary.
+    pub fn open_opaque(&self, absolute_path: &Path) -> ImageInMemory {
+        let vips_image = VipsImage::new_from_file(&absolute_path.to_string_lossy()).unwrap();
 
         ImageInMemory { vips_image }
     }
 
-    pub fn resize(
+    // TODO: This was initially implemented to resize procedural covers (png format)
+    //       to smaller sizes, but it turned out that generation at different sizes
+    //       is both faster and visually more attractive. We're keeping around this
+    //       code though because opening/resizing transparent images might be of
+    //       interest at a future point.
+    // /// In the libvips implementation open_opaque and open_transparent are
+    // /// identical, only for the image crate implementation the differentation
+    // /// is necessary.
+    // pub fn open_transparent(&self, absolute_path: &Path) -> ImageInMemory {
+    //     let vips_image = VipsImage::new_from_file(&absolute_path.to_string_lossy()).unwrap();
+
+    //     ImageInMemory { vips_image }
+    // }
+
+    /// Resizing for opaque images, targeting jpeg as output format. Coincidentally
+    /// this is for all user-supplied images.
+    pub fn resize_opaque(
         &self,
         build: &Build,
         image_in_memory: &ImageInMemory,
@@ -149,4 +168,33 @@ impl ImageProcessor {
             }
         }
     }
+
+    // TODO: This was initially implemented to resize procedural covers (png format)
+    //       to smaller sizes, but it turned out that generation at different sizes
+    //       is both faster and visually more attractive. We're keeping around this
+    //       code though because opening/resizing transparent images might be of
+    //       interest at a future point.
+    // /// Resizing for transparent images, targeting png as output format. Coincidentally
+    // /// this is for all procedurally generated cover images.
+    // pub fn resize_transparent(
+    //     &self,
+    //     build: &Build,
+    //     image_in_memory: &ImageInMemory,
+    //     source_edge_size: u32,
+    //     target_edge_size: u32
+    // ) -> String {
+    //     let original = &image_in_memory.vips_image;
+
+    //     let resized = ops::resize(original, target_edge_size as f64 / source_edge_size as f64).unwrap();
+
+    //     let output_filename = format!("{}.png", util::uid());
+
+    //     let result = ops::pngsave(&resized, &build.cache_dir.join(&output_filename).to_string_lossy());
+
+    //     if let Err(_) = result {
+    //         println!("error: {}", self.vips_app.error_buffer().unwrap());
+    //     }
+
+    //     output_filename
+    // }
 }

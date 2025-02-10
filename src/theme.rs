@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2024 Simon Repp
+// SPDX-FileCopyrightText: 2022-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // According to https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl the
@@ -72,27 +72,6 @@ pub struct ThemeVarsOklch {
     pub middleground_accent_lightness_range: Range<f32>,
     pub middleground_lightness: f32,
     pub veil_alpha_range: Range<f32>
-}
-
-impl CoverGenerator {
-    pub const ALL_GENERATORS: [&'static str; 5] = [
-        "best_rillen",
-        "glass_splinters",
-        "looney_tunes",
-        "scratchy_faint_rillen",
-        "space_time_rupture"
-    ];
-
-    pub fn from_manifest_key(key: &str) -> Option<CoverGenerator> {
-        match key {
-            "best_rillen" => Some(CoverGenerator::BestRillen),
-            "glass_splinters" => Some(CoverGenerator::GlassSplinters),
-            "looney_tunes" => Some(CoverGenerator::LooneyTunes),
-            "scratchy_faint_rillen" => Some(CoverGenerator::ScratchyFaintRillen),
-            "space_time_rupture" => Some(CoverGenerator::SpaceTimeRupture),
-            _ => None
-        }
-    }
 }
 
 impl Theme {
@@ -191,6 +170,18 @@ impl Theme {
                 --mg-acc-overlay: {mg_acc_overlay};
             }}
         "#)
+    }
+
+    /// Procedural covers are raster images generated in RGB color space,
+    /// hence its generation can not utilize the regular OKLCH-based theme
+    /// variables. For the only currently relevant color in procedural cover
+    /// generation (stroke color) we therefore manually specify it in "RGB
+    /// lightness" (the value to be used for the R, G and B component alike).
+    pub fn procedural_cover_stroke_lightness(&self) -> f32 {
+        match self.base {
+            ThemeBase::Dark => 1.0,
+            ThemeBase::Light => 0.0
+        }
     }
 
     pub fn stylesheet_filename(&self) -> String {

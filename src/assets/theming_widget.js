@@ -147,6 +147,13 @@ function updateCssVariables() {
 
     const themeVars = base === 'dark' ? DARK_THEME : LIGHT_THEME;
 
+    // Procedural covers are generated as png images at build time, right now
+    // they only pick up the dark/light base characteristic from the theme.
+    // To interactively adjust them to the theme at runtime we therefore can
+    // invert them through a css filter attribute to approximate their look
+    // when they are regenerated.
+    document.body.classList.toggle('invert_procedural', base !== BUILD_OPTIONS['base']);
+
     const {
         background1LightnessRange, // based on dynamicRange
         background2LightnessRange, // based on dynamicRange

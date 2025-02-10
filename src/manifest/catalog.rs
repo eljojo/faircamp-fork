@@ -76,6 +76,7 @@ pub fn read_catalog_manifest(
     let document = match enolib::parse_with_printer(&content, platform_printer()) {
         Ok(document) => document,
         Err(err) => {
+            // TODO: enolib would benefit from snippet printing for parse errors - currently not supported
             let error = format!("Syntax error in {}:{} ({err})", manifest_path.display(), err.line);
             build.error(&error);
             return
