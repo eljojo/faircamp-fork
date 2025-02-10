@@ -130,7 +130,7 @@ impl FairDir {
                                     )
                                 ) {
                                 if extension == "eno" {
-                                    let error = format!("A manifest named '{}' was encountered at '{}', but this name is not recognized (allowed ones are 'artist.eno', 'catalog.eno' and 'release.eno')", path.file_name().unwrap().to_string_lossy(), path.display());
+                                    let error = format!("A manifest named '{}' was encountered at '{}', but this name is not recognized (allowed ones are 'artist.eno', 'catalog.eno', 'release.eno', and 'track.eno')", path.file_name().unwrap().to_string_lossy(), path.display());
                                     build.error(&error);
                                 } else if SUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
                                     fair_dir.audio_files.push(path);

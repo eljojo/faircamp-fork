@@ -134,7 +134,7 @@ pub fn read_obsolete_option(
             build.error(&error);
         }
         "embedding" if element.is_section() => {
-            let message = "Since faircamp 1.0 the embedding option must be specified as 'embedding: enabled|disabled' inside an 'artist.eno', 'catalog.eno' or 'release.eno' manifest, please move and adapt the current definiton accordingly.";
+            let message = "Since faircamp 1.0 the embedding option must be specified as 'embedding: enabled|disabled' inside an 'artist.eno', 'catalog.eno', 'release.eno' or 'track.eno' manifest, please move and adapt the current definiton accordingly.";
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }

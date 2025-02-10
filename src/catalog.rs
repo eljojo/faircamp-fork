@@ -583,16 +583,6 @@ impl Catalog {
                 continue;
             }
 
-            if fair_subdir.release_manifest.is_some() {
-                self.read_release_dir(
-                    build,
-                    cache,
-                    fair_subdir,
-                    finalized_overrides
-                );
-                continue;
-            }
-
             if fair_subdir.audio_files.len() == 1 {
                 let result = self.read_track_dir(
                     build,
@@ -833,7 +823,7 @@ impl Catalog {
                 extras.push(Extra::new(file_meta));
             }
 
-            let download_access = finalized_overrides.release_download_access.assemble(&finalized_overrides);
+            let download_access = finalized_overrides.release_download_access.assemble(finalized_overrides);
 
             let release_dir_relative_to_catalog = fair_dir.path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
 
@@ -880,7 +870,7 @@ impl Catalog {
             transcodes.borrow().source_meta.artists.to_vec()
         };
 
-        let download_access = overrides.track_download_access.assemble(&overrides);
+        let download_access = overrides.track_download_access.assemble(overrides);
         let theme = overrides.theme.clone();
 
         Track::new(
@@ -1094,6 +1084,11 @@ impl Catalog {
                 fair_dir,
                 parent_overrides
             );
+            return;
+        }
+
+        for dir_path in &fair_dir.dirs {
+            self.read_unknown_dir(build, cache, &parent_overrides, dir_path);
         }
     }
 
