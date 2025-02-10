@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -248,3 +248,15 @@ If you want to uninstall faircamp at any point, run:
 ```bash
 cargo uninstall faircamp
 ```
+
+## Additional build options
+
+Both the `faircamp` application and the `manual` can be built with an override
+package version, which is primarily used to distribute prerelase builds and
+documentation for testing with a temporary updated version such as `2.0.0~pre1`:
+
+```
+FAIRCAMP_PKG_VERSION=2.0.0~pre1 cargo build --features libvips --locked
+```
+
+
