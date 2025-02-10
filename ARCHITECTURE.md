@@ -38,9 +38,16 @@ release.
 Faircamp uses the following cascade of conditions to determine main and
 support artists, with the first that applies outranking the ones below in
 priority:
-- Manifest options `release.artist`, `release.artists` (`release.support_artist` and `release.support_artists` are *planned* to be added soon but don't exist yet)
-- `Album Artist` tag (if present on any audio file(s) in the release) adds the given artist to the main artists
-- If no `Album Artist` tag is present on any track, the artist encountered in the `Artist` tag on the highest number of tracks will be the main artist (the others will appear as support artists), in case of a tie, all artists with the same highest number of track appearances will become main artists.
+- Manifest options `release.artist`, `release.artists`
+  (`release.support_artist` and `release.support_artists` are *planned*
+  to be added soon but don't exist yet)
+- `Album Artist` tag (if present on any audio file(s) in the release)
+  adds the given artist to the main artists
+- If no `Album Artist` tag is present on any track, the artist encountered
+  in the `Artist` tag on the highest number of tracks will be the main
+  artist (the others will appear as support artists), in case of a tie,
+  all artists with the same highest number of track appearances will
+  become main artists.
 
 ## Steps/algorithm to arrive at catalog.artist
 
