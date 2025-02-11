@@ -5,6 +5,15 @@
 
 # Changelog
 
+## 1.2
+
+- Introduce track directories, manifests and new discrete release/track options (c3662b5, 85fddde)
+- Hide volume controls when volume is read-only (primarily for browsers on iOS) (5aedf10)
+- Escape all relevant content in opengraph metadata (ceae35f)
+- Add catalan translations (5d361c2)
+- Update polish translations (3f463fc)
+- Update italian translations (ad1ad9f)
+
 ## 1.1.1
 
 - Update french translations (Élie Khalil, 1173b6b)
@@ -12,7 +21,7 @@
 - Fix critical artist M3U playlist generation issue (Sunny, 3336f57)
 - Fix release embed track links (Sunny, 5aa03e3)
 
-## 1.1.0
+## 1.1
 
 ### New functionality
 
@@ -34,7 +43,7 @@
 - Update swedish translations (Filip, cc0dc7e)
 - Update norwegian translations (Mathias, d80e5a6)
 
-## 1.0.0
+## 1.0
 
 ### Manifests
 
