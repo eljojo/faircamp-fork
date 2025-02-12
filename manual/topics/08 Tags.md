@@ -43,6 +43,7 @@ Same tags as Ogg Vorbis and Opus - see Ogg Vorbis.
 ## ID3
 
 Tag decoding for ID3 uses the [id3](https://github.com/polyfloyd/rust-id3) crate.
+If a file has both ID3v1 and ID3v2 tags, only the v2 one is read.
 
 License: TCR [2.2] / TCOP [2.3, 2.4] (Copyright) (tbd)
 Release title: TALB (Album)
