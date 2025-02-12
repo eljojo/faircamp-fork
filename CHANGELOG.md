@@ -10,9 +10,9 @@
 - Introduce track directories, manifests and new discrete release/track options (c3662b5, 85fddde)
 - Hide volume controls when volume is read-only (primarily for browsers on iOS) (5aedf10)
 - Escape all relevant content in opengraph metadata (ceae35f)
-- Add catalan translations (5d361c2)
-- Update polish translations (3f463fc)
-- Update italian translations (ad1ad9f)
+- Add catalan translations (Elx Cat, 5d361c2)
+- Update polish translations (janinainfa, 3f463fc)
+- Update italian translations (Tommaso Croce, ad1ad9f)
 
 ## 1.1.1
 
