@@ -64,6 +64,7 @@ Damian Szetela<br>
 [Kristoffer Lislegaard](https://lisleg.com/)<br>
 [Léon van Kammen](https://2wa.isvery.ninja)<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
+[lnicola](https://codeberg.org/lnicola)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Lorenzo's Music](https://www.lorenzosmusic.com)<br>
 [Mac Chaffee](https://www.macchaffee.com)<br>
@@ -83,6 +84,7 @@ Damian Szetela<br>
 [rakoo](https://codeberg.org/rakoo)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Samæ](https://samae.demer.se/)<br>
+[Sandro Santilli](https://strk.kbt.io/)<br>
 [session](https://codeberg.org/session)<br>
 [sknob](https://sknob.fr/)<br>
 [Sunny](https://sny.sh)<br>
