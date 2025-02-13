@@ -64,7 +64,7 @@ Damian Szetela<br>
 [Kristoffer Lislegaard](https://lisleg.com/)<br>
 [Léon van Kammen](https://2wa.isvery.ninja)<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
-[lnicola](https://codeberg.org/lnicola)<br>
+[lnicola](https://dend.ro/)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Lorenzo's Music](https://www.lorenzosmusic.com)<br>
 [Mac Chaffee](https://www.macchaffee.com)<br>
