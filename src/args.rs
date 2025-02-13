@@ -1,7 +1,9 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
+// SPDX-FileCopyrightText: 2025 Sandro Santilli
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use clap::Parser;
+use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
@@ -75,13 +77,13 @@ pub struct Args {
     #[clap(long = "preview", short = 'p')]
     pub preview: bool,
 
+    /// Can be set in conjunction with --preview to manually configure the ip used by the preview server (otherwise faircamp chooses 127.0.0.1 on its own)
+    #[clap(long = "preview-ip")]
+    pub preview_ip: Option<IpAddr>,
+
     /// Can be set in conjunction with --preview to manually configure the port used by the preview server (otherwise faircamp chooses an available port on its own)
     #[clap(long = "preview-port")]
     pub preview_port: Option<u16>,
-
-    /// Can be set in conjunction with --preview to manually configure the ip used by the preview server (otherwise faircamp chooses 127.0.0.1 on its own)
-    #[clap(long = "preview-ip")]
-    pub preview_ip: Option<std::net::IpAddr>,
 
     /// Injects a small widget into the page which allows you to interactively explore different theme color configurations
     #[clap(long = "theming-widget")]

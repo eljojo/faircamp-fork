@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2021-2025 Simon Repp
+// SPDX-FileCopyrightText: 2025 Sandro Santilli
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::collections::hash_map::{DefaultHasher, HashMap};
 use std::env;
 use std::hash::{Hash, Hasher};
+use std::net::IpAddr;
 use std::path::PathBuf;
 
 use base64::Engine;
@@ -79,7 +81,10 @@ pub struct Build {
 pub enum PostBuildAction {
     None,
     Deploy,
-    Preview { port: Option<u16>, ip: Option<std::net::IpAddr> }
+    Preview {
+        ip: Option<IpAddr>,
+        port: Option<u16>
+    }
 }
 
 pub struct Stats {
@@ -229,8 +234,8 @@ impl PostBuildAction {
             }
         } else if args.preview {
             PostBuildAction::Preview {
-                port: args.preview_port,
-                ip: args.preview_ip
+                ip: args.preview_ip,
+                port: args.preview_port
             }
         } else {
             PostBuildAction::None

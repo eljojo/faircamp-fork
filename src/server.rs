@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
+// SPDX-FileCopyrightText: 2025 Sandro Santilli
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use actix_files::Files;
 use actix_web::{App, HttpServer};
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::{Path, PathBuf};
-use std::net::{Ipv4Addr,IpAddr};
 
 const DEFAULT_PREVIEW_IP: IpAddr = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 const DEFAULT_PREVIEW_PORT: u16 = 8080;
@@ -16,8 +17,8 @@ const DEFAULT_PREVIEW_PORT: u16 = 8080;
 const MAX_PORT_ATTEMPTS: u16 = 10;
 
 #[actix_web::main]
-pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>, ip_requested: Option<IpAddr>) {
-    let bind_server = |build_dir_moving: PathBuf, port: u16, ip: IpAddr| {
+pub async fn serve_preview(build_dir: &Path, ip_requested: Option<IpAddr>, port_requested: Option<u16>) {
+    let bind_server = |build_dir_moving: PathBuf, ip: IpAddr, port: u16| {
         HttpServer::new(move || {
             App::new()
                 .service(
@@ -32,7 +33,7 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>, ip_req
     let ip = ip_requested.unwrap_or(DEFAULT_PREVIEW_IP);
 
     let (server, port_bound) = if let Some(port) = port_requested {
-        match bind_server(build_dir.to_owned(), port, ip) {
+        match bind_server(build_dir.to_owned(), ip, port) {
             Ok(server) => (server, port),
             Err(err) => {
                 error!("Could not bind preview server to {}:{} ({})", ip, port, err);
@@ -43,7 +44,7 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>, ip_req
         let mut port = DEFAULT_PREVIEW_PORT;
 
         loop {
-            match bind_server(build_dir.to_owned(), port, ip) {
+            match bind_server(build_dir.to_owned(), ip, port) {
                 Ok(server) => break (server, port),
                 Err(err) => {
                     if port > DEFAULT_PREVIEW_PORT + MAX_PORT_ATTEMPTS {

@@ -1,5 +1,5 @@
 <!--
-    SPDX-FileCopyrightText: 2023-2024 Simon Repp
+    SPDX-FileCopyrightText: 2023-2025 Simon Repp
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -19,4 +19,6 @@ That said here's a glimpse at some particularly interesting ones:
 - `--manual` Opens the faircamp manual in your browser, does not do anything else
 - `--no-clean-urls` Generate full links, e.g. "/my-album/index.html" instead of "/my-album/". Creates a build that is fully browsable from your local disk without a webserver
 - `--preview` Locally previews the build in the browser after the build is finished (usually spins up an http server, except for builds with `--no-clean-urls` which can be directly browsed)
+- `--preview-ip` Can be set in conjunction with --preview to manually configure the ip used by the preview server (otherwise faircamp chooses 127.0.0.1 on its own)
+- `--preview-port` Can be set in conjunction with --preview to manually configure the port used by the preview server (otherwise faircamp chooses an available port on its own)
 - `--theming-widget` Injects a small widget into the page which allows you to interactively explore different theme color configurations (see the reference page for `Theme`)
