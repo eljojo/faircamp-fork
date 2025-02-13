@@ -79,7 +79,7 @@ pub struct Build {
 pub enum PostBuildAction {
     None,
     Deploy,
-    Preview { port: Option<u16> }
+    Preview { port: Option<u16>, ip: Option<std::net::IpAddr> }
 }
 
 pub struct Stats {
@@ -229,7 +229,8 @@ impl PostBuildAction {
             }
         } else if args.preview {
             PostBuildAction::Preview {
-                port: args.preview_port
+                port: args.preview_port,
+                ip: args.preview_ip
             }
         } else {
             PostBuildAction::None

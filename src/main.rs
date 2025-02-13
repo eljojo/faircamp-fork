@@ -244,7 +244,7 @@ fn main() -> ExitCode {
                 deploy::deploy(&build);
             }
         }
-        PostBuildAction::Preview { port } => {
+        PostBuildAction::Preview { port, ip } => {
             if build.clean_urls || build.theming_widget {
                 // Here we serve the preview through an actual http server. In
                 // the case of clean urls, so that /foo/ gets resolved
@@ -252,7 +252,7 @@ fn main() -> ExitCode {
                 // because it can only retain its localStorage state across
                 // pages if the origin (in this case http://localhost:xxxx/) is
                 // stable (and not file://...).
-                server::serve_preview(&build.build_dir, port);
+                server::serve_preview(&build.build_dir, port, ip);
             } else {
                 // We don't need an actively running server to preview a build
                 // without clean urls, we can just open everything directly in

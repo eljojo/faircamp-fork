@@ -4,8 +4,9 @@
 use actix_files::Files;
 use actix_web::{App, HttpServer};
 use std::path::{Path, PathBuf};
+use std::net::{Ipv4Addr,IpAddr};
 
-const PREVIEW_IP: &str = "127.0.0.1";
+const DEFAULT_PREVIEW_IP: IpAddr = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 const DEFAULT_PREVIEW_PORT: u16 = 8080;
 
 /// When DEFAULT_PREVIEW_PORT is unavailable, we try DEFAULT_PREVIEW_PORT + 1,
@@ -15,8 +16,8 @@ const DEFAULT_PREVIEW_PORT: u16 = 8080;
 const MAX_PORT_ATTEMPTS: u16 = 10;
 
 #[actix_web::main]
-pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
-    let bind_server = |build_dir_moving: PathBuf, port: u16| {
+pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>, ip_requested: Option<IpAddr>) {
+    let bind_server = |build_dir_moving: PathBuf, port: u16, ip: IpAddr| {
         HttpServer::new(move || {
             App::new()
                 .service(
@@ -25,14 +26,16 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
                         .index_file("index.html")
                 )
         })
-            .bind((PREVIEW_IP, port))
+            .bind((ip, port))
     };
 
+    let ip = ip_requested.unwrap_or(DEFAULT_PREVIEW_IP);
+
     let (server, port_bound) = if let Some(port) = port_requested {
-        match bind_server(build_dir.to_owned(), port) {
+        match bind_server(build_dir.to_owned(), port, ip) {
             Ok(server) => (server, port),
             Err(err) => {
-                error!("Could not bind preview server to {}:{} ({})", PREVIEW_IP, port, err);
+                error!("Could not bind preview server to {}:{} ({})", ip, port, err);
                 return
             }
         }
@@ -40,13 +43,13 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
         let mut port = DEFAULT_PREVIEW_PORT;
 
         loop {
-            match bind_server(build_dir.to_owned(), port) {
+            match bind_server(build_dir.to_owned(), port, ip) {
                 Ok(server) => break (server, port),
                 Err(err) => {
                     if port > DEFAULT_PREVIEW_PORT + MAX_PORT_ATTEMPTS {
                         error!(
-                            "Could not bind preview server to {} on any port in the range {}-{} (last error was {}).\nUse --preview-port to manually set a port and/or check that no other issue is at play.",
-                            PREVIEW_IP,
+                            "Could not bind preview server to {} on any port in the range {}-{} (last error was {}).\nUse --preview-port to manually set a port, --preview-ip to manually set an ip and/or check that no other issue is at play.",
+                            ip,
                             DEFAULT_PREVIEW_PORT,
                             port,
                             err
@@ -60,7 +63,7 @@ pub async fn serve_preview(build_dir: &Path, port_requested: Option<u16>) {
         }
     };
 
-    let url = format!("http://localhost:{port_bound}");
+    let url = format!("http://{ip}:{port_bound}");
 
     println!("Serving the site preview at {url} (open this address in your browser)");
     println!("Press Ctrl+C to shut down the preview server (e.g. to perform another build)");

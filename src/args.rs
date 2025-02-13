@@ -79,6 +79,10 @@ pub struct Args {
     #[clap(long = "preview-port")]
     pub preview_port: Option<u16>,
 
+    /// Can be set in conjunction with --preview to manually configure the ip used by the preview server (otherwise faircamp chooses 127.0.0.1 on its own)
+    #[clap(long = "preview-ip")]
+    pub preview_ip: Option<std::net::IpAddr>,
+
     /// Injects a small widget into the page which allows you to interactively explore different theme color configurations
     #[clap(long = "theming-widget")]
     pub theming_widget: bool,
