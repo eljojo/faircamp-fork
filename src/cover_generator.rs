@@ -8,6 +8,8 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use chrono::{DateTime, Utc};
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 use serde_derive::{Serialize, Deserialize};
 use tiny_skia::{
     Color,
@@ -15,6 +17,7 @@ use tiny_skia::{
     Paint,
     PathBuilder,
     Pixmap,
+    Rect,
     Stroke,
     Transform
 };
@@ -25,6 +28,7 @@ use crate::util::{uid, url_safe_base64};
 #[derive(Clone, Debug, Hash)]
 pub enum CoverGenerator {
     BestRillen,
+    Blocks,
     GlassSplinters,
     LooneyTunes,
     ScratchyFaintRillen,
@@ -57,8 +61,9 @@ pub struct ProceduralCoverRc {
 }
 
 impl CoverGenerator {
-    pub const ALL_GENERATORS: [&'static str; 5] = [
+    pub const ALL_GENERATORS: [&'static str; 6] = [
         "best_rillen",
+        "blocks",
         "glass_splinters",
         "looney_tunes",
         "scratchy_faint_rillen",
@@ -68,6 +73,7 @@ impl CoverGenerator {
     pub fn from_manifest_key(key: &str) -> Option<CoverGenerator> {
         match key {
             "best_rillen" => Some(CoverGenerator::BestRillen),
+            "blocks" => Some(CoverGenerator::Blocks),
             "glass_splinters" => Some(CoverGenerator::GlassSplinters),
             "looney_tunes" => Some(CoverGenerator::LooneyTunes),
             "scratchy_faint_rillen" => Some(CoverGenerator::ScratchyFaintRillen),
@@ -93,6 +99,7 @@ impl CoverGenerator {
 
             match self {
                 CoverGenerator::BestRillen => CoverGenerator::generate_best_rillen(edge_size, &output_path, release),
+                CoverGenerator::Blocks => CoverGenerator::generate_blocks(edge_size, &output_path, release, signature),
                 CoverGenerator::GlassSplinters => CoverGenerator::generate_glass_splinters(edge_size, &output_path, release),
                 CoverGenerator::LooneyTunes => CoverGenerator::generate_looney_tunes(edge_size, &output_path, release, max_tracks_in_release),
                 CoverGenerator::ScratchyFaintRillen => CoverGenerator::generate_scratchy_faint_rillen(edge_size, &output_path, release),
@@ -178,6 +185,51 @@ impl CoverGenerator {
                 }
 
                 previous = Some((x, y));
+            }
+        }
+
+        pixmap.save_png(&file_path).unwrap();
+    }
+
+    fn generate_blocks(
+        edge_size: u32,
+        file_path: &Path,
+        release: &Release,
+        signature: u64
+    ) {
+        let stroke_lightness = release.theme.procedural_cover_stroke_lightness();
+        let mut fill_color = Color::from_rgba(stroke_lightness, stroke_lightness, stroke_lightness, 0.025).unwrap();
+
+        let mut paint = Paint::default();
+        paint.anti_alias = true;
+
+        let mut pixmap = Pixmap::new(edge_size, edge_size).unwrap();
+        pixmap.fill(fill_color);
+
+        let mut rng = ChaCha8Rng::seed_from_u64(signature);
+
+        let squares = 6;
+        let square_edge_size = edge_size as f32 / squares as f32;
+
+        for horizontal_index in 0..squares {
+            for vertical_index in 0..squares {
+                let alpha = rng.random_range(0.0..1.0);
+                fill_color.set_alpha(alpha);
+                paint.set_color(fill_color);
+
+                let rect = Rect::from_xywh(
+                    horizontal_index as f32 * square_edge_size,
+                    vertical_index as f32 * square_edge_size,
+                    square_edge_size,
+                    square_edge_size
+                ).unwrap();
+
+                pixmap.fill_rect(
+                    rect,
+                    &paint,
+                    Transform::identity(),
+                    None
+                );
             }
         }
 
@@ -462,6 +514,7 @@ impl CoverGenerator {
     pub fn name(&self) -> &str {
         match self {
             CoverGenerator::BestRillen => "Beste Rillen",
+            CoverGenerator::Blocks => "Blocks",
             CoverGenerator::GlassSplinters => "Glass Splinters",
             CoverGenerator::LooneyTunes => "Looney Tunes",
             CoverGenerator::ScratchyFaintRillen => "Scratchy Faint Rillen",
@@ -503,26 +556,10 @@ impl ProceduralCover {
         format!("{filename}?{signature}")
     }
 
-    /// Returns the statically assigned filename for the 240px variant,
-    /// including a query string for cache invalidation.
-    pub fn filename_240(&self) -> String {
-        let filename = ProceduralCover::FILENAME_240;
-        let signature = self.signature;
-        format!("{filename}?{signature}")
-    }
-
     /// Returns the statically assigned filename for the 480px variant,
     /// including a query string for cache invalidation.
     pub fn filename_480(&self) -> String {
         let filename = ProceduralCover::FILENAME_480;
-        let signature = self.signature;
-        format!("{filename}?{signature}")
-    }
-
-    /// Returns the statically assigned filename for the 720px variant,
-    /// including a query string for cache invalidation.
-    pub fn filename_720(&self) -> String {
-        let filename = ProceduralCover::FILENAME_720;
         let signature = self.signature;
         format!("{filename}?{signature}")
     }

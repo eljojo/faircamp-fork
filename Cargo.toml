@@ -41,6 +41,8 @@ opus_headers = "0.1.2"
 # newer versions significantly raise the minimum supported rust version.
 pacmog = "=0.4.1"
 pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.12.2" }
+rand = "0.9.0"
+rand_chacha = "0.9.0"
 rmp3 = { features = ["float", "simd"], version = "0.3.1" }
 sanitize-filename = "0.6.0"
 seahash = "4.1.0"
