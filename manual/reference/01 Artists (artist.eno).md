@@ -159,6 +159,14 @@ url = https://example.com/this/artist/elsewhere/
 link:
 label = A review of the artist
 url = https://example.com/some-blog/some-review/
+
+link:
+url = https://social.example.com/@account-a
+verification = rel-me
+
+link:
+url = https://social.example.com/@account-b
+verification = rel-me-hidden
 ```
 
 You can supply any number of `link` fields, these are prominently displayed in
@@ -166,6 +174,14 @@ the header/landing area of your artist page. A `link` must at least
 provide a url, either as a simple value or as an `url` attribute. Optionally
 you can also supply a `label` which is what is visibly displayed instead of
 the `url`, when given.
+
+Additionally, you can configure [rel="me"](https://microformats.org/wiki/rel-me)
+linking, by supplying the attribute `verification = rel-me`.
+This allows you to verify the artist/yourself as the author/owner
+when you place a link to the artist page from (e.g.) a fediverse
+profile. With `verification = rel-me-hidden` you can have the link be
+included on your faircamp site without it showing up on the page, thus
+serving only for verification purposes.
 
 ## <a name="m3u"></a> `m3u`
 
