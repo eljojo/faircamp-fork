@@ -426,6 +426,8 @@ fn embed_layout(
         dir_attribute = dir_attribute,
         embeds_css_hash = build.asset_hashes.embeds_css.as_ref().unwrap(),
         embeds_js_hash = build.asset_hashes.embeds_js.as_ref().unwrap(),
+        faircamp_revision = env!("FAIRCAMP_REVISION"),
+        faircamp_version_detailed = env!("FAIRCAMP_VERSION_DETAILED"),
         lang = &build.locale.language,
         root_prefix = root_prefix,
         t_javascript_is_disabled_listen_at_xxx = t_javascript_is_disabled_listen_at_xxx,
@@ -437,17 +439,12 @@ fn embed_layout(
 
 fn faircamp_signature() -> String {
     let faircamp_icon = icons::faircamp(None);
-    let version = env!("CARGO_PKG_VERSION");
-    let version_major = env!("CARGO_PKG_VERSION_MAJOR");
-    let version_minor = env!("CARGO_PKG_VERSION_MINOR");
-
+    let faircamp_version_display = env!("FAIRCAMP_VERSION_DISPLAY");
 
     formatdoc!(r#"
         <a class="faircamp_signature" href="https://simonrepp.com/faircamp/" target="_blank">
             {faircamp_icon}
-            <span data-version="{version}">
-                Faircamp {version_major}.{version_minor}
-            </span>
+            <span>Faircamp {faircamp_version_display}</span>
         </a>
     "#)
 }
@@ -544,6 +541,8 @@ fn layout(
         dir_attribute = dir_attribute,
         extra_scripts = extra_scripts.header_tags(build, root_prefix),
         faircamp_icon = icons::faircamp(Some("Faircamp")),
+        faircamp_revision = env!("FAIRCAMP_REVISION"),
+        faircamp_version_detailed = env!("FAIRCAMP_VERSION_DETAILED"),
         favicon_links = catalog.favicon.header_tags(build, root_prefix),
         faircamp_signature = r_faircamp_signature,
         feed_meta_link = feed_meta_link,

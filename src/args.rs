@@ -7,8 +7,8 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
-#[cfg_attr(feature = "image", clap(version = concat!(env!("CARGO_PKG_VERSION"), " (compiled without libvips)")))]
-#[cfg_attr(feature = "libvips", clap(version = concat!(env!("CARGO_PKG_VERSION"), " (compiled with libvips)")))]
+#[cfg_attr(feature = "image", clap(version = concat!(env!("FAIRCAMP_VERSION_DETAILED"), " (", env!("FAIRCAMP_REVISION"), ") (compiled without libvips)")))]
+#[cfg_attr(feature = "libvips", clap(version = concat!(env!("FAIRCAMP_VERSION_DETAILED"), " (", env!("FAIRCAMP_REVISION"), ") (compiled with libvips)")))]
 pub struct Args {
     /// Reports cached assets that currently appear obsolete and their consumed disk space (no build is performed)
     #[clap(long = "analyze-cache")]

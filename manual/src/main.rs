@@ -244,16 +244,12 @@ fn layout(body: &str, docs: &Docs, active_page: &Page) -> String {
 fn read_docs() -> Docs {
     let index_content = markdown_to_html(include_str!("../index.md"));
 
-    let version = if env!("CARGO_PKG_VERSION_PATCH") == "0" {
-        concat!(env!("CARGO_PKG_VERSION_MAJOR"), '.', env!("CARGO_PKG_VERSION_MINOR"))
-    } else {
-        env!("CARGO_PKG_VERSION")
-    };
+    let faircamp_version_display = env!("FAIRCAMP_VERSION_DISPLAY");
 
     let index = Page {
         content: index_content,
         slug: String::from("index"),
-        title: format!("Faircamp {version}")
+        title: format!("Faircamp {faircamp_version_display}")
     };
 
     let examples = read_pages(&Path::new("examples"));
@@ -265,7 +261,7 @@ fn read_docs() -> Docs {
         index,
         reference,
         topics,
-        version
+        version: faircamp_version_display
     }
 }
 

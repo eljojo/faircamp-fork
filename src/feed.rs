@@ -68,8 +68,8 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
     } else {
         // TODO: Eventually find something better to fallback to.
         // Note that this is a mandatory field in RSS (https://www.rssboard.org/rss-specification#requiredChannelElements)
-        let version = env!("CARGO_PKG_VERSION");
-        format!("Faircamp {version}")
+        let version_id = env!("FAIRCAMP_VERSION_DISPLAY");
+        format!("Faircamp {version_id}")
     };
 
     let channel_title = catalog.title();

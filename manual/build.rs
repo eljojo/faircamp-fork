@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /// Build the manual with (e.g.) FAIRCAMP_PKG_VERSION=2.0.0~pre1 to override
-/// CARGO_PKG_VERSION in resulting builds.
+/// the version that is displayed in the built manual.
 
 use std::env;
 
 fn main() {
-    println!("cargo:rerun-if-env-changed=FAIRCAMP_PKG_VERSION");
+    let version_display = match env::var("FAIRCAMP_PKG_VERSION") {
+        Ok(override_version) => override_version,
+        Err(_) => concat!(env!("CARGO_PKG_VERSION_MAJOR"), '.', env!("CARGO_PKG_VERSION_MINOR")).to_string()
+    };
 
-    if let Ok(override_version) = env::var("FAIRCAMP_PKG_VERSION") {
-        println!("cargo:rustc-env=CARGO_PKG_VERSION={override_version}");
-    }
+    println!("cargo:rerun-if-env-changed=FAIRCAMP_PKG_VERSION");
+    println!("cargo:rustc-env=FAIRCAMP_VERSION_DISPLAY={version_display}");
 }
