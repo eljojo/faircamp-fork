@@ -148,6 +148,38 @@ manifest is in (so if the image "example.jpg" is in the same folder, just
 write "example.jpg", if it's in the parent folder write "../example.jpg", and
 so on). Make sure to include a `description` for non-sighted people too.
 
+### How to ensure certain content in an artist image always is visible
+
+The artist's `image` is shown in different ways depending on the screen
+size and browser viewport of a visitor's device. If you include e.g. a logo
+in the `image`, parts of it might be invisible due to the automated
+cropping done by faircamp. This section describes how to include content
+within the `image` in such a way that it never gets cropped away:
+
+The least wide the `image` is shown is at an aspect ratio of 2.25:1
+(corresponding e.g. to a resolution of 225x100, 675x300, etc.), that's on
+very wide and very narrow screens. The widest it is shown (when the browser
+is just below 960px wide) is at an aspect ratio of 5:1 (corresponding to a
+resolution of 500x100, 1500x300, etc.). If you create your image with an
+aspect ratio of 5:1, so e.g. at 1500x300, and place the text that should be
+not cropped within a rectangle of 2.25:1, so within a 675px wide rectangle at
+the center of the example 1500x300 image, the text should always be fully
+visible, uncropped, and only the parts to the left and right will get cropped
+off.
+
+```
+|<-------  5:1 (e.g. 1500×300)  ------->|
+┌─────────────┬───────────┬─────────────┐
+│             │           │             │
+│   CROPPED   │ LOGO SAFE │   CROPPED   │
+│             │           │             │
+└─────────────┴───────────┴─────────────┘
+              |<--------->|
+           2.25:1 (e.g. 675×300)
+```
+
+Note that all of this also applies 1:1 to the catalog's `home_image`.
+
 ## <a name="link"></a> `link`
 
 ```eno

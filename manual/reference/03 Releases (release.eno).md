@@ -5,7 +5,7 @@
 
 # Release manifests – release.eno
 
-> All options at a glance: [artist](#artist), [copy_link](#copy_link), [date](#date), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [release_artist(s)](#release_artists), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlisted](#unlisted), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [copy_link](#copy_link), [cover](#cover), [date](#date), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [release_artist(s)](#release_artists), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlisted](#unlisted), [unlock_info](#unlock_info)
 
 In your release manifests you can specify options that apply to
 a specific release only. Simply create a (plain text) file called
@@ -118,6 +118,17 @@ To disable the "Copy link" button (by default it's enabled) you can use the
 ```eno
 copy_link: disabled
 ```
+
+## <a name="cover"></a> `cover`
+
+```eno
+cover:
+description = An ink drawing of a barren tree with monkeys in its branches
+file = cover.jpg
+```
+
+Note that release cover images are always displayed in square aspect ratio. If
+you supply a non-square image it will be square-cropped for display.
 
 ## <a name="date"></a> `date`
 
