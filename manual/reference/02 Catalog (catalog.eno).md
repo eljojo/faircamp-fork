@@ -259,6 +259,16 @@ that your current download urls have been valid since that day. You could
 also use "2022-04", "Spring 2022" or such, given that one usually will not
 manually invalidate the urls on a daily basis.
 
+Note that this is a general countermeasure against hotlinking to your assets
+and against people linking directly to your download pages (rather than your
+release pages for instance), but that it (obviously) cannot stop people from
+passing around your download codes (if you use download codes to protect your
+downloads). If you witness malicious actions of that kind, you can instead
+configure and distribute new download codes to your legitimate
+buyers/subscribers, which will prevent anyone who obtained or still obtains
+the old codes from using them, effectively blocking their access to your
+downloads.
+
 If you need an even stronger mechanism, you can also use the
 [rotate_download_urls](#rotate_download_urls) option, which will automatically
 renew all download urls each time you generate the site. Note however that
@@ -682,6 +692,16 @@ download urls on each deployment (rendering invalid all previously existing
 urls). This is a very strong measure. Usually it's enough to work with
 less frequent, manual download url renewals using the
 [freeze_download_urls](#freeze_download_urls) option.
+
+Note that this is a general countermeasure against hotlinking to your assets
+and against people linking directly to your download pages (rather than your
+release pages for instance), but that it (obviously) cannot stop people from
+passing around your download codes (if you use download codes to protect your
+downloads). If you witness malicious actions of that kind, you can instead
+configure and distribute new download codes to your legitimate
+buyers/subscribers, which will prevent anyone who obtained or still obtains
+the old codes from using them, effectively blocking their access to your
+downloads.
 
 ## <a name="show_support_artists"></a> `show_support_artists`
 
