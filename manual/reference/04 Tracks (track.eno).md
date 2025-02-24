@@ -1,5 +1,6 @@
 <!--
     SPDX-FileCopyrightText: 2025 Simon Repp
+    SPDX-FileCopyrightText: 2025 marqh
     SPDX-License-Identifier: CC0-1.0
 -->
 
@@ -32,6 +33,11 @@ used as cover for that track - this is picked up automatically! Additionally,
 extra files in a track directory will be treated as *track extras*, by default
 separately downloadable from the track's download page.
 
+If you provide a cover image, use `description` within the [cover](#cover)
+option to include an image description for it. This image
+description functions as alt text, improving the accessibility of your site
+for people with limited vision, screen readers, etc.
+
 For all the things that can be customized in a `track.eno` manifest, see the
 options documented below (and the "at a glance" overview at the top of the
 page).
@@ -52,6 +58,12 @@ cover:
 description = An ink drawing of a barren tree with monkeys in its branches
 file = cover.jpg
 ```
+
+`file` is the path (or just filename) of the image, relative from the
+manifest's location.
+
+The `description` is used as image alt text, which improves accessibility
+for those visiting your site with screen readers.
 
 Note that track cover images are always displayed in square aspect ratio. If
 you supply a non-square image it will be square-cropped for display.

@@ -69,6 +69,7 @@ Damian Szetela<br>
 [Lorenzo's Music](https://www.lorenzosmusic.com)<br>
 [Mac Chaffee](https://www.macchaffee.com)<br>
 [Mahlon E. Smith](https://martini.nu/)<br>
+[marqh](https://codeberg.org/marqh)<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [Miró Allard](https://www.miroallard.com/)<br>

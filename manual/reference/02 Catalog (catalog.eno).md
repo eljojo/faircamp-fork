@@ -288,6 +288,12 @@ description = Me in my studio
 file = studio_3.png
 ```
 
+`file` is the path (or just filename) of the image, relative from the
+manifest's location.
+
+The `description` is used as image alt text, which improves accessibility
+for those visiting your site with screen readers.
+
 ### How to ensure certain content in a home_image always is visible
 
 The catalog's `home_image` is shown in different ways depending on the screen

@@ -52,7 +52,7 @@ a gigantesque dystopian world of hard and harsh bass-driven synth.
 Support me on [ko-fi](https://ko-fi.com/electriccurtainisfiction)
 -- more
 
-relase_download_access: paycurtain
+release_download_access: paycurtain
 
 > These settings apply to all releases, here we just set
 > the download format for all of them. As each of them

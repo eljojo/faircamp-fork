@@ -146,7 +146,8 @@ file = example.jpg
 With `file` specify the path of the image, relative to the directory the
 manifest is in (so if the image "example.jpg" is in the same folder, just
 write "example.jpg", if it's in the parent folder write "../example.jpg", and
-so on). Make sure to include a `description` for non-sighted people too.
+so on). Make sure to include a `description` for non-sighted people too,
+this is used as alt text on the image.
 
 ### How to ensure certain content in an artist image always is visible
 
