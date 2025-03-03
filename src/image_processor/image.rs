@@ -16,7 +16,7 @@ pub struct ImageProcessor;
 
 impl ImageInMemory {
     pub fn width(&self) -> u32 {
-        self.dynamic_image.width() as u32
+        self.dynamic_image.width()
     }
 }
 

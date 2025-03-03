@@ -38,19 +38,20 @@ pub fn track_html(
 ) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../../";
+    let translations = &build.locale.translations;
 
     let download_link = match &track.download_access {
         DownloadAccess::Code { .. } => {
             if track.download_assets_available() {
-                let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                let t_unlock_permalink = &translations.unlock_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
                     release.permalink.slug.hash(hasher);
                     track_number.hash(hasher);
                     t_unlock_permalink.hash(hasher);
                 });
 
-                let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-                let t_downloads = &build.locale.translations.downloads;
+                let unlock_icon = icons::unlock(&translations.unlock);
+                let t_downloads = &translations.downloads;
 
                 Some(formatdoc!(r#"
                     <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
@@ -64,8 +65,8 @@ pub fn track_html(
         }
         DownloadAccess::Disabled => None,
         DownloadAccess::External { link } => {
-            let external_icon = icons::external(&build.locale.translations.external_link);
-            let t_download = &build.locale.translations.download;
+            let external_icon = icons::external(&translations.external_link);
+            let t_download = &translations.download;
 
             Some(formatdoc!(r#"
                 <a href="{link}" target="_blank">
@@ -76,7 +77,7 @@ pub fn track_html(
         }
         DownloadAccess::Free => {
             if track.download_assets_available() {
-                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let t_downloads_permalink = &translations.downloads_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
                     release.permalink.slug.hash(hasher);
                     track_number.hash(hasher);
@@ -84,7 +85,7 @@ pub fn track_html(
                 });
 
                 let download_icon = icons::download();
-                let t_downloads = &build.locale.translations.downloads;
+                let t_downloads = &translations.downloads;
 
                 Some(formatdoc!(r#"
                     <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
@@ -98,15 +99,15 @@ pub fn track_html(
         }
         DownloadAccess::Paycurtain { payment_info, .. } => {
             if track.download_assets_available() && payment_info.is_some() {
-                let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                let t_purchase_permalink = &translations.purchase_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
                     release.permalink.slug.hash(hasher);
                     track_number.hash(hasher);
                     t_purchase_permalink.hash(hasher);
                 });
 
-                let buy_icon = icons::buy(&build.locale.translations.buy);
-                let t_downloads = &build.locale.translations.downloads;
+                let buy_icon = icons::buy(&translations.buy);
+                let t_downloads = &translations.downloads;
                 Some(formatdoc!(r#"
                     <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
@@ -155,7 +156,7 @@ pub fn track_html(
 
     let compact;
     let r_waveform;
-    let t_playback_position = &build.locale.translations.playback_position;
+    let t_playback_position = &translations.playback_position;
     if release.theme.waveforms {
         let waveform_svg = waveform(track);
 
@@ -180,7 +181,7 @@ pub fn track_html(
         String::from(r#"<span class="cover_placeholder"></span>"#)
     };
 
-    let play_icon = icons::play(&build.locale.translations.play);
+    let play_icon = icons::play(&translations.play);
     let r_track = formatdoc!(r#"
         <div class="track" data-duration="{duration_seconds}">
             <button class="track_playback" tabindex="-1">
@@ -207,7 +208,7 @@ pub fn track_html(
 
     let mut primary_actions = Vec::new();
 
-    let t_listen = &build.locale.translations.listen;
+    let t_listen = &translations.listen;
     let listen_button = formatdoc!(r#"
         <button class="emphasized listen">
             <span class="icon">{play_icon}</span>
@@ -231,9 +232,9 @@ pub fn track_html(
     let r_more = if track.more.is_some() || artists_truncated.truncated {
         let more_label = match &track.more_label {
             Some(label) => label,
-            None => *build.locale.translations.more
+            None => *translations.more
         };
-        let more_icon = icons::more(&build.locale.translations.more);
+        let more_icon = icons::more(&translations.more);
         let more_link = formatdoc!(r##"
             <a class="more" href="#more">
                 {more_icon} {more_label}
@@ -272,8 +273,8 @@ pub fn track_html(
         String::new()
     };
 
-    let failed_icon = icons::failure(&build.locale.translations.failed);
-    let success_icon = icons::success(&build.locale.translations.copied);
+    let failed_icon = icons::failure(&translations.failed);
+    let success_icon = icons::success(&translations.copied);
     let mut templates = format!(r#"
         <template id="failed_icon">
             {failed_icon}
@@ -306,9 +307,8 @@ pub fn track_html(
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy(None);
-        let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
+        let copy_icon = icons::copy();
+        let r_copy_link = copy_button(content_key, &content_value, &translations.copy_link);
         secondary_actions.push(r_copy_link);
 
         templates.push_str(&format!(r#"
@@ -319,8 +319,8 @@ pub fn track_html(
     }
 
     if track.embedding && build.base_url.is_some() {
-        let embed_icon = icons::embed(&build.locale.translations.embed);
-        let t_embed = &build.locale.translations.embed;
+        let embed_icon = icons::embed(&translations.embed);
+        let t_embed = &translations.embed;
         // TODO: /embed/ uses no embed_permalink translation? Should(n't) it?
         //       Later note: A reason against translation might be url stability.
         //       The embed url is supposed to be as long-term stable as possible,
@@ -337,7 +337,7 @@ pub fn track_html(
     }
 
     for link in &track.links {
-        let external_icon = icons::external(&build.locale.translations.external_link);
+        let external_icon = icons::external(&translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;
@@ -403,7 +403,7 @@ pub fn track_html(
     let track_number_formatted = release.track_numbering.format(track_number);
 
     let volume_icon = icons::volume();
-    let t_volume = &build.locale.translations.volume;
+    let t_volume = &translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
             <div class="page_split">

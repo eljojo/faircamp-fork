@@ -29,6 +29,7 @@ pub fn track_embed_codes_html(
     let release_prefix = "../../";
     let root_prefix = "../../../";
     let track_prefix = "../";
+    let translations = &build.locale.translations;
 
     let track_link = format!("..{index_suffix}");
 
@@ -44,9 +45,9 @@ pub fn track_embed_codes_html(
         track_prefix
     );
 
-    let copy_icon = icons::copy(None);
-    let failed_icon = icons::failure(&build.locale.translations.failed);
-    let success_icon = icons::success(&build.locale.translations.copied);
+    let copy_icon = icons::copy();
+    let failed_icon = icons::failure(&translations.failed);
+    let success_icon = icons::success(&translations.copied);
     let templates = format!(r#"
         <template id="copy_icon">
             {copy_icon}
@@ -62,7 +63,7 @@ pub fn track_embed_codes_html(
     let track_title = track.title();
 
     let t_audio_player_widget_for_xxx =
-        build.locale.translations.audio_player_widget_for_xxx(&track_title);
+        translations.audio_player_widget_for_xxx(&track_title);
 
     let release_slug = &release.permalink.slug;
 
@@ -72,12 +73,11 @@ pub fn track_embed_codes_html(
 
     let (embed_copy_code, embed_display_code) = embed_code(&embed_url, &t_audio_player_widget_for_xxx);
 
-    let t_copy = &build.locale.translations.copy;
-    let r_copy_button = copy_button("content", &embed_copy_code, &copy_icon, t_copy);
+    let r_copy_button = copy_button("content", &embed_copy_code, &translations.copy);
     let track_number_formatted = release.track_numbering.format(track_number);
     let track_title_escaped = html_escape_outside_attribute(&track_title);
 
-    let t_embed = &build.locale.translations.embed;
+    let t_embed = &translations.embed;
     let body = formatdoc!(r#"
         <div class="page">
             <div class="page_center">

@@ -295,7 +295,8 @@ fn compact_track_identifier(
 
 /// A button enriched with data attributes that client scripting can use
 /// to copy the content (embed code or link) to clipboard and display success/failure state.
-pub fn copy_button(content_key: &str, content_value: &str, copy_icon: &str, label: &str) -> String {
+pub fn copy_button(content_key: &str, content_value: &str, label: &str) -> String {
+    let copy_icon = icons::copy();
     formatdoc!(r##"
         <button data-{content_key}="{content_value}" data-copy>
             <span class="icon">{copy_icon}</span>

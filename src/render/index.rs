@@ -22,6 +22,7 @@ use crate::util::{html_escape_outside_attribute};
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "";
+    let translations = &build.locale.translations;
     
     let catalog_title = catalog.title();
 
@@ -44,10 +45,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let r_more = match &catalog.more {
         Some(html_and_stripped) => {
             let more = &html_and_stripped.html;
-            let more_icon = icons::more(&build.locale.translations.more);
+            let more_icon = icons::more(&translations.more);
             let more_label = match &catalog.more_label {
                 Some(label) => label,
-                None => *build.locale.translations.more
+                None => *translations.more
             };
             let more_link = format!(r##"
                 <a class="more" href="#more">
@@ -82,13 +83,13 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy(None);
-        let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
+        let copy_icon = icons::copy();
+        let t_copy_link = &translations.copy_link;
+        let r_copy_link = copy_button(content_key, &content_value, t_copy_link);
         actions.push(r_copy_link);
 
-        let failed_icon = icons::failure(&build.locale.translations.failed);
-        let success_icon = icons::success(&build.locale.translations.copied);
+        let failed_icon = icons::failure(&translations.failed);
+        let success_icon = icons::success(&translations.copied);
         templates.push_str(&format!(r#"
             <template id="copy_icon">
                 {copy_icon}
@@ -104,8 +105,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     if build.base_url.is_some() {
         if catalog.feed_enabled {
-            let t_feed = &build.locale.translations.feed;
-            let feed_icon = icons::feed(&build.locale.translations.rss_feed);
+            let t_feed = &translations.feed;
+            let feed_icon = icons::feed(&translations.rss_feed);
 
             let feed_link = format!(r#"
                 <a href="{root_prefix}feed.rss">
@@ -118,7 +119,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         }
 
         if catalog.m3u  {
-            let t_m3u_playlist = &build.locale.translations.m3u_playlist;
+            let t_m3u_playlist = &translations.m3u_playlist;
             let stream_icon = icons::stream();
 
             let m3u_playlist_link = formatdoc!(r#"
@@ -133,7 +134,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     }
 
     for link in &catalog.links {
-        let external_icon = icons::external(&build.locale.translations.external_link);
+        let external_icon = icons::external(&translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;

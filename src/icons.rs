@@ -24,18 +24,9 @@ pub fn buy(label: &str) -> String {
 
 /// Two squares with rounded corners slightly shifted from each other diagonally,
 /// with one being in front of the other (the common symbol depiction for "copy").
-/// For `label` provide either a label that should be read for screen readers,
-/// or None to declare the icon invisible to screenreaders (e.g. when it would
-/// only contain duplicate content).
-pub fn copy(label: Option<&str>) -> String {
-    let (aria_hidden, title) = match label {
-        Some(label) => ("", format!("<title>{label}</title>")),
-        None => (r#"aria-hidden="true""#, String::new())
-    };
-
+pub fn copy() -> String {
     formatdoc!(r#"
-        <svg {aria_hidden} width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-            {title}
+        <svg aria-hidden="true" width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <path d="m24.18 7.1387c-3.8714 0-7.0703 3.197-7.0703 7.0684h5.1992c0-1.0814 0.78966-1.8711 1.8711-1.8711h25.439c1.0814 0 1.8711 0.78966 1.8711 1.8711v25.441c0 1.0814-0.78966 1.8691-1.8711 1.8691v5.1992c3.8714 0 7.0684-3.197 7.0684-7.0684v-25.441c0-3.8714-3.197-7.0684-7.0684-7.0684h-25.439zm-9.9434 10.131c-3.8714 0-7.0684 3.1989-7.0684 7.0703v25.439c0 3.8714 3.197 7.0684 7.0684 7.0684h25.441c3.8714 0 7.0684-3.197 7.0684-7.0684v-25.439c0-3.8714-3.197-7.0703-7.0684-7.0703h-25.441zm0 5.1992h25.441c1.0814 0 1.8711 0.78966 1.8711 1.8711v25.439c0 1.0814-0.78966 1.8711-1.8711 1.8711h-25.441c-1.0814 0-1.8711-0.78966-1.8711-1.8711v-25.439c0-1.0814 0.78966-1.8711 1.8711-1.8711z"/>
         </svg>
     "#)

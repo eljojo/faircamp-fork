@@ -25,6 +25,7 @@ pub fn release_embed_codes_html(
     let index_suffix = build.index_suffix();
     let release_prefix = "../";
     let root_prefix = "../../";
+    let translations = &build.locale.translations;
 
     let release_link = format!("..{index_suffix}");
 
@@ -38,9 +39,9 @@ pub fn release_embed_codes_html(
         root_prefix,
     );
 
-    let copy_icon = icons::copy(None);
-    let failed_icon = icons::failure(&build.locale.translations.failed);
-    let success_icon = icons::success(&build.locale.translations.copied);
+    let copy_icon = icons::copy();
+    let failed_icon = icons::failure(&translations.failed);
+    let success_icon = icons::success(&translations.copied);
     let templates = format!(r#"
         <template id="copy_icon">
             {copy_icon}
@@ -54,7 +55,7 @@ pub fn release_embed_codes_html(
     "#);
 
     let t_audio_player_widget_for_xxx =
-        build.locale.translations.audio_player_widget_for_xxx(&release.title);
+        translations.audio_player_widget_for_xxx(&release.title);
 
     let release_slug = &release.permalink.slug;
 
@@ -64,11 +65,10 @@ pub fn release_embed_codes_html(
 
     let (embed_copy_code, embed_display_code) = embed_code(&embed_url, &t_audio_player_widget_for_xxx);
 
-    let t_copy = &build.locale.translations.copy;
-    let r_copy_button = copy_button("content", &embed_copy_code, &copy_icon, t_copy);
+    let r_copy_button = copy_button("content", &embed_copy_code, &translations.copy);
 
-    let t_embed = &build.locale.translations.embed;
-    let t_embed_entire_release = &build.locale.translations.embed_entire_release;
+    let t_embed = &translations.embed;
+    let t_embed_entire_release = &translations.embed_entire_release;
     let body = formatdoc!(r#"
         <div class="page">
             <div class="page_center">

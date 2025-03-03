@@ -24,6 +24,7 @@ use crate::util::html_escape_outside_attribute;
 pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
+    let translations = &build.locale.translations;
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
 
@@ -31,10 +32,10 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let r_more = match &artist.more {
         Some(html_and_stripped) => {
-            let more_icon = icons::more(&build.locale.translations.more);
+            let more_icon = icons::more(&translations.more);
             let more_label = match &artist.more_label {
                 Some(label) => label,
-                None => *build.locale.translations.more
+                None => *translations.more
             };
             let more_link = format!(r##"
                 <a class="more" href="#more">
@@ -69,14 +70,12 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             None => ("dynamic-url", String::new())
         };
 
-
-        let copy_icon = icons::copy(None);
-        let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
+        let copy_icon = icons::copy();
+        let r_copy_link = copy_button(content_key, &content_value, &translations.copy_link);
         actions.push(r_copy_link);
 
-        let failed_icon = icons::failure(&build.locale.translations.failed);
-        let success_icon = icons::success(&build.locale.translations.copied);
+        let failed_icon = icons::failure(&translations.failed);
+        let success_icon = icons::success(&translations.copied);
         format!(r#"
             <template id="copy_icon">
                 {copy_icon}
@@ -93,7 +92,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     };
 
     for link in &artist.links {
-        let external_icon = icons::external(&build.locale.translations.external_link);
+        let external_icon = icons::external(&translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;

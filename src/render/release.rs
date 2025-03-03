@@ -35,18 +35,19 @@ use crate::util::{format_time, html_escape_outside_attribute};
 pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
+    let translations = &build.locale.translations;
 
     let download_link = match &release.download_access {
         DownloadAccess::Code { .. } => {
             if release.download_assets_available() {
-                let t_unlock_permalink = &build.locale.translations.unlock_permalink;
+                let t_unlock_permalink = &translations.unlock_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
                     release.permalink.slug.hash(hasher);
                     t_unlock_permalink.hash(hasher);
                 });
 
-                let unlock_icon = icons::unlock(&build.locale.translations.unlock);
-                let t_download = &build.locale.translations.download;
+                let unlock_icon = icons::unlock(&translations.unlock);
+                let t_download = &translations.download;
 
                 formatdoc!(r#"
                     <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
@@ -60,8 +61,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
         DownloadAccess::Disabled => String::new(),
         DownloadAccess::External { link } => {
-            let external_icon = icons::external(&build.locale.translations.external_link);
-            let t_download = &build.locale.translations.download;
+            let external_icon = icons::external(&translations.external_link);
+            let t_download = &translations.download;
             formatdoc!(r#"
                 <a href="{link}" target="_blank">
                     {external_icon}
@@ -71,14 +72,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
         DownloadAccess::Free => {
             if release.download_assets_available() {
-                let t_downloads_permalink = &build.locale.translations.downloads_permalink;
+                let t_downloads_permalink = &translations.downloads_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
                     release.permalink.slug.hash(hasher);
                     t_downloads_permalink.hash(hasher);
                 });
 
                 let download_icon = icons::download();
-                let t_download = &build.locale.translations.download;
+                let t_download = &translations.download;
                 formatdoc!(r#"
                     <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
                         {download_icon}
@@ -91,14 +92,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
         DownloadAccess::Paycurtain { payment_info, .. } => {
             if release.download_assets_available() && payment_info.is_some() {
-                let t_purchase_permalink = &build.locale.translations.purchase_permalink;
+                let t_purchase_permalink = &translations.purchase_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
                     release.permalink.slug.hash(hasher);
                     t_purchase_permalink.hash(hasher);
                 });
 
-                let buy_icon = icons::buy(&build.locale.translations.buy);
-                let t_download = &build.locale.translations.download;
+                let buy_icon = icons::buy(&translations.buy);
+                let t_download = &translations.download;
                 formatdoc!(r#"
                     <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
@@ -113,14 +114,14 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let longest_track_duration = release.longest_track_duration();
 
-    let t_play = &build.locale.translations.play;
+    let t_play = &translations.play;
 
-    let more_icon = icons::more(&build.locale.translations.more);
+    let more_icon = icons::more(&translations.more);
     let play_icon = icons::play(t_play);
 
     let varying_track_artists = release.varying_track_artists();
 
-    let t_playback_position = &build.locale.translations.playback_position;
+    let t_playback_position = &translations.playback_position;
     let r_tracks = release.tracks
         .iter()
         .zip(TRACK_NUMBERS)
@@ -197,7 +198,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let r_more = if track.more.is_some() {
                 let more_label = match &track.more_label {
                     Some(label) => label,
-                    None => *build.locale.translations.more
+                    None => *translations.more
                 };
                 format!(r#"<a href="{track_number}{index_suffix}#more">{more_label}</a>&nbsp;&nbsp;"#)
             } else {
@@ -237,7 +238,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let mut primary_actions = Vec::new();
     let mut secondary_actions = Vec::new();
 
-    let t_listen = &build.locale.translations.listen;
+    let t_listen = &translations.listen;
     let listen_button = formatdoc!(r#"
         <button class="emphasized listen">
             <span class="icon">{play_icon}</span>
@@ -261,7 +262,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let r_more = if release.more.is_some() || artists_truncated.truncated {
         let more_label = match &release.more_label {
             Some(label) => label,
-            None => *build.locale.translations.more
+            None => *translations.more
         };
         let more_link = formatdoc!(r##"
             <a class="more" href="#more">
@@ -314,8 +315,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         "#)
     };
 
-    let failed_icon = icons::failure(&build.locale.translations.failed);
-    let success_icon = icons::success(&build.locale.translations.copied);
+    let failed_icon = icons::failure(&translations.failed);
+    let success_icon = icons::success(&translations.copied);
     let mut templates = format!(r#"
         <template id="failed_icon">
             {failed_icon}
@@ -334,9 +335,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy(None);
-        let t_copy_link = &build.locale.translations.copy_link;
-        let r_copy_link = copy_button(content_key, &content_value, &copy_icon, t_copy_link);
+        let copy_icon = icons::copy();
+        let r_copy_link = copy_button(content_key, &content_value, &translations.copy_link);
         secondary_actions.push(r_copy_link);
 
         templates.push_str(&format!(r#"
@@ -348,7 +348,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     if build.base_url.is_some() {
         if release.m3u  {
-            let t_m3u_playlist = &build.locale.translations.m3u_playlist;
+            let t_m3u_playlist = &translations.m3u_playlist;
             let stream_icon = icons::stream();
 
             let m3u_playlist_link = formatdoc!(r#"
@@ -362,7 +362,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
 
         if release.embedding {
-            let t_embed = &build.locale.translations.embed;
+            let t_embed = &translations.embed;
             let embed_icon = icons::embed(t_embed);
 
             let embed_link = formatdoc!(r#"
@@ -377,7 +377,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     }
 
     for link in &release.links {
-        let external_icon = icons::external(&build.locale.translations.external_link);
+        let external_icon = icons::external(&translations.external_link);
 
         let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
         let url = &link.url;
@@ -438,9 +438,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         (false, false) => "compact"
     };
 
-    let next_track_icon = icons::next_track(&build.locale.translations.next_track);
+    let next_track_icon = icons::next_track(&translations.next_track);
     let volume_icon = icons::volume();
-    let t_volume = &build.locale.translations.volume;
+    let t_volume = &translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
             <div class="page_split">

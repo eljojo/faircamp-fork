@@ -1088,7 +1088,7 @@ impl Catalog {
         }
 
         for dir_path in &fair_dir.dirs {
-            self.read_unknown_dir(build, cache, &parent_overrides, dir_path);
+            self.read_unknown_dir(build, cache, parent_overrides, dir_path);
         }
     }
 
