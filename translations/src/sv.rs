@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2025 Patrik Wallström
 // SPDX-FileCopyrightText: 2024 Filip
 // SPDX-FileCopyrightText: 2024 Miró Allard
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -58,11 +59,15 @@ pub const SV: Translations = Translations {
     playback_position: Reviewed("Uppspelningsposition"),
     player_closed: Reviewed("Spelare stängd"),
     player_open_playing_xxx: Reviewed("Spelare öppnad, spelar {title}"),
+    previous_track: Reviewed("Tidigare spår"),
     purchase_downloads: Reviewed("Köp nedladdningar"),
     purchase_permalink: Reviewed("betala"),
     recommended_format: Reviewed("Rekommenderat format"),
     rss_feed: Reviewed("RSS-flöde"),
     search: Reviewed("Sök"),
+    showing_featured_items: Reviewed("Visar utvalda objekt"),
+    showing_xxx_results_for_xxx: Reviewed("Visar {count} resultat för '{query}'"),
+    skip_to_main_content: Reviewed("Hoppa till huvudinnehållet"),
     unlisted: Reviewed("Olistade"),
     unlock: Reviewed("Lås upp"),
     unlock_downloads: Reviewed("Lås upp nedladdningar"),
