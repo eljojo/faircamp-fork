@@ -129,6 +129,21 @@ async function mountAndPlay(track, seekTo) {
 
     const play = () => {
         track.audio.volume = volume.level;
+        // On apple devices and browsers (e.g. Safari in macOS 15.1) there is
+        // a bug where, when multiple tracks play back while another
+        // application but Safari has focus, on returning focus to Safari,
+        // multiple/all previously played tracks start playing at the same
+        // time. Investigation indicated that these playback requests come
+        // from the system/browser itself and that there was/is no faulty
+        // asynchronous routine in faircamp's code found that causes this. In
+        // order to work around this unexplained problem, we're tagging
+        // tracks with a flag (track.solicitedPlayback) right before we
+        // explicitly play them (this flag is unset again with each pause
+        // event) and generally cancel playback requests on tracks where the
+        // flag is not set - these we know to originate from the
+        // system/browser.
+        track.solicitedPlayback = true;
+        track.audio.muted = false;
         track.audio.play();
     };
 
@@ -211,6 +226,8 @@ function togglePlayback(track, seekTo = null) {
                 // TODO: Needs to be wrapped in an async mechanism that first ensures we can seek to that point
                 track.audio.currentTime = seekTo;
             }
+            track.solicitedPlayback = true;
+            track.audio.muted = false;
             track.audio.play();
         } else {
             // This track is playing, we either pause it, or perform a seek
@@ -463,6 +480,14 @@ listenButton.addEventListener('click', () => {
     togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
 });
 
+navigator.mediaSession.setActionHandler('play', () => {
+    togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
+});
+
+navigator.mediaSession.setActionHandler('pause', () => {
+    togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
+});
+
 const resizeObserver = new ResizeObserver(entries => {
     const minWidth = entries.reduce(
         (minWidth, entry) => Math.min(entry.contentRect.width, minWidth),
@@ -512,6 +537,15 @@ for (const container of document.querySelectorAll('.track')) {
         };
     }
 
+    // We only unmute tracks right before they play, muting them again at any
+    // pause event. We do this because a bug in browsers on apple systems can
+    // trigger sporadic, unsolicited playback of tracks in certain conditions
+    // (see comment elsewhere on track.solicitedPlayback), and although we
+    // cancel this unsolicited playback right away, it would be sometimes
+    // audible for a brief moment (if we didn't keep tracks muted, as we do
+    // now).
+    audio.muted = true;
+
     // Playback buttons start off with tabindex="-1" because if the visitor
     // has JavaScript disabled the element should not be interacted with at
     // all. When JavaScript is available we revert to making the button
@@ -552,6 +586,11 @@ for (const container of document.querySelectorAll('.track')) {
     });
 
     audio.addEventListener('pause', event => {
+        if (!track.solicitedPlayback) { return; }
+
+        delete track.solicitedPlayback;
+        track.audio.muted = true;
+
         clearInterval(globalUpdatePlayHeadInterval);
 
         container.classList.remove('playing');
@@ -570,6 +609,14 @@ for (const container of document.querySelectorAll('.track')) {
     });
 
     audio.addEventListener('play', event => {
+        if (!track.solicitedPlayback) {
+            // Unsolicited playback triggered by Apple/Safari (see comment
+            // elsewhere regarding track.solicitedPlayback), we cancel it
+            // immediately.
+            audio.pause();
+            return;
+        }
+
         container.classList.add('active', 'playing');
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
@@ -582,6 +629,8 @@ for (const container of document.querySelectorAll('.track')) {
     });
 
     audio.addEventListener('playing', event => {
+        if (!track.solicitedPlayback) { return; }
+
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
         listenButtonLabel.textContent = PLAYER_JS_T.pause;
@@ -589,6 +638,8 @@ for (const container of document.querySelectorAll('.track')) {
     });
 
     audio.addEventListener('waiting', event => {
+        if (!track.solicitedPlayback) { return; }
+
         // TODO: Eventually we could augment various screenreader labels here to
         //       indicate the loading state too
         dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
