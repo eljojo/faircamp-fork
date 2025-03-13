@@ -805,7 +805,6 @@ input[type="text"].disabled,
     align-items: center;
     display: flex;
 }
-.volume:not(.interactive) { display: none; }
 .volume input {
     opacity: 0;
     margin-inline-end: 0;
@@ -816,6 +815,7 @@ input[type="text"].disabled,
 .volume button path.inactive_range { color: var(--bg-3); }
 .volume button.muted path.knob { display: none; }
 .volume button:not(.muted) path.strike_out { display: none; }
+.volume:not(.finegrained) input { display: none; }
 .volume:hover input,
 .volume input:focus-visible,
 .volume button:focus-visible + .slider input {

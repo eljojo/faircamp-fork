@@ -1,6 +1,6 @@
-const loadingIcon = document.querySelector('#loading_icon');
-const pauseIcon = document.querySelector('#pause_icon');
-const playIcon = document.querySelector('#play_icon');
+const loadingIcon = document.querySelector('#loading_icon').content;
+const pauseIcon = document.querySelector('#pause_icon').content;
+const playIcon = document.querySelector('#play_icon').content;
 
 const listenButton = document.querySelector('button.listen');
 const listenButtonIcon = document.querySelector('button.listen .icon');
@@ -32,6 +32,7 @@ let globalUpdatePlayHeadInterval;
 
 const volume = {
     container: document.querySelector('.volume'),
+    finegrained: false,
     level: 1
 };
 
@@ -46,7 +47,8 @@ const volume = {
 // property on audio elements.
 let volumeProbe = new Audio();
 const volumeProbeHandler = () => {
-    volume.container.classList.add('interactive');
+    volume.container.classList.add('finegrained');
+    volume.finegrained = true;
     volumeProbe.removeEventListener('volumechange', volumeProbeHandler);
     volumeProbe = null;
 };
@@ -61,6 +63,20 @@ if (persistedVolume !== null) {
     }
 }
 updateVolume();
+
+// While the underlying data model of the playhead (technically the invisible
+// range input and visible svg representation) change granularly, we only
+// trigger screenreader announcements when it makes sense - e.g. when
+// focusing the range input, when seeking, when playback ends etc.
+function announcePlayhead(track) {
+    const valueText = `${PLAYER_JS_T.playbackPosition} ${formatTimeWrittenOut(dockedPlayer.timelineInput.value)}`;
+
+    dockedPlayer.timelineInput.setAttribute('aria-valuetext', valueText);
+
+    if (track.waveform) {
+        track.waveform.input.setAttribute('aria-valuetext', valueText);
+    }
+}
 
 function formatTime(seconds) {
     if (seconds < 60) {
@@ -117,9 +133,9 @@ async function mountAndPlay(track, seekTo) {
     // even if we potentially replace it with the pause icon right after that
     // if there doesn't end up to be any loading required.
     track.container.classList.add('active');
-    track.playbackButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
-    dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
-    listenButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
+    track.playbackButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
+    dockedPlayer.playbackButton.replaceChildren(loadingIcon.cloneNode(true));
+    listenButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
     listenButtonLabel.textContent = PLAYER_JS_T.pause;
 
     if (track.audio.preload !== 'auto') {
@@ -128,7 +144,6 @@ async function mountAndPlay(track, seekTo) {
     }
 
     const play = () => {
-        track.audio.volume = volume.level;
         // On apple devices and browsers (e.g. Safari in macOS 15.1) there is
         // a bug where, when multiple tracks play back while another
         // application but Safari has focus, on returning focus to Safari,
@@ -143,7 +158,7 @@ async function mountAndPlay(track, seekTo) {
         // flag is not set - these we know to originate from the
         // system/browser.
         track.solicitedPlayback = true;
-        track.audio.muted = false;
+        setVolume(track);
         track.audio.play();
     };
 
@@ -189,10 +204,10 @@ async function mountAndPlay(track, seekTo) {
         seeking.abortSeeking = () => {
             clearInterval(seekInterval);
             delete track.seeking;
-            dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
+            dockedPlayer.playbackButton.replaceChildren(playIcon.cloneNode(true));
             track.container.classList.remove('active');
-            track.playbackButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
-            listenButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
+            track.playbackButtonIcon.replaceChildren(playIcon.cloneNode(true));
+            listenButtonIcon.replaceChildren(playIcon.cloneNode(true));
             listenButtonLabel.textContent = PLAYER_JS_T.listen;
         };
 
@@ -227,7 +242,7 @@ function togglePlayback(track, seekTo = null) {
                 track.audio.currentTime = seekTo;
             }
             track.solicitedPlayback = true;
-            track.audio.muted = false;
+            setVolume(track);
             track.audio.play();
         } else {
             // This track is playing, we either pause it, or perform a seek
@@ -268,17 +283,12 @@ function togglePlayback(track, seekTo = null) {
     }
 }
 
-// While the underlying data model of the playhead (technically the invisible
-// range input and visible svg representation) change granularly, we only
-// trigger screenreader announcements when it makes sense - e.g. when
-// focusing the range input, when seeking, when playback ends etc.
-function announcePlayhead(track) {
-    const valueText = `${PLAYER_JS_T.playbackPosition} ${formatTimeWrittenOut(dockedPlayer.timelineInput.value)}`;
-
-    dockedPlayer.timelineInput.setAttribute('aria-valuetext', valueText);
-
-    if (track.waveform) {
-        track.waveform.input.setAttribute('aria-valuetext', valueText);
+function setVolume(track) {
+    if (volume.finegrained) {
+        track.audio.muted = false;
+        track.audio.volume = volume.level;
+    } else {
+        track.audio.muted = (volume.level === 0);
     }
 }
 
@@ -298,8 +308,10 @@ function updatePlayhead(track, reset = false) {
 }
 
 function updateVolume(restoreLevel = null) {
-    if (activeTrack) {
-        activeTrack.audio.volume = volume.level;
+    // We may only unmute and make the track audible if its playback is
+    // currently solicited by us (see other comments on solicitedPlaback).
+    if (activeTrack && activeTrack.solicitedPlayback) {
+        setVolume(activeTrack);
     }
 
     localStorage.setItem('faircampVolume', volume.level.toString());
@@ -343,25 +355,27 @@ function updateVolume(restoreLevel = null) {
         `;
     };
 
-    dockedPlayer.volumeButton.classList.toggle('muted', volume.level === 0);
-    dockedPlayer.volumeSvgTitle.textContent = volume.level > 0 ? PLAYER_JS_T.mute : PLAYER_JS_T.unmute;
+    const displayedLevel = volume.finegrained ? volume.level : (volume.level > 0 ? 1 : 0);
+
+    dockedPlayer.volumeButton.classList.toggle('muted', displayedLevel === 0);
+    dockedPlayer.volumeSvgTitle.textContent = displayedLevel > 0 ? PLAYER_JS_T.mute : PLAYER_JS_T.unmute;
 
     const beginAngle = -135;
-    const arcAngle = volume.level * 270;
+    const arcAngle = displayedLevel * 270;
 
     const knobAngle = beginAngle + arcAngle;
     dockedPlayer.volumeButton.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
 
-    const activeD = volume.level > 0 ? segmentD(beginAngle, arcAngle) : '';
+    const activeD = displayedLevel > 0 ? segmentD(beginAngle, arcAngle) : '';
     dockedPlayer.volumeButton.querySelector('path.active_range').setAttribute('d', activeD);
 
-    const inactiveD = volume.level < 1 ? segmentD(beginAngle + arcAngle, 270 - arcAngle) : '';
+    const inactiveD = displayedLevel < 1 ? segmentD(beginAngle + arcAngle, 270 - arcAngle) : '';
     dockedPlayer.volumeButton.querySelector('path.inactive_range').setAttribute('d', inactiveD);
 
-    const percent = volume.level * 100;
+    const percent = displayedLevel * 100;
     const percentFormatted = percent % 1 > 0.1 ? (Math.trunc(percent * 10) / 10) : Math.trunc(percent);
     dockedPlayer.volumeInput.setAttribute('aria-valuetext', `${PLAYER_JS_T.volume} ${percentFormatted}%`);
-    dockedPlayer.volumeInput.value = volume.level;
+    dockedPlayer.volumeInput.value = displayedLevel;
 
     if (restoreLevel === null) {
         delete volume.restoreLevel;
@@ -423,12 +437,20 @@ dockedPlayer.timelineInput.addEventListener('keydown', event => {
 volume.container.addEventListener('wheel', event => {
     event.preventDefault();
 
-    volume.level += event.deltaY * -0.0001;
+    if (volume.finegrained) {
+        volume.level += event.deltaY * -0.0001;
 
-    if (volume.level > 1) {
-        volume.level = 1;
-    } else if (volume.level < 0) {
-        volume.level = 0;
+        if (volume.level > 1) {
+            volume.level = 1;
+        } else if (volume.level < 0) {
+            volume.level = 0;
+        }
+    } else {
+        if (event.deltaY < 0) {
+            volume.level = 1;
+        } else if (event.deltaY > 0) {
+            volume.level = 0;
+        }
     }
 
     updateVolume();
@@ -594,10 +616,10 @@ for (const container of document.querySelectorAll('.track')) {
         clearInterval(globalUpdatePlayHeadInterval);
 
         container.classList.remove('playing');
-        dockedPlayer.playbackButton.replaceChildren(playIcon.content.cloneNode(true));
-        listenButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
+        dockedPlayer.playbackButton.replaceChildren(playIcon.cloneNode(true));
+        listenButtonIcon.replaceChildren(playIcon.cloneNode(true));
         listenButtonLabel.textContent = PLAYER_JS_T.listen;
-        track.playbackButtonIcon.replaceChildren(playIcon.content.cloneNode(true));
+        track.playbackButtonIcon.replaceChildren(playIcon.cloneNode(true));
 
         if (track.onPause) {
             track.onPause();
@@ -618,10 +640,10 @@ for (const container of document.querySelectorAll('.track')) {
         }
 
         container.classList.add('active', 'playing');
-        dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-        listenButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
+        dockedPlayer.playbackButton.replaceChildren(pauseIcon.cloneNode(true));
+        listenButtonIcon.replaceChildren(pauseIcon.cloneNode(true));
         listenButtonLabel.textContent = PLAYER_JS_T.pause;
-        track.playbackButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
+        track.playbackButtonIcon.replaceChildren(pauseIcon.cloneNode(true));
 
         globalUpdatePlayHeadInterval = setInterval(() => updatePlayhead(track), 1000 / 24);
         updatePlayhead(track);
@@ -631,10 +653,10 @@ for (const container of document.querySelectorAll('.track')) {
     audio.addEventListener('playing', event => {
         if (!track.solicitedPlayback) { return; }
 
-        dockedPlayer.playbackButton.replaceChildren(pauseIcon.content.cloneNode(true));
-        listenButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
+        dockedPlayer.playbackButton.replaceChildren(pauseIcon.cloneNode(true));
+        listenButtonIcon.replaceChildren(pauseIcon.cloneNode(true));
         listenButtonLabel.textContent = PLAYER_JS_T.pause;
-        track.playbackButtonIcon.replaceChildren(pauseIcon.content.cloneNode(true));
+        track.playbackButtonIcon.replaceChildren(pauseIcon.cloneNode(true));
     });
 
     audio.addEventListener('waiting', event => {
@@ -642,10 +664,10 @@ for (const container of document.querySelectorAll('.track')) {
 
         // TODO: Eventually we could augment various screenreader labels here to
         //       indicate the loading state too
-        dockedPlayer.playbackButton.replaceChildren(loadingIcon.content.cloneNode(true));
-        listenButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
+        dockedPlayer.playbackButton.replaceChildren(loadingIcon.cloneNode(true));
+        listenButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
         listenButtonLabel.textContent = PLAYER_JS_T.pause;
-        track.playbackButtonIcon.replaceChildren(loadingIcon.content.cloneNode(true));
+        track.playbackButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
     });
 
     track.playbackButton.addEventListener('click', event => {
