@@ -676,8 +676,7 @@ svg * { pointer-events: none; /* prevent click events on sub elements of an svg 
 }
 .text ol,
 .text ul {
-    list-style-position: inside;
-    padding-left: 0;
+    padding-left: 1rem;
 }
 .text ol li::marker,
 .text ul li::marker {
