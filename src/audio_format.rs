@@ -21,6 +21,8 @@ pub enum AudioFormat {
     Mp3VbrV5,
     /// VBR 80-120 KB/s (see https://trac.ffmpeg.org/wiki/Encode/MP3)
     Mp3VbrV7,
+    // Mp3 without transcoding
+    Mp3Orig,
     OggVorbis,
     Opus48Kbps,
     Opus96Kbps,
@@ -53,6 +55,7 @@ impl AudioFormat {
             AudioFormat::Mp3VbrV0 => "mp3-v0",
             AudioFormat::Mp3VbrV5 => "mp3-v5",
             AudioFormat::Mp3VbrV7 => "mp3-v7",
+            AudioFormat::Mp3Orig => "mp3",
             AudioFormat::OggVorbis => "ogg",
             AudioFormat::Opus48Kbps => "opus-48",
             AudioFormat::Opus96Kbps => "opus-96",
@@ -67,6 +70,7 @@ impl AudioFormat {
             AudioFormat::Aiff => ".aiff",
             AudioFormat::Alac => ".m4a",
             AudioFormat::Flac => ".flac",
+            AudioFormat::Mp3Orig |
             AudioFormat::Mp3VbrV0 |
             AudioFormat::Mp3VbrV5 |
             AudioFormat::Mp3VbrV7 => ".mp3",
@@ -84,6 +88,7 @@ impl AudioFormat {
             AudioFormat::Aiff => AudioFormatFamily::Aiff,
             AudioFormat::Alac => AudioFormatFamily::Alac,
             AudioFormat::Flac => AudioFormatFamily::Flac,
+            AudioFormat::Mp3Orig |
             AudioFormat::Mp3VbrV0 |
             AudioFormat::Mp3VbrV5 |
             AudioFormat::Mp3VbrV7 => AudioFormatFamily::Mp3,
@@ -110,6 +115,7 @@ impl AudioFormat {
             AudioFormat::Aiff => unimplemented!(),
             AudioFormat::Alac => unimplemented!(),
             AudioFormat::Flac => unimplemented!(),
+            AudioFormat::Mp3Orig   |
             AudioFormat::Mp3VbrV0 |
             AudioFormat::Mp3VbrV5 |
             AudioFormat::Mp3VbrV7 => "audio/mpeg",
@@ -132,6 +138,7 @@ impl Display for AudioFormat {
             AudioFormat::Mp3VbrV0 => "MP3 V0",
             AudioFormat::Mp3VbrV5 => "MP3 V5",
             AudioFormat::Mp3VbrV7 => "MP3 V7",
+            AudioFormat::Mp3Orig => "MP3",
             AudioFormat::OggVorbis => "Ogg Vorbis",
             AudioFormat::Opus48Kbps => "Opus 48",
             AudioFormat::Opus96Kbps => "Opus 96",
