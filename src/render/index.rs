@@ -73,8 +73,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         None => String::new()
     };
 
-
-    if catalog.copy_link {
+    if catalog.copy_link && false {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
                 let url = base_url.join(build.index_suffix_file_only()).unwrap().to_string();
@@ -103,7 +102,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
         "#));
     };
 
-    if build.base_url.is_some() {
+    if build.base_url.is_some() && false {
         if catalog.feed_enabled {
             let t_feed = &translations.feed;
             let feed_icon = icons::feed(&translations.rss_feed);

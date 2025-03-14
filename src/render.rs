@@ -474,6 +474,38 @@ fn layout(
         false => String::new()
     };
 
+    let feed_links = {
+        let mut links = String::new();
+
+        let translations = &build.locale.translations;
+        if catalog.feed_enabled {
+            let t_feed = &translations.feed;
+            let feed_icon = icons::feed(&translations.rss_feed);
+            links.push_str(&format!(
+                    r#"<a href="{root_prefix}feed.rss" title="{t_feed}">
+                {feed_icon}
+            </a>"#,
+            root_prefix = root_prefix,
+            feed_icon = feed_icon,
+            t_feed = t_feed
+            ));
+        }
+
+        if catalog.m3u {
+            let t_m3u_playlist = &translations.m3u_playlist;
+            let stream_icon = icons::stream();
+            links.push_str(&format!(
+                    r#"<a href="{root_prefix}playlist.m3u" title="{t_m3u_playlist}"">
+                {stream_icon}
+            </a>"#,
+            stream_icon = stream_icon,
+            t_m3u_playlist = t_m3u_playlist
+            ));
+        }
+
+        links
+    };
+
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
     let r_faircamp_signature = if catalog.faircamp_signature {
@@ -546,6 +578,7 @@ fn layout(
         faircamp_version_detailed = env!("FAIRCAMP_VERSION_DETAILED"),
         favicon_links = catalog.favicon.header_tags(build, root_prefix),
         faircamp_signature = r_faircamp_signature,
+        feed_links = feed_links,
         feed_meta_link = feed_meta_link,
         index_suffix = build.index_suffix(),
         lang = &build.locale.language,
