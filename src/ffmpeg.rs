@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
@@ -99,6 +100,12 @@ pub fn transcode(
     target_format: AudioFormat,
     tag_mapping: &TagMapping
 ) -> Result<(), String> {
+    if matches!(target_format, AudioFormat::Mp3Orig) {
+        fs::copy(input_file, output_file)
+            .map_err(|e| format!("Failed to copy file from {:?} to {:?}: {e}", input_file, output_file))?;
+        return Ok(());
+    }
+
     let mut command = Command::new(FFMPEG_BINARY);
     
     command.arg("-y");
@@ -241,7 +248,8 @@ pub fn transcode(
             command.arg("-codec:a").arg("libopus");
             command.arg("-b:a").arg("128k");
         }
-        AudioFormat::Wav => ()
+        AudioFormat::Wav => (),
+        AudioFormat::Mp3Orig => ()
     }
     
     command.arg(output_file);
