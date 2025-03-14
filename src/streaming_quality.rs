@@ -9,7 +9,8 @@ use crate::AudioFormat;
 #[derive(Clone, Copy, Debug)]
 pub enum StreamingQuality {
     Frugal,
-    Standard
+    Standard,
+    Hybrid
 }
 
 impl StreamingQuality {
@@ -28,6 +29,10 @@ impl StreamingQuality {
             StreamingQuality::Standard => [
                 AudioFormat::Opus96Kbps,
                 AudioFormat::Mp3VbrV5
+            ],
+            StreamingQuality::Hybrid => [
+                AudioFormat::Opus128Kbps,
+                AudioFormat::Mp3Orig
             ]
         }
     }
@@ -36,8 +41,9 @@ impl StreamingQuality {
         match key {
             "frugal" => Ok(StreamingQuality::Frugal),
             "standard" => Ok(StreamingQuality::Standard),
+            "hybrid" => Ok(StreamingQuality::Hybrid),
             _ => {
-                let message = format!("Unknown key '{key}' (available keys: standard, frugal)");
+                let message = format!("Unknown key '{key}' (available keys: standard, frugal, hybrid)");
                 Err(message)
             }
         }
@@ -47,7 +53,8 @@ impl StreamingQuality {
     pub fn mp3_format(&self) -> AudioFormat {
         match self {
             StreamingQuality::Frugal => AudioFormat::Mp3VbrV7,
-            StreamingQuality::Standard => AudioFormat::Mp3VbrV5
+            StreamingQuality::Standard => AudioFormat::Mp3VbrV5,
+            StreamingQuality::Hybrid => AudioFormat::Mp3Orig
         }
     }
 }
