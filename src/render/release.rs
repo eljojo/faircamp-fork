@@ -24,6 +24,7 @@ use crate::render::{
     player_icon_templates,
     release_cover_image,
     Truncation,
+    track,
     unlisted_badge,
     waveform
 };
@@ -37,77 +38,82 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let root_prefix = "../";
     let translations = &build.locale.translations;
 
-    let download_link = match &release.download_access {
-        DownloadAccess::Code { .. } => {
-            if release.download_assets_available() {
-                let t_unlock_permalink = &translations.unlock_permalink;
-                let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
-                    t_unlock_permalink.hash(hasher);
-                });
+    let download_link = if release.tracks.len() == 1 {
+        track::track_download_link(build, catalog, release, &release.tracks[0], 1, "1/")
+            .unwrap_or_default()
+    } else {
+        match &release.download_access {
+            DownloadAccess::Code { .. } => {
+                if release.download_assets_available() {
+                    let t_unlock_permalink = &translations.unlock_permalink;
+                    let page_hash = build.hash_with_salt(|hasher| {
+                        release.permalink.slug.hash(hasher);
+                        t_unlock_permalink.hash(hasher);
+                    });
 
-                let unlock_icon = icons::unlock(&translations.unlock);
-                let t_download = &translations.download;
+                    let unlock_icon = icons::unlock(&translations.unlock);
+                    let t_download = &translations.download;
 
-                formatdoc!(r#"
+                    formatdoc!(r#"
                     <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
                         {unlock_icon}
                         <span>{t_download}</span>
                     </a>
                 "#)
-            } else {
-                String::new()
+                } else {
+                    String::new()
+                }
             }
-        }
-        DownloadAccess::Disabled => String::new(),
-        DownloadAccess::External { link } => {
-            let external_icon = icons::external(&translations.external_link);
-            let t_download = &translations.download;
-            formatdoc!(r#"
+            DownloadAccess::Disabled => String::new(),
+            DownloadAccess::External { link } => {
+                let external_icon = icons::external(&translations.external_link);
+                let t_download = &translations.download;
+                formatdoc!(r#"
                 <a href="{link}" target="_blank">
                     {external_icon}
                     <span>{t_download}</span>
                 </a>
             "#)
-        }
-        DownloadAccess::Free => {
-            if release.download_assets_available() {
-                let t_downloads_permalink = &translations.downloads_permalink;
-                let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
-                    t_downloads_permalink.hash(hasher);
-                });
+            }
+            DownloadAccess::Free => {
+                if release.download_assets_available() {
+                    let t_downloads_permalink = &translations.downloads_permalink;
+                    let page_hash = build.hash_with_salt(|hasher| {
+                        release.permalink.slug.hash(hasher);
+                        t_downloads_permalink.hash(hasher);
+                    });
 
-                let download_icon = icons::download();
-                let t_download = &translations.download;
-                formatdoc!(r#"
+                    let download_icon = icons::download();
+                    let t_download = &translations.download;
+                    formatdoc!(r#"
                     <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
                         {download_icon}
                         <span>{t_download}</span>
                     </a>
                 "#)
-            } else {
-                String::new()
+                } else {
+                    String::new()
+                }
             }
-        }
-        DownloadAccess::Paycurtain { payment_info, .. } => {
-            if release.download_assets_available() && payment_info.is_some() {
-                let t_purchase_permalink = &translations.purchase_permalink;
-                let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
-                    t_purchase_permalink.hash(hasher);
-                });
+            DownloadAccess::Paycurtain { payment_info, .. } => {
+                if release.download_assets_available() && payment_info.is_some() {
+                    let t_purchase_permalink = &translations.purchase_permalink;
+                    let page_hash = build.hash_with_salt(|hasher| {
+                        release.permalink.slug.hash(hasher);
+                        t_purchase_permalink.hash(hasher);
+                    });
 
-                let buy_icon = icons::buy(&translations.buy);
-                let t_download = &translations.download;
-                formatdoc!(r#"
+                    let buy_icon = icons::buy(&translations.buy);
+                    let t_download = &translations.download;
+                    formatdoc!(r#"
                     <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
                         <span>{t_download}</span>
                     </a>
                 "#)
-            } else {
-                String::new()
+                } else {
+                    String::new()
+                }
             }
         }
     };

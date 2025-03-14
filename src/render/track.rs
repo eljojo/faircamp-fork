@@ -40,85 +40,7 @@ pub fn track_html(
     let root_prefix = "../../";
     let translations = &build.locale.translations;
 
-    let download_link = match &track.download_access {
-        DownloadAccess::Code { .. } => {
-            if track.download_assets_available() {
-                let t_unlock_permalink = &translations.unlock_permalink;
-                let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
-                    track_number.hash(hasher);
-                    t_unlock_permalink.hash(hasher);
-                });
-
-                let unlock_icon = icons::unlock(&translations.unlock);
-                let t_downloads = &translations.downloads;
-
-                Some(formatdoc!(r#"
-                    <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
-                        {unlock_icon}
-                        <span>{t_downloads}</span>
-                    </a>
-                "#))
-            } else {
-                None
-            }
-        }
-        DownloadAccess::Disabled => None,
-        DownloadAccess::External { link } => {
-            let external_icon = icons::external(&translations.external_link);
-            let t_download = &translations.download;
-
-            Some(formatdoc!(r#"
-                <a href="{link}" target="_blank">
-                    {external_icon}
-                    <span>{t_download}</span>
-                </a>
-            "#))
-        }
-        DownloadAccess::Free => {
-            if track.download_assets_available() {
-                let t_downloads_permalink = &translations.downloads_permalink;
-                let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
-                    track_number.hash(hasher);
-                    t_downloads_permalink.hash(hasher);
-                });
-
-                let download_icon = icons::download();
-                let t_downloads = &translations.downloads;
-
-                Some(formatdoc!(r#"
-                    <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
-                        {download_icon}
-                        <span>{t_downloads}</span>
-                    </a>
-                "#))
-            } else {
-                None
-            }
-        }
-        DownloadAccess::Paycurtain { payment_info, .. } => {
-            if track.download_assets_available() && payment_info.is_some() {
-                let t_purchase_permalink = &translations.purchase_permalink;
-                let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
-                    track_number.hash(hasher);
-                    t_purchase_permalink.hash(hasher);
-                });
-
-                let buy_icon = icons::buy(&translations.buy);
-                let t_downloads = &translations.downloads;
-                Some(formatdoc!(r#"
-                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
-                        {buy_icon}
-                        <span>{t_downloads}</span>
-                    </a>
-                "#))
-            } else {
-                None
-            }
-        }
-    };
+    let download_link = track_download_link(build, catalog, release, &track, track_number, "");
 
     let audio_sources = track.streaming_quality
         .formats()
@@ -519,4 +441,90 @@ pub fn track_html(
         &track.theme,
         &track_title
     )
+}
+
+pub fn track_download_link(
+    build: &Build,
+    _catalog: &Catalog,
+    release: &Release,
+    track: &Track,
+    track_number: usize,
+    prefix: &str,
+) -> Option<String> {
+    let index_suffix = build.index_suffix();
+    let translations = &build.locale.translations;
+
+    match &track.download_access {
+        DownloadAccess::Code { .. } => {
+            if track.download_assets_available() {
+                let t_unlock_permalink = &translations.unlock_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    track_number.hash(hasher);
+                    t_unlock_permalink.hash(hasher);
+                });
+                let unlock_icon = icons::unlock(&translations.unlock);
+                let t_downloads = &translations.downloads;
+                Some(formatdoc!(r#"
+                    <a href="{prefix}{t_unlock_permalink}/{page_hash}{index_suffix}">
+                        {unlock_icon}
+                        <span>{t_downloads}</span>
+                    </a>
+                "#))
+            } else {
+                None
+            }
+        }
+        DownloadAccess::Disabled => None,
+        DownloadAccess::External { link } => {
+            let external_icon = icons::external(&translations.external_link);
+            let t_download = &translations.download;
+            Some(formatdoc!(r#"
+                <a href="{link}" target="_blank">
+                    {external_icon}
+                    <span>{t_download}</span>
+                </a>
+            "#))
+        }
+        DownloadAccess::Free => {
+            if track.download_assets_available() {
+                let t_downloads_permalink = &translations.downloads_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    track_number.hash(hasher);
+                    t_downloads_permalink.hash(hasher);
+                });
+                let download_icon = icons::download();
+                let t_downloads = &translations.downloads;
+                Some(formatdoc!(r#"
+                    <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}">
+                        {download_icon}
+                        <span>{t_downloads}</span>
+                    </a>
+                "#))
+            } else {
+                None
+            }
+        }
+        DownloadAccess::Paycurtain { payment_info, .. } => {
+            if track.download_assets_available() && payment_info.is_some() {
+                let t_purchase_permalink = &translations.purchase_permalink;
+                let page_hash = build.hash_with_salt(|hasher| {
+                    release.permalink.slug.hash(hasher);
+                    track_number.hash(hasher);
+                    t_purchase_permalink.hash(hasher);
+                });
+                let buy_icon = icons::buy(&translations.buy);
+                let t_downloads = &translations.downloads;
+                Some(formatdoc!(r#"
+                    <a href="{prefix}{t_purchase_permalink}/{page_hash}{index_suffix}">
+                        {buy_icon}
+                        <span>{t_downloads}</span>
+                    </a>
+                "#))
+            } else {
+                None
+            }
+        }
+    }
 }
