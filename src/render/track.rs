@@ -225,6 +225,25 @@ pub fn track_html(
 
     let mut secondary_actions = Vec::new();
 
+    for link in &track.links {
+        let external_icon = icons::external(&translations.external_link);
+
+        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
+        let url = &link.url;
+
+        let r_link = if link.hidden {
+            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
+        } else {
+            let label = link.pretty_label();
+            let e_label = html_escape_outside_attribute(&label);
+            formatdoc!(r#"
+                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
+            "#)
+        };
+
+        secondary_actions.push(r_link);
+    }
+
     if track.copy_link {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
@@ -261,25 +280,6 @@ pub fn track_html(
             </a>
         "#);
         secondary_actions.push(embed_link);
-    }
-
-    for link in &track.links {
-        let external_icon = icons::external(&translations.external_link);
-
-        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
-        let url = &link.url;
-
-        let r_link = if link.hidden {
-            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
-        } else {
-            let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(&label);
-            formatdoc!(r#"
-                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
-            "#)
-        };
-
-        secondary_actions.push(r_link);
     }
 
     let r_secondary_actions = if secondary_actions.is_empty() {
