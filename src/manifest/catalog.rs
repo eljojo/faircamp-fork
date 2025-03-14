@@ -4,8 +4,6 @@
 use std::fs;
 use std::path::Path;
 
-use url::Url;
-
 use crate::{
     Build,
     Cache,
@@ -15,7 +13,8 @@ use crate::{
     Favicon,
     LocalOptions,
     Locale,
-    Overrides
+    Overrides,
+    SiteUrl
 };
 use crate::util::uid;
 
@@ -90,16 +89,8 @@ pub fn read_catalog_manifest(
                 if let Ok(field) = element.as_field() {
                     if let Ok(result) = field.value() {
                         if let Some(value) = result {
-                            // Ensure the value has a trailing slash. Without one, Url::parse below
-                            // would interpret the final path segment as a file, which would lead to
-                            // incorrect url construction at a later point.
-                            let normalized_url = match value.ends_with('/') {
-                                true => value.to_string(),
-                                false => format!("{value}/")
-                            };
-
-                            match Url::parse(&normalized_url) {
-                                Ok(url) => build.base_url = Some(url),
+                            match SiteUrl::parse(value) {
+                                Ok(site_url) => build.base_url = Some(site_url),
                                 Err(err) => {
                                     let message = format!("The base_url setting value '{value}' is not a valid URL: {err}");
                                     let error = element_error_with_snippet(element, manifest_path, &message);

@@ -114,7 +114,12 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                         let artist_ref = artist.borrow();
                         let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
                         let artist_slug = &artist_ref.permalink.slug;
-                        format!(r#"{{ name: '{artist_name_escaped}', url: '{artist_slug}{index_suffix}' }}"#)
+                        formatdoc!(r#"
+                            {{
+                                name: '{artist_name_escaped}',
+                                url: '{artist_slug}{index_suffix}'
+                            }}
+                        "#)
                     })
                     .collect::<Vec<String>>()
                     .join(",\n");
@@ -161,8 +166,15 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                     let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
                     let artist_slug = &artist_ref.permalink.slug;
 
+                    let image = if let Some(src) = artist_ref.thumbnail_image_src() {
+                        format!("image: '{src}',")
+                    } else {
+                        String::new()
+                    };
+
                     formatdoc!(r#"
                         {{
+                            {image}
                             name: '{artist_name_escaped}',
                             url: '{artist_slug}{index_suffix}'
                         }}

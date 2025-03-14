@@ -53,7 +53,7 @@ function truncateArtistList(artists, othersLink)  {
         }
     }
 
-    return rArtists = artists
+    return artists
         .map(artist => `<a href="${rootPrefix}${artist.url}">${artist.name}</a>`)
         .join(", ");
 }
@@ -141,12 +141,19 @@ for (const artist of ARTISTS) {
     const aText = document.createElement('a');
     aText.href = rootPrefix + artist.url;
 
-    const imgPlaceholder = document.createElement('span');
-    imgPlaceholder.classList.add('placeholder');
+    let imageArtist;
+    if (artist.image) {
+        imageArtist = document.createElement('img');
+        imageArtist.classList.add('crop');
+        imageArtist.src = rootPrefix + artist.url + artist.image;
+    } else {
+        imageArtist = document.createElement('span');
+        imageArtist.classList.add('placeholder');
+    }
 
     const aImage = aText.cloneNode(true);
     aImage.tabIndex = -1;
-    aImage.appendChild(imgPlaceholder);
+    aImage.appendChild(imageArtist);
 
     aText.dataset.searchable = 'true';
     aText.textContent = artist.name;

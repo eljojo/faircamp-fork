@@ -810,7 +810,7 @@ impl Catalog {
                 if let Some(ref described_image) = cover {
                     // If the image we're iterating is the cover image for this release
                     // we don't include it as an extra (as it would be redundant).
-                    if image.file_meta.path == described_image.image.file_meta.path {
+                    if image.file_meta.path == described_image.file_meta.path {
                         continue
                     }
                 }
@@ -994,7 +994,7 @@ impl Catalog {
             if let Some(ref described_image) = cover {
                 // If the image we're iterating is the cover image for this release
                 // we don't include it as an extra (as it would be redundant).
-                if image.file_meta.path == described_image.image.file_meta.path {
+                if image.file_meta.path == described_image.file_meta.path {
                     continue
                 }
             }
@@ -1294,16 +1294,15 @@ impl Catalog {
         }
 
         if let Some(described_image) = &self.home_image {
-            let mut image_mut = described_image.image.borrow_mut();
-            let source_path = &described_image.image.file_meta.path;
+            let mut image_mut = described_image.borrow_mut();
+            let source_path = &described_image.file_meta.path;
             // Write home image as poster image for homepage
             let poster_assets = image_mut.artist_assets(build, AssetIntent::Deliverable, source_path);
 
             for asset in &poster_assets.all() {
                 util::hard_link_or_copy(
                     build.cache_dir.join(&asset.filename),
-                    // TODO: Address the ugly __home__ hack soon (maybe hashes are again a solution for these naming questions?)
-                    build.build_dir.join(format!("{}_{}_{}x{}.jpg", "__home__", asset.format, asset.width, asset.height))
+                    build.build_dir.join(asset.target_filename())
                 );
 
                 build.stats.add_image(asset.filesize_bytes);
@@ -1311,7 +1310,7 @@ impl Catalog {
 
             // Write home image as feed image
             if build.base_url.is_some() && self.feed_enabled {
-                let source_path = &described_image.image.file_meta.path;
+                let source_path = &described_image.file_meta.path;
                 let feed_image_asset = image_mut.feed_asset(build, AssetIntent::Deliverable, source_path);
 
                 util::hard_link_or_copy(
@@ -1328,16 +1327,18 @@ impl Catalog {
         for artist in self.featured_artists.iter_mut() {
             let artist_ref = artist.borrow();
 
-            let permalink = artist_ref.permalink.slug.to_string();
             if let Some(described_image) = &artist_ref.image {
-                let mut image_mut = described_image.image.borrow_mut();
-                let source_path = &described_image.image.file_meta.path;
+                let artist_dir = build.build_dir.join(&artist_ref.permalink.slug);
+                util::ensure_dir_all(&artist_dir);
+
+                let mut image_mut = described_image.borrow_mut();
+                let source_path = &described_image.file_meta.path;
                 let poster_assets = image_mut.artist_assets(build, AssetIntent::Deliverable, source_path);
 
                 for asset in &poster_assets.all() {
                     util::hard_link_or_copy(
                         build.cache_dir.join(&asset.filename),
-                        build.build_dir.join(format!("{}_{}_{}x{}.jpg", &permalink, asset.format, asset.width, asset.height))
+                        artist_dir.join(asset.target_filename())
                     );
 
                     build.stats.add_image(asset.filesize_bytes);
@@ -1371,14 +1372,14 @@ impl Catalog {
 
             // Write release cover image
             if let Some(described_image) = &release_mut.cover {
-                let mut image_mut = described_image.image.borrow_mut();
-                let source_path = &described_image.image.file_meta.path;
+                let mut image_mut = described_image.borrow_mut();
+                let source_path = &described_image.file_meta.path;
                 let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
 
                 for asset in &cover_assets.all() {
                     util::hard_link_or_copy(
                         build.cache_dir.join(&asset.filename),
-                        release_dir.join(format!("cover_{}.jpg", asset.edge_size))
+                        release_dir.join(asset.target_filename())
                     );
 
                     build.stats.add_image(asset.filesize_bytes);
@@ -1417,7 +1418,7 @@ impl Catalog {
 
             let cover_path = release_mut.cover
                 .as_ref()
-                .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+                .map(|described_image| build.catalog_dir.join(&described_image.file_meta.path));
 
             let release_slug = release_mut.permalink.slug.clone();
 
@@ -1437,14 +1438,14 @@ impl Catalog {
 
                 // Write track cover image
                 if let Some(described_image) = &track.cover {
-                    let mut image_mut = described_image.image.borrow_mut();
-                    let source_path = &described_image.image.file_meta.path;
+                    let mut image_mut = described_image.borrow_mut();
+                    let source_path = &described_image.file_meta.path;
                     let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
 
                     for asset in &cover_assets.all() {
                         util::hard_link_or_copy(
                             build.cache_dir.join(&asset.filename),
-                            track_dir.join(format!("cover_{}.jpg", asset.edge_size))
+                            track_dir.join(asset.target_filename())
                         );
 
                         build.stats.add_image(asset.filesize_bytes);

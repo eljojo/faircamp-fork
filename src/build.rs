@@ -11,9 +11,13 @@ use std::path::PathBuf;
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use chrono::{DateTime, Utc};
-use url::Url;
 
-use crate::{Args, ImageProcessor, Locale};
+use crate::{
+    Args,
+    ImageProcessor,
+    Locale,
+    SiteUrl
+};
 use crate::util::format_bytes;
 
 /// When we link to assets on the rendered pages, we append a unique asset
@@ -37,7 +41,10 @@ pub struct AssetHashes {
 
 pub struct Build {
     pub asset_hashes: AssetHashes,
-    pub base_url: Option<Url>,
+    /// Regardless of how the user supplied it, we are storing the base_url in
+    /// a normalized form that ensures a trailing slash is always present
+    /// (https://example.com/).
+    pub base_url: Option<SiteUrl>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
     pub cache_dir: PathBuf,
@@ -144,13 +151,6 @@ impl Build {
         match self.clean_urls {
             true => "/",
             false => "/index.html"
-        }
-    }
-
-    pub fn index_suffix_file_only(&self) -> &str {
-        match self.clean_urls {
-            true => "",
-            false => "index.html"
         }
     }
 

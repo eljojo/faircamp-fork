@@ -4,25 +4,33 @@
 use std::cell::{Ref, RefCell, RefMut};
 use std::fs;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use chrono::{DateTime, Utc};
 use serde_derive::{Serialize, Deserialize};
-use url::Url;
 
 use crate::{
     Asset,
     AssetIntent,
     Build,
     FileMeta,
-    ImageInMemory,
     OpenGraphImage,
-    ResizeMode,
     SourceHash,
     View
 };
 use crate::util::url_safe_base64;
+
+mod artist;
+mod processor;
+mod release;
+
+use artist::{ArtistAsset, ArtistAssets};
+use release::{CoverAsset, CoverAssets};
+
+use processor::{ImageInMemory, ResizeMode};
+pub use processor::ImageProcessor;
 
 const BACKGROUND_MAX_EDGE_SIZE: u32 = 1280;
 const FEED_MAX_EDGE_SIZE: u32 = 920;
@@ -34,51 +42,6 @@ const FEED_MAX_EDGE_SIZE: u32 = 920;
 /// I.e. a 460 wide image will be resized to 320 and 460 ("towards" 480) pixels,
 /// but a 321 pixels wide image will only be resized to 320 pixels width.
 const MIN_OVERSHOOT: f32 = 1.2;
-
-/// A single, resized version of the artist image.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ArtistAsset {
-    pub filename: String,
-    pub filesize_bytes: u64,
-    pub format: String,
-    pub height: u32,
-    pub width: u32
-}
-
-/// Represents multiple, differently sized versions of an artist image, for
-/// display on different screen sizes. (Numbers refer to maximum width)
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ArtistAssets {
-    pub fixed_max_320: ArtistAsset,
-    pub fixed_max_480: Option<ArtistAsset>,
-    pub fixed_max_640: Option<ArtistAsset>,
-    pub fluid_max_640: ArtistAsset,
-    pub fluid_max_960: Option<ArtistAsset>,
-    pub fluid_max_1280: Option<ArtistAsset>,
-    pub marked_stale: Option<DateTime<Utc>>
-}
-
-/// A single, resized version of the cover image.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CoverAsset {
-    /// Represents both height and width (covers have a square aspect ratio)
-    pub edge_size: u32,
-    pub filename: String,
-    pub filesize_bytes: u64
-}
-
-/// Represents multiple, differently sized versions of a cover image, for
-/// display on different screen sizes and for inclusion in the release
-/// archive. (Numbers refer to the square edge size, both height and width)
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CoverAssets {
-    pub marked_stale: Option<DateTime<Utc>>,
-    pub max_160: CoverAsset,
-    pub max_320: Option<CoverAsset>,
-    pub max_480: Option<CoverAsset>,
-    pub max_800: Option<CoverAsset>,
-    pub max_1280: Option<CoverAsset>
-}
 
 /// Associates an [ImageRcView] with an image description
 #[derive(Clone, Debug)]
@@ -121,215 +84,20 @@ pub struct ImgAttributes {
     pub srcset: String
 }
 
-impl ArtistAssets {
-    pub fn all(&self) -> Vec<&ArtistAsset> {
-        let mut result = Vec::with_capacity(4);
-
-        result.push(&self.fixed_max_320);
-        if let Some(asset) = &self.fixed_max_480 { result.push(asset); }
-        if let Some(asset) = &self.fixed_max_640 { result.push(asset); }
-        result.push(&self.fluid_max_640);
-        if let Some(asset) = &self.fluid_max_960 { result.push(asset); }
-        if let Some(asset) = &self.fluid_max_1280 { result.push(asset); }
-
-        result
-    }
-
-    pub fn img_attributes_fixed(
-        &self,
-        hash: &str,
-        permalink: &str,
-        prefix: &str
-    ) -> ImgAttributes {
-        let mut assets = Vec::with_capacity(4);
-
-        assets.push(&self.fixed_max_320);
-        if let Some(asset) = &self.fixed_max_480 { assets.push(asset); }
-        if let Some(asset) = &self.fixed_max_640 { assets.push(asset); }
-
-        ImgAttributes::new_for_artist(assets, hash, permalink, prefix)
-    }
-
-    pub fn img_attributes_fluid(
-        &self,
-        hash: &str,
-        permalink: &str,
-        prefix: &str
-    ) -> ImgAttributes {
-        let mut assets = Vec::with_capacity(4);
-
-        assets.push(&self.fluid_max_640);
-        if let Some(asset) = &self.fluid_max_960 { assets.push(asset); }
-        if let Some(asset) = &self.fluid_max_1280 { assets.push(asset); }
-
-        ImgAttributes::new_for_artist(assets, hash, permalink, prefix)
-    }
-
-    pub fn is_stale(&self) -> bool {
-        self.marked_stale.is_some()
-    }
-
-    pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
-        if self.marked_stale.is_none() {
-            self.marked_stale = Some(*timestamp);
-        }
-    }
-
-    pub fn opengraph_image(&self, url_prefix: &Url) -> OpenGraphImage {
-        let artist_asset = if let Some(fluid_max_960) = &self.fluid_max_960 {
-            fluid_max_960
-        } else if let Some(fixed_max_640) = &self.fixed_max_640 {
-            fixed_max_640
-        } else if let Some(fixed_max_480) = &self.fixed_max_480 {
-            fixed_max_480
-        } else {
-            &self.fixed_max_320
-        };
-
-        let format = &artist_asset.format;
-        let height = artist_asset.height;
-        let width = artist_asset.width;
-        let file_name = format!("__home___{format}_{width}x{height}.jpg");
-
-        OpenGraphImage {
-            height,
-            url: url_prefix.join(&file_name).unwrap(),
-            width
-        }
-    }
-
-    pub fn playlist_image(&self) -> String {
-        let artist_asset = match &self.fixed_max_480 {
-            Some(fixed_max_480) => fixed_max_480,
-            None => &self.fixed_max_320
-        };
-
-        let format = &artist_asset.format;
-        let height = artist_asset.height;
-        let width = artist_asset.width;
-        format!("__home___{format}_{width}x{height}.jpg")
-    }
-
-    pub fn unmark_stale(&mut self) {
-        self.marked_stale = None;
-    }
-}
-
-impl CoverAssets {
-    pub fn all(&self) -> Vec<&CoverAsset> {
-        let mut result = Vec::with_capacity(4);
-
-        result.push(&self.max_160);
-        if let Some(asset) = &self.max_320 { result.push(asset); }
-        if let Some(asset) = &self.max_480 { result.push(asset); }
-        if let Some(asset) = &self.max_800 { result.push(asset); }
-        if let Some(asset) = &self.max_1280 { result.push(asset); }
-
-        result
-    }
-
-    pub fn img_attributes_up_to_320(&self, hash: &str, prefix: &str) -> ImgAttributes {
-        let assets = match &self.max_320 {
-            Some(max_320) => vec![&self.max_160, max_320],
-            None => vec![&self.max_160]
-        };
-
-        ImgAttributes::new_for_cover(assets, hash, prefix)
-    }
-
-    pub fn img_attributes_up_to_480(&self, hash: &str, prefix: &str) -> ImgAttributes {
-        let assets = match &self.max_320 {
-            Some(max_320) => match &self.max_480 {
-                Some(max_480) => vec![&self.max_160, max_320, max_480],
-                None => vec![&self.max_160, max_320]
-            }
-            None => vec![&self.max_160]
-        };
-
-        ImgAttributes::new_for_cover(assets, hash, prefix)
-    }
-
-    pub fn img_attributes_up_to_1280(&self, hash: &str, prefix: &str) -> ImgAttributes {
-        let mut assets = Vec::with_capacity(4);
-
-        assets.push(&self.max_160);
-        if let Some(asset) = &self.max_320 { assets.push(asset); }
-        if let Some(asset) = &self.max_480 { assets.push(asset); }
-        if let Some(asset) = &self.max_800 { assets.push(asset); }
-        if let Some(asset) = &self.max_1280 { assets.push(asset); }
-
-        ImgAttributes::new_for_cover(assets, hash, prefix)
-    }
-
-    pub fn is_stale(&self) -> bool {
-        self.marked_stale.is_some()
-    }
-
-    pub fn largest(&self) -> &CoverAsset {
-        if let Some(max_1280) = &self.max_1280 {
-            max_1280
-        } else if let Some(max_800) = &self.max_800 {
-            max_800
-        } else if let Some(max_480) = &self.max_480 {
-            max_480
-        } else if let Some(max_320) = &self.max_320 {
-            max_320
-        } else {
-            &self.max_160
-        }
-    }
-
-    pub fn mark_stale(&mut self, timestamp: &DateTime<Utc>) {
-        if self.marked_stale.is_none() {
-            self.marked_stale = Some(*timestamp);
-        }
-    }
-
-    pub fn opengraph_image(&self, url_prefix: &Url) -> OpenGraphImage {
-        let cover_asset = if let Some(max_800) = &self.max_800 {
-            max_800
-        } else if let Some(max_480) = &self.max_480 {
-            max_480
-        } else if let Some(max_320) = &self.max_320 {
-            max_320
-        } else {
-            &self.max_160
-        };
-
-        let edge_size = cover_asset.edge_size;
-        let file_name = format!("cover_{edge_size}.jpg");
-
-        OpenGraphImage {
-            height: edge_size,
-            url: url_prefix.join(&file_name).unwrap(),
-            width: edge_size
-        }
-    }
-
-    pub fn playlist_image(&self) -> String {
-        let cover_asset = match &self.max_480 {
-            Some(max_480) => max_480,
-            None => match &self.max_320 {
-                Some(max_320) => max_320,
-                None => &self.max_160
-            }
-        };
-        let edge_size = cover_asset.edge_size;
-
-        format!("cover_{edge_size}.jpg")
-    }
-
-    pub fn unmark_stale(&mut self) {
-        self.marked_stale = None;
-    }
-}
-
 impl DescribedImage {
     pub fn new(description: Option<String>, image: ImageRcView) -> DescribedImage {
         DescribedImage {
             description,
             image
         }
+    }
+}
+
+impl Deref for DescribedImage {
+    type Target = ImageRcView;
+
+    fn deref(&self) -> &Self::Target {
+        &self.image
     }
 }
 
@@ -441,6 +209,27 @@ impl Image {
         }
 
         self.artist_assets.as_mut().unwrap()
+    }
+
+    pub fn artist_opengraph_image(&self, url_prefix: &str) -> OpenGraphImage {
+        let artist_asset = self.artist_assets
+            .as_ref()
+            .unwrap()
+            .opengraph_asset();
+
+        let filename = artist_asset.target_filename();
+        let height = artist_asset.height;
+        let width = artist_asset.width;
+
+        let hash = self.hash.as_url_safe_base64();
+
+        let url = format!("{url_prefix}{filename}?{hash}");
+
+        OpenGraphImage {
+            height,
+            url,
+            width
+        }
     }
 
     pub fn background_asset(
@@ -575,6 +364,27 @@ impl Image {
         }
 
         self.cover_assets.as_mut().unwrap()
+    }
+
+    pub fn cover_opengraph_image(&self, url_prefix: &str) -> OpenGraphImage {
+        let cover_asset = self.cover_assets
+            .as_ref()
+            .unwrap()
+            .opengraph_asset();
+
+        let filename = cover_asset.target_filename();
+        let height = cover_asset.edge_size;
+        let width = cover_asset.edge_size;
+
+        let hash = self.hash.as_url_safe_base64();
+
+        let url = format!("{url_prefix}{filename}?{hash}");
+
+        OpenGraphImage {
+            height,
+            url,
+            width
+        }
     }
 
     pub fn deserialize_cached(path: &Path) -> Option<Image> {
@@ -721,11 +531,11 @@ impl ImgAttributes {
         ImgAttributes { src, srcset }
     }
 
-    /// Assets MUST be passed in ascending size
+    /// Assets MUST be passed in ascending size. prefix must point to the
+    /// artist directory.
     pub fn new_for_artist(
         assets_ascending_by_size: Vec<&ArtistAsset>,
         hash: &str,
-        permalink: &str,
         prefix: &str
     ) -> ImgAttributes {
         let mut src = String::new();
@@ -734,13 +544,13 @@ impl ImgAttributes {
         let mut asset_peek_iter = assets_ascending_by_size.iter().peekable();
 
         while let Some(asset) = asset_peek_iter.next() {
-            let format = &asset.format;
-            let height = asset.height;
+            let filename = asset.target_filename();
             let width = asset.width;
-            srcset.push(format!("{prefix}{permalink}_{format}_{width}x{height}.jpg?{hash} {width}w"));
+
+            srcset.push(format!("{prefix}{filename}?{hash} {width}w"));
 
             if asset_peek_iter.peek().is_none() {
-                src = format!("{prefix}{permalink}_{format}_{width}x{height}.jpg?{hash}");
+                src = format!("{prefix}{filename}?{hash}");
             }
         }
 
@@ -763,10 +573,11 @@ impl ImgAttributes {
 
         while let Some(asset) = asset_peek_iter.next() {
             let edge_size = asset.edge_size;
-            srcset.push(format!("{prefix}cover_{edge_size}.jpg?{hash} {edge_size}w"));
+            let filename = asset.target_filename();
+            srcset.push(format!("{prefix}{filename}?{hash} {edge_size}w"));
 
             if asset_peek_iter.peek().is_none() {
-                src = format!("{prefix}cover_{edge_size}.jpg?{hash}");
+                src = format!("{prefix}{filename}?{hash}");
             }
         }
 

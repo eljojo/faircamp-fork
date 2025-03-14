@@ -32,17 +32,18 @@ mod ffmpeg;
 mod heuristic_audio_meta;
 mod icons;
 mod image;
-mod image_processor;
 mod link;
 mod locale;
 mod m3u;
 mod manifest;
 mod markdown;
+mod opengraph;
 mod permalink;
 mod release;
 mod render;
 mod rsync;
 mod server;
+mod site_url;
 mod source_file_signature;
 mod streaming_quality;
 mod scripts;
@@ -69,16 +70,17 @@ use downloads::{DownloadAccess, DownloadAccessOption, ExtraDownloads, Price};
 use fair_dir::FairDir;
 use favicon::Favicon;
 use heuristic_audio_meta::HeuristicAudioMeta;
-use crate::image::{DescribedImage, Image, ImgAttributes, ImageRc, ImageRcView};
-use image_processor::{ImageInMemory, ImageProcessor, ResizeMode};
+use crate::image::{DescribedImage, Image, ImageProcessor, ImageRc, ImageRcView, ImgAttributes};
 use link::Link;
 use locale::Locale;
 use manifest::{LocalOptions, Overrides};
 use markdown::HtmlAndStripped;
+use opengraph::{OpenGraphImage, OpenGraphMeta};
 use permalink::{Permalink, PermalinkUsage};
 use release::{Extra, Release, ReleaseRc, TRACK_NUMBERS};
-use render::{CrawlerMeta, OpenGraphImage, OpenGraphMeta};
+use render::CrawlerMeta;
 use scripts::Scripts;
+use site_url::SiteUrl;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
 use tags::{ImageEmbed, TagAgenda, TagMapping};
@@ -189,12 +191,12 @@ fn main() -> ExitCode {
         let artist_ref = artist.borrow();
         let artist_dir = build.build_dir.join(&artist_ref.permalink.slug);
 
-        fs::create_dir(&artist_dir).unwrap();
+        util::ensure_dir_all(&artist_dir);
 
         // Render m3u playlist
         if let Some(base_url) = &build.base_url {
             if artist_ref.m3u {
-                let r_m3u = m3u::generate_for_artist(base_url, &build, &artist_ref);
+                let r_m3u = m3u::generate_for_artist(&artist_ref, base_url, &build);
                 fs::write(artist_dir.join("playlist.m3u"), r_m3u).unwrap();
             }
         }

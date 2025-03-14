@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::cell::{Ref, RefCell, RefMut};
@@ -158,6 +158,21 @@ impl Artist {
                 }
             })
             .collect()
+    }
+
+    /// Returns - if available - the file name of the artist image,
+    /// without any prefixing (i.e. in the context of the artist directory)
+    pub fn thumbnail_image_src(&self) -> Option<String> {
+        self.image
+            .as_ref()
+            .map(|described_image| {
+                let image_ref = described_image.borrow();
+                let asset = &image_ref.artist_assets.as_ref().unwrap().fixed_max_320;
+                let filename = asset.target_filename();
+                let hash = image_ref.hash.as_url_safe_base64();
+
+                format!("{filename}?{hash}")
+            })
     }
 }
 

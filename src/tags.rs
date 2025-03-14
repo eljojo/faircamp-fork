@@ -226,9 +226,9 @@ impl TagMapping {
                     TagAction::Remove => None,
                     TagAction::Rewrite => {
                         if let Some(described_image) = &track.cover {
-                            Some(ImageEmbed::Write(described_image.image.borrow().hash.clone()))
+                            Some(ImageEmbed::Write(described_image.borrow().hash.clone()))
                         } else if let Some(described_image) = &release.cover {
-                            Some(ImageEmbed::Write(described_image.image.borrow().hash.clone()))
+                            Some(ImageEmbed::Write(described_image.borrow().hash.clone()))
                         } else {
                             None
                         }

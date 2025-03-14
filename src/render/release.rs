@@ -329,10 +329,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     if release.copy_link {
         let (content_key, content_value) = match &build.base_url {
-            Some(base_url) => {
-                let url = base_url.join(&format!("{}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
-                ("content", url)
-            }
+            Some(base_url) => ("content", base_url.join_index(build, &release.permalink.slug)),
             None => ("dynamic-url", String::new())
         };
 
@@ -418,7 +415,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     templates.push_str(&player_icon_templates(build));
 
-    let cover = release_cover_image(build, index_suffix, release, "", root_prefix);
+    let cover = release_cover_image(build, release, "", root_prefix);
 
     let synopsis = match &release.synopsis {
         Some(synopsis) => {
@@ -504,17 +501,18 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let opengraph_meta = if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
             let release_slug = &release.permalink.slug;
-            let release_url = base_url.join(&format!("{release_slug}{index_suffix}")).unwrap();
-            let mut meta = OpenGraphMeta::new(release.title.clone(), release_url.clone());
+            let release_url = base_url.join_index(build, release_slug);
+            let mut meta = OpenGraphMeta::new(release.title.clone(), release_url);
 
             if let Some(synopsis) = &release.synopsis {
                 meta.description(synopsis);
             }
 
             if let Some(described_image) = &release.cover {
-                let image = described_image.image.borrow();
-                let image_url_prefix = base_url.join(&format!("{release_slug}/")).unwrap();
-                let opengraph_image = image.cover_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+                let release_prefix = base_url.join_prefix(release_slug);
+                let opengraph_image = described_image
+                    .borrow()
+                    .cover_opengraph_image(&release_prefix);
 
                 meta.image(opengraph_image);
 

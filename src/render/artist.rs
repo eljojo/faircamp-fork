@@ -63,10 +63,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let templates = if artist.copy_link {
         let (content_key, content_value) = match &build.base_url {
-            Some(base_url) => {
-                let url = base_url.join(&format!("{}{index_suffix}", &artist.permalink.slug)).unwrap().to_string();
-                ("content", url)
-            }
+            Some(base_url) => ("content", base_url.join_index(build, &artist.permalink.slug)),
             None => ("dynamic-url", String::new())
         };
 
@@ -124,11 +121,10 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
 
     let r_artist_image = match &artist.image {
         Some(artist_image_unpacked) => artist_image(
+            "",
             build,
-            index_suffix,
-            root_prefix,
-            &artist.permalink.slug,
-            artist_image_unpacked
+            artist_image_unpacked,
+            root_prefix
         ),
         None => String::new()
     };
@@ -187,7 +183,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
     let opengraph_meta = if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
             let artist_slug = &artist.permalink.slug;
-            let artist_url = base_url.join(&format!("{artist_slug}{index_suffix}")).unwrap();
+            let artist_url = base_url.join_index(build, artist_slug);
             let mut meta = OpenGraphMeta::new(artist.name.clone(), artist_url);
 
             if let Some(synopsis) = &artist.synopsis {
@@ -195,9 +191,10 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             }
 
             if let Some(described_image) = &artist.image {
-                let image = described_image.image.borrow();
-                let image_url_prefix = base_url.join(&format!("{artist_slug}/")).unwrap();
-                let opengraph_image = image.artist_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+                let artist_prefix = base_url.join_prefix(artist_slug);
+                let opengraph_image = described_image
+                    .borrow()
+                    .artist_opengraph_image(&artist_prefix);
 
                 meta.image(opengraph_image);
 

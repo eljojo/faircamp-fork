@@ -179,11 +179,11 @@ impl Release {
         self.cover
             .as_ref()
             .map(|described_image| {
-                let image_ref = described_image.image.borrow();
+                let image_ref = described_image.borrow();
                 let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-                let edge_size = asset.edge_size;
+                let filename = asset.target_filename();
                 let hash = image_ref.hash.as_url_safe_base64();
-                format!("cover_{edge_size}.jpg?{hash}")
+                format!("{filename}?{hash}")
             })
     }
 
@@ -214,7 +214,7 @@ impl Release {
                     if let Some(described_image) = &self.cover {
                         // The image description is not used for building release archives,
                         // so we only hash the image itself
-                        described_image.image.hash(&mut hasher);
+                        described_image.hash(&mut hasher);
                     }
 
                     if self.extra_downloads.bundled && !self.extras.is_empty() {
@@ -237,7 +237,7 @@ impl Release {
 
                         if let Some(described_image) = &track.cover {
                             // The image description is not used so we only hash the image itself
-                            described_image.image.hash(&mut hasher);
+                            described_image.hash(&mut hasher);
                         }
 
                         if self.extra_downloads.bundled && track.extra_downloads && !track.extras.is_empty() {
@@ -393,7 +393,7 @@ impl Release {
 
                             let cover_path = track.cover.as_ref().or(self.cover.as_ref())
                                 .as_ref()
-                                .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+                                .map(|described_image| build.catalog_dir.join(&described_image.file_meta.path));
 
                             track.transcode_as(
                                 download_format.as_audio_format(),
@@ -523,7 +523,7 @@ impl Release {
                                 }
 
                                 let cover_path = track.cover.as_ref().or(self.cover.as_ref())
-                                    .map(|described_image| build.catalog_dir.join(&described_image.image.file_meta.path));
+                                    .map(|described_image| build.catalog_dir.join(&described_image.file_meta.path));
 
                                 track.transcode_as(
                                     download_format.as_audio_format(),
@@ -573,8 +573,8 @@ impl Release {
 
                                 // Write track cover
                                 if let Some(described_image) = &mut track.cover {
-                                    let mut image_mut = described_image.image.borrow_mut();
-                                    let source_path = &described_image.image.file_meta.path;
+                                    let mut image_mut = described_image.borrow_mut();
+                                    let source_path = &described_image.file_meta.path;
                                     let cover_assets = image_mut.cover_assets(build, AssetIntent::Intermediate, source_path);
 
                                     let cover_filename = String::from("cover.jpg");
@@ -620,8 +620,8 @@ impl Release {
                         }
 
                         if let Some(described_image) = &mut self.cover {
-                            let mut image_mut = described_image.image.borrow_mut();
-                            let source_path = &described_image.image.file_meta.path;
+                            let mut image_mut = described_image.borrow_mut();
+                            let source_path = &described_image.file_meta.path;
                             let cover_assets = image_mut.cover_assets(build, AssetIntent::Intermediate, source_path);
 
                             let cover_filename = String::from("cover.jpg");

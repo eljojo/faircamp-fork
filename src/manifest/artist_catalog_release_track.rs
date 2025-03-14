@@ -170,8 +170,8 @@ pub fn read_artist_catalog_release_track_option(
                 if let Ok(result) = field.value() {
                     if let Some(value) = result {
                         match Url::parse(value) {
-                            Ok(url) => {
-                                let link = Link::new(false, None, false, url);
+                            Ok(_) => {
+                                let link = Link::new(false, None, false, value);
                                 local_options.links.push(link);
                             }
                             Err(err) => {
@@ -199,7 +199,7 @@ pub fn read_artist_catalog_release_track_option(
                             "url" => {
                                 if let Some(value) = attribute.value() {
                                     match Url::parse(value) {
-                                        Ok(parsed_url) => url = Some(parsed_url),
+                                        Ok(_) => url = Some(value.to_string()),
                                         Err(err) => {
                                             let message = format!("The url supplied for the link seems to be malformed ({err})");
                                             let error = attribute_error_with_snippet(attribute, manifest_path, &message);

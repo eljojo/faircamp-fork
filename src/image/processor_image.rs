@@ -1,12 +1,16 @@
 // SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use ::image::{DynamicImage, ImageFormat};
-use ::image::imageops::FilterType;
 use std::fs::File;
 use std::path::Path;
 
-use crate::{Build, ResizeMode, util};
+use ::image::{DynamicImage, ImageFormat};
+use ::image::imageops::FilterType;
+
+use crate::Build;
+use crate::util;
+
+use super::ResizeMode;
 
 pub struct ImageInMemory {
     dynamic_image: DynamicImage

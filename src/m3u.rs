@@ -8,52 +8,56 @@
 use std::hash::Hash;
 
 use indoc::formatdoc;
-use url::Url;
 
 use crate::{
     Artist,
     Build,
     Catalog,
     Release,
+    SiteUrl,
     Track,
     TRACK_NUMBERS
 };
 
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// an artist.
-pub fn generate_for_artist(base_url: &Url, build: &Build, artist: &Artist) -> String {
-    let artist_url = base_url.join(&format!("{}/", artist.permalink.slug)).unwrap();
-    let artist_name = &artist.name;
-
+pub fn generate_for_artist(
+    artist: &Artist,
+    base_url: &SiteUrl,
+    build: &Build
+) -> String {
     let r_releases = artist.public_releases()
         .iter()
         .map(|release| {
             let release_ref = release.borrow();
-            let release_url = base_url.join(&format!("{}/", release_ref.permalink.slug)).unwrap();
+            let release_slug = &release_ref.permalink.slug;
             let release_title = &release_ref.title;
 
-            let r_tracks = generate_tracks(build, &release_ref, &release_url, &release_ref.tracks);
+            let r_tracks = generate_tracks(
+                base_url,
+                build,
+                &release_ref,
+                &release_ref.tracks
+            );
 
-            let release_extimg = match &release_ref.cover {
+            let release_cover_url = match &release_ref.cover {
                 Some(described_image) => {
-                    let image_ref = described_image.image.borrow();
+                    let image_ref = described_image.borrow();
                     let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
-                    let file_url = release_url.join(&file_name).unwrap();
                     let hash = image_ref.hash.as_url_safe_base64();
 
-                    format!("#EXTIMG:{file_url}?{hash}")
+                    base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
                 }
                 None => {
                     let procedural_cover = release_ref.procedural_cover.as_ref().unwrap();
                     let file_name = procedural_cover.borrow().filename_480();
-                    let file_url = release_url.join(&file_name).unwrap();
 
-                    format!("#EXTIMG:{file_url}")
+                    base_url.join_file(&format!("{release_slug}/{file_name}"))
                 }
             };
 
             formatdoc!(r#"
-                {release_extimg}
+                #EXTIMG:{release_cover_url}
                 #EXTALB:{release_title}
                 {r_tracks}
             "#)
@@ -61,18 +65,21 @@ pub fn generate_for_artist(base_url: &Url, build: &Build, artist: &Artist) -> St
         .collect::<Vec<String>>()
         .join("\n");
 
-
     let artist_extimg = match &artist.image {
         Some(described_image) => {
-            let image_ref = described_image.image.borrow();
+            let artist_slug = &artist.permalink.slug;
+            let image_ref = described_image.borrow();
             let file_name = image_ref.artist_assets.as_ref().unwrap().playlist_image();
-            let file_url = artist_url.join(&file_name).unwrap();
             let hash = image_ref.hash.as_url_safe_base64();
 
-            format!("#EXTIMG:{file_url}?{hash}")
+            let artist_image_url = base_url.join_file(&format!("{artist_slug}/{file_name}?{hash}"));
+
+            format!("#EXTIMG:{artist_image_url}")
         }
         None => String::new()
     };
+
+    let artist_name = &artist.name;
 
     formatdoc!(r#"
         #EXTM3U
@@ -85,38 +92,45 @@ pub fn generate_for_artist(base_url: &Url, build: &Build, artist: &Artist) -> St
 
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// the catalog.
-pub fn generate_for_catalog(base_url: &Url, build: &Build, catalog: &Catalog) -> String {
+pub fn generate_for_catalog(
+    base_url: &SiteUrl,
+    build: &Build,
+    catalog: &Catalog
+) -> String {
     let catalog_title = catalog.title();
 
     let r_releases = catalog.public_releases()
         .iter()
         .map(|release| {
             let release_ref = release.borrow();
-            let release_url = base_url.join(&format!("{}/", release_ref.permalink.slug)).unwrap();
+            let release_slug = &release_ref.permalink.slug;
             let release_title = &release_ref.title;
 
-            let r_tracks = generate_tracks(build, &release_ref, &release_url, &release_ref.tracks);
+            let r_tracks = generate_tracks(
+                base_url,
+                build,
+                &release_ref,
+                &release_ref.tracks
+            );
 
-            let release_extimg = match &release_ref.cover {
+            let release_cover_url = match &release_ref.cover {
                 Some(described_image) => {
-                    let image_ref = described_image.image.borrow();
+                    let image_ref = described_image.borrow();
                     let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
-                    let file_url = release_url.join(&file_name).unwrap();
                     let hash = image_ref.hash.as_url_safe_base64();
 
-                    format!("#EXTIMG:{file_url}?{hash}")
+                    base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
                 }
                 None => {
                     let procedural_cover = release_ref.procedural_cover.as_ref().unwrap();
                     let file_name = procedural_cover.borrow().filename_480();
-                    let file_url = release_url.join(&file_name).unwrap();
 
-                    format!("#EXTIMG:{file_url}")
+                    base_url.join_file(&format!("{release_slug}/{file_name}"))
                 }
             };
 
             formatdoc!(r#"
-                {release_extimg}
+                #EXTIMG:{release_cover_url}
                 #EXTALB:{release_title}
                 {r_tracks}
             "#)
@@ -127,12 +141,13 @@ pub fn generate_for_catalog(base_url: &Url, build: &Build, catalog: &Catalog) ->
 
     let catalog_extimg = match &catalog.home_image {
         Some(described_image) => {
-            let image_ref = described_image.image.borrow();
+            let image_ref = described_image.borrow();
             let file_name = image_ref.artist_assets.as_ref().unwrap().playlist_image();
-            let file_url = base_url.join(&file_name).unwrap();
             let hash = image_ref.hash.as_url_safe_base64();
 
-            format!("#EXTIMG:{file_url}?{hash}")
+            let file_url = base_url.join_file(&format!("{file_name}?{hash}"));
+
+            format!("#EXTIMG:{file_url}")
         }
         None => String::new()
     };
@@ -147,27 +162,34 @@ pub fn generate_for_catalog(base_url: &Url, build: &Build, catalog: &Catalog) ->
 }
 
 /// Generate complete content of an M3U playlist for a release
-pub fn generate_for_release(base_url: &Url, build: &Build, release: &Release) -> String {
-    let release_url = base_url.join(&format!("{}/", release.permalink.slug)).unwrap();
+pub fn generate_for_release(
+    base_url: &SiteUrl,
+    build: &Build,
+    release: &Release
+) -> String {
+    let release_slug = &release.permalink.slug;
     let release_title = &release.title;
 
-    let r_tracks = generate_tracks(build, release, &release_url, &release.tracks);
+    let r_tracks = generate_tracks(
+        base_url,
+        build,
+        release,
+        &release.tracks
+    );
 
-    let extimg = match &release.cover {
+    let release_cover_url = match &release.cover {
         Some(described_image) => {
-            let image_ref = described_image.image.borrow();
+            let image_ref = described_image.borrow();
             let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
-            let file_url = release_url.join(&file_name).unwrap();
             let hash = image_ref.hash.as_url_safe_base64();
 
-            format!("#EXTIMG:{file_url}?{hash}")
+            base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
         }
         None => {
             let procedural_cover = release.procedural_cover.as_ref().unwrap();
             let file_name = procedural_cover.borrow().filename_480();
-            let file_url = release_url.join(&file_name).unwrap();
 
-            format!("#EXTIMG:{file_url}")
+            base_url.join_file(&format!("{release_slug}/{file_name}"))
         }
     };
 
@@ -175,7 +197,7 @@ pub fn generate_for_release(base_url: &Url, build: &Build, release: &Release) ->
         #EXTM3U
         #EXTENC:UTF-8
         #PLAYLIST:{release_title}
-        {extimg}
+        #EXTIMG:{release_cover_url}
         #EXTALB:{release_title}
         {r_tracks}
     "#)
@@ -185,11 +207,13 @@ pub fn generate_for_release(base_url: &Url, build: &Build, release: &Release) ->
 /// as a reusable function for generating either a playlist for an release or
 /// for an entire catalog (multiple releases).
 pub fn generate_tracks(
+    base_url: &SiteUrl,
     build: &Build,
     release: &Release,
-    release_url: &Url,
     tracks: &[Track]
 ) -> String {
+    let release_slug = &release.permalink.slug;
+
     tracks
         .iter()
         .zip(TRACK_NUMBERS)
@@ -222,15 +246,16 @@ pub fn generate_tracks(
             );
 
             let track_hash = build.hash_with_salt(|hasher| {
-                release.permalink.slug.hash(hasher);
+                release_slug.hash(hasher);
                 track_number.hash(hasher);
                 format_dir.hash(hasher);
                 track_filename.hash(hasher);
             });
 
             let track_filename_urlencoded = urlencoding::encode(&track_filename);
-            let src = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
-            let file_url = release_url.join(&src).unwrap();
+            let file_url = base_url.join_file(
+                &format!("{release_slug}/{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}")
+            );
 
             format!("{extinf}\n{file_url}")
         })

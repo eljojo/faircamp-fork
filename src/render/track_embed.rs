@@ -4,21 +4,24 @@
 use std::hash::Hash;
 
 use indoc::formatdoc;
-use url::Url;
 
-use crate::{Build, Release, Track};
+use crate::{
+    Build,
+    Release,
+    SiteUrl,
+    Track
+};
 use crate::icons;
 use crate::render::{embed_layout, player_icon_templates};
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 pub fn track_embed_html(
-    base_url: &Url,
+    base_url: &SiteUrl,
     build: &Build,
     release: &Release,
     track: &Track,
     track_number: usize
 ) -> String {
-    let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
 
@@ -106,13 +109,13 @@ pub fn track_embed_html(
     "##);
 
     let release_slug = &release.permalink.slug;
-    let link_url = base_url.join(&format!("{release_slug}/{track_number}{index_suffix}")).unwrap();
+    let link_url = base_url.join_index(build, &format!("{release_slug}/{track_number}"));
 
     embed_layout(
-        root_prefix,
         &body,
         build,
         &link_url,
+        root_prefix,
         &release.theme,
         &release.title
     )

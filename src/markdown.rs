@@ -10,7 +10,8 @@ use pulldown_cmark::{
     TagEnd
 };
 use pulldown_cmark::html;
-use url::Url;
+
+use crate::SiteUrl;
 
 /// We render some incoming markdown (such as artist/catalog text)
 /// both to html as well as to plaintext stripped of any and all
@@ -23,7 +24,7 @@ pub struct HtmlAndStripped {
     pub stripped: String
 }
 
-pub fn to_html(base_url: &Option<Url>, markdown_text: &str) -> String {
+pub fn to_html(base_url: &Option<SiteUrl>, markdown_text: &str) -> String {
     let parser = Parser::new(markdown_text);
     
     let parser = parser.map(|event| match &event {
@@ -42,7 +43,7 @@ pub fn to_html(base_url: &Option<Url>, markdown_text: &str) -> String {
             'transformation: {
                 if *link_type == LinkType::Autolink || *link_type == LinkType::Inline {
                     if let Some(base_url) = base_url {
-                        if !dest_url.starts_with(base_url.as_str()) {
+                        if !dest_url.starts_with(base_url.without_trailing_slash()) {
                             let html = format!(r#"<a href="{dest_url}" target="_blank">{title}"#);
                             break 'transformation Event::InlineHtml(html.into());
                         }
@@ -61,7 +62,7 @@ pub fn to_html(base_url: &Option<Url>, markdown_text: &str) -> String {
     html_output
 }
 
-pub fn to_html_and_stripped(base_url: &Option<Url>, markdown_text: &str) -> HtmlAndStripped {
+pub fn to_html_and_stripped(base_url: &Option<SiteUrl>, markdown_text: &str) -> HtmlAndStripped {
     HtmlAndStripped {
         html: to_html(base_url, markdown_text),
         stripped: to_stripped(markdown_text)

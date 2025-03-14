@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use indoc::formatdoc;
-use url::Url;
 
 use crate::{
     Build,
     Catalog,
     CrawlerMeta,
     Release,
-    Scripts
+    Scripts,
+    SiteUrl
 };
 use crate::icons;
 use crate::render::{compact_release_identifier, copy_button, embed_code, layout};
@@ -17,7 +17,7 @@ use crate::util::html_escape_outside_attribute;
 
 /// Renders the page that lets the visitor copy embed codes for the release.
 pub fn release_embed_codes_html(
-    base_url: &Url,
+    base_url: &SiteUrl,
     build: &Build,
     catalog: &Catalog,
     release: &Release
@@ -59,9 +59,7 @@ pub fn release_embed_codes_html(
 
     let release_slug = &release.permalink.slug;
 
-    let embed_url = base_url
-        .join(&format!("{release_slug}/embed/all{index_suffix}"))
-        .unwrap();
+    let embed_url = base_url.join_index(build, &format!("{release_slug}/embed/all"));
 
     let (embed_copy_code, embed_display_code) = embed_code(&embed_url, &t_audio_player_widget_for_xxx);
 

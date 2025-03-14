@@ -1,11 +1,15 @@
 // SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use libvips::{VipsApp, VipsImage};
-use libvips::ops::{self, Interesting, SmartcropOptions};
 use std::path::Path;
 
-use crate::{Build, ResizeMode, util};
+use libvips::{VipsApp, VipsImage};
+use libvips::ops::{self, Interesting, SmartcropOptions};
+
+use crate::Build;
+use crate::util;
+
+use super::ResizeMode;
 
 const CROP_OPTIONS: SmartcropOptions = SmartcropOptions { interesting: Interesting::Centre };
 

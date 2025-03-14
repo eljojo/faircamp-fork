@@ -97,11 +97,11 @@ pub fn release_download_html(
 
     let extra_downloads = if release.extra_downloads.separate && (release.cover.is_some() || !release.extras.is_empty()) {
         let cover_entry = if let Some(described_image) = &release.cover {
-            let image_ref = described_image.image.borrow();
+            let image_ref = described_image.borrow();
             let largest_cover_asset = image_ref.cover_assets.as_ref().unwrap().largest();
-            let edge_size = largest_cover_asset.edge_size;
+            let filename = largest_cover_asset.target_filename();
             download_entry(
-                format!("{release_prefix}cover_{edge_size}.jpg"),
+                format!("{release_prefix}{filename}"),
                 &build.locale.translations.cover_image,
                 largest_cover_asset.filesize_bytes
             )

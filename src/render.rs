@@ -6,7 +6,6 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 use indoc::formatdoc;
-use url::{Position, Url};
 
 use crate::{
     ArtistRc,
@@ -14,9 +13,11 @@ use crate::{
     Catalog,
     DescribedImage,
     ImgAttributes,
+    OpenGraphMeta,
     Release,
     ReleaseRc,
     Scripts,
+    SiteUrl,
     Theme,
     Track
 };
@@ -49,21 +50,6 @@ pub enum CrawlerMeta {
     NoIndexNoFollow,
 }
 
-pub struct OpenGraphImage {
-    pub height: u32,
-    pub url: Url,
-    pub width: u32
-}
-
-/// For the Open Graph specification see https://ogp.me/
-pub struct OpenGraphMeta {
-    description: Option<String>,
-    image: Option<OpenGraphImage>,
-    image_alt: Option<String>,
-    title: String,
-    url: Url
-}
-
 struct TruncatedList {
     pub html: String,
     pub truncated: bool
@@ -86,63 +72,6 @@ impl CrawlerMeta {
     }
 }
 
-impl OpenGraphMeta {
-    pub fn description(&mut self, description: &str) {
-        self.description = Some(description.to_string());
-    }
-
-    pub fn image(&mut self, image: OpenGraphImage) {
-        self.image = Some(image);
-    }
-
-    pub fn image_alt(&mut self, description: &str) {
-        self.image_alt = Some(description.to_string());
-    }
-
-    pub fn new(title: String, url: Url) -> OpenGraphMeta {
-        OpenGraphMeta {
-            description: None,
-            image: None,
-            image_alt: None,
-            title,
-            url
-        }
-    }
-
-    pub fn tags(&self, build: &Build, catalog: &Catalog) -> String {
-        let mut tags = Vec::new();
-
-        if let Some(description) = &self.description {
-            let description_escaped = html_escape_inside_attribute(description);
-            tags.push(format!(r#"<meta property="og:description" content="{description_escaped}"/>"#));
-        }
-
-        if let Some(image) = &self.image {
-            tags.push(format!(r#"<meta property="og:image" content="{}"/>"#, image.url));
-            tags.push(format!(r#"<meta property="og:image:height" content="{}"/>"#, image.height));
-            tags.push(format!(r#"<meta property="og:image:width" content="{}"/>"#, image.width));
-        }
-
-        if let Some(image_alt) = &self.image_alt {
-            let image_alt_escaped = html_escape_inside_attribute(image_alt);
-            tags.push(format!(r#"<meta property="og:image:alt" content="{image_alt_escaped}"/>"#));
-        }
-
-        tags.push(format!(r#"<meta property="og:locale" content="{}"/>"#, &build.locale.language));
-
-        let site_name_escaped = html_escape_inside_attribute(&catalog.title());
-        tags.push(format!(r#"<meta property="og:site_name" content="{site_name_escaped}"/>"#));
-
-        let title_escaped = html_escape_inside_attribute(&self.title);
-        tags.push(format!(r#"<meta property="og:title" content="{title_escaped}"/>"#));
-
-        tags.push(String::from(r#"<meta property="og:type" content="website"/>"#));
-        tags.push(format!(r#"<meta property="og:url" content="{}"/>"#, self.url));
-
-        tags.join("\n")
-    }
-}
-
 impl Display for TruncatedList {
     fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
         write!(formatter, "{}", self.html)
@@ -150,13 +79,12 @@ impl Display for TruncatedList {
 }
 
 fn artist_image(
+    artist_prefix: &str,
     build: &Build,
-    index_suffix: &str,
-    root_prefix: &str,
-    permalink: &str,
-    described_image: &DescribedImage
+    described_image: &DescribedImage,
+    root_prefix: &str
 ) -> String {
-    let image_ref = described_image.image.borrow();
+    let image_ref = described_image.borrow();
 
     let alt = match &described_image.description {
         Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
@@ -168,12 +96,12 @@ fn artist_image(
     let ImgAttributes { src: src_fixed, srcset: srcset_fixed } = image_ref.artist_assets
         .as_ref()
         .unwrap()
-        .img_attributes_fixed(&hash, permalink, root_prefix);
+        .img_attributes_fixed(&hash, artist_prefix);
 
     let ImgAttributes { srcset: srcset_fluid, .. } = image_ref.artist_assets
         .as_ref()
         .unwrap()
-        .img_attributes_fluid(&hash, permalink, root_prefix);
+        .img_attributes_fluid(&hash, artist_prefix);
 
     let poster = formatdoc!(r#"
         <span class="home_image">
@@ -197,7 +125,7 @@ fn artist_image(
     if described_image.description.is_some() {
         poster
     } else {
-        wrap_undescribed_image(build, index_suffix, root_prefix, &poster, "", "home_image")
+        wrap_undescribed_image(build, root_prefix, &poster, "", "home_image")
     }
 }
 
@@ -313,7 +241,6 @@ pub fn copy_button(content_key: &str, content_value: &str, label: &str) -> Strin
 
 fn cover_tile_image(
     build: &Build,
-    index_suffix: &str,
     release_prefix: &str,
     root_prefix: &str,
     release: &Release,
@@ -321,7 +248,7 @@ fn cover_tile_image(
 ) -> String {
     match &release.cover {
         Some(described_image) => {
-            let image_ref = described_image.image.borrow();
+            let image_ref = described_image.borrow();
 
             let alt = match &described_image.description {
                 Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
@@ -355,7 +282,7 @@ fn cover_tile_image(
             if described_image.description.is_some() {
                 thumbnail
             } else {
-                wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, "", "")
+                wrap_undescribed_image(build, root_prefix, &thumbnail, "", "")
             }
         }
         None => {
@@ -406,10 +333,9 @@ fn download_entry(href: String, label: &str, size: u64) -> String {
 /// The title parameter provides a text that indicates to screen-reader users
 /// what to expect inside the iframe. See description at
 /// https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#accessibility_concerns
-fn embed_code(embed_url: &Url, title: &str) -> (String, String) {
+fn embed_code(embed_url: &str, title: &str) -> (String, String) {
     let title_double_escaped = html_double_escape_inside_attribute(title);
     let title_escaped = html_escape_inside_attribute(title);
-
 
     let copy_code = html_escape_inside_attribute(
         &formatdoc!(r#"
@@ -432,19 +358,18 @@ fn embed_code(embed_url: &Url, title: &str) -> (String, String) {
 }
 
 fn embed_layout(
-    root_prefix: &str,
     body: &str,
     build: &Build,
-    link_url: &Url,
+    link_url: &str,
+    root_prefix: &str,
     theme: &Theme,
     title: &str
 ) -> String {
     let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
-    let display_url = &link_url[Position::BeforeHost..];
+    let display_link_url = SiteUrl::pretty_display(link_url);
     let external_icon = icons::external(&build.locale.translations.external_link);
-    let full_url = link_url.to_string();
-    let t_javascript_is_disabled_listen_at_xxx = build.locale.translations.javascript_is_disabled_listen_at_xxx(&format!(r#"<a href="{full_url}">{external_icon} {display_url}</a>"#));
+    let t_javascript_is_disabled_listen_at_xxx = build.locale.translations.javascript_is_disabled_listen_at_xxx(&format!(r#"<a href="{link_url}">{external_icon} {display_link_url}</a>"#));
     format!(
         include_str!("templates/embed.html"),
         body = body,
@@ -774,14 +699,13 @@ pub fn player_icon_templates(build: &Build) -> String {
 /// Used on release/tracks pages to display a large-size cover for the release
 fn release_cover_image(
     build: &Build,
-    index_suffix: &str,
     release: &Release,
     release_prefix: &str,
     root_prefix: &str,
 ) -> String {
     match &release.cover {
         Some(described_image) => {
-            let image_ref = described_image.image.borrow();
+            let image_ref = described_image.borrow();
 
             let alt = match &described_image.description {
                 Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
@@ -848,7 +772,7 @@ fn release_cover_image(
                     {overlay}
                 ")
             } else {
-                wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
+                wrap_undescribed_image(build, root_prefix, &thumbnail, &overlay, "")
             }
         }
         None => {
@@ -885,11 +809,11 @@ fn release_cover_image_tiny_decorative(
 ) -> String {
     let image = match &release.cover {
         Some(described_image) => {
-            let image_ref = described_image.image.borrow();
+            let image_ref = described_image.borrow();
             let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-            let edge_size = asset.edge_size;
+            let filename = asset.target_filename();
             let hash = image_ref.hash.as_url_safe_base64();
-            let src = format!("{release_prefix}cover_{edge_size}.jpg?{hash}");
+            let src = format!("{release_prefix}{filename}?{hash}");
 
             format!(r#"<img loading="lazy" src="{src}">"#)
         }
@@ -943,7 +867,6 @@ fn releases(
 
             let cover = cover_tile_image(
                 build,
-                index_suffix,
                 &release_prefix,
                 root_prefix,
                 &release_ref,
@@ -969,7 +892,6 @@ fn releases(
 fn track_cover_image(
     build: &Build,
     cover: &DescribedImage,
-    index_suffix: &str,
     root_prefix: &str
 ) -> String {
     let image_ref = cover.image.borrow();
@@ -1040,7 +962,7 @@ fn track_cover_image(
             {overlay}
         ")
     } else {
-        wrap_undescribed_image(build, index_suffix, root_prefix, &thumbnail, &overlay, "")
+        wrap_undescribed_image(build, root_prefix, &thumbnail, &overlay, "")
     }
 }
 
@@ -1052,19 +974,19 @@ fn track_cover_image_tiny_decorative(
     track_prefix: &str
 ) -> String {
     let image = if let Some(described_image) = &track.cover {
-        let image_ref = described_image.image.borrow();
+        let image_ref = described_image.borrow();
         let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-        let edge_size = asset.edge_size;
+        let filename = asset.target_filename();
         let hash = image_ref.hash.as_url_safe_base64();
-        let src = format!("{track_prefix}cover_{edge_size}.jpg?{hash}");
+        let src = format!("{track_prefix}{filename}?{hash}");
 
         format!(r#"<img loading="lazy" src="{src}">"#)
     } else if let Some(described_image) = &release.cover {
-        let image_ref = described_image.image.borrow();
+        let image_ref = described_image.borrow();
         let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-        let edge_size = asset.edge_size;
+        let filename = asset.target_filename();
         let hash = image_ref.hash.as_url_safe_base64();
-        let src = format!("{release_prefix}cover_{edge_size}.jpg?{hash}");
+        let src = format!("{release_prefix}{filename}?{hash}");
 
         format!(r#"<img loading="lazy" src="{src}">"#)
     } else {
@@ -1198,12 +1120,13 @@ fn waveform(track: &Track) -> String {
 
 fn wrap_undescribed_image(
     build: &Build,
-    index_suffix: &str,
     root_prefix: &str,
     thumbnail: &str,
     overlay: &str,
     extra_class: &str
 ) -> String {
+    let index_suffix = build.index_suffix();
+
     let visual_impairment_icon = icons::visual_impairment(&build.locale.translations.visual_impairment);
 
     let t_image_descriptions_permalink = &build.locale.translations.image_descriptions_permalink;

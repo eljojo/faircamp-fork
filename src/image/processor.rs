@@ -7,8 +7,8 @@ compile_error!(r#"An image processing feature needs to be enabled, re-run your l
 #[cfg(all(feature = "image", feature = "libvips"))]
 compile_error!(r#"Only one image processing feature can be enabled, remove either "--features image" or "--features libvips" from your last command"#);
 
-#[cfg_attr(feature = "image", path = "image_processor/image.rs")]
-#[cfg_attr(feature = "libvips", path = "image_processor/libvips.rs")]
+#[cfg_attr(feature = "image", path = "processor_image.rs")]
+#[cfg_attr(feature = "libvips", path = "processor_libvips.rs")]
 mod implementation;
 
 pub use implementation::{ImageInMemory, ImageProcessor};

@@ -37,6 +37,7 @@ pub fn track_html(
     track_number: usize
 ) -> String {
     let index_suffix = build.index_suffix();
+    let release_slug = &release.permalink.slug;
     let root_prefix = "../../";
     let translations = &build.locale.translations;
 
@@ -45,7 +46,7 @@ pub fn track_html(
             if track.download_assets_available() {
                 let t_unlock_permalink = &translations.unlock_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
+                    release_slug.hash(hasher);
                     track_number.hash(hasher);
                     t_unlock_permalink.hash(hasher);
                 });
@@ -79,7 +80,7 @@ pub fn track_html(
             if track.download_assets_available() {
                 let t_downloads_permalink = &translations.downloads_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
+                    release_slug.hash(hasher);
                     track_number.hash(hasher);
                     t_downloads_permalink.hash(hasher);
                 });
@@ -101,7 +102,7 @@ pub fn track_html(
             if track.download_assets_available() && payment_info.is_some() {
                 let t_purchase_permalink = &translations.purchase_permalink;
                 let page_hash = build.hash_with_salt(|hasher| {
-                    release.permalink.slug.hash(hasher);
+                    release_slug.hash(hasher);
                     track_number.hash(hasher);
                     t_purchase_permalink.hash(hasher);
                 });
@@ -133,7 +134,7 @@ pub fn track_html(
             );
 
             let track_hash = build.hash_with_salt(|hasher| {
-                release.permalink.slug.hash(hasher);
+                release_slug.hash(hasher);
                 track_number.hash(hasher);
                 format_dir.hash(hasher);
                 track_filename.hash(hasher);
@@ -302,8 +303,7 @@ pub fn track_html(
     if track.copy_link {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
-                let url = base_url.join(&format!("{}/{track_number}{index_suffix}", &release.permalink.slug)).unwrap().to_string();
-                ("content", url)
+                ("content", base_url.join_index(build, &format!("{release_slug}/{track_number}")))
             }
             None => ("dynamic-url", String::new())
         };
@@ -377,13 +377,11 @@ pub fn track_html(
         track_cover_image(
             build,
             described_image,
-            index_suffix,
             root_prefix
         )
     } else {
         release_cover_image(
             build,
-            index_suffix,
             release,
             "../",
             root_prefix
@@ -470,8 +468,7 @@ pub fn track_html(
 
     let opengraph_meta = if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
-            let release_slug = &release.permalink.slug;
-            let track_url = base_url.join(&format!("{release_slug}/{track_number}{index_suffix}")).unwrap();
+            let track_url = base_url.join_index(build, &format!("{release_slug}/{track_number}"));
             let mut meta = OpenGraphMeta::new(track.title(), track_url);
 
             if let Some(synopsis) = &track.synopsis {
@@ -479,9 +476,10 @@ pub fn track_html(
             }
 
             if let Some(described_image) = &track.cover {
-                let image = described_image.image.borrow();
-                let image_url_prefix = base_url.join(&format!("{release_slug}/{track_number}/")).unwrap();
-                let opengraph_image = image.cover_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+                let track_prefix = base_url.join_prefix(&format!("{release_slug}/{track_number}"));
+                let opengraph_image = described_image
+                    .borrow()
+                    .cover_opengraph_image(&track_prefix);
 
                 meta.image(opengraph_image);
 
@@ -489,9 +487,10 @@ pub fn track_html(
                     meta.image_alt(description);
                 }
             } else if let Some(described_image) = &release.cover {
-                let image = described_image.image.borrow();
-                let image_url_prefix = base_url.join(&format!("{release_slug}/")).unwrap();
-                let opengraph_image = image.cover_assets.as_ref().unwrap().opengraph_image(&image_url_prefix);
+                let release_prefix = base_url.join_prefix(release_slug);
+                let opengraph_image = described_image
+                    .borrow()
+                    .cover_opengraph_image(&release_prefix);
 
                 meta.image(opengraph_image);
 

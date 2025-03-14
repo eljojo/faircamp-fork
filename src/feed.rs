@@ -6,12 +6,10 @@
 
 use std::fs;
 
-use url::Url;
-
-use crate::{Build, Catalog};
+use crate::{Build, Catalog, SiteUrl};
 use crate::util::html_escape_outside_attribute;
 
-pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
+pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
     let channel_items = catalog.releases
         .iter()
         .filter(|release| !release.borrow().unlisted)
@@ -47,8 +45,7 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
 
             let item_title = format!("{artists_list} – {}", release_ref.title);
 
-            let index_suffix = build.index_suffix();
-            let link = base_url.join(&format!("{}{index_suffix}", release_ref.permalink.slug)).unwrap();
+            let link = base_url.join_index(build, &release_ref.permalink.slug);
 
             format!(
                 include_str!("templates/feed/item.xml"),
@@ -74,17 +71,14 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
 
     let channel_title = catalog.title();
 
-    let link = match build.clean_urls {
-        true => base_url.clone(),
-        false => base_url.join("index.html").unwrap()
-    };
+    let link = base_url.index(build);
 
     let channel_image = if let Some(home_image) = &catalog.home_image {
         let hash = home_image.image.borrow().hash.as_url_safe_base64();
 
         format!(
             include_str!("templates/feed/image.xml"),
-            image_url = base_url.join(&format!("feed.jpg?{hash}")).unwrap(),
+            image_url = base_url.join_file(&format!("feed.jpg?{hash}")),
             link = link,
             title = html_escape_outside_attribute(&channel_title)
         )
@@ -95,7 +89,7 @@ pub fn generate(base_url: &Url, build: &Build, catalog: &Catalog) {
     let xml = format!(
         include_str!("templates/feed/channel.xml"),
         description = channel_description,
-        feed_url = base_url.join("feed.rss").unwrap(),
+        feed_url = base_url.join_file("feed.rss"),
         image = channel_image,
         items = channel_items,
         last_build_date = build.build_begin.to_rfc2822(),

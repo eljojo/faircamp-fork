@@ -76,11 +76,11 @@ impl Track {
         self.cover
             .as_ref()
             .map(|described_image| {
-                let image_ref = described_image.image.borrow();
+                let image_ref = described_image.borrow();
                 let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-                let edge_size = asset.edge_size;
+                let filename = asset.target_filename();
                 let hash = image_ref.hash.as_url_safe_base64();
-                format!("cover_{edge_size}.jpg?{hash}")
+                format!("{filename}?{hash}")
             })
     }
 

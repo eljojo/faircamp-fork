@@ -30,11 +30,10 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let home_image = match &catalog.home_image {
         Some(home_image) => artist_image(
-            build,
-            index_suffix,
             root_prefix,
-            "__home__", // TODO: Bad hack, solve properly
-            home_image
+            build,
+            home_image,
+            root_prefix
         ),
         None => String::new()
     };
@@ -76,10 +75,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     if catalog.copy_link {
         let (content_key, content_value) = match &build.base_url {
-            Some(base_url) => {
-                let url = base_url.join(build.index_suffix_file_only()).unwrap().to_string();
-                ("content", url)
-            }
+            Some(base_url) => ("content", base_url.index(build)),
             None => ("dynamic-url", String::new())
         };
 
@@ -208,7 +204,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
     let opengraph_meta = if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
-            let catalog_url = base_url.join(build.index_suffix_file_only()).unwrap();
+            let catalog_url = base_url.index(build);
             let mut meta = OpenGraphMeta::new(catalog.title(), catalog_url);
 
             if let Some(synopsis) = &catalog.synopsis {
@@ -216,8 +212,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             }
 
             if let Some(described_image) = &catalog.home_image {
-                let image = described_image.image.borrow();
-                let opengraph_image = image.artist_assets.as_ref().unwrap().opengraph_image(base_url);
+                let opengraph_image = described_image
+                    .borrow()
+                    .artist_opengraph_image(base_url.prefix());
 
                 meta.image(opengraph_image);
 
