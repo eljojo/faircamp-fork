@@ -38,6 +38,7 @@ pub struct AssetHashes {
 pub struct Build {
     pub asset_hashes: AssetHashes,
     pub base_url: Option<Url>,
+    pub cdn_url: Option<Url>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
     pub cache_dir: PathBuf,
@@ -180,6 +181,7 @@ impl Build {
         Build {
             asset_hashes: AssetHashes::new(),
             base_url: None,
+            cdn_url: None,
             build_begin: Utc::now(),
             build_dir,
             cache_dir,

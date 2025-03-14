@@ -52,6 +52,7 @@ pub fn release_embed_html(
                     });
 
                     let track_filename_urlencoded = urlencoding::encode(&track_filename);
+                    // TODO
                     let src = format!("{release_prefix}{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
 
                     let source_type = format.source_type();

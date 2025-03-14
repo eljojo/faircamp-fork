@@ -211,7 +211,13 @@ pub fn generate_tracks(
             });
 
             let track_filename_urlencoded = urlencoding::encode(&track_filename);
-            let src = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
+            let relative_path = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
+            let src = if let Some(cdn_url) = &build.cdn_url {
+                format!("{}{}/{}", cdn_url, release.permalink.slug, relative_path)
+            } else {
+                relative_path
+            };
+
             let file_url = release_url.join(&src).unwrap();
 
             format!("{extinf}\n{file_url}")

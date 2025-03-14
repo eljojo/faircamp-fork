@@ -39,6 +39,7 @@ use super::{
 /// are matched against in `read_catalog_manifest`.
 const CATALOG_OPTIONS: &[&str] = &[
     "base_url",
+    "cdn_url",
     "cache_optimization",
     "disable_feed",
     "faircamp_signature",
@@ -114,6 +115,35 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "base_url needs to be provided as a field with a value, e.g.: 'base_url: https://example.com'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
+            }
+            "cdn_url" => 'cdn_url: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            // Ensure a trailing slash for proper URL joining.
+                            let normalized_url = if value.ends_with('/') {
+                                value.to_string()
+                            } else {
+                                format!("{value}/")
+                            };
+
+                            match Url::parse(&normalized_url) {
+                                Ok(url) => build.cdn_url = Some(url),
+                                Err(err) => {
+                                    let message = format!("The cdn_url setting value '{value}' is not a valid URL: {err}");
+                                    let error = element_error_with_snippet(element, manifest_path, &message);
+                                    build.error(&error);
+                                }
+                            }
+                        } else {
+                            build.cdn_url = None;
+                        }
+                        break 'cdn_url;
+                    }
+                }
+                let message = "cdn_url needs to be provided as a field with a value, e.g.: 'cdn_url: https://example.com'";
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
