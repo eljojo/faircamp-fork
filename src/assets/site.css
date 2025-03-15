@@ -388,16 +388,16 @@ footer .browse {
     color: var(--fg-3);
     column-gap: .3rem;
     display: flex;
+    padding: .3em .5em .2em .5em;
 }
 footer > span {
     align-items: center;
     column-gap: 1rem;
     display: flex;
 }
-footer a[title] svg {
-    font-size: .8rem;
+footer a[title] svg, footer button svg {
     position: relative;
-    top: .05rem;
+    -top: .05rem;
 }
 footer .faircamp_signature {
     align-items: center;
