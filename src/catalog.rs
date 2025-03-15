@@ -1307,6 +1307,15 @@ impl Catalog {
                 build.stats.add_image(asset.filesize_bytes);
             }
 
+            // Write home image to show in index
+            let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
+            util::hard_link_or_copy(
+                build.cache_dir.join(&background_asset.filename),
+                // TODO: Address the ugly __home__ hack soon (maybe hashes are again a solution for these naming questions?)
+                build.build_dir.join(format!("home_image.jpg"))
+            );
+            build.stats.add_image(background_asset.filesize_bytes);
+
             // Write home image as feed image
             if build.base_url.is_some() && self.feed_enabled {
                 let source_path = &described_image.image.file_meta.path;
