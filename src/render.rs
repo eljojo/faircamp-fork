@@ -571,7 +571,7 @@ fn layout(
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
         extra_scripts = extra_scripts.header_tags(build, root_prefix),
-        faircamp_icon = icons::faircamp(Some("Faircamp")),
+        faircamp_icon = icons::faircamp(None),
         faircamp_revision = env!("FAIRCAMP_REVISION"),
         faircamp_version_detailed = env!("FAIRCAMP_VERSION_DETAILED"),
         favicon_links = catalog.favicon.header_tags(build, root_prefix),
