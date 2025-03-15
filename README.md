@@ -3,6 +3,11 @@
     SPDX-License-Identifier: CC0-1.0
 -->
 
+# This is my personal fork of Faircamp!
+
+You can find the original source on https://codeberg.org/simonrepp/faircamp  
+Learn more about the differences [here](https://github.com/eljojo/faircamp-fork/pull/1)
+
 # Faircamp
 
 **A static site generator for audio producers**
