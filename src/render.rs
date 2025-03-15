@@ -571,6 +571,7 @@ fn layout(
         crawler_meta = crawler_meta.tag(),
         dir_attribute = dir_attribute,
         extra_scripts = extra_scripts.header_tags(build, root_prefix),
+        analytics_snippet = catalog.analytics_snippet.clone().unwrap_or_default(),
         faircamp_icon = icons::faircamp(None),
         faircamp_revision = env!("FAIRCAMP_REVISION"),
         faircamp_version_detailed = env!("FAIRCAMP_VERSION_DETAILED"),

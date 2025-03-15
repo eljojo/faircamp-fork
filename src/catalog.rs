@@ -73,6 +73,7 @@ pub struct Catalog {
     pub support_artists: Vec<ArtistRc>,
     pub synopsis: Option<String>,
     pub theme: Theme,
+    pub analytics_snippet: Option<String>,
     title: Option<String>
 }
 
@@ -328,6 +329,7 @@ impl Catalog {
             support_artists: Vec::new(),
             synopsis: None,
             theme: Theme::new(),
+            analytics_snippet: None,
             title: None
         }
     }
