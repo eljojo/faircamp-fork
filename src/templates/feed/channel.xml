@@ -3,6 +3,7 @@
     <channel>
         <atom:link href="{feed_url}" rel="self" type="application/rss+xml"/>
         <description>{description}</description>
+        <generator>{GENERATOR_INFO}</generator>
         {image}
         <language>{language}</language>
         <lastBuildDate>{last_build_date}</lastBuildDate>

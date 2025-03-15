@@ -1,5 +1,7 @@
 <image>
+    <height>{height}</height>
     <link>{link}</link>
     <title>{title}</title>
-    <url>{image_url}</url>
+    <url>{url}</url>
+    <width>{width}</width>
 </image>

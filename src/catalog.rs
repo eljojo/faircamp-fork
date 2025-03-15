@@ -20,6 +20,7 @@ use crate::{
     Extra,
     FairDir,
     Favicon,
+    FeedImageAsset,
     FileMeta,
     HeuristicAudioMeta,
     HtmlAndStripped,
@@ -114,7 +115,7 @@ fn pick_best_cover_image(images: &[ImageRcView]) -> Option<DescribedImage> {
 pub fn write_background_image(build: &mut Build, image: &ImageRcView) {
     let mut image_mut = image.borrow_mut();
     let source_path = &image.file_meta.path;
-    let background_asset = image_mut.background_asset(build, AssetIntent::Deliverable, source_path);
+    let background_asset = image_mut.background_asset(build, source_path);
 
     let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(&background_asset.filename));
     let hashed_path = build.build_dir.join(hashed_filename);
@@ -1297,7 +1298,7 @@ impl Catalog {
             let mut image_mut = described_image.borrow_mut();
             let source_path = &described_image.file_meta.path;
             // Write home image as poster image for homepage
-            let poster_assets = image_mut.artist_assets(build, AssetIntent::Deliverable, source_path);
+            let poster_assets = image_mut.artist_assets(build, source_path);
 
             for asset in &poster_assets.all() {
                 util::hard_link_or_copy(
@@ -1311,11 +1312,11 @@ impl Catalog {
             // Write home image as feed image
             if build.base_url.is_some() && self.feed_enabled {
                 let source_path = &described_image.file_meta.path;
-                let feed_image_asset = image_mut.feed_asset(build, AssetIntent::Deliverable, source_path);
+                let feed_image_asset = image_mut.feed_asset(build, source_path);
 
                 util::hard_link_or_copy(
                     build.cache_dir.join(&feed_image_asset.filename),
-                    build.build_dir.join("feed.jpg")
+                    build.build_dir.join(FeedImageAsset::TARGET_FILENAME)
                 );
 
                 build.stats.add_image(feed_image_asset.filesize_bytes);
@@ -1333,7 +1334,7 @@ impl Catalog {
 
                 let mut image_mut = described_image.borrow_mut();
                 let source_path = &described_image.file_meta.path;
-                let poster_assets = image_mut.artist_assets(build, AssetIntent::Deliverable, source_path);
+                let poster_assets = image_mut.artist_assets(build, source_path);
 
                 for asset in &poster_assets.all() {
                     util::hard_link_or_copy(
@@ -1374,7 +1375,7 @@ impl Catalog {
             if let Some(described_image) = &release_mut.cover {
                 let mut image_mut = described_image.borrow_mut();
                 let source_path = &described_image.file_meta.path;
-                let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
+                let cover_assets = image_mut.cover_assets(build, source_path);
 
                 for asset in &cover_assets.all() {
                     util::hard_link_or_copy(
@@ -1440,7 +1441,7 @@ impl Catalog {
                 if let Some(described_image) = &track.cover {
                     let mut image_mut = described_image.borrow_mut();
                     let source_path = &described_image.file_meta.path;
-                    let cover_assets = image_mut.cover_assets(build, AssetIntent::Deliverable, source_path);
+                    let cover_assets = image_mut.cover_assets(build, source_path);
 
                     for asset in &cover_assets.all() {
                         util::hard_link_or_copy(

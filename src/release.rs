@@ -575,7 +575,17 @@ impl Release {
                                 if let Some(described_image) = &mut track.cover {
                                     let mut image_mut = described_image.borrow_mut();
                                     let source_path = &described_image.file_meta.path;
-                                    let cover_assets = image_mut.cover_assets(build, AssetIntent::Intermediate, source_path);
+
+                                    // Technically we should only request/compute a
+                                    // single asset specifically suitable for
+                                    // inclusion in the download here, not all of
+                                    // them as we use them for display on the
+                                    // website. That should go hand in hand with
+                                    // marking this single asset with
+                                    // AssetIntent::Intermediate, i.e. immediately
+                                    // beginning its decay in the cache for future
+                                    // removal.
+                                    let cover_assets = image_mut.cover_assets(build, source_path);
 
                                     let cover_filename = String::from("cover.jpg");
                                     let cover_path = format!("{extra_dirname}/{cover_filename}");
@@ -619,10 +629,21 @@ impl Release {
                             }
                         }
 
+                        // Write release cover
                         if let Some(described_image) = &mut self.cover {
                             let mut image_mut = described_image.borrow_mut();
                             let source_path = &described_image.file_meta.path;
-                            let cover_assets = image_mut.cover_assets(build, AssetIntent::Intermediate, source_path);
+
+                            // Technically we should only request/compute a
+                            // single asset specifically suitable for
+                            // inclusion in the download here, not all of
+                            // them as we use them for display on the
+                            // website. That should go hand in hand with
+                            // marking this single asset with
+                            // AssetIntent::Intermediate, i.e. immediately
+                            // beginning its decay in the cache for future
+                            // removal.
+                            let cover_assets = image_mut.cover_assets(build, source_path);
 
                             let cover_filename = String::from("cover.jpg");
 

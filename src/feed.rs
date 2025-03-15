@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /// RSS 2.0 Specification for reference:
@@ -6,7 +6,13 @@
 
 use std::fs;
 
-use crate::{Build, Catalog, SiteUrl};
+use crate::{
+    Build,
+    Catalog,
+    FeedImageAsset,
+    GENERATOR_INFO,
+    SiteUrl
+};
 use crate::util::html_escape_outside_attribute;
 
 pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
@@ -15,6 +21,7 @@ pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
         .filter(|release| !release.borrow().unlisted)
         .map(|release| {
             let release_ref = release.borrow();
+            let release_slug = &release_ref.permalink.slug;
 
             let main_artists = release_ref.main_artists
                 .iter()
@@ -34,6 +41,8 @@ pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
                 main_artists
             };
 
+            let artists_and_title = format!("{artists_list} – {}", release_ref.title);
+
             let item_description = if let Some(synopsis) = &release_ref.synopsis {
                 format!("<description>{synopsis}</description>")
             } else if let Some(html_and_stripped) = &release_ref.more {
@@ -43,15 +52,15 @@ pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
                 String::new()
             };
 
-            let item_title = format!("{artists_list} – {}", release_ref.title);
 
-            let link = base_url.join_index(build, &release_ref.permalink.slug);
+
+            let link = base_url.join_index(build, release_slug);
 
             format!(
                 include_str!("templates/feed/item.xml"),
                 description = item_description,
                 link = link,
-                title = html_escape_outside_attribute(&item_title)
+                title = html_escape_outside_attribute(&artists_and_title)
             )
         })
         .collect::<Vec<String>>()
@@ -70,17 +79,31 @@ pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
     };
 
     let channel_title = catalog.title();
+    let channel_title_escaped = html_escape_outside_attribute(&channel_title);
 
     let link = base_url.index(build);
 
     let channel_image = if let Some(home_image) = &catalog.home_image {
-        let hash = home_image.image.borrow().hash.as_url_safe_base64();
+        let description_or_channel_title = match &home_image.description {
+            Some(description) => html_escape_outside_attribute(description),
+            None => channel_title_escaped.clone()
+        };
+
+        let image_ref = home_image.borrow();
+
+        let hash = image_ref.hash.as_url_safe_base64();
+        let feed_asset = image_ref.feed_asset_unchecked();
+
+        let filename = FeedImageAsset::TARGET_FILENAME;
+        let edge_size = feed_asset.edge_size;
 
         format!(
             include_str!("templates/feed/image.xml"),
-            image_url = base_url.join_file(&format!("feed.jpg?{hash}")),
+            height = edge_size,
             link = link,
-            title = html_escape_outside_attribute(&channel_title)
+            title = description_or_channel_title,
+            url = base_url.join_file(&format!("{filename}?{hash}")),
+            width = edge_size
         )
     } else {
         String::new()
@@ -90,12 +113,13 @@ pub fn generate(base_url: &SiteUrl, build: &Build, catalog: &Catalog) {
         include_str!("templates/feed/channel.xml"),
         description = channel_description,
         feed_url = base_url.join_file("feed.rss"),
+        GENERATOR_INFO = GENERATOR_INFO,
         image = channel_image,
         items = channel_items,
         last_build_date = build.build_begin.to_rfc2822(),
         link = link,
         language = build.locale.language,
-        title = html_escape_outside_attribute(&channel_title)
+        title = channel_title_escaped
     );
 
     fs::write(build.build_dir.join("feed.rss"), xml).unwrap();

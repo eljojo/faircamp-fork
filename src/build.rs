@@ -20,6 +20,8 @@ use crate::{
 };
 use crate::util::format_bytes;
 
+pub const GENERATOR_INFO: &str = concat!("Faircamp ", env!("FAIRCAMP_VERSION_DETAILED"), " (", env!("FAIRCAMP_REVISION"), ")");
+
 /// When we link to assets on the rendered pages, we append a unique asset
 /// hash to each path (e.g. "player.js?g1VVfPoEjUw"), which is derived from
 /// the file content of the asset. We do this in order to prompt browsers to

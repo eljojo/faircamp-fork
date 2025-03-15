@@ -127,7 +127,14 @@ fn report_stale_images(
     };
 
     report(&image_ref.background_asset);
-    report(&image_ref.feed_asset);
+
+    if let Some(filesize_bytes) = &image_ref.feed_asset
+        .as_ref()
+        .filter(|asset| asset.is_stale())
+        .map(|asset| asset.filesize_bytes) {
+        *num_unused += 1;
+        *unused_bytesize += filesize_bytes;
+    }
 
     if let Some(assets) = image_ref.artist_assets
         .as_ref()
@@ -275,62 +282,64 @@ impl Cache {
             format!("for {paths}")
         };
 
-        {
-            let mut optimize = |asset_option: &mut Option<Asset>, format: &str, views_context: &str| {
-                match asset_option.as_ref().map(|asset| self.obsolete(build, &asset.marked_stale)) {
-                    Some(true) => {
-                        let _ = fs::remove_file(build.cache_dir.join(asset_option.take().unwrap().filename));
-                        info_cache!(
-                            "Removed cached image asset ({}) {}.",
-                            format,
-                            views_context
-                        );
-                    }
-                    Some(false) => keep_container = true,
-                    None => ()
-                }
-            };
-
-            optimize(&mut image_mut.background_asset, "background", &views_context);
-            optimize(&mut image_mut.feed_asset, "feed", &views_context);
+        match image_mut.background_asset
+            .as_ref()
+            .map(|asset| self.obsolete(build, &asset.marked_stale)) {
+            Some(true) => {
+                let _ = fs::remove_file(build.cache_dir.join(image_mut.background_asset.take().unwrap().filename));
+                info_cache!("Removed cached background image asset {}.", views_context);
+            }
+            Some(false) => keep_container = true,
+            None => ()
         }
 
-        {
-            match image_mut.artist_assets.as_ref().map(|assets| self.obsolete(build, &assets.marked_stale)) {
-                Some(true) => {
-                    for asset in image_mut.artist_assets.take().unwrap().all() {
-                        let _ = fs::remove_file(build.cache_dir.join(&asset.filename));
-                        info_cache!(
-                            "Removed cached image asset ({}) {} {}x{}.",
-                            "artist",
-                            &views_context,
-                            asset.height,
-                            asset.width
-                        );
-                    }
-                }
-                Some(false) => keep_container = true,
-                None => ()
+        match image_mut.feed_asset
+            .as_ref()
+            .map(|asset| self.obsolete(build, &asset.marked_stale)) {
+            Some(true) => {
+                let _ = fs::remove_file(build.cache_dir.join(image_mut.feed_asset.take().unwrap().filename));
+                info_cache!("Removed cached feed image asset (feed) {}.", views_context);
             }
+            Some(false) => keep_container = true,
+            None => ()
         }
 
-        {
-            match image_mut.cover_assets.as_ref().map(|assets| self.obsolete(build, &assets.marked_stale)) {
-                Some(true) => {
-                    for asset in image_mut.cover_assets.take().unwrap().all() {
-                        let _ = fs::remove_file(build.cache_dir.join(&asset.filename));
-                        info_cache!(
-                            "Removed cached image asset ({}) {} {}x{}.",
-                            "cover",
-                            &views_context,
-                            asset.edge_size,
-                            asset.edge_size
-                        );
-                    }
+        match image_mut.artist_assets
+            .as_ref()
+            .map(|assets| self.obsolete(build, &assets.marked_stale)) {
+            Some(true) => {
+                for asset in image_mut.artist_assets.take().unwrap().all() {
+                    let _ = fs::remove_file(build.cache_dir.join(&asset.filename));
+                    info_cache!(
+                        "Removed cached image asset ({}) {} {}x{}.",
+                        "artist",
+                        &views_context,
+                        asset.height,
+                        asset.width
+                    );
                 }
-                Some(false) => keep_container = true,
-                None => ()
             }
+            Some(false) => keep_container = true,
+            None => ()
+        }
+
+        match image_mut.cover_assets
+            .as_ref()
+            .map(|assets| self.obsolete(build, &assets.marked_stale)) {
+            Some(true) => {
+                for asset in image_mut.cover_assets.take().unwrap().all() {
+                    let _ = fs::remove_file(build.cache_dir.join(&asset.filename));
+                    info_cache!(
+                        "Removed cached image asset ({}) {} {}x{}.",
+                        "cover",
+                        &views_context,
+                        asset.edge_size,
+                        asset.edge_size
+                    );
+                }
+            }
+            Some(false) => keep_container = true,
+            None => ()
         }
 
         if keep_container {

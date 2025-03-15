@@ -23,13 +23,15 @@ use crate::{
 use crate::util::url_safe_base64;
 
 mod artist;
+mod feed;
 mod processor;
 mod release;
 
 use artist::{ArtistAsset, ArtistAssets};
+use processor::{ImageInMemory, ResizeMode};
 use release::{CoverAsset, CoverAssets};
 
-use processor::{ImageInMemory, ResizeMode};
+pub use feed::{FeedImageAsset};
 pub use processor::ImageProcessor;
 
 const BACKGROUND_MAX_EDGE_SIZE: u32 = 1280;
@@ -60,7 +62,7 @@ pub struct Image {
     pub artist_assets: Option<ArtistAssets>,
     pub background_asset: Option<Asset>,
     pub cover_assets: Option<CoverAssets>,
-    pub feed_asset: Option<Asset>,
+    pub feed_asset: Option<FeedImageAsset>,
     /// Hash of the file content of the source image, with this we
     /// can uniquely identify and re-associate the computed cache
     /// data, no matter where the source file moves.
@@ -105,18 +107,15 @@ impl Image {
     /// Increase version on each change to the data layout of [Image].
     /// This automatically informs the cache not to try to deserialize
     /// manifests that hold old, incompatible data.
-    pub const CACHE_SERIALIZATION_KEY: &'static str = "image1";
+    pub const CACHE_SERIALIZATION_KEY: &'static str = "image2";
 
     pub fn artist_assets(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent,
         source_path: &Path
     ) -> &mut ArtistAssets {
         if let Some(assets) = self.artist_assets.as_mut() {
-            if asset_intent == AssetIntent::Deliverable {
-                assets.unmark_stale();
-            }
+            assets.unmark_stale();
         } else {
             info_resizing!("{:?} for usage as an artist image", &source_path);
 
@@ -199,10 +198,7 @@ impl Image {
                 fluid_max_640,
                 fluid_max_960,
                 fluid_max_1280,
-                marked_stale: match asset_intent {
-                    AssetIntent::Deliverable => None,
-                    AssetIntent::Intermediate => Some(build.build_begin)
-                }
+                marked_stale: None
             };
 
             self.artist_assets.replace(artist_assets);
@@ -235,13 +231,10 @@ impl Image {
     pub fn background_asset(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent,
         source_path: &Path
     ) -> &mut Asset {
         if let Some(asset) = self.background_asset.as_mut() {
-            if asset_intent == AssetIntent::Deliverable {
-                asset.unmark_stale();
-            }
+            asset.unmark_stale();
         } else {
             info_resizing!("{:?} for usage as a background image", &source_path);
 
@@ -251,7 +244,7 @@ impl Image {
             let resize_mode = ResizeMode::ContainInSquare { max_edge_size: BACKGROUND_MAX_EDGE_SIZE };
             let (filename, _dimensions) = build.image_processor.resize_opaque(build, &image_in_memory, resize_mode);
 
-            self.background_asset.replace(Asset::new(build, filename, asset_intent));
+            self.background_asset.replace(Asset::new(build, filename, AssetIntent::Deliverable));
         }
 
         self.background_asset.as_mut().unwrap()
@@ -303,13 +296,10 @@ impl Image {
     pub fn cover_assets(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent,
         source_path: &Path
     ) -> &mut CoverAssets {
         if let Some(assets) = self.cover_assets.as_mut() {
-            if asset_intent == AssetIntent::Deliverable {
-                assets.unmark_stale();
-            }
+            assets.unmark_stale();
         } else {
             info_resizing!("{:?} for usage as a cover image", source_path);
 
@@ -349,10 +339,7 @@ impl Image {
             };
 
             let cover_assets = CoverAssets {
-                marked_stale: match asset_intent {
-                    AssetIntent::Deliverable => None,
-                    AssetIntent::Intermediate => Some(build.build_begin)
-                },
+                marked_stale: None,
                 max_160,
                 max_320,
                 max_480,
@@ -394,32 +381,41 @@ impl Image {
         }
     }
 
+    /// Gets or computes a feed asset for this image
     pub fn feed_asset(
         &mut self,
         build: &Build,
-        asset_intent: AssetIntent,
         source_path: &Path
-    ) -> &mut Asset {
+    ) -> &mut FeedImageAsset {
         if let Some(asset) = self.feed_asset.as_mut() {
-            if asset_intent == AssetIntent::Deliverable {
-                asset.unmark_stale();
-            }
+            asset.unmark_stale();
         } else {
             info_resizing!("{:?} for usage as a feed image", &source_path);
 
             let absolute_source_path = build.catalog_dir.join(source_path);
             let image_in_memory = build.image_processor.open_opaque(&absolute_source_path);
 
-            let (filename, _dimensions) = build.image_processor.resize_opaque(
+            let (filename, dimensions) = build.image_processor.resize_opaque(
                 build,
                 &image_in_memory,
                 ResizeMode::ContainInSquare { max_edge_size: FEED_MAX_EDGE_SIZE }
             );
 
-            self.feed_asset.replace(Asset::new(build, filename, asset_intent));
+            let edge_size = dimensions.0; // square ratio
+
+            let feed_asset = FeedImageAsset::new(build, edge_size, filename);
+
+            self.feed_asset.replace(feed_asset);
         }
 
         self.feed_asset.as_mut().unwrap()
+    }
+
+    /// Gets the computed feed asset. Only call(ed) at later points in the
+    /// build process where we already ensured computation of the asset -
+    /// will panic when called before the asset is computed.
+    pub fn feed_asset_unchecked(&self) -> &FeedImageAsset {
+        self.feed_asset.as_ref().unwrap()
     }
 
     pub fn manifest_path(&self, cache_dir: &Path) -> PathBuf {
