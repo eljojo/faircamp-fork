@@ -10,7 +10,6 @@ use crate::{
     OpenGraphMeta
 };
 use crate::icons;
-use crate::util::html_escape_outside_attribute;
 
 use super::Layout;
 use super::{
@@ -19,6 +18,7 @@ use super::{
     link_action,
     releases
 };
+use crate::util::{html_escape_outside_attribute, html_escape_inside_attribute};
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -38,6 +38,20 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             home_image,
             root_prefix
         ),
+        None => String::new()
+    };
+
+    let home_image_full = match &catalog.home_image {
+        Some(home_image) => {
+            let alt = match &home_image.description {
+                Some(description) => format!(r#"alt="{}""#, html_escape_inside_attribute(description)),
+                None => String::new()
+            };
+            let poster = formatdoc!(r#"
+                <img {alt} src="home_image.jpg">
+    "#);
+            poster
+            },
         None => String::new()
     };
 
@@ -66,6 +80,8 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                         <div class="page_more">
                             <h1>{title_escaped}</h1>
                             <div class="text">{more}</div>
+
+                            {home_image_full}
                         </div>
                     </div>
                 </div>
