@@ -403,6 +403,7 @@ footer .faircamp_signature {
     align-items: center;
     column-gap: .3em;
     display: inline-flex;
+    font-size: 0.8em;
 }
 footer .faircamp_signature svg { font-size: 1.2em; }
 footer .faircamp_signature .version { font-size: .9em; }
