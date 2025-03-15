@@ -38,8 +38,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let root_prefix = "../";
     let translations = &build.locale.translations;
 
-    let download_link = if release.tracks.len() == 1 {
-        track::track_download_link(build, catalog, release, &release.tracks[0], 1, "1/")
+    let download_link = if release.tracks.len() == 1 && false {
+        track::track_download_link(build, catalog, release, &release.tracks[0], 1, "1/", true)
             .unwrap_or_default()
     } else {
         match &release.download_access {
@@ -207,15 +207,8 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 String::from(r#"<span class="cover_placeholder"></span>"#)
             };
 
-            let r_more = if track.more.is_some() {
-                let more_label = match &track.more_label {
-                    Some(label) => label,
-                    None => *translations.more
-                };
-                format!(r#"<a href="{track_number}{index_suffix}#more">{more_label}</a>&nbsp;&nbsp;"#)
-            } else {
-                String::new()
-            };
+            let t_download = track::track_download_link(build, catalog, release, track, track_number, &format!(r#"{track_number}/"#), false)
+                    .unwrap_or_default();
 
             formatdoc!(r#"
                 <div class="track" data-duration="{duration_seconds}">
@@ -237,8 +230,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                         </audio>
                     </div>
                     <div>
-                        {r_more} <span class="time">{track_duration_formatted}</span>
+                        <span class="time">{track_duration_formatted}</span>
                     </div>
+                    {t_download}
                 </div>
             "#)
         })
