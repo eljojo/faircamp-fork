@@ -65,7 +65,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                 .map(|(track, track_number)| {
                     let track_number_formatted = release_ref.track_numbering.format(track_number);
 
-                    let r_cover = if let Some(src) = track.cover_image_micro_src() {
+                    let r_cover = if let Some(src) = track.cover_160_filename() {
                         format!("cover: '{src}',")
                     } else {
                         String::new()
@@ -133,10 +133,10 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                 String::new()
             };
 
-            let r_cover = if let Some(src) = release_ref.cover_image_micro_src() {
+            let r_cover = if let Some(src) = release_ref.cover_160_filename() {
                 format!("cover: '{src}',")
             } else {
-                let src = release_ref.cover_image_procedural_micro_src();
+                let src = release_ref.procedural_cover_120_filename_unchecked();
                 format!("coverProcedural: '{src}',")
             };
             let release_title_escaped = js_escape_inside_single_quoted_string(&release_ref.title);

@@ -175,24 +175,10 @@ impl Extra {
 impl Release {
     /// Returns - if available - the file name of the release cover,
     /// without any prefixing (i.e. in the context of the release directory)
-    pub fn cover_image_micro_src(&self) -> Option<String> {
+    pub fn cover_160_filename(&self) -> Option<String> {
         self.cover
             .as_ref()
-            .map(|described_image| {
-                let image_ref = described_image.borrow();
-                let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-                let filename = asset.target_filename();
-                let hash = image_ref.hash.as_url_safe_base64();
-                format!("{filename}?{hash}")
-            })
-    }
-
-    /// Returns the file name of the procedural release cover without any
-    /// prefixing (i.e. in the context of the release directory). Only call if
-    /// you know there is one present, otherwise will panic.
-    pub fn cover_image_procedural_micro_src(&self) -> String {
-        let procedural_cover = self.procedural_cover.as_ref().unwrap();
-        procedural_cover.borrow().filename_120()
+            .map(|described_image| described_image.borrow().cover_160_filename_unchecked())
     }
 
     /// It is critical that every last detail of this hashing implementation
@@ -331,6 +317,28 @@ impl Release {
             tracks,
             unlisted
         }
+    }
+
+    /// Returns the file name of the procedural release cover without any
+    /// prefixing (i.e. in the context of the release directory). Only call if
+    /// you know there is one present, otherwise will panic.
+    pub fn procedural_cover_120_filename_unchecked(&self) -> String {
+        self.procedural_cover_unchecked()
+            .borrow()
+            .filename_120()
+    }
+
+    /// Returns the file name of the procedural release cover without any
+    /// prefixing (i.e. in the context of the release directory). Only call if
+    /// you know there is one present, otherwise will panic.
+    pub fn procedural_cover_480_filename_unchecked(&self) -> String {
+        self.procedural_cover_unchecked()
+            .borrow()
+            .filename_480()
+    }
+
+    pub fn procedural_cover_unchecked(&self) -> &ProceduralCoverRc {
+        self.procedural_cover.as_ref().unwrap()
     }
 
     pub fn shortest_track_duration(&self) -> f32 {

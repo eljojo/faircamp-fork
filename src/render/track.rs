@@ -174,13 +174,13 @@ pub fn track_html(
         r_waveform = String::new();
     };
 
-    let r_cover_micro = if let Some(src) = track.cover_image_micro_src() {
-        format!(r#"<img aria-hidden="true" src="{src}">"#)
-    } else if let Some(src) = release.cover_image_micro_src() {
-        format!(r#"<img aria-hidden="true" src="../{src}">"#)
+    let r_cover_micro = if let Some(filename) = track.cover_160_filename() {
+        format!(r#"<img aria-hidden="true" src="{filename}">"#)
+    } else if let Some(filename) = release.cover_160_filename() {
+        format!(r#"<img aria-hidden="true" src="../{filename}">"#)
     } else {
-        let src = release.cover_image_procedural_micro_src();
-        format!(r#"<img aria-hidden="true" class="procedural" src="../{src}">"#)
+        let filename = release.procedural_cover_120_filename_unchecked();
+        format!(r#"<img aria-hidden="true" class="procedural" src="../{filename}">"#)
     };
 
     let play_icon = icons::play(&translations.play);
@@ -479,7 +479,7 @@ pub fn track_html(
                 let track_prefix = base_url.join_prefix(&format!("{release_slug}/{track_number}"));
                 let opengraph_image = described_image
                     .borrow()
-                    .cover_opengraph_image(&track_prefix);
+                    .cover_opengraph_image_unchecked(&track_prefix);
 
                 meta.image(opengraph_image);
 
@@ -490,7 +490,7 @@ pub fn track_html(
                 let release_prefix = base_url.join_prefix(release_slug);
                 let opengraph_image = described_image
                     .borrow()
-                    .cover_opengraph_image(&release_prefix);
+                    .cover_opengraph_image_unchecked(&release_prefix);
 
                 meta.image(opengraph_image);
 

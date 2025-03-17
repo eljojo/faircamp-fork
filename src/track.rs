@@ -72,16 +72,10 @@ pub struct Track {
 impl Track {
     /// Returns - if available - the file name of the track cover,
     /// without any prefixing (i.e. in the context of the track directory)
-    pub fn cover_image_micro_src(&self) -> Option<String> {
+    pub fn cover_160_filename(&self) -> Option<String> {
         self.cover
             .as_ref()
-            .map(|described_image| {
-                let image_ref = described_image.borrow();
-                let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-                let filename = asset.target_filename();
-                let hash = image_ref.hash.as_url_safe_base64();
-                format!("{filename}?{hash}")
-            })
+            .map(|described_image| described_image.borrow().cover_160_filename_unchecked())
     }
 
     pub fn download_assets_available(&self) -> bool {

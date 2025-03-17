@@ -43,15 +43,13 @@ pub fn generate_for_artist(
             let release_cover_url = match &release_ref.cover {
                 Some(described_image) => {
                     let image_ref = described_image.borrow();
-                    let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
+                    let file_name = image_ref.cover_assets_unchecked().playlist_image();
                     let hash = image_ref.hash.as_url_safe_base64();
 
                     base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
                 }
                 None => {
-                    let procedural_cover = release_ref.procedural_cover.as_ref().unwrap();
-                    let file_name = procedural_cover.borrow().filename_480();
-
+                    let file_name = release_ref.procedural_cover_480_filename_unchecked();
                     base_url.join_file(&format!("{release_slug}/{file_name}"))
                 }
             };
@@ -116,15 +114,13 @@ pub fn generate_for_catalog(
             let release_cover_url = match &release_ref.cover {
                 Some(described_image) => {
                     let image_ref = described_image.borrow();
-                    let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
+                    let file_name = image_ref.cover_assets_unchecked().playlist_image();
                     let hash = image_ref.hash.as_url_safe_base64();
 
                     base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
                 }
                 None => {
-                    let procedural_cover = release_ref.procedural_cover.as_ref().unwrap();
-                    let file_name = procedural_cover.borrow().filename_480();
-
+                    let file_name = release_ref.procedural_cover_480_filename_unchecked();
                     base_url.join_file(&format!("{release_slug}/{file_name}"))
                 }
             };
@@ -180,15 +176,13 @@ pub fn generate_for_release(
     let release_cover_url = match &release.cover {
         Some(described_image) => {
             let image_ref = described_image.borrow();
-            let file_name = image_ref.cover_assets.as_ref().unwrap().playlist_image();
+            let file_name = image_ref.cover_assets_unchecked().playlist_image();
             let hash = image_ref.hash.as_url_safe_base64();
 
             base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
         }
         None => {
-            let procedural_cover = release.procedural_cover.as_ref().unwrap();
-            let file_name = procedural_cover.borrow().filename_480();
-
+            let file_name = release.procedural_cover_480_filename_unchecked();
             base_url.join_file(&format!("{release_slug}/{file_name}"))
         }
     };

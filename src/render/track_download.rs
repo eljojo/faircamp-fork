@@ -68,7 +68,7 @@ pub fn track_download_html(
     let extra_downloads = if track.cover.is_some() || release.cover.is_some() || (track.extra_downloads && !track.extras.is_empty()) {
         let cover_entry = if let Some(described_image) = &track.cover {
             let image_ref = described_image.borrow();
-            let largest_cover_asset = image_ref.cover_assets.as_ref().unwrap().largest();
+            let largest_cover_asset = image_ref.cover_assets_unchecked().largest();
             let filename = largest_cover_asset.target_filename();
 
             download_entry(
@@ -78,7 +78,7 @@ pub fn track_download_html(
             )
         } else if let Some(described_image) = &release.cover {
             let image_ref = described_image.borrow();
-            let largest_cover_asset = image_ref.cover_assets.as_ref().unwrap().largest();
+            let largest_cover_asset = image_ref.cover_assets_unchecked().largest();
             let filename = largest_cover_asset.target_filename();
 
             download_entry(

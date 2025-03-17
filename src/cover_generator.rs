@@ -552,27 +552,27 @@ impl ProceduralCover {
     /// including a query string for cache invalidation.
     pub fn filename_120(&self) -> String {
         let filename = ProceduralCover::FILENAME_120;
-        let signature = self.signature;
-        format!("{filename}?{signature}")
+        let hash = url_safe_base64(self.signature);
+        format!("{filename}?{hash}")
     }
 
     /// Returns the statically assigned filename for the 480px variant,
     /// including a query string for cache invalidation.
     pub fn filename_480(&self) -> String {
         let filename = ProceduralCover::FILENAME_480;
-        let signature = self.signature;
-        format!("{filename}?{signature}")
+        let hash = url_safe_base64(self.signature);
+        format!("{filename}?{hash}")
     }
 
     /// Returns src and srcset attributes for usage of the procedural cover
     /// through an img tag inside html markup.
     pub fn img_attributes_all_sizes(&self, prefix: &str) -> ImgAttributes {
-        let signature = self.signature;
+        let hash = url_safe_base64(self.signature);
 
-        let src_120 = format!("{prefix}{filename}?{signature}", filename = ProceduralCover::FILENAME_120);
-        let src_240 = format!("{prefix}{filename}?{signature}", filename = ProceduralCover::FILENAME_240);
-        let src_480 = format!("{prefix}{filename}?{signature}", filename = ProceduralCover::FILENAME_480);
-        let src_720 = format!("{prefix}{filename}?{signature}", filename = ProceduralCover::FILENAME_720);
+        let src_120 = format!("{prefix}{filename}?{hash}", filename = ProceduralCover::FILENAME_120);
+        let src_240 = format!("{prefix}{filename}?{hash}", filename = ProceduralCover::FILENAME_240);
+        let src_480 = format!("{prefix}{filename}?{hash}", filename = ProceduralCover::FILENAME_480);
+        let src_720 = format!("{prefix}{filename}?{hash}", filename = ProceduralCover::FILENAME_720);
 
         let srcset = format!("{src_120} 120w,{src_240} 240w,{src_480} 480w,{src_720} 720w");
 

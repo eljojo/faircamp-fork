@@ -258,9 +258,7 @@ fn cover_tile_image(
 
             let hash = image_ref.hash.as_url_safe_base64();
 
-            let ImgAttributes { src, srcset } = image_ref.cover_assets
-                .as_ref()
-                .unwrap()
+            let ImgAttributes { src, srcset } = image_ref.cover_assets_unchecked()
                 .img_attributes_up_to_320(&hash, release_prefix);
 
             // TODO: Re-evaluate if the 'sizes' attribute still reflects circumstances of the current layout
@@ -287,9 +285,7 @@ fn cover_tile_image(
             }
         }
         None => {
-            let ImgAttributes { src, srcset } = release.procedural_cover
-                .as_ref()
-                .unwrap()
+            let ImgAttributes { src, srcset } = release.procedural_cover_unchecked()
                 .borrow()
                 .img_attributes_all_sizes(release_prefix);
 
@@ -729,7 +725,7 @@ fn release_cover_image(
                 </a>
             "#);
 
-            let cover_ref = image_ref.cover_assets.as_ref().unwrap();
+            let cover_ref = image_ref.cover_assets_unchecked();
 
             let ImgAttributes { src: overlay_src, srcset: overlay_srcset } = cover_ref
                 .img_attributes_up_to_1280(&hash, release_prefix);
@@ -809,19 +805,12 @@ fn release_cover_image_tiny_decorative(
 ) -> String {
     let image = match &release.cover {
         Some(described_image) => {
-            let image_ref = described_image.borrow();
-            let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-            let filename = asset.target_filename();
-            let hash = image_ref.hash.as_url_safe_base64();
-            let src = format!("{release_prefix}{filename}?{hash}");
-
-            format!(r#"<img loading="lazy" src="{src}">"#)
+            let filename = described_image.borrow().cover_160_filename_unchecked();
+            format!(r#"<img loading="lazy" src="{release_prefix}{filename}">"#)
         }
         None => {
-            let procedural_cover = release.procedural_cover.as_ref().unwrap();
-            let filename = procedural_cover.borrow().filename_120();
-            let src = format!("{release_prefix}{filename}");
-            format!(r#"<img class="procedural" loading="lazy" src="{src}">"#)
+            let filename = release.procedural_cover_120_filename_unchecked();
+            format!(r#"<img class="procedural" loading="lazy" src="{release_prefix}{filename}">"#)
         }
     };
 
@@ -919,7 +908,7 @@ fn track_cover_image(
         </a>
     "#);
 
-    let cover_ref = image_ref.cover_assets.as_ref().unwrap();
+    let cover_ref = image_ref.cover_assets_unchecked();
 
     let ImgAttributes { src: overlay_src, srcset: overlay_srcset } = cover_ref
         .img_attributes_up_to_1280(&hash, track_prefix);
@@ -974,27 +963,17 @@ fn track_cover_image_tiny_decorative(
     track_prefix: &str
 ) -> String {
     let image = if let Some(described_image) = &track.cover {
-        let image_ref = described_image.borrow();
-        let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-        let filename = asset.target_filename();
-        let hash = image_ref.hash.as_url_safe_base64();
-        let src = format!("{track_prefix}{filename}?{hash}");
-
-        format!(r#"<img loading="lazy" src="{src}">"#)
+        let filename = described_image.borrow().cover_160_filename_unchecked();
+        format!(r#"<img loading="lazy" src="{track_prefix}{filename}">"#)
     } else if let Some(described_image) = &release.cover {
-        let image_ref = described_image.borrow();
-        let asset = &image_ref.cover_assets.as_ref().unwrap().max_160;
-        let filename = asset.target_filename();
-        let hash = image_ref.hash.as_url_safe_base64();
-        let src = format!("{release_prefix}{filename}?{hash}");
+        let filename = described_image.borrow().cover_160_filename_unchecked();
+        let src = format!("{release_prefix}{filename}");
 
         format!(r#"<img loading="lazy" src="{src}">"#)
     } else {
-        // TODO: Do we want procedural track covers, in general?
-        let procedural_cover = release.procedural_cover.as_ref().unwrap();
-        let filename = procedural_cover.borrow().filename_120();
-        let src = format!("{release_prefix}{filename}");
-        format!(r#"<img class="procedural" loading="lazy" src="{src}">"#)
+        // TODO: Do we want procedural track covers? (would be used here e.g.)
+        let filename = release.procedural_cover_120_filename_unchecked();
+        format!(r#"<img class="procedural" loading="lazy" src="{release_prefix}{filename}">"#)
     };
 
     formatdoc!(r#"

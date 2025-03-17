@@ -187,13 +187,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 false => String::new()
             };
 
-            let r_cover_micro = if let Some(src) = track.cover_image_micro_src() {
-                format!(r#"<img aria-hidden="true" src="{track_number}/{src}">"#)
-            } else if let Some(src) = release.cover_image_micro_src() {
-                format!(r#"<img aria-hidden="true" src="{src}">"#)
+            let r_cover_micro = if let Some(filename) = track.cover_160_filename() {
+                format!(r#"<img aria-hidden="true" src="{track_number}/{filename}">"#)
+            } else if let Some(filename) = release.cover_160_filename() {
+                format!(r#"<img aria-hidden="true" src="{filename}">"#)
             } else {
-                let src = release.cover_image_procedural_micro_src();
-                format!(r#"<img aria-hidden="true" class="procedural" src="{src}">"#)
+                let filename = release.procedural_cover_120_filename_unchecked();
+                format!(r#"<img aria-hidden="true" class="procedural" src="{filename}">"#)
             };
 
             let r_more = if track.more.is_some() {
@@ -512,7 +512,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 let release_prefix = base_url.join_prefix(release_slug);
                 let opengraph_image = described_image
                     .borrow()
-                    .cover_opengraph_image(&release_prefix);
+                    .cover_opengraph_image_unchecked(&release_prefix);
 
                 meta.image(opengraph_image);
 

@@ -293,6 +293,17 @@ impl Image {
         }
     }
 
+    /// User-supplied cover image of up to 160 pixels width. Only call at
+    /// later build stages where its presence is guaranteed, otherwise will
+    /// panic.
+    pub fn cover_160_filename_unchecked(&self) -> String {
+        let cover_asset = &self.cover_assets_unchecked().max_160;
+        let filename = cover_asset.target_filename();
+        let hash = self.hash.as_url_safe_base64();
+
+        format!("{filename}?{hash}")
+    }
+
     pub fn cover_assets(
         &mut self,
         build: &Build,
@@ -353,7 +364,11 @@ impl Image {
         self.cover_assets.as_mut().unwrap()
     }
 
-    pub fn cover_opengraph_image(&self, url_prefix: &str) -> OpenGraphImage {
+    pub fn cover_assets_unchecked(&self) -> &CoverAssets {
+        self.cover_assets.as_ref().unwrap()
+    }
+
+    pub fn cover_opengraph_image_unchecked(&self, url_prefix: &str) -> OpenGraphImage {
         let cover_asset = self.cover_assets
             .as_ref()
             .unwrap()
