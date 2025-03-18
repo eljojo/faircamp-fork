@@ -43,7 +43,14 @@ pub fn to_html(base_url: &Option<SiteUrl>, markdown_text: &str) -> String {
             'transformation: {
                 if *link_type == LinkType::Autolink || *link_type == LinkType::Inline {
                     if let Some(base_url) = base_url {
-                        if !dest_url.starts_with(base_url.without_trailing_slash()) {
+                        // Links that do not purely target an anchor
+                        // (e.g. #t=3m to jump to the third minute) and are
+                        // not internal (do not point to the same site) are
+                        // hinted to open in a new tab.
+                        if !(
+                            dest_url.starts_with('#') ||
+                            dest_url.starts_with(base_url.without_trailing_slash())
+                        ) {
                             let html = format!(r#"<a href="{dest_url}" target="_blank">{title}"#);
                             break 'transformation Event::InlineHtml(html.into());
                         }

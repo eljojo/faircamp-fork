@@ -165,6 +165,65 @@ function open(track) {
     track.open = true;
 }
 
+// Parses (and validates) track/time parameters from the current url
+// (e.g. https://example.com/#track=3&time=4m12s) and returns them as an
+// object (e.g. { time: 252, track: [reference to track] }). Track can be
+// specified as n=1 or track=1, time can be specified as t=60 or time=60, but
+// also supports complex specifiers like t=1h, t=1m t=1s, t=1h1m, t=1h1m1s,
+// etc. In case of no known params being present or errors being encountered
+// (wrong syntax for params, out-of-bound track numbers or timecodes, etc.)
+// null is returned. Note that in case of a non-null return value, there is
+// always a reference to a track returned (!), i.e. if the hash specified
+// only #t=60, this is interpreted as "seek to 60 seconds on the first
+// track".
+function parseHashParams() {
+    if (location.hash.length === 0) return null;
+
+    const params = new URLSearchParams(location.hash.substring(1));
+
+    const timeParam = params.get('t') ?? params.get('time');
+    const trackParam = params.get('n') ?? params.get('track');
+
+    if (timeParam === null && trackParam === null) return null;
+
+    const result = {};
+
+    if (trackParam === null) {
+        result.track = tracks[0];
+    } else if (trackParam.match(/^[0-9]+$/)) {
+        const index = parseInt(trackParam) - 1;
+
+        if (index < tracks.length) {
+            result.track = tracks[index]
+        }
+    }
+
+    if (!result.track) return null;
+
+    if (timeParam !== null) {
+        // Match all of "1", "1s", "1m" "1h" "1m1s", "1h1m1s", "1h1s", "1h1m", etc.
+        const match = timeParam.match(/^(?:([0-9]+)h)?(?:([0-9]+)m)?(?:([0-9]+)s?)?$/);
+
+        if (match) {
+            result.time = 0;
+
+            const [_, h, m, s] = match;
+
+            if (h) { result.time += parseInt(h) * 3600; }
+            if (m) { result.time += parseInt(m) * 60; }
+            if (s) { result.time += parseInt(s); }
+
+            if (result.time > result.track.duration) {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    return result;
+}
+
 function play(track) {
     if (!track.open) {
         open(track);
@@ -266,6 +325,9 @@ function requestSeek(track, seekTo) {
     }
 }
 
+// Completely resets the track to its original unintialized state. The given
+// track can be in any possible state (seeking, playing, etc.), all is
+// handled by this function.
 function reset(track, onComplete = null) {
     const resetCallback = () => {
         // Remove emphasis in the track list
@@ -841,49 +903,35 @@ for (const container of document.querySelectorAll('.track')) {
     tracks.push(track);
 }
 
-if (location.hash.length > 0) {
-    const hashParams = new URLSearchParams(location.hash.substring(1));
+// Set active track (and optionally set seekTo and/or open player)
+const params = parseHashParams();
+if (params) {
+    setActive(params.track);
 
-    let openPlayer = false;
-
-    const trackParam = hashParams.get('n') ?? hashParams.get('track');
-
-    if (trackParam?.match(/^[0-9]+$/)) {
-        const trackIndex = parseInt(trackParam) - 1;
-        setActive(tracks[trackIndex]);
-        openPlayer = true;
-    } else {
-        setActive(tracks[0]);
+    if (params.time !== undefined) {
+        params.track.seekTo = params.time;
     }
 
-    const timeParam = hashParams.get('t') ?? hashParams.get('time');
+    open(params.track);
 
-    if (timeParam !== null) {
-        // Match all of "1", "1s", "1m" "1h" "1m1s", "1h1m1s", "1h1s", "1h1m", etc.
-        const match = timeParam.match(/^(?:([0-9]+)h)?(?:([0-9]+)m)?(?:([0-9]+)s?)?$/);
-        if (match) {
-            let seekTo = 0;
-            const [_, h, m, s] = match;
-            if (h) { seekTo += parseInt(h) * 3600; }
-            if (m) { seekTo += parseInt(m) * 60; }
-            if (s) { seekTo += parseInt(s); }
-
-            if (seekTo < activeTrack.duration) {
-                activeTrack.seekTo = seekTo;
-                openPlayer = true;
-            }
-        }
-    }
-
-    if (openPlayer) {
-        mount(activeTrack);
-
-        // Announce to screenreaders that the docked player is present
-        dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenWithXxx(activeTrack.title.textContent));
-    }
+    // Announce to screenreaders that the docked player is present
+    dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenWithXxx(params.track.title.textContent));
 } else {
     setActive(tracks[0]);
 }
+
+window.addEventListener('hashchange', event => {
+    const params = parseHashParams();
+
+    if (params) {
+        requestSeek(params.track, params.time ?? 0);
+        // TODO: This can be observed as a brief flicker in the address bar
+        // (when you look for it). Possibly look for a more elegant way in
+        // the future.
+        history.replaceState(null, '', ' ');
+        event.preventDefault();
+    }
+});
 
 // Decodes a sequence of peaks that is encoded using a custom base64 alphabet
 // (A-Za-z0-9+/) into a sequence of numbers (0-63)
