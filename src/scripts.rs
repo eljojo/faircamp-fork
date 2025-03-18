@@ -14,27 +14,6 @@ pub enum Scripts {
     None
 }
 
-impl Scripts {
-    pub fn header_tags(&self, build: &Build, root_prefix: &str) -> String {
-        match self {
-            Scripts::Clipboard => {
-                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
-                format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#)
-            }
-            Scripts::ClipboardAndPlayer => {
-                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
-                let player_js_hash = build.asset_hashes.player_js.as_ref().unwrap();
-
-                formatdoc!(r#"
-                    <script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>
-                    <script defer src="{root_prefix}player.js?{player_js_hash}"></script>
-                "#)
-            }
-            Scripts::None => String::new()
-        }
-    }
-}
-
 pub fn generate(build: &mut Build, catalog: &Catalog) {
     generate_browser_js(build, catalog);
     generate_clipboard_js(build);
@@ -211,7 +190,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
         ];
     "#);
 
-    js.push_str(include_str!("assets/browser.js"));
+    js.push_str(include_str!(env!("FAIRCAMP_BROWSER_JS")));
 
     build.asset_hashes.browser_js = Some(url_safe_hash_base64(&js));
 
@@ -219,7 +198,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
 }
 
 pub fn generate_clipboard_js(build: &mut Build) {
-    let js = include_str!("assets/clipboard.js");
+    let js = include_str!(env!("FAIRCAMP_CLIPBOARD_JS"));
     build.asset_hashes.clipboard_js = Some(url_safe_hash_base64(&js));
     fs::write(build.build_dir.join("clipboard.js"), js).unwrap();
 }
@@ -244,7 +223,7 @@ pub fn generate_embeds_js(build: &mut Build) {
         }};
     ");
 
-    js.push_str(include_str!("assets/embeds.js"));
+    js.push_str(include_str!(env!("FAIRCAMP_EMBEDS_JS")));
 
     build.asset_hashes.embeds_js = Some(url_safe_hash_base64(&js));
 
@@ -281,7 +260,7 @@ pub fn generate_player_js(build: &mut Build) {
         }};
     ");
 
-    js.push_str(include_str!("assets/player.js"));
+    js.push_str(include_str!(env!("FAIRCAMP_PLAYER_JS")));
 
     build.asset_hashes.player_js = Some(url_safe_hash_base64(&js));
 
@@ -293,4 +272,25 @@ fn js_escape_inside_single_quoted_string(string: &str) -> String {
     string
         .replace('\\', "\\\\")
         .replace('\'', "\\'")
+}
+
+impl Scripts {
+    pub fn header_tags(&self, build: &Build, root_prefix: &str) -> String {
+        match self {
+            Scripts::Clipboard => {
+                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
+                format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#)
+            }
+            Scripts::ClipboardAndPlayer => {
+                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
+                let player_js_hash = build.asset_hashes.player_js.as_ref().unwrap();
+
+                formatdoc!(r#"
+                    <script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>
+                    <script defer src="{root_prefix}player.js?{player_js_hash}"></script>
+                "#)
+            }
+            Scripts::None => String::new()
+        }
+    }
 }

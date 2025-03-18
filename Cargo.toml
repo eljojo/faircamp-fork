@@ -10,6 +10,15 @@ publish = false
 rust-version = "1.76.0"
 version = "1.2.0"
 
+[build-dependencies]
+oxc_allocator = "0.60.0"
+oxc_codegen = "0.60.0"
+oxc_mangler = "0.60.0"
+oxc_minifier = "0.60.0"
+oxc_parser = "0.60.0"
+oxc_span = "0.60.0"
+oxc_transformer = "0.60.0"
+
 [dependencies]
 actix-files = "0.6.6"
 actix-web = "4.9.0"
@@ -60,3 +69,4 @@ zip = { features = ["deflate"], version = "2.2.2" }
 [features]
 image = ["dep:image"]
 libvips = ["dep:libvips"]
+no-minify = []
