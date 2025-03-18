@@ -73,6 +73,7 @@ Here are some tips for writing good image descriptions:<br>\
     playback_position: Reviewed("Playback position"),
     player_closed: Reviewed("Player closed"),
     player_open_playing_xxx: Reviewed("Player open, playing {title}"),
+    player_open_with_xxx: Reviewed("Player open with {title}"),
     previous_track: Reviewed("Previous Track"),
     purchase_downloads: Reviewed("Purchase downloads"),
     purchase_permalink: Reviewed("purchase"),

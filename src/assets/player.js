@@ -1,3 +1,11 @@
+// Constants used in drawing the waveform svgs
+const BREAKPOINT_REDUCED_WAVEFORM_REM = 20;
+const TRACK_HEIGHT_EM = 1.5;
+const WAVEFORM_PADDING_EM = 0.3;
+const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
+const WAVEFORM_WIDTH_PADDING_REM = 5;
+const WAVEFORM_WIDTH_TOLERANCE_REM = 2.5;
+
 const loadingIcon = document.querySelector('#loading_icon').content;
 const pauseIcon = document.querySelector('#pause_icon').content;
 const playIcon = document.querySelector('#play_icon').content;
@@ -6,9 +14,20 @@ const listenButton = document.querySelector('button.listen');
 const listenButtonIcon = document.querySelector('button.listen .icon');
 const listenButtonLabel = document.querySelector('button.listen .label');
 
-let activeTrack = null;
-let firstTrack = null;
-let preselectedTrack = null;
+// There is always an active track (so this is guaranteed to be available
+// after the respective intialization routines have completed). "active"
+// refers to various states, but it generally indicates that the track is
+// selected for being played back, open in the docked player, in the process
+// of loading/seeking, or already being played back. Conversely, any not
+// active track is guaranteed to be cleaned up in terms of its state, i.e.
+// not being played back, not being displayed (in a place where it needs
+// track-specific clean-up), not running asynchronous routines (that don't
+// clean themselves up invisibly when they finish), etc. Differentiation of
+// the exact state of an active track happens through properties that are set
+// on it, see the respective parts in the code.
+let activeTrack;
+
+const tracks = [];
 
 const dockedPlayerContainer = document.querySelector('.docked_player');
 const dockedPlayer = {
@@ -104,13 +123,17 @@ function formatTimeWrittenOut(seconds) {
     }
 }
 
-async function mountAndPlay(track, seekTo) {
-    activeTrack = track;
-
+// Open the docked player and update its various subelements to display the
+// given track. If track.seekTo is set a seek is indicated by advancing both
+// the track's own progress indicator and the docked player progress bar to
+// the seek point (that seek however isn't performed yet, that's only done
+// when playback is initiated).
+function open(track) {
+    // Unhide docked player
     document.body.classList.add('player_active');
-    dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenPlayingXxx(track.title.textContent));
-    dockedPlayer.currentTime.textContent = '0:00';
-    dockedPlayer.totalTime.textContent = formatTime(activeTrack.duration);
+
+    dockedPlayer.currentTime.textContent = formatTime(track.seekTo ?? track.audio.currentTime);
+    dockedPlayer.totalTime.textContent = formatTime(track.duration);
     dockedPlayer.timelineInput.max = track.container.dataset.duration;
 
     if (track.artists) {
@@ -125,25 +148,47 @@ async function mountAndPlay(track, seekTo) {
         dockedPlayer.number.textContent = track.number.textContent;
     }
 
-    updateVolume();
+    if (track.seekTo !== undefined && track.seekTo > 0) {
+        const factor = track.seekTo / track.duration;
 
-    // The pause and loading icon are visually indistinguishable (until the
-    // actual loading animation kicks in after 500ms), hence we right away
-    // transistion to the loading icon to make the interface feel snappy,
-    // even if we potentially replace it with the pause icon right after that
-    // if there doesn't end up to be any loading required.
-    track.container.classList.add('active');
-    track.playbackButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
-    dockedPlayer.playbackButton.replaceChildren(loadingIcon.cloneNode(true));
-    listenButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
-    listenButtonLabel.textContent = PLAYER_JS_T.pause;
+        dockedPlayer.progress.style.setProperty('width', `${factor * 100}%`);
+        dockedPlayer.currentTime.textContent = formatTime(track.seekTo);
+        dockedPlayer.timelineInput.value = track.seekTo;
+
+        if (track.waveform) {
+            track.waveform.svg.querySelector('linearGradient.playback stop:nth-child(1)').setAttribute('offset', factor);
+            track.waveform.svg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
+            track.waveform.input.value = track.seekTo;
+        }
+    }
+
+    track.open = true;
+}
+
+function play(track) {
+    if (!track.open) {
+        open(track);
+
+        // Announce to screenreaders that the docked player is present
+        dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenPlayingXxx(track.title.textContent));
+    }
 
     if (track.audio.preload !== 'auto') {
         track.audio.preload = 'auto';
         track.audio.load();
     }
 
-    const play = () => {
+    // The pause and loading icon are visually indistinguishable (until the
+    // actual loading animation kicks in after 500ms), hence we right away
+    // transistion to the loading icon to make the interface feel snappy,
+    // even if we potentially replace it with the pause icon right after that
+    // if there doesn't end up to be any loading required.
+    track.playbackButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
+    dockedPlayer.playbackButton.replaceChildren(loadingIcon.cloneNode(true));
+    listenButtonIcon.replaceChildren(loadingIcon.cloneNode(true));
+    listenButtonLabel.textContent = PLAYER_JS_T.pause;
+
+    const playCallback = () => {
         // On apple devices and browsers (e.g. Safari in macOS 15.1) there is
         // a bug where, when multiple tracks play back while another
         // application but Safari has focus, on returning focus to Safari,
@@ -160,127 +205,169 @@ async function mountAndPlay(track, seekTo) {
         track.solicitedPlayback = true;
         setVolume(track);
         track.audio.play();
-    };
+    }
 
-    if (seekTo === null) {
-        play();
+    if (track.seekTo === undefined) {
+        playCallback();
     } else {
-        const seeking = {
-            to: seekTo
-        };
-
-        let closestPerformedSeek = 0;
-
-        function tryFinishSeeking() {
-            let closestAvailableSeek = 0;
-            const { seekable } = track.audio;
-            for (let index = 0; index < seekable.length; index++) {
-                if (seekable.start(index) <= seeking.to) {
-                    if (seekable.end(index) >= seeking.to) {
-                        track.audio.currentTime = seeking.to;
-                        delete track.seeking;
-                        clearInterval(seekInterval);
-                        play();
-                    } else {
-                        closestAvailableSeek = seekable.end(index);
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            // If we can not yet seek to exactly the point we want to get to,
-            // but we can get at least one second closer to that point, we do it.
-            // (the idea being that this more likely triggers preloading of the
-            // area that we need to seek to)
-            if (seeking.to !== null && closestAvailableSeek - closestPerformedSeek > 1) {
-                track.audio.currentTime = closestAvailableSeek;
-                closestPerformedSeek = closestAvailableSeek;
-            }
-        }
-
-        const seekInterval = setInterval(tryFinishSeeking, 30);
-
-        seeking.abortSeeking = () => {
-            clearInterval(seekInterval);
-            delete track.seeking;
-            dockedPlayer.playbackButton.replaceChildren(playIcon.cloneNode(true));
-            track.container.classList.remove('active');
-            track.playbackButtonIcon.replaceChildren(playIcon.cloneNode(true));
-            listenButtonIcon.replaceChildren(playIcon.cloneNode(true));
-            listenButtonLabel.textContent = PLAYER_JS_T.listen;
-        };
-
-        // We expose both `abortSeeking` and `seek` on this seeking object,
-        // so that consecutive parallel playback requests may either abort
-        // seeking or reconfigure up to which time seeking should occur (seek).
-        track.seeking = seeking;
+        seek(track, playCallback);
     }
 }
 
-function togglePlayback(track, seekTo = null) {
-    if (preselectedTrack !== null) {
-        if (track !== preselectedTrack) {
-            preselectedTrack.container.classList.remove('active');
-        }
-
-        preselectedTrack = null;
-    }
-
-    if (!activeTrack) {
-        mountAndPlay(track, seekTo);
-    } else if (track === activeTrack) {
+// One of the following:
+// - Request to play the active track
+// - Request to cancel seeking/loading the active track
+// - Request to pause the active track
+// - Request to reset the active track and play another
+function requestPlaybackChange(track) {
+    if (track === activeTrack) {
         if (track.seeking) {
-            if (seekTo === null) {
-                track.seeking.abortSeeking();
-            } else {
-                track.seeking.to = seekTo;
-            }
+            track.seeking.cancel();
         } else if (track.audio.paused) {
-            if (seekTo !== null) {
-                // TODO: Needs to be wrapped in an async mechanism that first ensures we can seek to that point
-                track.audio.currentTime = seekTo;
-            }
-            track.solicitedPlayback = true;
-            setVolume(track);
-            track.audio.play();
+            play(track);
         } else {
-            // This track is playing, we either pause it, or perform a seek
-            if (seekTo === null) {
-                track.audio.pause();
-            } else {
-                // TODO: Needs to be wrapped in an async mechanism that first ensures we can seek to that point
-                track.audio.currentTime = seekTo;
-                updatePlayhead(track);
-                announcePlayhead(track);
-            }
+            track.audio.pause();
         }
     } else {
-        // Another track is active, so we either abort its loading (if applies) or
-        // pause it (if necessary) and reset it. Then we start the new track.
-        if (activeTrack.loading) {
-            activeTrack.loading.abortSeeking();
-            mountAndPlay(track, seekTo);
-        } else {
-            const resetCurrentStartNext = () => {
-                activeTrack.audio.currentTime = 0;
-                updatePlayhead(activeTrack, true);
-                announcePlayhead(activeTrack);
-                activeTrack.container.classList.remove('active');
+        const playNext = () => {
+            setActive(track);
+            play(track);
+        };
 
-                mountAndPlay(track, seekTo);
-            }
+        reset(activeTrack, playNext);
+    }
+}
 
-            if (activeTrack.audio.paused) {
-                resetCurrentStartNext();
+// One of the following:
+// - Request to make the active and playing track jump to another point
+// - Request to play the active but paused track from a specific point
+// - Request to make the active but currently seeking/loading track seek to another point
+// - Request to reset the active track and play another from a specific point
+function requestSeek(track, seekTo) {
+    if (track === activeTrack) {
+        if (track.seeking) {
+            track.seekTo = seekTo;
+        } else if (track.audio.paused) {
+            track.seekTo = seekTo;
+            play(track);
+        } else /* track is playing */ {
+            track.audio.currentTime = seekTo;
+            updatePlayhead(track);
+            announcePlayhead(track);
+        }
+    } else {
+        const playNext = () => {
+            setActive(track);
+            track.seekTo = seekTo;
+            play(track);
+        };
+
+        reset(activeTrack, playNext);
+    }
+}
+
+function reset(track, onComplete = null) {
+    const resetCallback = () => {
+        // Remove emphasis in the track list
+        track.container.classList.remove('active');
+
+        if (track.open) {
+            // Reset "playback heads" back to the beginning
+            track.audio.currentTime = 0;
+            updatePlayhead(track, true);
+            announcePlayhead(track);
+            track.open = false;
+        }
+
+        // Remove any seekTo state
+        delete track.seekTo;
+
+        if (onComplete !== null) {
+            onComplete();
+        }
+    };
+
+    // Another track is active, so we either abort its seeking (if applies) or
+    // pause it (if necessary) and reset it. Then we start the new track.
+    if (track.seeking) {
+        track.seeking.cancel();
+        resetCallback();
+    } else if (track.audio.paused) {
+        resetCallback();
+    } else {
+        // The pause event occurs with a delay, so we defer resetting the track
+        // and starting the next one until just after the pause event fires.
+        track.onPause = resetCallback;
+        track.audio.pause();
+    }
+}
+
+function seek(track, onComplete = null) {
+    const seeking = { onComplete };
+
+    let closestPerformedSeek = 0;
+
+    function tryFinishSeeking() {
+        let closestAvailableSeek = 0;
+        const { seekable } = track.audio;
+        for (let index = 0; index < seekable.length; index++) {
+            if (seekable.start(index) <= track.seekTo) {
+                if (seekable.end(index) >= track.seekTo) {
+                    track.audio.currentTime = track.seekTo;
+
+                    const { onComplete } = track.seeking;
+
+                    delete track.seeking;
+                    delete track.seekTo;
+                    clearInterval(seekInterval);
+
+                    if (onComplete !== null) {
+                        onComplete();
+                    }
+                } else {
+                    closestAvailableSeek = seekable.end(index);
+                }
             } else {
-                // The pause event occurs with a delay, so we defer resetting the track
-                // and starting the next one until just after the pause event fires.
-                activeTrack.onPause = resetCurrentStartNext;
-                activeTrack.audio.pause();
+                break;
             }
         }
+
+        // If we can not yet seek to exactly the point we want to get to,
+        // but we can get at least one second closer to that point, we do it.
+        // (the idea being that this more likely triggers preloading of the
+        // area that we need to seek to)
+        if (track.seeking && closestAvailableSeek - closestPerformedSeek > 1) {
+            track.audio.currentTime = closestAvailableSeek;
+            closestPerformedSeek = closestAvailableSeek;
+        }
     }
+
+    const seekInterval = setInterval(tryFinishSeeking, 30);
+
+    seeking.cancel = () => {
+        clearInterval(seekInterval);
+        delete track.seeking;
+        dockedPlayer.playbackButton.replaceChildren(playIcon.cloneNode(true));
+        track.container.classList.remove('active');
+        track.playbackButtonIcon.replaceChildren(playIcon.cloneNode(true));
+        listenButtonIcon.replaceChildren(playIcon.cloneNode(true));
+        listenButtonLabel.textContent = PLAYER_JS_T.listen;
+    };
+
+    // We expose `cancel` and `onComplete` on the seeking object (and `seekTo`
+    // on track itself) so that consecutive parallel playback/seek requests
+    // may either cancel seeking(by calling `track.seeking.cancel()`) or
+    // reconfigure up to which time seeking should occur (by setting
+    // `track.seekTo = newSeekPoint`), or reconfigure what should happen
+    // after seeking completes (by setting `track.onComplete = callback).
+    track.seeking = seeking;
+}
+
+function setActive(track) {
+    activeTrack = track;
+
+    // Emphasize active track in the track list.
+    track.container.classList.add('active');
 }
 
 function setVolume(track) {
@@ -390,23 +477,23 @@ dockedPlayer.container.addEventListener('keydown', event => {
     if (event.key === 'ArrowLeft') {
         event.preventDefault();
         const seekTo = Math.max(0, activeTrack.audio.currentTime - 5);
-        togglePlayback(activeTrack, seekTo);
+        requestSeek(activeTrack, seekTo);
     } else if (event.key === 'ArrowRight') {
         event.preventDefault();
         const seekTo = Math.min(activeTrack.duration - 1, activeTrack.audio.currentTime + 5);
-        togglePlayback(activeTrack, seekTo);
+        requestSeek(activeTrack, seekTo);
     }
 });
 
 dockedPlayer.playbackButton.addEventListener('click', () => {
-    togglePlayback(activeTrack ?? firstTrack);
+    requestPlaybackChange(activeTrack);
 });
 
 // Not available on a track player
 if (dockedPlayer.nextTrackButton) {
     dockedPlayer.nextTrackButton.addEventListener('click', () => {
-        if (activeTrack?.nextTrack) {
-            togglePlayback(activeTrack.nextTrack);
+        if (activeTrack.nextTrack) {
+            requestPlaybackChange(activeTrack.nextTrack);
         }
     });
 }
@@ -414,7 +501,7 @@ if (dockedPlayer.nextTrackButton) {
 dockedPlayer.timeline.addEventListener('click', () => {
     const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
     const seekTo = factor * dockedPlayer.timelineInput.max;
-    togglePlayback(activeTrack, seekTo);
+    requestSeek(activeTrack, seekTo);
     dockedPlayer.timeline.classList.add('focus_from_click');
     dockedPlayer.timelineInput.focus();
 });
@@ -430,7 +517,7 @@ dockedPlayer.timelineInput.addEventListener('focus', () => {
 dockedPlayer.timelineInput.addEventListener('keydown', event => {
     if (event.key === ' ' || event.key === 'Enter') {
         event.preventDefault();
-        togglePlayback(activeTrack);
+        requestPlaybackChange(activeTrack);
     }
 });
 
@@ -499,15 +586,15 @@ dockedPlayer.volumeInput.addEventListener('keydown', event => {
 dockedPlayer.volumeInput.addEventListener('wheel', event => event.preventDefault());
 
 listenButton.addEventListener('click', () => {
-    togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
+    requestPlaybackChange(activeTrack);
 });
 
 navigator.mediaSession.setActionHandler('play', () => {
-    togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
+    requestPlaybackChange(activeTrack);
 });
 
 navigator.mediaSession.setActionHandler('pause', () => {
-    togglePlayback(activeTrack ?? preselectedTrack ?? firstTrack);
+    requestPlaybackChange(activeTrack);
 });
 
 const resizeObserver = new ResizeObserver(entries => {
@@ -519,13 +606,8 @@ const resizeObserver = new ResizeObserver(entries => {
     waveforms(minWidth);
 });
 
-let preselectedTrackOffset = null;
-const searchParams = new URLSearchParams();
-if (location.search.match(/^\?[0-9]+$/)) {
-    preselectedTrackOffset = parseInt(location.search.substring(1)) - 1;
-}
-
 let previousTrack = null;
+let trackIndex = 0;
 for (const container of document.querySelectorAll('.track')) {
     const artists = container.querySelector('.artists');
     const audio = container.querySelector('audio');
@@ -547,18 +629,6 @@ for (const container of document.querySelectorAll('.track')) {
         title
     };
 
-    const waveformContainer = container.querySelector('.waveform');
-    if (waveformContainer) {
-        const input = waveformContainer.querySelector('.waveform input');
-        const svg = waveformContainer.querySelector('.waveform svg');
-
-        track.waveform = {
-            container: waveformContainer,
-            input,
-            svg
-        };
-    }
-
     // We only unmute tracks right before they play, muting them again at any
     // pause event. We do this because a bug in browsers on apple systems can
     // trigger sporadic, unsolicited playback of tracks in certain conditions
@@ -574,20 +644,6 @@ for (const container of document.querySelectorAll('.track')) {
     // reachable by keyboard.
     playbackButton.tabIndex = 0;
 
-    if (firstTrack === null) {
-        firstTrack = track;
-        preselectedTrack = track;
-    }
-
-    if (preselectedTrackOffset !== null) {
-        if (preselectedTrackOffset > 0) {
-            preselectedTrackOffset -= 1;
-        } else {
-            preselectedTrack = track;
-            preselectedTrackOffset = null;
-        }
-    }
-
     if (previousTrack !== null) {
         previousTrack.nextTrack = track;
     }
@@ -595,15 +651,14 @@ for (const container of document.querySelectorAll('.track')) {
     previousTrack = track;
 
     audio.addEventListener('ended', event => {
-        audio.currentTime = 0;
-        container.classList.remove('active', 'playing');
-
         if (track.nextTrack) {
-            togglePlayback(track.nextTrack);
+            requestPlaybackChange(track.nextTrack);
         } else {
-            activeTrack = null;
+            reset(track);
+            // Hide docked player
             document.body.classList.remove('player_active');
             dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerClosed);
+            setActive(tracks[0]);
         }
     });
 
@@ -639,7 +694,7 @@ for (const container of document.querySelectorAll('.track')) {
             return;
         }
 
-        container.classList.add('active', 'playing');
+        container.classList.add('playing');
         dockedPlayer.playbackButton.replaceChildren(pauseIcon.cloneNode(true));
         listenButtonIcon.replaceChildren(pauseIcon.cloneNode(true));
         listenButtonLabel.textContent = PLAYER_JS_T.pause;
@@ -672,26 +727,39 @@ for (const container of document.querySelectorAll('.track')) {
 
     track.playbackButton.addEventListener('click', event => {
         event.preventDefault();
-        togglePlayback(track);
+        requestPlaybackChange(track);
     });
 
     container.addEventListener('keydown', event => {
         if (event.key === 'ArrowLeft') {
             event.preventDefault();
             const seekTo = Math.max(0, track.audio.currentTime - 5);
-            togglePlayback(track, seekTo);
+            requestSeek(track, seekTo);
         } else if (event.key === 'ArrowRight') {
             event.preventDefault();
             const seekTo = Math.min(track.duration - 1, track.audio.currentTime + 5);
-            togglePlayback(track, seekTo);
+            requestSeek(track, seekTo);
         }
     });
 
-    if (track.waveform) {
+    const waveformContainer = container.querySelector('.waveform');
+    if (waveformContainer) {
+        const input = waveformContainer.querySelector('.waveform input');
+        const svg = waveformContainer.querySelector('.waveform svg');
+
+        const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
+
+        track.waveform = {
+            container: waveformContainer,
+            input,
+            peaks,
+            svg
+        };
+
         track.waveform.container.addEventListener('click', event => {
             const factor = (event.clientX - track.waveform.input.getBoundingClientRect().x) / track.waveform.input.getBoundingClientRect().width;
             const seekTo = factor * track.waveform.input.max
-            togglePlayback(track, seekTo);
+            requestSeek(track, seekTo);
             track.waveform.input.classList.add('focus_from_click');
             track.waveform.input.focus();
         });
@@ -722,17 +790,103 @@ for (const container of document.querySelectorAll('.track')) {
         track.waveform.input.addEventListener('keydown', event => {
             if (event.key === ' ' || event.key === 'Enter') {
                 event.preventDefault();
-                togglePlayback(track);
+                requestPlaybackChange(track);
             }
         });
 
+        // Initialize playback/seek gradients
+        const SVG_XMLNS = 'http://www.w3.org/2000/svg';
+
+        svg.setAttribute('xmlns', SVG_XMLNS);
+        svg.setAttribute('height', `${TRACK_HEIGHT_EM}em`);
+
+        const defs = document.createElementNS(SVG_XMLNS, 'defs');
+
+        const playbackGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
+        playbackGradient.classList.add('playback');
+        playbackGradient.id = `gradient_playback_${trackIndex}`;
+        const playbackGradientStop1 = document.createElementNS(SVG_XMLNS, 'stop');
+        playbackGradientStop1.setAttribute('offset', '0');
+        playbackGradientStop1.setAttribute('stop-color', 'var(--fg-1)');
+        const playbackGradientStop2 = document.createElementNS(SVG_XMLNS, 'stop');
+        playbackGradientStop2.setAttribute('offset', '0.000001');
+        playbackGradientStop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
+        playbackGradient.append(playbackGradientStop1, playbackGradientStop2);
+
+        const seekGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
+        seekGradient.classList.add('seek');
+        seekGradient.id = `gradient_seek_${trackIndex}`;
+        const seekGradientStop1 = document.createElementNS(SVG_XMLNS, 'stop');
+        seekGradientStop1.setAttribute('offset', '0');
+        seekGradientStop1.setAttribute('stop-color', 'var(--fg-3)');
+        const seekGradientStop2 = document.createElementNS(SVG_XMLNS, 'stop');
+        seekGradientStop2.setAttribute('offset', '0.000001');
+        seekGradientStop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
+        seekGradient.append(seekGradientStop1, seekGradientStop2);
+
+        defs.append(playbackGradient);
+        defs.append(seekGradient);
+        svg.prepend(defs);
+
+        svg.querySelector('path.playback').setAttribute('stroke', `url(#gradient_playback_${trackIndex})`);
+        svg.querySelector('path.seek').setAttribute('stroke', `url(#gradient_seek_${trackIndex})`);
+
+        // Trigger waveform recomputation on resize (this also triggers the
+        // first draw after the initial page load).
         const waveformParent = track.waveform.container.parentElement;
         resizeObserver.observe(waveformParent);
     }
+
+    trackIndex++;
+    tracks.push(track);
 }
 
-preselectedTrack.container.classList.add('active');
+if (location.hash.length > 0) {
+    const hashParams = new URLSearchParams(location.hash.substring(1));
 
+    let openPlayer = false;
+
+    const trackParam = hashParams.get('n') ?? hashParams.get('track');
+
+    if (trackParam?.match(/^[0-9]+$/)) {
+        const trackIndex = parseInt(trackParam) - 1;
+        setActive(tracks[trackIndex]);
+        openPlayer = true;
+    } else {
+        setActive(tracks[0]);
+    }
+
+    const timeParam = hashParams.get('t') ?? hashParams.get('time');
+
+    if (timeParam !== null) {
+        // Match all of "1", "1s", "1m" "1h" "1m1s", "1h1m1s", "1h1s", "1h1m", etc.
+        const match = timeParam.match(/^(?:([0-9]+)h)?(?:([0-9]+)m)?(?:([0-9]+)s?)?$/);
+        if (match) {
+            let seekTo = 0;
+            const [_, h, m, s] = match;
+            if (h) { seekTo += parseInt(h) * 3600; }
+            if (m) { seekTo += parseInt(m) * 60; }
+            if (s) { seekTo += parseInt(s); }
+
+            if (seekTo < activeTrack.duration) {
+                activeTrack.seekTo = seekTo;
+                openPlayer = true;
+            }
+        }
+    }
+
+    if (openPlayer) {
+        mount(activeTrack);
+
+        // Announce to screenreaders that the docked player is present
+        dockedPlayer.status.setAttribute('aria-label', PLAYER_JS_T.playerOpenWithXxx(activeTrack.title.textContent));
+    }
+} else {
+    setActive(tracks[0]);
+}
+
+// Decodes a sequence of peaks that is encoded using a custom base64 alphabet
+// (A-Za-z0-9+/) into a sequence of numbers (0-63)
 function decode(string) {
     const peaks = [];
 
@@ -754,14 +908,6 @@ function decode(string) {
     return peaks;
 }
 
-const BREAKPOINT_REDUCED_WAVEFORM_REM = 20;
-const TRACK_HEIGHT_EM = 1.5;
-const WAVEFORM_PADDING_EM = 0.3;
-const WAVEFORM_HEIGHT = TRACK_HEIGHT_EM - WAVEFORM_PADDING_EM * 2.0;
-
-const WAVEFORM_WIDTH_PADDING_REM = 5;
-const WAVEFORM_WIDTH_TOLERANCE_REM = 2.5;
-
 const waveformRenderState = { widthRem: 0 };
 
 function waveforms(minWidth) {
@@ -771,8 +917,6 @@ function waveforms(minWidth) {
               .replace('px', '')
     );
 
-    // We subtract -1 to avoid the waveform forcing its container to resize,
-    // thereby causing recursive resize feedback.
     let maxWaveformWidthRem = (minWidth - WAVEFORM_WIDTH_PADDING_REM) / baseFontSizePx;
     let relativeWaveforms = maxWaveformWidthRem > BREAKPOINT_REDUCED_WAVEFORM_REM && !document.querySelector('[data-disable-relative-waveforms]');
 
@@ -781,13 +925,9 @@ function waveforms(minWidth) {
 
     const longestTrackDuration = parseFloat(document.querySelector('[data-longest-duration]').dataset.longestDuration);
 
-    let trackNumber = 1;
-    for (const waveform of document.querySelectorAll('.waveform')) {
-        const input = waveform.querySelector('input');
-        const svg = waveform.querySelector('svg[data-peaks]');
-        const peaks = decode(svg.dataset.peaks).map(peak => peak / 63);
-
-        const trackDuration = parseFloat(input.max);
+    for (const track of tracks) {
+        const peaks = track.waveform.peaks;
+        const trackDuration = parseFloat(track.waveform.input.max);
 
         let waveformWidthRem = maxWaveformWidthRem;
 
@@ -834,53 +974,14 @@ function waveforms(minWidth) {
             d += ` L ${x.toFixed(2)},${y.toFixed(2)}${yJitter}`;
         }
 
-        const SVG_XMLNS = 'http://www.w3.org/2000/svg';
-
-        if (!waveformRenderState.initialized) {
-            svg.setAttribute('xmlns', SVG_XMLNS);
-            svg.setAttribute('height', `${TRACK_HEIGHT_EM}em`);
-
-            const defs = document.createElementNS(SVG_XMLNS, 'defs');
-
-            const playbackGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
-            playbackGradient.classList.add('playback');
-            playbackGradient.id = `gradient_playback_${trackNumber}`;
-            const playbackGradientStop1 = document.createElementNS(SVG_XMLNS, 'stop');
-            playbackGradientStop1.setAttribute('offset', '0');
-            playbackGradientStop1.setAttribute('stop-color', 'var(--fg-1)');
-            const playbackGradientStop2 = document.createElementNS(SVG_XMLNS, 'stop');
-            playbackGradientStop2.setAttribute('offset', '0.000001');
-            playbackGradientStop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
-            playbackGradient.append(playbackGradientStop1, playbackGradientStop2);
-
-            const seekGradient = document.createElementNS(SVG_XMLNS, 'linearGradient');
-            seekGradient.classList.add('seek');
-            seekGradient.id = `gradient_seek_${trackNumber}`;
-            const seekGradientStop1 = document.createElementNS(SVG_XMLNS, 'stop');
-            seekGradientStop1.setAttribute('offset', '0');
-            seekGradientStop1.setAttribute('stop-color', 'var(--fg-3)');
-            const seekGradientStop2 = document.createElementNS(SVG_XMLNS, 'stop');
-            seekGradientStop2.setAttribute('offset', '0.000001');
-            seekGradientStop2.setAttribute('stop-color', 'hsla(0, 0%, 0%, 0)');
-            seekGradient.append(seekGradientStop1, seekGradientStop2);
-
-            defs.append(playbackGradient);
-            defs.append(seekGradient);
-            svg.prepend(defs);
-
-            svg.querySelector('path.playback').setAttribute('stroke', `url(#gradient_playback_${trackNumber})`);
-            svg.querySelector('path.seek').setAttribute('stroke', `url(#gradient_seek_${trackNumber})`);
-        }
+        const svg = track.waveform.svg;
 
         svg.setAttribute('viewBox', `0 0 ${waveformWidthRem} 1.5`);
         svg.setAttribute('width', `${waveformWidthRem}em`);
         svg.querySelector('path.base').setAttribute('d', d);
         svg.querySelector('path.playback').setAttribute('d', d);
         svg.querySelector('path.seek').setAttribute('d', d);
-
-        trackNumber++;
     }
 
-    waveformRenderState.initialized = true;
     waveformRenderState.widthRem = maxWaveformWidthRem;
 }

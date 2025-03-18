@@ -189,6 +189,7 @@ pub struct Translations {
     pub playback_position: Translation,
     pub player_closed: Translation,
     pub player_open_playing_xxx: Translation,
+    pub player_open_with_xxx: Translation,
     pub previous_track: Translation,
     pub purchase_downloads: Translation,
     /// Must be unique and only contain url-safe characters
@@ -271,6 +272,7 @@ impl Translations {
         player_closed: Reviewed("player_closed"),
         playback_position: Reviewed("playback_position"),
         player_open_playing_xxx: Reviewed("player_open_playing_xxx"),
+        player_open_with_xxx: Reviewed("player_open_with_xxx"),
         previous_track: Reviewed("previous_track"),
         purchase_downloads: Reviewed("purchase_downloads"),
         purchase_permalink: Reviewed("purchase_permalink"),
@@ -350,6 +352,7 @@ impl Translations {
         playback_position: EN.playback_position.as_untranslated(),
         player_closed: EN.player_closed.as_untranslated(),
         player_open_playing_xxx: EN.player_open_playing_xxx.as_untranslated(),
+        player_open_with_xxx: EN.player_open_with_xxx.as_untranslated(),
         previous_track: EN.previous_track.as_untranslated(),
         purchase_downloads: EN.purchase_downloads.as_untranslated(),
         purchase_permalink: EN.purchase_permalink.as_untranslated(),
@@ -431,6 +434,7 @@ impl Translations {
             ("playback_position", &self.playback_position, false),
             ("player_closed", &self.player_closed, false),
             ("player_open_playing_xxx", &self.player_open_playing_xxx, false),
+            ("player_open_with_xxx", &self.player_open_with_xxx, false),
             ("previous_track", &self.previous_track, false),
             ("purchase_downloads", &self.purchase_downloads, false),
             ("purchase_permalink", &self.purchase_permalink, false),
@@ -559,6 +563,7 @@ fn check_translations() {
         assert!(&translations.javascript_is_disabled_listen_at_xxx.contains("{link}"));
         assert!(&translations.nothing_found_for_xxx.contains("{query}"));
         assert!(&translations.player_open_playing_xxx.contains("{title}"));
+        assert!(&translations.player_open_with_xxx.contains("{title}"));
         assert!(&translations.showing_xxx_results_for_xxx.contains("{count}"));
         assert!(&translations.showing_xxx_results_for_xxx.contains("{query}"));
         assert!(&translations.unlock_manual_instructions.contains("{downloads_permalink}"));

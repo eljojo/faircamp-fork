@@ -258,6 +258,7 @@ pub fn generate_player_js(build: &mut Build) {
     let t_playback_position = &build.locale.translations.playback_position;
     let t_player_closed = &build.locale.translations.player_closed;
     let t_player_open_playing_xxx = js_escape_inside_single_quoted_string(&build.locale.translations.player_open_playing_xxx);
+    let t_player_open_with_xxx = js_escape_inside_single_quoted_string(&build.locale.translations.player_open_with_xxx);
     let t_unmute = &build.locale.translations.unmute;
     let t_volume = &build.locale.translations.volume;
     let t_xxx_hours = &build.locale.translations.xxx_hours;
@@ -271,6 +272,7 @@ pub fn generate_player_js(build: &mut Build) {
             playbackPosition: '{t_playback_position}',
             playerClosed: '{t_player_closed}',
             playerOpenPlayingXxx: title => '{t_player_open_playing_xxx}'.replace('{{title}}', title),
+            playerOpenWithXxx: title => '{t_player_open_with_xxx}'.replace('{{title}}', title),
             unmute: '{t_unmute}',
             volume: '{t_volume}',
             xxxHours: hours => '{t_xxx_hours}'.replace('{{xxx}}', hours),
