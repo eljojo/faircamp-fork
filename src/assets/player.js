@@ -55,15 +55,16 @@ const volume = {
     level: 1
 };
 
-// When a page loads we start with the assumption that volume is read-only
-// (hence during the initial load, volume controls are hidden), but
-// immediately run an asynchronous routine to determine if volume is
-// adjustable - if it is we append a class to the volume controls container
-// so that by the time the visitor initiates audio playback they can see the
-// volume controls. The reason for this quirky stuff is that Apple's iOS
-// devices intentionally don't allow application-level volume control and
-// therefore the web audio API on these devices features a read-only volume
-// property on audio elements.
+// When a page loads we start with the assumption that the volume property on
+// audio elements is read-only, but immediately run an asynchronous routine
+// to determine if volume is actually mutable - if it is we register this on
+// our global volume object and append a class to the volume controls
+// container so that by the time the visitor initiates audio playback they
+// can potentially interact with the volume controls on a fine-grained
+// levels. The reason for this quirky stuff is that Apple's iOS devices
+// intentionally don't allow application-level volume control and therefore
+// the web audio API on these devices features a read-only volume property on
+// audio elements.
 let volumeProbe = new Audio();
 const volumeProbeHandler = () => {
     volume.container.classList.add('finegrained');
@@ -418,7 +419,7 @@ function seek(track, onComplete = null) {
 
     // We expose `cancel` and `onComplete` on the seeking object (and `seekTo`
     // on track itself) so that consecutive parallel playback/seek requests
-    // may either cancel seeking(by calling `track.seeking.cancel()`) or
+    // may either cancel seeking (by calling `track.seeking.cancel()`) or
     // reconfigure up to which time seeking should occur (by setting
     // `track.seekTo = newSeekPoint`), or reconfigure what should happen
     // after seeking completes (by setting `track.onComplete = callback).
@@ -696,8 +697,7 @@ for (const container of document.querySelectorAll('.track')) {
     // trigger sporadic, unsolicited playback of tracks in certain conditions
     // (see comment elsewhere on track.solicitedPlayback), and although we
     // cancel this unsolicited playback right away, it would be sometimes
-    // audible for a brief moment (if we didn't keep tracks muted, as we do
-    // now).
+    // audible for a brief moment (if we didn't keep tracks muted).
     audio.muted = true;
 
     // Playback buttons start off with tabindex="-1" because if the visitor

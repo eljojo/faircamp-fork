@@ -334,10 +334,10 @@ fn embed_code(embed_url: &str, title: &str) -> (String, String) {
     let title_double_escaped = html_double_escape_inside_attribute(title);
     let title_escaped = html_escape_inside_attribute(title);
 
+    let inline_style = "border: none; min-width: 480px;";
+
     let copy_code = html_escape_inside_attribute(
-        &formatdoc!(r#"
-            <iframe loading="lazy" src="{embed_url}" style="min-width: 480px;" title="{title_escaped}"></iframe>
-        "#)
+        &format!(r#"<iframe loading="lazy" src="{embed_url}" style="{inline_style}" title="{title_escaped}"></iframe>"#)
     );
 
     let display_code = formatdoc!(r#"
@@ -345,7 +345,7 @@ fn embed_code(embed_url: &str, title: &str) -> (String, String) {
             <pre class="embed_code"><span class="embed_syntax_special">&lt;</span>iframe
             loading<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"lazy"</span>
             src<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{embed_url}"</span>
-            style<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"min-width: 480px;"</span>
+            style<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{inline_style}"</span>
             title<span class="embed_syntax_special">=</span><span class="embed_syntax_value">"{title_double_escaped}"</span><span class="embed_syntax_special">&gt;</span>
         <span class="embed_syntax_special">&lt;/</span>iframe<span class="embed_syntax_special">&gt;</span></pre>
         </div>
