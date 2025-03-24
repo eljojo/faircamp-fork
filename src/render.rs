@@ -493,7 +493,7 @@ fn layout(
             let t_m3u_playlist = &translations.m3u_playlist;
             let stream_icon = icons::stream();
             links.push_str(&format!(
-                    r#"<a href="{root_prefix}playlist.m3u" title="{t_m3u_playlist}"">
+                    r#"<a href="{root_prefix}playlist.m3u" title="{t_m3u_playlist}">
                 {stream_icon}
             </a>"#,
             stream_icon = stream_icon,
