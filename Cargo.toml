@@ -63,6 +63,7 @@ tokio = { features = ["macros", "rt-multi-thread"], version = "1.43.0" }
 translations = { path = "translations" }
 url = "2.5.4"
 urlencoding = "2.1.3"
+uuid = { features = ["v5"], version = "1.16.0" }
 webbrowser = "1.0.3"
 zip = { features = ["deflate"], version = "2.2.2" }
 

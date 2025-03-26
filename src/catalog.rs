@@ -21,6 +21,7 @@ use crate::{
     FairDir,
     Favicon,
     FeedImageAsset,
+    Feeds,
     FileMeta,
     HeuristicAudioMeta,
     HtmlAndStripped,
@@ -57,7 +58,7 @@ pub struct Catalog {
     pub feature_support_artists: bool,
     /// Those artists that get their own page
     pub featured_artists: Vec<ArtistRc>,
-    pub feed_enabled: bool,
+    pub feeds: Feeds,
     pub home_image: Option<DescribedImage>,
     pub label_mode: bool,
     pub links: Vec<Link>,
@@ -73,6 +74,12 @@ pub struct Catalog {
     pub opengraph: bool,
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
+    /// The page presenting subscription choices for the catalog competes with all
+    /// artist+release permalinks, therefore we do a run-time computation to
+    /// determine a conflict-free permalink for it (which starts with our
+    /// desired translation and adds (an) additional character(s) if
+    /// needed).
+    pub subscribe_permalink: Option<String>,
     pub support_artists: Vec<ArtistRc>,
     pub synopsis: Option<String>,
     pub theme: Theme,
@@ -176,6 +183,20 @@ impl Catalog {
                 track.asset_basename = Some(track_basename);
             }
         }
+    }
+
+    /// If the subscribe page permalink we have in our translations collides with
+    /// any of the artist or release permalinks, we prepend underscores to it
+    /// until there is no collision anymore.
+    fn compute_subscribe_permalink(&mut self, build: &Build) {
+        let mut subscribe_slug = build.locale.translations.subscribe_permalink.to_string();
+
+        while self.featured_artists.iter().any(|artist| artist.borrow().permalink.slug == subscribe_slug) ||
+            self.releases.iter().any(|release| release.borrow().permalink.slug == subscribe_slug) {
+            subscribe_slug = format!("_{subscribe_slug}");
+        }
+
+        self.subscribe_permalink = Some(subscribe_slug);
     }
 
     pub fn get_or_create_release_archives(&mut self, cache: &mut Cache) {
@@ -317,7 +338,7 @@ impl Catalog {
             favicon: Favicon::Default,
             feature_support_artists: false,
             featured_artists: Vec::new(),
-            feed_enabled: true,
+            feeds: Feeds::DEFAULT,
             home_image: None,
             label_mode: false,
             links: Vec::new(),
@@ -328,6 +349,7 @@ impl Catalog {
             opengraph: false,
             releases: Vec::new(),
             show_support_artists: false,
+            subscribe_permalink: None,
             support_artists: Vec::new(),
             synopsis: None,
             theme: Theme::new(),
@@ -414,6 +436,7 @@ impl Catalog {
         }
 
         catalog.compute_asset_basenames();
+        catalog.compute_subscribe_permalink(build);
 
         catalog.unlist_artists();
 
@@ -1310,7 +1333,7 @@ impl Catalog {
             }
 
             // Write home image as feed image
-            if build.base_url.is_some() && self.feed_enabled {
+            if build.base_url.is_some() && self.feeds.any_requested() {
                 let source_path = &described_image.file_meta.path;
                 let feed_image_asset = image_mut.feed_asset(build, source_path);
 

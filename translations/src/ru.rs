@@ -61,7 +61,6 @@ pub const RU: Translations = Translations {
     purchase_downloads: Reviewed("Покупка загрузок"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("Рекомендуемый формат"),
-    rss_feed: Reviewed("RSS-лента"),
     search: Reviewed("Поиск"),
     showing_featured_items: Reviewed("Показаны избранные элементы"),
     showing_xxx_results_for_xxx: Reviewed(r#"Найдено результатов по запросу "{query}": {count}"#),

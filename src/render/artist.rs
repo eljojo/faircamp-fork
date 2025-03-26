@@ -7,24 +7,25 @@ use crate::{
     Artist,
     Build,
     Catalog,
-    CrawlerMeta,
-    OpenGraphMeta,
-    Scripts
+    OpenGraphMeta
 };
 use crate::icons;
-use crate::render::{
+use crate::util::html_escape_outside_attribute;
+
+use super::Layout;
+use super::{
     artist_image,
     copy_button,
-    layout,
     releases,
     unlisted_badge
 };
-use crate::util::html_escape_outside_attribute;
 
-pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String {
+pub fn artist_html(artist: &Artist, build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
     let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
 
     let artist_name_escaped = html_escape_outside_attribute(&artist.name);
 
@@ -61,32 +62,17 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
         None => String::new()
     };
 
-    let templates = if artist.copy_link {
+    if artist.copy_link {
+        layout.add_clipboard_script();
+
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => ("content", base_url.join_index(build, &artist.permalink.slug)),
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy();
         let r_copy_link = copy_button(content_key, &content_value, &translations.copy_link);
         actions.push(r_copy_link);
-
-        let failed_icon = icons::failure(&translations.failed);
-        let success_icon = icons::success(&translations.copied);
-        format!(r#"
-            <template id="copy_icon">
-                {copy_icon}
-            </template>
-            <template id="failed_icon">
-                {failed_icon}
-            </template>
-            <template id="success_icon">
-                {success_icon}
-            </template>
-        "#)
-    } else {
-        String::new()
-    };
+    }
 
     for link in &artist.links {
         let external_icon = icons::external(&translations.external_link);
@@ -98,7 +84,7 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
         } else {
             let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(&label);
+            let e_label = html_escape_outside_attribute(label);
             formatdoc!(r#"
                 <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
             "#)
@@ -175,15 +161,17 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
             </div>
         </div>
         {r_more}
-        {templates}
     "##);
 
-    let crawler_meta = if artist.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
+    if artist.unlisted {
+        layout.no_indexing();
+    }
 
-    let opengraph_meta = if catalog.opengraph {
+    if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
             let artist_slug = &artist.permalink.slug;
             let artist_url = base_url.join_index(build, artist_slug);
+
             let mut meta = OpenGraphMeta::new(artist.name.clone(), artist_url);
 
             if let Some(synopsis) = &artist.synopsis {
@@ -203,23 +191,15 @@ pub fn artist_html(build: &Build, artist: &Artist, catalog: &Catalog) -> String 
                 }
             }
 
-            Some(meta)
-        } else {
-            None
+            layout.add_opengraph_meta(meta);
         }
-    } else {
-        None
-    };
+    }
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        None,
         build,
         catalog,
-        crawler_meta,
-        Scripts::Clipboard,
-        opengraph_meta,
+        root_prefix,
         &artist.theme,
         &artist.name
     )

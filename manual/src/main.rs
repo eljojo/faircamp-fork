@@ -252,9 +252,9 @@ fn read_docs() -> Docs {
         title: format!("Faircamp {faircamp_version_display}")
     };
 
-    let examples = read_pages(&Path::new("examples"));
-    let reference = read_pages(&Path::new("reference"));
-    let topics = read_pages(&Path::new("topics"));
+    let examples = read_pages(Path::new("examples"));
+    let reference = read_pages(Path::new("reference"));
+    let topics = read_pages(Path::new("topics"));
 
     Docs {
         examples,

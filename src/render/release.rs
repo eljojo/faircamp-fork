@@ -9,26 +9,23 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
     DownloadAccess,
     OpenGraphMeta,
     Release,
-    Scripts,
     TRACK_NUMBERS
-};
-use crate::render::{
-    copy_button,
-    layout,
-    list_release_artists,
-    list_track_artists,
-    player_icon_templates,
-    release_cover_image,
-    Truncation,
-    unlisted_badge,
-    waveform
 };
 use crate::icons;
 use crate::util::{format_time, html_escape_outside_attribute};
+
+use super::{Layout, Truncation};
+use super::{
+    copy_button,
+    list_release_artists,
+    list_track_artists,
+    release_cover_image,
+    unlisted_badge,
+    waveform
+};
 
 /// The actual release page, featuring the track listing and streaming player, links
 /// to downloads, embeds, description, etc.
@@ -36,6 +33,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     let index_suffix = build.index_suffix();
     let root_prefix = "../";
     let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
+
+    layout.add_player_script();
 
     let download_link = match &release.download_access {
         DownloadAccess::Code { .. } => {
@@ -316,32 +317,16 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         "#)
     };
 
-    let failed_icon = icons::failure(&translations.failed);
-    let success_icon = icons::success(&translations.copied);
-    let mut templates = format!(r#"
-        <template id="failed_icon">
-            {failed_icon}
-        </template>
-        <template id="success_icon">
-            {success_icon}
-        </template>
-    "#);
-
     if release.copy_link {
+        layout.add_clipboard_script();
+
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => ("content", base_url.join_index(build, &release.permalink.slug)),
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy();
         let r_copy_link = copy_button(content_key, &content_value, &translations.copy_link);
         secondary_actions.push(r_copy_link);
-
-        templates.push_str(&format!(r#"
-            <template id="copy_icon">
-                {copy_icon}
-            </template>
-        "#));
     }
 
     if build.base_url.is_some() {
@@ -384,7 +369,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
         } else {
             let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(&label);
+            let e_label = html_escape_outside_attribute(label);
             formatdoc!(r#"
                 <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
             "#)
@@ -412,8 +397,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     } else {
         release_title_escaped.clone()
     };
-
-    templates.push_str(&player_icon_templates(build));
 
     let cover = release_cover_image(build, release, "", root_prefix);
 
@@ -493,12 +476,13 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             </div>
         </div>
         <div aria-label="" class="docked_player_status" role="status"></div>
-        {templates}
     "##);
 
-    let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
+    if release.unlisted {
+        layout.no_indexing();
+    }
 
-    let opengraph_meta = if catalog.opengraph {
+    if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
             let release_slug = &release.permalink.slug;
             let release_url = base_url.join_index(build, release_slug);
@@ -520,24 +504,19 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     meta.image_alt(description);
                 }
             }
+            // TODO: Should(n't) we also provide a procedural cover as a
+            // fallback here? (also applies for the same spot in the track
+            // page render code)
 
-            Some(meta)
-        } else {
-            None
+            layout.add_opengraph_meta(meta);
         }
-    } else {
-        None
-    };
+    }
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        None,
         build,
         catalog,
-        crawler_meta,
-        Scripts::ClipboardAndPlayer,
-        opengraph_meta,
+        root_prefix,
         &release.theme,
         &release.title
     )

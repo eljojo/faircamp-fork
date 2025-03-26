@@ -11,6 +11,7 @@ use crate::{
     Catalog,
     DescribedImage,
     Favicon,
+    Feeds,
     LocalOptions,
     Locale,
     Overrides,
@@ -24,6 +25,7 @@ use super::{
     CATALOG_RELEASE_OPTIONS,
     attribute_error_with_snippet,
     element_error_with_snippet,
+    item_error_with_snippet,
     not_supported_error,
     platform_printer,
     read_artist_catalog_release_option,
@@ -39,10 +41,10 @@ use super::{
 const CATALOG_OPTIONS: &[&str] = &[
     "base_url",
     "cache_optimization",
-    "disable_feed",
     "faircamp_signature",
     "favicon",
     "feature_support_artists",
+    "feeds",
     "freeze_download_urls",
     "home_image",
     "label_mode",
@@ -131,9 +133,14 @@ pub fn read_catalog_manifest(
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
+            // Deprecated ~April 2025, eventually remove in the future
             "disable_feed" => {
+                let message = "The 'disable_feed' option must now be specified as 'feeds: disabled'. For the time being 'disable_feed' will still work, but it won't forever - make sure to update at some point.";
+                let warning = element_error_with_snippet(element, manifest_path, message);
+                build.warning(&warning);
+
                 if element.is_flag() {
-                    catalog.feed_enabled = false;
+                    catalog.feeds = Feeds::DISABLED;
                 } else {
                     let message = "disable_feed needs to be provided as a flag, that is, exactly as 'disable_feed' (without colon and without value)";
                     let error = element_error_with_snippet(element, manifest_path, message);
@@ -207,6 +214,83 @@ pub fn read_catalog_manifest(
                     let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
+            }
+            "feeds" => 'feeds: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            match value {
+                                "all" => {
+                                    catalog.feeds = Feeds::ALL;
+                                }
+                                "atom" => {
+                                    catalog.feeds = Feeds::ATOM_ONLY;
+                                }
+                                "disabled" => {
+                                    catalog.feeds = Feeds::DISABLED;
+                                }
+                                "generic_rss" => {
+                                    catalog.feeds = Feeds::GENERIC_RSS_ONLY;
+                                }
+                                "media_rss" => {
+                                    catalog.feeds = Feeds::MEDIA_RSS_ONLY;
+                                }
+                                "podcast_rss" => {
+                                    catalog.feeds = Feeds::PODCAST_RSS_ONLY;
+                                }
+                                _ => {
+                                    let message = "This feeds option was not recognized (supported values are 'all', 'atom', 'generic_rss', 'media_rss', 'podcast_rss' and 'disabled')";
+                                    let error = element_error_with_snippet(element, manifest_path, message);
+                                    build.error(&error);
+                                }
+                            }
+                        }
+
+                        break 'feeds;
+                    } else if let Ok(items) = field.items() {
+                        catalog.feeds = Feeds::DISABLED;
+
+                        for item in items {
+                            if let Some(value) = item.value() {
+                                match value {
+                                    "all" => {
+                                        catalog.feeds.atom = true;
+                                        catalog.feeds.media_rss = true;
+                                        catalog.feeds.podcast_rss = true;
+                                    }
+                                    "atom" => {
+                                        catalog.feeds.atom = true;
+                                    }
+                                    "disabled" => {
+                                        catalog.feeds.atom = false;
+                                        catalog.feeds.media_rss = false;
+                                        catalog.feeds.podcast_rss = false;
+                                    }
+                                    "generic_rss" => {
+                                        catalog.feeds.generic_rss = true;
+                                    }
+                                    "media_rss" => {
+                                        catalog.feeds.media_rss = true;
+                                    }
+                                    "podcast_rss" => {
+                                        catalog.feeds.podcast_rss = true;
+                                    }
+                                    _ => {
+                                        let message = "This feeds option was not recognized (supported values are 'atom', 'generic_rss', 'media_rss', 'podcast_rss', as well as the additional 'all' and 'disabled' in the 'feeds: all' form of the option)";
+                                        let error = item_error_with_snippet(item, manifest_path, message);
+                                        build.error(&error);
+                                    }
+                                }
+                            }
+                        }
+
+                        break 'feeds;
+                    }
+                }
+
+                let message = "feeds needs to be provided either as a field with a value (e.g. 'feeds: all', with available options being 'all', 'atom', 'generic_rss', 'media_rss', 'podcast_rss' and 'disabled') or as a field with items, e.g.:\n\nfeeds:\n- media_rss\n- podcast_rss\n\n(available options here being: 'atom', 'generic_rss', 'media_rss' and 'podcast_rss')";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             }
             "freeze_download_urls" => 'freeze_download_urls: {
                 if let Ok(field) = element.as_field() {

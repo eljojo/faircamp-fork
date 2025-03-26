@@ -73,7 +73,6 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     purchase_downloads: Reviewed("İndirmeleri satın al"),
     purchase_permalink: Reviewed("satin-al"),
     recommended_format: Reviewed("Tavsiye edilen dosya türü"),
-    rss_feed: Reviewed("RSS Kaynağı"),
     search: Reviewed("Ara"),
     unlisted: Reviewed("Yayınlanmamış"),
     unlock: Reviewed("Kilidi aç"),

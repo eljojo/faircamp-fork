@@ -8,12 +8,6 @@ use indoc::formatdoc;
 use crate::{Build, Catalog, TRACK_NUMBERS};
 use crate::util::url_safe_hash_base64;
 
-pub enum Scripts {
-    Clipboard,
-    ClipboardAndPlayer,
-    None
-}
-
 pub fn generate(build: &mut Build, catalog: &Catalog) {
     generate_browser_js(build, catalog);
     generate_clipboard_js(build);
@@ -272,25 +266,4 @@ fn js_escape_inside_single_quoted_string(string: &str) -> String {
     string
         .replace('\\', "\\\\")
         .replace('\'', "\\'")
-}
-
-impl Scripts {
-    pub fn header_tags(&self, build: &Build, root_prefix: &str) -> String {
-        match self {
-            Scripts::Clipboard => {
-                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
-                format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#)
-            }
-            Scripts::ClipboardAndPlayer => {
-                let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
-                let player_js_hash = build.asset_hashes.player_js.as_ref().unwrap();
-
-                formatdoc!(r#"
-                    <script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>
-                    <script defer src="{root_prefix}player.js?{player_js_hash}"></script>
-                "#)
-            }
-            Scripts::None => String::new()
-        }
-    }
 }

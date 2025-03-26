@@ -27,7 +27,7 @@ mod download_format;
 mod downloads;
 mod fair_dir;
 mod favicon;
-mod feed;
+mod feeds;
 mod ffmpeg;
 mod heuristic_audio_meta;
 mod icons;
@@ -69,6 +69,7 @@ use download_format::DownloadFormat;
 use downloads::{DownloadAccess, DownloadAccessOption, ExtraDownloads, Price};
 use fair_dir::FairDir;
 use favicon::Favicon;
+use feeds::Feeds;
 use heuristic_audio_meta::HeuristicAudioMeta;
 use crate::image::{DescribedImage, FeedImageAsset, Image, ImageProcessor, ImageRc, ImageRcView, ImgAttributes};
 use link::Link;
@@ -78,8 +79,6 @@ use markdown::HtmlAndStripped;
 use opengraph::{OpenGraphImage, OpenGraphMeta};
 use permalink::{Permalink, PermalinkUsage};
 use release::{Extra, Release, ReleaseRc, TRACK_NUMBERS};
-use render::CrawlerMeta;
-use scripts::Scripts;
 use site_url::SiteUrl;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
@@ -104,7 +103,7 @@ fn main() -> ExitCode {
     }
 
     let mut build = Build::new(&args);
-    
+
     if !build.catalog_dir.is_dir() {
         error!("Configured catalog directory does not exist - aborting build");
         return ExitCode::FAILURE;
@@ -113,18 +112,18 @@ fn main() -> ExitCode {
     info!("You can safely terminate faircamp at any point (using Ctrl+C) - all progress is continuously saved and new builds always continue where the previous build left off.");
 
     let mut cache = Cache::retrieve(&build);
-    
+
     if args.analyze_cache {
         cache.report_stale();
         return ExitCode::SUCCESS;
     }
-    
+
     if args.optimize_cache {
         cache.optimization = CacheOptimization::Immediate;
         cache.maintain(&build);
         return ExitCode::SUCCESS;
     }
-    
+
     if args.wipe_all || args.wipe_build || args.wipe_cache {
         if args.wipe_build || args.wipe_all {
             info!("The build directory was wiped, as requested");
@@ -139,7 +138,7 @@ fn main() -> ExitCode {
     }
 
     cache.mark_all_stale(&build.build_begin);
-    
+
     let mut catalog = match Catalog::read(&mut build, &mut cache) {
         Ok(catalog) => catalog,
         Err(()) => return ExitCode::FAILURE
@@ -171,16 +170,22 @@ fn main() -> ExitCode {
             fs::write(build.build_dir.join("playlist.m3u"), r_m3u).unwrap();
         }
 
-        // Render RSS feed
-        if catalog.feed_enabled {
-            feed::generate(base_url, &build, &catalog);
+        if catalog.feeds.any_requested() {
+            // Render feed (xml) files (Atom, Generic RSS, Media RSS, Podcast RSS, as enabled)
+            catalog.feeds.generate(base_url, &build, &catalog);
+
+            // Render subscription choices page
+            let subscribe_dir = build.build_dir.join(catalog.subscribe_permalink.as_ref().unwrap());
+            util::ensure_dir_all(&subscribe_dir);
+            let subscribe_html = render::subscribe::subscribe_html(base_url, &build, &catalog);
+            fs::write(subscribe_dir.join("index.html"), subscribe_html).unwrap();
         }
     }
 
     // Render homepage (page for all releases)
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
-    
+
     // Render pages for each release (including playlists, track pages, embeds, etc.)
     for release in &catalog.releases {
         release.borrow_mut().write_pages_and_playlist_files(&mut build, &catalog);
@@ -201,7 +206,7 @@ fn main() -> ExitCode {
             }
         }
 
-        let artist_html = render::artist::artist_html(&build, &artist_ref, &catalog);
+        let artist_html = render::artist::artist_html(&artist_ref, &build, &catalog);
         fs::write(artist_dir.join("index.html"), artist_html).unwrap();
     }
 
@@ -219,7 +224,7 @@ fn main() -> ExitCode {
 
         if build.embeds_requested { not_generated.push("Embeds"); }
         if catalog.opengraph { not_generated.push("Open Graph meta tags"); }
-        if catalog.feed_enabled { not_generated.push("RSS Feed"); }
+        if catalog.feeds.any_requested() { not_generated.push("Feeds"); }
         if catalog.m3u ||
             catalog.artists.iter().any(|artist| artist.borrow().m3u) ||
             catalog.releases.iter().any(|release| release.borrow().m3u) {
@@ -231,7 +236,7 @@ fn main() -> ExitCode {
             warn!("No catalog.base_url specified, therefore the following could not be generated: {}", r_not_generated);
         }
     }
-    
+
     cache.maintain(&build);
 
     build.print_stats();

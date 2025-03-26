@@ -74,7 +74,6 @@ pub const JA: Translations = Translations {
     purchase_downloads: Reviewed("購入してダウンロードする"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("推奨の形式"),
-    rss_feed: Reviewed("RSS フィード"),
     search: Reviewed("検索"),
     showing_featured_items: Reviewed("注目の作品を表示中"),
     showing_xxx_results_for_xxx: Reviewed("「{query}」の {count} 件の検索結果を表示中"),

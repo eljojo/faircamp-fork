@@ -8,13 +8,13 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
     DownloadFormat,
-    Release,
-    Scripts
+    Release
 };
-use crate::render::{compact_release_identifier, download_entry, layout};
 use crate::util::html_escape_outside_attribute;
+
+use super::Layout;
+use super::{compact_release_identifier, download_entry};
 
 /// The download page itself, providing direct links to the (zip) archive
 /// files and/or individual tracks download links.
@@ -25,6 +25,10 @@ pub fn release_download_html(
 ) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../";
+
+    let mut layout = Layout::new();
+
+    layout.no_indexing();
 
     let mut release_formats_sorted = release.download_formats.clone();
     release_formats_sorted.sort_by_key(|format| format.download_rank());
@@ -169,19 +173,16 @@ pub fn release_download_html(
 
     let release_title = &release.title;
     let release_title_escaped = html_escape_outside_attribute(release_title);
-    let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
+    layout.add_breadcrumb(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
 
     let page_title = format!("{t_downloads} – {release_title}");
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        breadcrumb,
         build,
         catalog,
-        CrawlerMeta::NoIndexNoFollow,
-        Scripts::None,
-        None,
+        root_prefix,
         &release.theme,
         &page_title
     )

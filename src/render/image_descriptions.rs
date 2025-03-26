@@ -3,16 +3,16 @@
 
 use indoc::formatdoc;
 
-use crate::{
-    Build,
-    Catalog,
-    CrawlerMeta,
-    Scripts
-};
-use crate::render::layout;
+use crate::{Build, Catalog};
+
+use super::Layout;
 
 pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
     let root_prefix = "../";
+
+    let mut layout = Layout::new();
+
+    layout.no_indexing();
 
     let t_image_descriptions = &build.locale.translations.image_descriptions;
     let t_image_descriptions_guide = &build.locale.translations.image_descriptions_guide;
@@ -28,15 +28,11 @@ pub fn image_descriptions_html(build: &Build, catalog: &Catalog) -> String {
         </div>
     "#);
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        None,
         build,
         catalog,
-        CrawlerMeta::NoIndexNoFollow,
-        Scripts::None,
-        None,
+        root_prefix,
         &catalog.theme,
         t_image_descriptions
     )

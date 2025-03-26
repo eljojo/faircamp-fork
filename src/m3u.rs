@@ -46,11 +46,11 @@ pub fn generate_for_artist(
                     let file_name = image_ref.cover_assets_unchecked().playlist_image();
                     let hash = image_ref.hash.as_url_safe_base64();
 
-                    base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
+                    base_url.join_file(format!("{release_slug}/{file_name}?{hash}"))
                 }
                 None => {
                     let file_name = release_ref.procedural_cover_480_filename_unchecked();
-                    base_url.join_file(&format!("{release_slug}/{file_name}"))
+                    base_url.join_file(format!("{release_slug}/{file_name}"))
                 }
             };
 
@@ -70,7 +70,7 @@ pub fn generate_for_artist(
             let file_name = image_ref.artist_assets.as_ref().unwrap().playlist_image();
             let hash = image_ref.hash.as_url_safe_base64();
 
-            let artist_image_url = base_url.join_file(&format!("{artist_slug}/{file_name}?{hash}"));
+            let artist_image_url = base_url.join_file(format!("{artist_slug}/{file_name}?{hash}"));
 
             format!("#EXTIMG:{artist_image_url}")
         }
@@ -117,11 +117,11 @@ pub fn generate_for_catalog(
                     let file_name = image_ref.cover_assets_unchecked().playlist_image();
                     let hash = image_ref.hash.as_url_safe_base64();
 
-                    base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
+                    base_url.join_file(format!("{release_slug}/{file_name}?{hash}"))
                 }
                 None => {
                     let file_name = release_ref.procedural_cover_480_filename_unchecked();
-                    base_url.join_file(&format!("{release_slug}/{file_name}"))
+                    base_url.join_file(format!("{release_slug}/{file_name}"))
                 }
             };
 
@@ -141,7 +141,7 @@ pub fn generate_for_catalog(
             let file_name = image_ref.artist_assets.as_ref().unwrap().playlist_image();
             let hash = image_ref.hash.as_url_safe_base64();
 
-            let file_url = base_url.join_file(&format!("{file_name}?{hash}"));
+            let file_url = base_url.join_file(format!("{file_name}?{hash}"));
 
             format!("#EXTIMG:{file_url}")
         }
@@ -179,11 +179,11 @@ pub fn generate_for_release(
             let file_name = image_ref.cover_assets_unchecked().playlist_image();
             let hash = image_ref.hash.as_url_safe_base64();
 
-            base_url.join_file(&format!("{release_slug}/{file_name}?{hash}"))
+            base_url.join_file(format!("{release_slug}/{file_name}?{hash}"))
         }
         None => {
             let file_name = release.procedural_cover_480_filename_unchecked();
-            base_url.join_file(&format!("{release_slug}/{file_name}"))
+            base_url.join_file(format!("{release_slug}/{file_name}"))
         }
     };
 
@@ -248,7 +248,7 @@ pub fn generate_tracks(
 
             let track_filename_urlencoded = urlencoding::encode(&track_filename);
             let file_url = base_url.join_file(
-                &format!("{release_slug}/{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}")
+                format!("{release_slug}/{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}")
             );
 
             format!("{extinf}\n{file_url}")

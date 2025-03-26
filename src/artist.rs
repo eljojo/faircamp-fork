@@ -4,8 +4,6 @@
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
-use url::Url;
-
 use crate::{
     Catalog,
     DescribedImage,
@@ -24,7 +22,10 @@ pub struct Artist {
     /// definition in a manifest, and when providing a link through it.
     /// Its presence indicates that we don't generate an internal (featured)
     /// artist page, but instead link to the artist on an external page.
-    pub external_page: Option<Url>,
+    pub external_page: Option<String>,
+    /// While reading the catalog we annotate artists who are featured
+    /// (i.e. get their own page) with this flag. This helps us to correctly
+    /// link to their pages where needed.
     pub featured: bool,
     pub image: Option<DescribedImage>,
     pub links: Vec<Link>,
@@ -79,7 +80,7 @@ impl Artist {
     pub fn new_manual(
         aliases: Vec<String>,
         copy_link: bool,
-        external_page: Option<Url>,
+        external_page: Option<String>,
         image: Option<DescribedImage>,
         links: Vec<Link>,
         m3u: bool,
@@ -117,16 +118,16 @@ impl Artist {
     pub fn new_shortcut(
         aliases: Vec<String>,
         catalog: &Catalog,
-        external_page: Option<Url>,
+        external_page: Option<String>,
         name: &str,
         permalink: Option<Permalink>
     ) -> Artist {
-        let permalink = match external_page {
+        let permalink = match external_page.is_some() {
             // TODO: In terms of modeling, the fact that we need to set a permalink
             //       for this, might indicate that we should maybe have a separate structure to
             //       hold external artists (but this would have other implications too).
-            Some(_) => Permalink::uid(),
-            None => permalink.unwrap_or_else(|| Permalink::generate(name))
+            true => Permalink::uid(),
+            false => permalink.unwrap_or_else(|| Permalink::generate(name))
         };
 
         Artist {

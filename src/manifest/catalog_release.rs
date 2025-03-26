@@ -50,7 +50,7 @@ pub fn read_catalog_release_option(
                             "external_page" => {
                                 if let Some(value) = attribute.value() {
                                     match Url::parse(value) {
-                                        Ok(url) => external_page = Some(url),
+                                        Ok(_) => external_page = Some(value.to_string()),
                                         Err(err) => {
                                             let message = format!("The url supplied for the external_page option seems to be malformed ({err})");
                                             let error = attribute_error_with_snippet(attribute, manifest_path, &message);

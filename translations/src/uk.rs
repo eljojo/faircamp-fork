@@ -66,7 +66,6 @@ pub const UK: Translations = Translations {
     purchase_downloads: Reviewed("Купити завантаження"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("Рекомендований формат"),
-    rss_feed: Reviewed("RSS-стрічка"),
     unlisted: Reviewed("Поза списком"),
     unlock: Reviewed("Розблокувати"),
     unlock_downloads: Reviewed("Розблокувати завантаження"),

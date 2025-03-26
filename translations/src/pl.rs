@@ -71,7 +71,6 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
     purchase_downloads: Reviewed("Kup pobranie"),
     purchase_permalink: Reviewed("zakup"),
     recommended_format: Reviewed("Polecany Format"),
-    rss_feed: Reviewed("Źródło RSS"),
     search: Reviewed("Szukaj"),
     unlisted: Reviewed("Nielistowany"),
     unlock: Reviewed("Odblokuj"),

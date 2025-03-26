@@ -75,7 +75,6 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     purchase_downloads: Reviewed("Acquista download"),
     purchase_permalink: Reviewed("acquista"),
     recommended_format: Reviewed("Formato consigliato"),
-    rss_feed: Reviewed("Feed RSS"),
     search: Reviewed("Cerca"),
     showing_featured_items: Reviewed("Mostrando gli elementi in evidenza"),
     showing_xxx_results_for_xxx: Reviewed("Mostrando {count} risultati per '{query}'"),

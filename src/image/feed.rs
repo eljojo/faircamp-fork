@@ -8,7 +8,7 @@ use serde_derive::{Serialize, Deserialize};
 
 use crate::Build;
 
-/// A single, resized version of an image for usage in RSS feeds.
+/// A single, resized version of an image for usage in feeds.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct FeedImageAsset {
     /// Represents both height and width (feed images have a square aspect ratio)

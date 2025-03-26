@@ -60,7 +60,6 @@ pub const NL: Translations = Translations {
     purchase_downloads: Reviewed("Downloads kopen"),
     purchase_permalink: Reviewed("kopen"),
     recommended_format: Reviewed("Aanbevolen Formaat"),
-    rss_feed: Reviewed("RSS Feed"),
     search: Reviewed("Zoeken"),
     showing_featured_items: Reviewed("Uitgelichte items tonen"),
     showing_xxx_results_for_xxx: Reviewed("Weergave {count} resultaten voor '{query}'"),

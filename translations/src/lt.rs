@@ -61,7 +61,6 @@ pub const LT: Translations = Translations {
     purchase_downloads: Reviewed("Pirkti atsisiuntimus"),
     purchase_permalink: Reviewed("pirkti"),
     recommended_format: Reviewed("Rekomenduojamas formatas"),
-    rss_feed: Reviewed("RSS kanalas"),
     search: Reviewed("Ieškoti"),
     showing_featured_items: Reviewed("Rodomi rekomenduojami elementai"),
     showing_xxx_results_for_xxx: Reviewed("Rodoma {count} rezultatų užklausai „{query}“"),

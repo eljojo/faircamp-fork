@@ -8,12 +8,12 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
-    Release,
-    Scripts
+    Release
 };
-use crate::render::{compact_release_identifier, layout};
 use crate::util::html_escape_outside_attribute;
+
+use super::Layout;
+use super::compact_release_identifier;
 
 /// Renders content for pages found under /[release_permalink]/[unlock_permalink]/[hash]/index.html
 pub fn release_unlock_html(
@@ -25,6 +25,10 @@ pub fn release_unlock_html(
     let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
+
+    let mut layout = Layout::new();
+
+    layout.no_indexing();
 
     let custom_or_default_unlock_info = unlock_info
         .as_ref()
@@ -104,19 +108,16 @@ pub fn release_unlock_html(
 
     let release_title = &release.title;
     let release_title_escaped = html_escape_outside_attribute(release_title);
-    let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
+    layout.add_breadcrumb(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
 
     let page_title = format!("{t_unlock_downloads} – {release_title}");
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        breadcrumb,
         build,
         catalog,
-        CrawlerMeta::NoIndexNoFollow,
-        Scripts::None,
-        None,
+        root_prefix,
         &release.theme,
         &page_title
     )

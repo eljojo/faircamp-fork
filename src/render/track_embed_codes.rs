@@ -6,15 +6,14 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
     Release,
-    Scripts,
     SiteUrl,
     Track
 };
-use crate::icons;
-use crate::render::{compact_track_identifier, copy_button, embed_code, layout};
 use crate::util::html_escape_outside_attribute;
+
+use super::Layout;
+use super::{compact_track_identifier, copy_button, embed_code};
 
 /// Renders the page that lets the visitor copy embed codes for the track.
 pub fn track_embed_codes_html(
@@ -31,6 +30,11 @@ pub fn track_embed_codes_html(
     let track_prefix = "../";
     let translations = &build.locale.translations;
 
+    let mut layout = Layout::new();
+
+    layout.add_clipboard_script();
+    layout.no_indexing();
+
     let track_link = format!("..{index_suffix}");
 
     let r_compact_track_identifier = compact_track_identifier(
@@ -45,21 +49,6 @@ pub fn track_embed_codes_html(
         track_prefix
     );
 
-    let copy_icon = icons::copy();
-    let failed_icon = icons::failure(&translations.failed);
-    let success_icon = icons::success(&translations.copied);
-    let templates = format!(r#"
-        <template id="copy_icon">
-            {copy_icon}
-        </template>
-        <template id="failed_icon">
-            {failed_icon}
-        </template>
-        <template id="success_icon">
-            {success_icon}
-        </template>
-    "#);
-
     let track_title = track.title();
 
     let t_audio_player_widget_for_xxx =
@@ -67,7 +56,7 @@ pub fn track_embed_codes_html(
 
     let release_slug = &release.permalink.slug;
 
-    let embed_url = base_url.join_index(build, &format!("{release_slug}/embed/{track_number}"));
+    let embed_url = base_url.join_index(build, format!("{release_slug}/embed/{track_number}"));
 
     let (embed_copy_code, embed_display_code) = embed_code(&embed_url, &t_audio_player_widget_for_xxx);
 
@@ -93,24 +82,20 @@ pub fn track_embed_codes_html(
                 </div>
             </div>
         </div>
-        {templates}
     "#);
 
     let release_link = format!("../../..{index_suffix}");
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
+    layout.add_breadcrumb(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
 
     let page_title = format!("{t_embed} – {track_title}");
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        breadcrumb,
         build,
         catalog,
-        CrawlerMeta::NoIndexNoFollow,
-        Scripts::Clipboard,
-        None,
+        root_prefix,
         &track.theme,
         &page_title
     )

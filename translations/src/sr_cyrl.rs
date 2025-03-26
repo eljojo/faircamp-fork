@@ -57,7 +57,6 @@ pub const SR_CYRL: Translations = Translations {
     purchase_downloads: Reviewed("Куповина музике за преузимање"),
     purchase_permalink: Reviewed("kupovina"),
     recommended_format: Reviewed("Препоручени формат"),
-    rss_feed: Reviewed("RSS довод"),
     search: Reviewed("Претрага"),
     unlisted: Reviewed("Није улистано"),
     unlock: Reviewed("Откључај"),

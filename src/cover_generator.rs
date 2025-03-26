@@ -188,7 +188,7 @@ impl CoverGenerator {
             }
         }
 
-        pixmap.save_png(&file_path).unwrap();
+        pixmap.save_png(file_path).unwrap();
     }
 
     fn generate_blocks(
@@ -233,7 +233,7 @@ impl CoverGenerator {
             }
         }
 
-        pixmap.save_png(&file_path).unwrap();
+        pixmap.save_png(file_path).unwrap();
     }
 
     fn generate_glass_splinters(
@@ -305,7 +305,7 @@ impl CoverGenerator {
             track_offset += track_arc_range;
         }
 
-        pixmap.save_png(&file_path).unwrap();
+        pixmap.save_png(file_path).unwrap();
     }
 
     fn generate_looney_tunes(
@@ -375,7 +375,7 @@ impl CoverGenerator {
             }
         }
 
-        pixmap.save_png(&file_path).unwrap();
+        pixmap.save_png(file_path).unwrap();
     }
 
     fn generate_scratchy_faint_rillen(
@@ -435,7 +435,7 @@ impl CoverGenerator {
         }
 
 
-        pixmap.save_png(&file_path).unwrap();
+        pixmap.save_png(file_path).unwrap();
     }
 
     fn generate_space_time_rupture(
@@ -508,7 +508,7 @@ impl CoverGenerator {
             track_offset += track_arc_range;
         }
 
-        pixmap.save_png(&file_path).unwrap();
+        pixmap.save_png(file_path).unwrap();
     }
 
     pub fn name(&self) -> &str {
@@ -560,6 +560,14 @@ impl ProceduralCover {
     /// including a query string for cache invalidation.
     pub fn filename_480(&self) -> String {
         let filename = ProceduralCover::FILENAME_480;
+        let hash = url_safe_base64(self.signature);
+        format!("{filename}?{hash}")
+    }
+
+    /// Returns the statically assigned filename for the 720px variant,
+    /// including a query string for cache invalidation.
+    pub fn filename_720(&self) -> String {
+        let filename = ProceduralCover::FILENAME_720;
         let hash = url_safe_base64(self.signature);
         format!("{filename}?{hash}")
     }

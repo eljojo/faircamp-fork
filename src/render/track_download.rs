@@ -8,15 +8,15 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
     DownloadFormat,
     Release,
-    Scripts,
     TagMapping,
     Track
 };
-use crate::render::{compact_track_identifier, download_entry, layout};
 use crate::util::{generic_hash, html_escape_outside_attribute};
+
+use super::Layout;
+use super::{compact_track_identifier, download_entry};
 
 /// The download page itself, providing direct links to the (zip) archive
 /// files and/or individual tracks download links.
@@ -29,6 +29,10 @@ pub fn track_download_html(
 ) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "../../../../";
+
+    let mut layout = Layout::new();
+
+    layout.no_indexing();
 
     let mut track_formats_sorted = track.download_formats.clone();
     track_formats_sorted.sort_by_key(|format| format.download_rank());
@@ -198,20 +202,17 @@ pub fn track_download_html(
 
     let release_link = format!("../../..{index_suffix}");
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let breadcrumb = Some(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
+
+    layout.add_breadcrumb(format!(r#"<a href="{release_link}">{release_title_escaped}</a>"#));
 
     let track_title = track.title();
     let page_title = format!("{t_downloads} – {track_title}");
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        breadcrumb,
         build,
         catalog,
-        CrawlerMeta::NoIndexNoFollow,
-        Scripts::None,
-        None,
+        root_prefix,
         &track.theme,
         &page_title
     )

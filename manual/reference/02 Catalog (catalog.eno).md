@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [disable_feed](#disable_feed), [download_code(s)](#download_codes), [embedding](#embedding), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [download_code(s)](#download_codes), [embedding](#embedding), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [feeds](#feeds), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -102,7 +102,7 @@ For defining an artist with all options see the documentation for
 
 ## <a name="base_url"></a> `base_url`
 
-To allow embeds, M3U playlists and RSS feeds to be generated (whether they are
+To allow embeds, M3U playlists and feeds to be generated (whether they are
 enabled is configured on its own) you have to set `base_url`:
 
 ```eno
@@ -154,15 +154,6 @@ To disable the "Copy link" button (by default it's enabled) you can use the `cop
 
 ```eno
 copy_link: disabled
-```
-
-## <a name="disable_feed"></a> `disable_feed`
-
-To disable RSS feed generation (which is by default enabled as soon as you
-set a [base_url](#base_url)) you can use this option:
-
-```eno
-disable_feed
 ```
 
 ## <a name="download_codes"></a> `download_code(s)`
@@ -235,6 +226,55 @@ artist page (the catalog artist's page).
 
 ```eno
 feature_support_artists
+```
+
+## <a name="feeds"></a> `feeds`
+
+**Heads up**: You need to set [base url](#base_url) so that faircamp can generate feeds.
+
+By default a faircamp site provides two feeds that your visitors can subscribe
+to: An atom feed and a generic RSS feed (RSS 2.0 without media or podcast
+extensions), both of which are simple "blog-like" (purely text and image
+based) feeds that provide updates linking to your new releases so that people
+can listen to new material on your site only.
+
+If you are publishing a podcast on your faircamp site, set the `feeds`
+option to either `podcast_rss` (to provide only a single, Podcast RSS based feed)
+or to `all` (to provide a podcast RSS feed as well as the default atom and
+generic RSS feed options), for instance:
+
+```eno
+feeds: podcast_rss
+```
+
+Note that (Podcast) RSS only allows for a single track to be associated with
+each *item* (this is the RSS term for a release/episode/show), therefore you
+need to make sure that for podcast usage on your faircamp site, each release
+only has a single track - all further tracks would simply not show up in the
+(Podcast RSS) feed otherwise. Note however that in the near future Media RSS
+will be added to faircamp, which will allow visitors to subscribe to an RSS
+feed that provides multiple audio tracks with each item.
+
+If you want to disable all feeds you can use this option:
+
+```eno
+feeds: disabled
+```
+
+If you want to be very specific in your feed configuration, you can
+also use the discrete options `atom` and `generic_rss`. For instance to
+provide only an atom feed:
+
+```eno
+feeds: atom
+```
+
+Or, to provide only generic RSS and Podcast RSS feeds:
+
+```eno
+feeds:
+- generic_rss
+- podcast_rss
 ```
 
 ## <a name="freeze_download_urls"></a> `freeze_download_urls`
@@ -377,7 +417,7 @@ all that is required is a little bit of your time and your will to help out.
 
 If there are no translations for your language yet, you can still set the
 language code, this is used to auto-determine the text direction (LTR/RTL)
-and declare the language for your content on the site and in RSS feed metadata -
+and declare the language for your content on the site and in feed metadata -
 the interface texts will still be in english then of course.
 
 ```eno

@@ -63,7 +63,6 @@ pub const SV: Translations = Translations {
     purchase_downloads: Reviewed("Köp nedladdningar"),
     purchase_permalink: Reviewed("betala"),
     recommended_format: Reviewed("Rekommenderat format"),
-    rss_feed: Reviewed("RSS-flöde"),
     search: Reviewed("Sök"),
     showing_featured_items: Reviewed("Visar utvalda objekt"),
     showing_xxx_results_for_xxx: Reviewed("Visar {count} resultat för '{query}'"),

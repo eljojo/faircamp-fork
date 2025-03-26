@@ -16,7 +16,6 @@ pub const HE: Translations = Translations {
     more: Unreviewed("יוֹתֵר"),
     pause: Unreviewed("הַפסָקָה"),
     play: Unreviewed("לְשַׂחֵק"),
-    rss_feed: Unreviewed("הזנת RSS"),
     unlisted: Unreviewed("לא רשום"),
     unlock: Unreviewed("לִפְתוֹחַ"),
     ..Translations::UNTRANSLATED

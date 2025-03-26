@@ -67,7 +67,6 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     purchase_downloads: Unreviewed("Comprar descargas"),
     purchase_permalink: Unreviewed("comprar"),
     recommended_format: Unreviewed("Formato recomendado"),
-    rss_feed: Unreviewed("Feed RSS"),
     search: Unreviewed("Buscar"),
     unlisted: Unreviewed("No listado"),
     unlock: Unreviewed("Desbloquear"),

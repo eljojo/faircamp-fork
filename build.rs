@@ -69,13 +69,11 @@ mod minify {
     pub fn minify(input: &str) -> String {
         let mut allocator = Allocator::default();
 
-        let result_pass1 = minify_pass(&allocator, input);
+        let first_pass_result = minify_pass(&allocator, input);
 
         allocator.reset();
 
-        let result_pass2 = minify_pass(&allocator, &result_pass1);
-
-        result_pass2
+        minify_pass(&allocator, &first_pass_result)
     }
 
     fn minify_pass(allocator: &Allocator, input: &str) -> String {

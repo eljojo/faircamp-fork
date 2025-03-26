@@ -38,6 +38,7 @@ pub const EN: Translations = Translations {
     failed: Reviewed("Failed"),
     feed: Reviewed("Feed"),
     fixed_price: Reviewed("Fixed price:"),
+    generic_rss: Reviewed("Generic RSS"),
     image_descriptions: Reviewed("Image Descriptions"),
     image_descriptions_guide: Reviewed("\
 Millions of people browse the web using screen-readers \
@@ -78,11 +79,12 @@ Here are some tips for writing good image descriptions:<br>\
     purchase_downloads: Reviewed("Purchase downloads"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("Recommended Format"),
-    rss_feed: Reviewed("RSS Feed"),
     search: Reviewed("Search"),
     showing_featured_items: Reviewed("Showing featured items"),
     showing_xxx_results_for_xxx: Reviewed("Showing {count} results for '{query}'"),
     skip_to_main_content: Reviewed("Skip to main content"),
+    subscribe: Reviewed("Subscribe"),
+    subscribe_permalink: Reviewed("subscribe"),
     unlisted: Reviewed("Unlisted"),
     unlock: Reviewed("Unlock"),
     unlock_downloads: Reviewed("Unlock downloads"),

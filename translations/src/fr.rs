@@ -64,7 +64,6 @@ pub const FR: Translations = Translations {
     purchase_downloads: Reviewed("Acheter des téléchargements"),
     purchase_permalink: Reviewed("acheter"),
     recommended_format: Reviewed("Format recommandé"),
-    rss_feed: Reviewed("Flux RSS"),
     search: Reviewed("Rechercher"),
     showing_featured_items: Reviewed("Affichage des éléments en vedette"),
     showing_xxx_results_for_xxx: Reviewed("Affichage de {count} résultats pour '{query}'"),

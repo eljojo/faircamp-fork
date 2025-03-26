@@ -93,6 +93,22 @@ impl Translation {
         }
     }
 
+    pub fn is_unreviewed(&self) -> bool {
+        match self {
+            Reviewed(_) => false,
+            Unreviewed(_) => true,
+            Untranslated(_) => false
+        }
+    }
+
+    pub fn is_untranslated(&self) -> bool {
+        match self {
+            Reviewed(_) => false,
+            Unreviewed(_) => false,
+            Untranslated(_) => true
+        }
+    }
+
     pub fn status(&self) -> &'static str {
         match self {
             Reviewed(_) => "reviewed",
@@ -167,7 +183,9 @@ pub struct Translations {
     pub extras: Translation,
     pub failed: Translation,
     pub feed: Translation,
+    /// Must be unique and only contain url-safe characters
     pub fixed_price: Translation,
+    pub generic_rss: Translation,
     pub image_descriptions: Translation,
     pub image_descriptions_guide: Translation,
     /// Must be unique and only contain url-safe characters
@@ -195,11 +213,12 @@ pub struct Translations {
     /// Must be unique and only contain url-safe characters
     pub purchase_permalink: Translation,
     pub recommended_format: Translation,
-    pub rss_feed: Translation,
     pub search: Translation,
     pub showing_featured_items: Translation,
     pub showing_xxx_results_for_xxx: Translation,
     pub skip_to_main_content: Translation,
+    pub subscribe: Translation,
+    pub subscribe_permalink: Translation,
     pub unlisted: Translation,
     pub unlock: Translation,
     pub unlock_downloads: Translation,
@@ -252,6 +271,7 @@ impl Translations {
         failed: Reviewed("failed"),
         feed: Reviewed("feed"),
         fixed_price: Reviewed("fixed_price"),
+        generic_rss: Reviewed("generic_rss"),
         image_descriptions: Reviewed("image_descriptions"),
         image_descriptions_guide: Reviewed("image_descriptions_guide"),
         image_descriptions_permalink: Reviewed("image_descriptions_permalink"),
@@ -277,11 +297,12 @@ impl Translations {
         purchase_downloads: Reviewed("purchase_downloads"),
         purchase_permalink: Reviewed("purchase_permalink"),
         recommended_format: Reviewed("recommended_format"),
-        rss_feed: Reviewed("rss_feed"),
         search: Reviewed("search"),
         showing_featured_items: Reviewed("showing_featured_items"),
         showing_xxx_results_for_xxx: Reviewed("showing_xxx_results_for_xxx"),
         skip_to_main_content: Reviewed("skip_to_main_content"),
+        subscribe: Reviewed("subscribe"),
+        subscribe_permalink: Reviewed("subscribe_permalink"),
         unlisted: Reviewed("unlisted"),
         unlock: Reviewed("unlock"),
         unlock_downloads: Reviewed("unlock_downloads"),
@@ -332,6 +353,7 @@ impl Translations {
         failed: EN.failed.as_untranslated(),
         feed: EN.feed.as_untranslated(),
         fixed_price: EN.fixed_price.as_untranslated(),
+        generic_rss: EN.generic_rss.as_untranslated(),
         image_descriptions: EN.image_descriptions.as_untranslated(),
         image_descriptions_guide: EN.image_descriptions_guide.as_untranslated(),
         image_descriptions_permalink: EN.image_descriptions_permalink.as_untranslated(),
@@ -357,11 +379,12 @@ impl Translations {
         purchase_downloads: EN.purchase_downloads.as_untranslated(),
         purchase_permalink: EN.purchase_permalink.as_untranslated(),
         recommended_format: EN.recommended_format.as_untranslated(),
-        rss_feed: EN.rss_feed.as_untranslated(),
         search: EN.search.as_untranslated(),
         showing_featured_items: EN.showing_featured_items.as_untranslated(),
         showing_xxx_results_for_xxx: EN.showing_xxx_results_for_xxx.as_untranslated(),
         skip_to_main_content: EN.skip_to_main_content.as_untranslated(),
+        subscribe: EN.subscribe.as_untranslated(),
+        subscribe_permalink: EN.subscribe_permalink.as_untranslated(),
         unlisted: EN.unlisted.as_untranslated(),
         unlock: EN.unlock.as_untranslated(),
         unlock_downloads: EN.unlock_downloads.as_untranslated(),
@@ -414,6 +437,7 @@ impl Translations {
             ("failed", &self.failed, false),
             ("feed", &self.feed, false),
             ("fixed_price", &self.fixed_price, false),
+            ("generic_rss", &self.generic_rss, false),
             ("image_descriptions", &self.image_descriptions, false),
             ("image_descriptions_guide", &self.image_descriptions_guide, true),
             ("image_descriptions_permalink", &self.image_descriptions_permalink, false),
@@ -439,11 +463,12 @@ impl Translations {
             ("purchase_downloads", &self.purchase_downloads, false),
             ("purchase_permalink", &self.purchase_permalink, false),
             ("recommended_format", &self.recommended_format, false),
-            ("rss_feed", &self.rss_feed, false),
             ("search", &self.search, false),
             ("showing_featured_items", &self.showing_featured_items, false),
             ("showing_xxx_results_for_xxx", &self.showing_xxx_results_for_xxx, false),
             ("skip_to_main_content", &self.skip_to_main_content, false),
+            ("subscribe", &self.subscribe, false),
+            ("subscribe_permalink", &self.subscribe_permalink, false),
             ("unlisted", &self.unlisted, false),
             ("unlock", &self.unlock, false),
             ("unlock_downloads", &self.unlock_downloads, false),
@@ -468,18 +493,14 @@ impl Translations {
     pub fn count_untranslated(&self) -> usize {
         self.all_strings()
             .iter()
-            .filter(|string|
-                if let Untranslated(_) = string.1 { true } else { false }
-            )
+            .filter(|(_key, value, _is_multiline)| value.is_untranslated())
             .count()
     }
 
     pub fn count_unreviewed(&self) -> usize {
         self.all_strings()
             .iter()
-            .filter(|string|
-                if let Unreviewed(_) = string.1 { true } else { false }
-            )
+            .filter(|(_key, value, _is_multiline)| value.is_unreviewed())
             .count()
     }
 
@@ -491,10 +512,10 @@ impl Translations {
         let mut total = 0;
         let mut reviewed = 0;
 
-        for string in self.all_strings() {
+        for (_key, value, _is_multiline) in self.all_strings() {
             total += 1;
 
-            match string.1 {
+            match value {
                 Reviewed(_) => {
                     reviewed += 1;
                 }
@@ -510,10 +531,10 @@ impl Translations {
         let mut total = 0;
         let mut translated = 0;
 
-        for string in self.all_strings() {
+        for (_key, value, _is_multiline) in self.all_strings() {
             total += 1;
 
-            match string.1 {
+            match value {
                 Reviewed(_) |
                 Unreviewed(_) => {
                     translated += 1;
@@ -583,6 +604,7 @@ fn check_translations() {
         assert!(!&translations.downloads_permalink.contains(disallowed_char));
         assert!(!&translations.image_descriptions_permalink.contains(disallowed_char));
         assert!(!&translations.purchase_permalink.contains(disallowed_char));
+        assert!(!&translations.subscribe_permalink.contains(disallowed_char));
         assert!(!&translations.unlock_permalink.contains(disallowed_char));
 
         // The translation for "Extras" must be file-system safe because we interpolate

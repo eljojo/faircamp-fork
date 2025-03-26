@@ -21,20 +21,20 @@ impl SiteUrl {
     }
 
     /// path must be without leading slash e.g. "foo/bar.ext"
-    pub fn join_file(&self, path: &str) -> String {
-        self.normalized.clone() + path
+    pub fn join_file(&self, path: impl AsRef<str>) -> String {
+        self.normalized.clone() + path.as_ref()
     }
 
-    pub fn join_index(&self, build: &Build, path: &str) -> String {
+    pub fn join_index(&self, build: &Build, path: impl AsRef<str>) -> String {
         match build.clean_urls {
-            true => self.normalized.clone() + path + "/",
-            false => self.normalized.clone() + path + "/index.html"
+            true => self.normalized.clone() + path.as_ref() + "/",
+            false => self.normalized.clone() + path.as_ref() + "/index.html"
         }
     }
 
     // Join the path to the url so that it ends with a trailing slash
-    pub fn join_prefix(&self, path: &str) -> String {
-        self.normalized.clone() + path + "/"
+    pub fn join_prefix(&self, path: impl AsRef<str>) -> String {
+        self.normalized.clone() + path.as_ref() + "/"
     }
 
     fn new(normalized: String) -> SiteUrl {
@@ -62,7 +62,7 @@ impl SiteUrl {
         &self.normalized
     }
 
-    /// Returns the url without http(s):// and without trailing slash.
+    /// Returns the passed url without http(s):// and without trailing slash.
     pub fn pretty_display(url: &str) -> &str {
         url
             .split_once("://")
@@ -73,5 +73,11 @@ impl SiteUrl {
 
     pub fn without_trailing_slash(&self) -> &str {
         &self.normalized[..(self.normalized.len() - 1)]
+    }
+
+    /// Returns this url without http(s):// and without trailing slash.
+    pub fn without_scheme_and_trailing_slash(&self) -> &str {
+        let without_scheme = self.normalized.split_once("://").unwrap().1;
+        &without_scheme[..(without_scheme.len() - 1)]
     }
 }

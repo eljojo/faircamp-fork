@@ -9,25 +9,22 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
     DownloadAccess,
     OpenGraphMeta,
     Release,
-    Scripts,
     Track
 };
 use crate::icons;
-use crate::render::{
+use crate::util::{format_time, html_escape_outside_attribute};
+
+use super::{Layout, Truncation};
+use super::{
     copy_button,
-    layout,
     list_track_artists,
-    player_icon_templates,
     release_cover_image,
     track_cover_image,
-    Truncation,
     waveform
 };
-use crate::util::{format_time, html_escape_outside_attribute};
 
 pub fn track_html(
     build: &Build,
@@ -40,6 +37,11 @@ pub fn track_html(
     let release_slug = &release.permalink.slug;
     let root_prefix = "../../";
     let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
+
+    layout.add_clipboard_script();
+    layout.add_player_script();
 
     let download_link = match &track.download_access {
         DownloadAccess::Code { .. } => {
@@ -275,17 +277,6 @@ pub fn track_html(
         String::new()
     };
 
-    let failed_icon = icons::failure(&translations.failed);
-    let success_icon = icons::success(&translations.copied);
-    let mut templates = format!(r#"
-        <template id="failed_icon">
-            {failed_icon}
-        </template>
-        <template id="success_icon">
-            {success_icon}
-        </template>
-    "#);
-
     let r_primary_actions = if primary_actions.is_empty() {
         String::new()
     } else {
@@ -303,20 +294,13 @@ pub fn track_html(
     if track.copy_link {
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => {
-                ("content", base_url.join_index(build, &format!("{release_slug}/{track_number}")))
+                ("content", base_url.join_index(build, format!("{release_slug}/{track_number}")))
             }
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy();
         let r_copy_link = copy_button(content_key, &content_value, &translations.copy_link);
         secondary_actions.push(r_copy_link);
-
-        templates.push_str(&format!(r#"
-            <template id="copy_icon">
-                {copy_icon}
-            </template>
-        "#));
     }
 
     if track.embedding && build.base_url.is_some() {
@@ -347,7 +331,7 @@ pub fn track_html(
             format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
         } else {
             let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(&label);
+            let e_label = html_escape_outside_attribute(label);
             formatdoc!(r#"
                 <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
             "#)
@@ -370,8 +354,6 @@ pub fn track_html(
 
     let relative_waveforms = if track.theme.relative_waveforms { "" } else { "data-disable-relative-waveforms " };
     let track_duration = track.transcodes.borrow().source_meta.duration_seconds;
-
-    templates.push_str(&player_icon_templates(build));
 
     let cover = if let Some(described_image) = &track.cover {
         track_cover_image(
@@ -457,18 +439,20 @@ pub fn track_html(
             </div>
         </div>
         <div aria-label="" class="docked_player_status" role="status"></div>
-        {templates}
     "##);
 
     let release_title_escaped = html_escape_outside_attribute(&release.title);
-    let breadcrumb = Some(format!(r#"<a href="..{index_suffix}">{release_title_escaped}</a>"#));
+
+    layout.add_breadcrumb(format!(r#"<a href="..{index_suffix}">{release_title_escaped}</a>"#));
 
     // TODO: Track-level unlisted properties?
-    let crawler_meta = if release.unlisted { CrawlerMeta::NoIndexNoFollow } else { CrawlerMeta::None };
+    if release.unlisted {
+        layout.no_indexing();
+    }
 
-    let opengraph_meta = if catalog.opengraph {
+    if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
-            let track_url = base_url.join_index(build, &format!("{release_slug}/{track_number}"));
+            let track_url = base_url.join_index(build, format!("{release_slug}/{track_number}"));
             let mut meta = OpenGraphMeta::new(track.title(), track_url);
 
             if let Some(synopsis) = &track.synopsis {
@@ -476,7 +460,7 @@ pub fn track_html(
             }
 
             if let Some(described_image) = &track.cover {
-                let track_prefix = base_url.join_prefix(&format!("{release_slug}/{track_number}"));
+                let track_prefix = base_url.join_prefix(format!("{release_slug}/{track_number}"));
                 let opengraph_image = described_image
                     .borrow()
                     .cover_opengraph_image_unchecked(&track_prefix);
@@ -498,24 +482,19 @@ pub fn track_html(
                     meta.image_alt(description);
                 }
             }
+            // TODO: Should(n't) we also provide a procedural cover as a
+            // fallback here? (also applies for the same spot in the release
+            // page render code)
 
-            Some(meta)
-        } else {
-            None
+            layout.add_opengraph_meta(meta);
         }
-    } else {
-        None
-    };
+    }
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        breadcrumb,
         build,
         catalog,
-        crawler_meta,
-        Scripts::ClipboardAndPlayer,
-        opengraph_meta,
+        root_prefix,
         &track.theme,
         &track_title
     )

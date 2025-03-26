@@ -89,6 +89,7 @@ Damian Szetela<br>
 [Samæ](https://samae.demer.se/)<br>
 [Sandro Santilli](https://strk.kbt.io/)<br>
 [session](https://codeberg.org/session)<br>
+[徒settoセット](https://setto.basspistol.com/)<br>
 [sknob](https://sknob.fr/)<br>
 [Sunny](https://sny.sh)<br>
 [themissingcow](https://codeberg.org/themissingcow)<br>

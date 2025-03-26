@@ -12,8 +12,9 @@ use crate::{
     Track
 };
 use crate::icons;
-use crate::render::{embed_layout, player_icon_templates};
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
+
+use super::EmbedLayout;
 
 pub fn track_embed_html(
     base_url: &SiteUrl,
@@ -69,8 +70,6 @@ pub fn track_embed_html(
         </div>
     "#);
 
-    let templates = player_icon_templates(build);
-
     let play_icon = icons::play(&build.locale.translations.play);
     let volume_icon = icons::volume();
     let t_playback_position = &build.locale.translations.playback_position;
@@ -105,13 +104,12 @@ pub fn track_embed_html(
                 </span>
             </div>
         </div>
-        {templates}
     "##);
 
     let release_slug = &release.permalink.slug;
-    let link_url = base_url.join_index(build, &format!("{release_slug}/{track_number}"));
+    let link_url = base_url.join_index(build, format!("{release_slug}/{track_number}"));
 
-    embed_layout(
+    EmbedLayout::render(
         &body,
         build,
         &link_url,

@@ -61,7 +61,6 @@ pub const CA: Translations = Translations {
     purchase_downloads: Reviewed("Comprar descàrregues"),
     purchase_permalink: Reviewed("comprar"),
     recommended_format: Reviewed("Format recomanat"),
-    rss_feed: Reviewed("Flux RSS"),
     search: Reviewed("Cercar"),
     showing_featured_items: Reviewed("Es mostren els elements destacats"),
     showing_xxx_results_for_xxx: Reviewed(r#"Es mostren {count} resultats per a "{query}""#),

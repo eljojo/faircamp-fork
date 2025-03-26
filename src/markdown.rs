@@ -15,7 +15,7 @@ use crate::SiteUrl;
 
 /// We render some incoming markdown (such as artist/catalog text)
 /// both to html as well as to plaintext stripped of any and all
-/// html (which we need for the RSS feed). This is a convenience
+/// html (which we currently don't use though). This is a convenience
 /// struct to encapsulate the result in both formats wherever we
 /// need to store it.
 #[derive(Clone, Debug)]

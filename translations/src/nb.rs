@@ -76,7 +76,6 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
     purchase_downloads: Reviewed("Kjøp nedlastinger"),
     purchase_permalink: Reviewed("kjop"),
     recommended_format: Reviewed("Anbefalt format"),
-    rss_feed: Reviewed("RSS-Strøm"),
     search: Reviewed("Søk"),
     showing_featured_items: Reviewed("Viser medvirkende elementer"),
     showing_xxx_results_for_xxx: Reviewed("Viser {count} resultater for '{query}'"),

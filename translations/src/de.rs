@@ -38,6 +38,7 @@ pub const DE: Translations = Translations {
     failed: Reviewed("Fehler"),
     feed: Reviewed("Feed"),
     fixed_price: Reviewed("Fixer Preis:"),
+    generic_rss: Reviewed("Generisches RSS"),
     image_descriptions: Reviewed("Bildbeschreibungen"),
     image_descriptions_guide: Reviewed("\
 Millionen Menschen bewegen sich mit Screen Readern \
@@ -78,11 +79,12 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     purchase_downloads: Reviewed("Downloads bezahlen"),
     purchase_permalink: Reviewed("bezahlen"),
     recommended_format: Reviewed("Empfohlenes Format"),
-    rss_feed: Reviewed("RSS Feed"),
     search: Reviewed("Suchen"),
     showing_featured_items: Reviewed("Gefeaturete Einträge werden angezeigt"),
     showing_xxx_results_for_xxx: Reviewed("{count} Ergebnisse für '{query}' werden angezeigt"),
     skip_to_main_content: Reviewed("Zum Hauptinhalt springen"),
+    subscribe: Reviewed("Abonnieren"),
+    subscribe_permalink: Reviewed("abonnieren"),
     unlisted: Reviewed("Ungelistet"),
     unlock: Reviewed("Freischalten"),
     unlock_downloads: Reviewed("Downloads freischalten"),

@@ -7,19 +7,16 @@ use std::fmt::{Display, Formatter};
 
 use indoc::formatdoc;
 
+use translations::Translations;
+
 use crate::{
     ArtistRc,
     Build,
     Catalog,
     DescribedImage,
-    GENERATOR_INFO,
     ImgAttributes,
-    OpenGraphMeta,
     Release,
     ReleaseRc,
-    Scripts,
-    SiteUrl,
-    Theme,
     Track
 };
 use crate::icons;
@@ -39,6 +36,7 @@ pub mod release_embed;
 pub mod release_embed_codes;
 pub mod release_purchase;
 pub mod release_unlock;
+pub mod subscribe;
 pub mod track;
 pub mod track_download;
 pub mod track_embed;
@@ -46,10 +44,11 @@ pub mod track_embed_codes;
 pub mod track_purchase;
 pub mod track_unlock;
 
-pub enum CrawlerMeta {
-    None,
-    NoIndexNoFollow,
-}
+mod embed_layout;
+mod layout;
+
+use embed_layout::EmbedLayout;
+use layout::Layout;
 
 struct TruncatedList {
     pub html: String,
@@ -61,15 +60,6 @@ enum Truncation {
     Truncate {
         max_chars: usize,
         others_link: String
-    }
-}
-
-impl CrawlerMeta {
-    pub fn tag(&self) -> &str {
-        match self {
-            CrawlerMeta::None => "",
-            CrawlerMeta::NoIndexNoFollow => r#"<meta name="robots" content="noindex, nofollow">"#
-        }
     }
 }
 
@@ -128,24 +118,6 @@ fn artist_image(
     } else {
         wrap_undescribed_image(build, root_prefix, &poster, "", "home_image")
     }
-}
-
-fn browser(build: &Build, root_prefix: &str) -> String {
-    let close_icon = icons::failure(&build.locale.translations.close);
-    let t_search = &build.locale.translations.search;
-
-    formatdoc!(r#"
-        <div id="browser" data-root-prefix="{root_prefix}">
-            <div>
-                <input autocomplete="off" placeholder="{t_search}" type="search">
-                <div role="status"></div>
-                <div id="results"></div>
-            </div>
-            <button>
-                {close_icon}
-            </button>
-        </div>
-    "#)
 }
 
 fn compact_release_identifier(
@@ -354,160 +326,6 @@ fn embed_code(embed_url: &str, title: &str) -> (String, String) {
     (copy_code, display_code)
 }
 
-fn embed_layout(
-    body: &str,
-    build: &Build,
-    link_url: &str,
-    root_prefix: &str,
-    theme: &Theme,
-    title: &str
-) -> String {
-    let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
-
-    let display_link_url = SiteUrl::pretty_display(link_url);
-    let external_icon = icons::external(&build.locale.translations.external_link);
-    let t_javascript_is_disabled_listen_at_xxx = build.locale.translations.javascript_is_disabled_listen_at_xxx(&format!(r#"<a href="{link_url}">{external_icon} {display_link_url}</a>"#));
-    format!(
-        include_str!("templates/embed.html"),
-        body = body,
-        crawler_meta = CrawlerMeta::NoIndexNoFollow.tag(),
-        dir_attribute = dir_attribute,
-        embeds_css_hash = build.asset_hashes.embeds_css.as_ref().unwrap(),
-        embeds_js_hash = build.asset_hashes.embeds_js.as_ref().unwrap(),
-        faircamp_revision = env!("FAIRCAMP_REVISION"),
-        faircamp_version_detailed = env!("FAIRCAMP_VERSION_DETAILED"),
-        lang = &build.locale.language,
-        root_prefix = root_prefix,
-        t_javascript_is_disabled_listen_at_xxx = t_javascript_is_disabled_listen_at_xxx,
-        theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap(),
-        theme_stylesheet_filename = theme.stylesheet_filename(),
-        title = html_escape_outside_attribute(title)
-    )
-}
-
-fn faircamp_signature() -> String {
-    let faircamp_icon = icons::faircamp(None);
-    let faircamp_version_display = env!("FAIRCAMP_VERSION_DISPLAY");
-
-    formatdoc!(r#"
-        <a class="faircamp_signature" href="https://simonrepp.com/faircamp/" target="_blank">
-            {faircamp_icon}
-            <span>Faircamp {faircamp_version_display}</span>
-        </a>
-    "#)
-}
-
-/// For pages that should not be indexed by crawlers (search engines etc.),
-/// pass CrawlerMeta::NoIndexNoFollow, this adds a noindex and nofollow meta tag for crawlers.
-fn layout(
-    root_prefix: &str,
-    body: &str,
-    breadcrumb_option: Option<String>,
-    build: &Build,
-    catalog: &Catalog,
-    crawler_meta: CrawlerMeta,
-    extra_scripts: Scripts,
-    opengraph_meta: Option<OpenGraphMeta>,
-    theme: &Theme,
-    title: &str
-) -> String {
-    let r_browser = browser(build, root_prefix);
-
-    let feed_meta_link = match build.base_url.is_some() && catalog.feed_enabled {
-        true => {
-            let t_rss_feed = &build.locale.translations.rss_feed;
-            format!(r#"<link rel="alternate" type="application/rss+xml" title="{t_rss_feed}" href="{root_prefix}feed.rss">"#)
-        }
-        false => String::new()
-    };
-
-    let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
-
-    let r_faircamp_signature = if catalog.faircamp_signature {
-        faircamp_signature()
-    } else {
-        String::new()
-    };
-
-    let theming_widget = if build.theming_widget {
-        let accent_brightening = &catalog.theme.accent_brightening;
-        let accent_chroma = match &catalog.theme.accent_chroma {
-            Some(chroma) => chroma.to_string(),
-            None => String::from("null")
-        };
-        let accent_hue = match catalog.theme.accent_hue {
-            Some(hue) => hue.to_string(),
-            None => String::from("null")
-        };
-        let background_alpha = &catalog.theme.background_alpha;
-        let base = catalog.theme.base.to_key();
-        let base_chroma = &catalog.theme.base_chroma;
-        let base_hue = catalog.theme.base_hue;
-        let build_begin = build.build_begin;
-        let dynamic_range = catalog.theme.dynamic_range;
-
-        let mut script = formatdoc!(r#"
-            const BUILD_OPTIONS = {{
-                'accent_brightening': {accent_brightening},
-                'accent_chroma': {accent_chroma},
-                'accent_hue': {accent_hue},
-                'background_alpha': {background_alpha},
-                'base': '{base}',
-                'base_chroma': {base_chroma},
-                'base_hue': {base_hue},
-                'build_time': '{build_begin}',
-                'dynamic_range': {dynamic_range}
-            }};
-        "#);
-
-        let dark_js = crate::theme::DARK.print_js("DARK_THEME");
-        let light_js = crate::theme::LIGHT.print_js("LIGHT_THEME");
-
-        script.push_str(&dark_js);
-        script.push_str(&light_js);
-        script.push_str(include_str!("assets/theming_widget.js"));
-
-        format!(include_str!("templates/theming_widget.html"), script = script)
-    } else {
-        String::new()
-    };
-
-    let breadcrumb = match breadcrumb_option {
-        Some(link) => format!(" <span>›</span> {link}"),
-        None => String::from("")
-    };
-
-    format!(
-        include_str!("templates/layout.html"),
-        body = body,
-        breadcrumb = breadcrumb,
-        browse_icon = icons::browse(),
-        browser = r_browser,
-        browser_js_hash = build.asset_hashes.browser_js.as_ref().unwrap(),
-        catalog_title = html_escape_outside_attribute(&catalog.title()),
-        crawler_meta = crawler_meta.tag(),
-        dir_attribute = dir_attribute,
-        extra_scripts = extra_scripts.header_tags(build, root_prefix),
-        faircamp_icon = icons::faircamp(Some("Faircamp")),
-        favicon_links = catalog.favicon.header_tags(build, root_prefix),
-        faircamp_signature = r_faircamp_signature,
-        feed_meta_link = feed_meta_link,
-        GENERATOR_INFO = GENERATOR_INFO,
-        index_suffix = build.index_suffix(),
-        lang = &build.locale.language,
-        opengraph_meta = opengraph_meta.map(|meta| meta.tags(build, catalog)).unwrap_or(String::new()),
-        root_prefix = root_prefix,
-        site_css_hash = build.asset_hashes.site_css.as_ref().unwrap(),
-        t_browse = &build.locale.translations.browse,
-        t_javascript_is_disabled_text = &build.locale.translations.javascript_is_disabled_text,
-        t_skip_to_main_content = &build.locale.translations.skip_to_main_content,
-        theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap(),
-        theme_stylesheet_filename = theme.stylesheet_filename(),
-        theming_widget = theming_widget,
-        title = html_escape_outside_attribute(title)
-    )
-}
-
 /// Render the artists of a release in the style of "Alice, Bob", where each
 /// (Alice, Bob) can be a link too, depending on the release and catalog.
 /// In *label mode*, all main artists of a release are shown and linked to
@@ -674,10 +492,10 @@ fn list_track_artists(
 
 /// These are rendered alongside the release player and provide prepared and translated
 /// icons for the client side script to use.
-pub fn player_icon_templates(build: &Build) -> String {
-    let pause_icon = icons::pause(&build.locale.translations.pause);
-    let play_icon = icons::play(&build.locale.translations.play);
-    let loading_icon = icons::loading(&build.locale.translations.loading);
+pub fn player_icon_templates(translations: &Translations) -> String {
+    let pause_icon = icons::pause(&translations.pause);
+    let play_icon = icons::play(&translations.play);
+    let loading_icon = icons::loading(&translations.loading);
 
     formatdoc!(r#"
         <template id="pause_icon">

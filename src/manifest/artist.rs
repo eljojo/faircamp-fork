@@ -109,7 +109,7 @@ pub fn read_artist_manifest(
                     if let Ok(result) = field.value() {
                         if let Some(value) = result {
                             match Url::parse(value) {
-                                Ok(url) => external_page = Some(url),
+                                Ok(_) => external_page = Some(value.to_string()),
                                 Err(err) => {
                                     let message = format!("The url supplied for the external_page option seems to be malformed ({err})");
                                     let error = element_error_with_snippet(element, manifest_path, &message);

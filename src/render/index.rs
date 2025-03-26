@@ -6,24 +6,21 @@ use indoc::formatdoc;
 use crate::{
     Build,
     Catalog,
-    CrawlerMeta,
-    OpenGraphMeta,
-    Scripts
+    OpenGraphMeta
 };
 use crate::icons;
-use crate::render::{
-    artist_image,
-    copy_button,
-    layout,
-    releases
-};
-use crate::util::{html_escape_outside_attribute};
+use crate::util::html_escape_outside_attribute;
+
+use super::Layout;
+use super::{artist_image, copy_button, releases};
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
     let root_prefix = "";
     let translations = &build.locale.translations;
     
+    let mut layout = Layout::new();
+
     let catalog_title = catalog.title();
 
     let title_escaped = html_escape_outside_attribute(&catalog_title);
@@ -39,7 +36,6 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     };
 
     let mut actions = Vec::new();
-    let mut templates = String::new();
 
     let r_more = match &catalog.more {
         Some(html_and_stripped) => {
@@ -74,44 +70,32 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
 
     if catalog.copy_link {
+        layout.add_clipboard_script();
+
         let (content_key, content_value) = match &build.base_url {
             Some(base_url) => ("content", base_url.index(build)),
             None => ("dynamic-url", String::new())
         };
 
-        let copy_icon = icons::copy();
         let t_copy_link = &translations.copy_link;
         let r_copy_link = copy_button(content_key, &content_value, t_copy_link);
         actions.push(r_copy_link);
-
-        let failed_icon = icons::failure(&translations.failed);
-        let success_icon = icons::success(&translations.copied);
-        templates.push_str(&format!(r#"
-            <template id="copy_icon">
-                {copy_icon}
-            </template>
-            <template id="failed_icon">
-                {failed_icon}
-            </template>
-            <template id="success_icon">
-                {success_icon}
-            </template>
-        "#));
-    };
+    }
 
     if build.base_url.is_some() {
-        if catalog.feed_enabled {
-            let t_feed = &translations.feed;
-            let feed_icon = icons::feed(&translations.rss_feed);
+        if catalog.feeds.any_requested() {
+            let t_subscribe = &translations.subscribe;
+            let feed_icon = icons::feed(&translations.feed);
+            let subscribe_slug = catalog.subscribe_permalink.as_ref().unwrap();
 
-            let feed_link = format!(r#"
-                <a href="{root_prefix}feed.rss">
+            let subscribe_link = format!(r#"
+                <a href="{root_prefix}{subscribe_slug}{index_suffix}">
                     {feed_icon}
-                    <span>{t_feed}</span>
+                    <span>{t_subscribe}</span>
                 </a>
             "#);
 
-            actions.push(feed_link);
+            actions.push(subscribe_link);
         }
 
         if catalog.m3u  {
@@ -139,7 +123,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
         } else {
             let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(&label);
+            let e_label = html_escape_outside_attribute(label);
             formatdoc!(r#"
                 <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
             "#)
@@ -199,10 +183,9 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             </div>
         </div>
         {r_more}
-        {templates}
     "#);
 
-    let opengraph_meta = if catalog.opengraph {
+    if catalog.opengraph {
         if let Some(base_url) = &build.base_url {
             let catalog_url = base_url.index(build);
             let mut meta = OpenGraphMeta::new(catalog.title(), catalog_url);
@@ -223,23 +206,15 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
                 }
             }
 
-            Some(meta)
-        } else {
-            None
+            layout.add_opengraph_meta(meta);
         }
-    } else {
-        None
-    };
+    }
 
-    layout(
-        root_prefix,
+    layout.render(
         &body,
-        None,
         build,
         catalog,
-        CrawlerMeta::None,
-        Scripts::Clipboard,
-        opengraph_meta,
+        root_prefix,
         &catalog.theme,
         &catalog_title
     )

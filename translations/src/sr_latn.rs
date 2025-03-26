@@ -57,7 +57,6 @@ pub const SR_LATN: Translations = Translations {
     purchase_downloads: Reviewed("Kupovina muzike za preuzimanje"),
     purchase_permalink: Reviewed("kupovina"),
     recommended_format: Reviewed("Preporučeni format"),
-    rss_feed: Reviewed("RSS dovod"),
     search: Reviewed("Pretraga"),
     unlisted: Reviewed("Nije ulistano"),
     unlock: Reviewed("Otključaj"),

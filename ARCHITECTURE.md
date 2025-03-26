@@ -153,3 +153,15 @@ be included inside release downloads.
 The presence of release and track extras can cause downloads (archive or
 seperate) to be generated even if there are no download formats
 (release_downloads/track_downloads) configured (!).
+
+## Reference reading on single vs. multiple enclosures
+
+As faircamp renders RSS feeds for data where one *item* (in the RSS sense) is
+associated with multiple tracks (which would logically map to multiple
+*enclosures* in the RSS sense) the question of the permissibility of multiple
+enclosures per item became relevant. These are three posts that provided good
+insight on the question, for future reference:
+
+Dave Winer – One enclosure per item or multiple?: http://scripting.com/2017/05/21/oneEnclosurePerItemOrMultiple.html
+The RSS Blog – Multi-Enclosures, Part I: https://rssweblog.com/?guid=20070520140855
+The RSS Blog – Multi-Enclosures, Part II: https://rssweblog.com/?guid=20070522234541

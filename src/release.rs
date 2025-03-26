@@ -337,6 +337,15 @@ impl Release {
             .filename_480()
     }
 
+    /// Returns the file name of the procedural release cover without any
+    /// prefixing (i.e. in the context of the release directory). Only call if
+    /// you know there is one present, otherwise will panic.
+    pub fn procedural_cover_720_filename_unchecked(&self) -> String {
+        self.procedural_cover_unchecked()
+            .borrow()
+            .filename_720()
+    }
+
     pub fn procedural_cover_unchecked(&self) -> &ProceduralCoverRc {
         self.procedural_cover.as_ref().unwrap()
     }
