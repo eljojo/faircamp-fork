@@ -40,6 +40,7 @@ Damian Szetela<br>
 [Default Media Transmitter](https://defaultmediatransmitter.com/)<br>
 [Denys Nykula](https://libre.net.ua/)<br>
 [Devin Canterberry](https://canterberry.cc/)<br>
+[Didier Malenfant](https://didier.malenfant.net/)<br>
 [DURAD](https://durad.xyz)<br>
 [Edgar Aichinger](https://build.opensuse.org/users/edogawa)<br>
 Élie Khalil<br>
@@ -55,6 +56,7 @@ Damian Szetela<br>
 [Fugue State Audio](https://www.fstateaudio.com/)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [Harald Eilertsen](https://volse.net/)<br>
+[invadeuse](https://codeberg.org/invadeuse)<br>
 [James](https://strangetextures.com)<br>
 [James Fenn](https://jfenn.me/)<br>
 [JΛПIПΛIПFΛ](https://janinainfa.surge.sh/)<br>
