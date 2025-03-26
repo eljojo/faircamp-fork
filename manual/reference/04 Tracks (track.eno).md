@@ -6,7 +6,7 @@
 
 # Track manifests – track.eno
 
-> All options at a glance: [copy_link](#copy_link), [cover](#cover), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_price](#track_price), [unlock_info](#unlock_info)
+> All options at a glance: [copy_link](#copy_link), [cover](#cover), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_price](#track_price), [unlock_info](#unlock_info)
 
 Track manifests are an optional way to specify metadata and settings at the
 track level. A `track.eno` manifest **must** be placed inside a track
@@ -185,6 +185,22 @@ digital album now and meet me at the merch stand in december in person to give
 me the money yourself as well, make sure to make a note of it though! :)
 -- payment_info
 ```
+
+## <a name="speed_controls"></a> `speed_controls`
+
+By default, faircamp's audio player(s) provide no playback speed controls,
+assuming that it's intended for your audience to listen to the material at
+its original speed only (e.g. for music, where this is usually the norm).
+
+If you publish (e.g.) a narrative podcast or audio book and want people to
+listen to the narration at their desired speed, you can enable playback speed
+controls with this option:
+
+```eno
+speed_controls: enabled
+```
+
+By using `disabled` as value this setting can also be reverted.
 
 ## <a name="streaming_quality"></a> `streaming_quality`
 

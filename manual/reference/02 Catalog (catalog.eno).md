@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [download_code(s)](#download_codes), [embedding](#embedding), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [feeds](#feeds), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [download_code(s)](#download_codes), [embedding](#embedding), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [feeds](#feeds), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -758,6 +758,22 @@ tracks/releases) are not listed in the interface. You can use the
 ```eno
 show_support_artists
 ```
+
+## <a name="speed_controls"></a> `speed_controls`
+
+By default, faircamp's audio player(s) provide no playback speed controls,
+assuming that it's intended for your audience to listen to the material at
+its original speed only (e.g. for music, where this is usually the norm).
+
+If you publish (e.g.) a narrative podcast or audio book and want people to
+listen to the narration at their desired speed, you can enable playback speed
+controls with this option:
+
+```eno
+speed_controls: enabled
+```
+
+By using `disabled` as value this setting can also be reverted.
 
 ## <a name="streaming_quality"></a> `streaming_quality`
 

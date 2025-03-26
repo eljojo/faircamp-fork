@@ -7,7 +7,7 @@ use std::hash::Hash;
 use std::mem;
 use std::path::Path;
 
-use indoc::formatdoc;
+use indoc::{formatdoc, indoc};
 use sanitize_filename::sanitize;
 
 use crate::{
@@ -869,6 +869,7 @@ impl Catalog {
                 finalized_overrides.more_label.clone(),
                 local_options.permalink.take(),
                 release_dir_relative_to_catalog,
+                finalized_overrides.speed_controls,
                 support_artists_to_map,
                 local_options.synopsis.take(),
                 finalized_overrides.theme.clone(),
@@ -919,6 +920,7 @@ impl Catalog {
             // inheritance towards certain child nodes). But this needs to be carefully considered
             // as to stay manageable/compatible with potential future GUI usage.
             overrides.more_label.clone(),
+            overrides.speed_controls,
             overrides.streaming_quality,
             local_options.synopsis.take(),
             overrides.tag_agenda.clone(),
@@ -1251,7 +1253,7 @@ impl Catalog {
 
                 let resolution_hint = match &previous_usage {
                     PermalinkUsage::Artist(_) => {
-                        formatdoc!(r#"
+                        indoc!(r#"
                             When two artist permalinks are in conflict, a likely cause is that it is actually one and the same artist,
                             whose name has just been spelled differently on different releases or tracks (e.g. "Alice" being spelled as
                             "alice" or "Älicë" too). In such cases there are three possible solutions:
@@ -1277,7 +1279,7 @@ impl Catalog {
                             resolve the conflict.
                         "#)
                     }
-                    PermalinkUsage::Release(_) => PERMALINK_CONFLICT_RESOLUTION_HINT.to_string()
+                    PermalinkUsage::Release(_) => PERMALINK_CONFLICT_RESOLUTION_HINT
                 };
 
                 let error = formatdoc!("

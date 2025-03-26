@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023-2024 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use indoc::formatdoc;
+use indoc::indoc;
 use pulldown_cmark::{
     Event,
     LinkType,
@@ -29,7 +29,7 @@ pub fn to_html(base_url: &Option<SiteUrl>, markdown_text: &str) -> String {
     
     let parser = parser.map(|event| match &event {
         Event::Rule => {
-            let divider = formatdoc!(r#"
+            let divider = indoc!(r#"
                 <div class="divider">
                     <span></span>
                     <span></span>

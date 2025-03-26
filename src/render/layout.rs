@@ -255,7 +255,7 @@ impl Layout {
             let script_tag = format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#);
             extra_scripts.push_str(&script_tag);
 
-            let copy_icon = icons::copy();
+            let copy_icon = icons::COPY;
             let failed_icon = icons::failure(&translations.failed);
             let success_icon = icons::success(&translations.copied);
 
@@ -280,7 +280,7 @@ impl Layout {
             templates.push_str(&player_icon_templates(translations));
         }
 
-        let browse_icon = icons::browse();
+        let browse_icon = icons::BROWSE;
         let browser_js_hash = build.asset_hashes.browser_js.as_ref().unwrap();
         let catalog_title = html_escape_outside_attribute(&catalog.title());
 

@@ -123,6 +123,8 @@ pub struct Release {
     /// This is used to augment permalink conflict errors with additional
     /// info for resolving the conflict.
     pub source_dir: PathBuf,
+    /// Whether players should offer speed controls for this release
+    pub speed_controls: bool,
     /// Artists that appear on the release as collaborators, features, etc.
     pub support_artists: Vec<ArtistRc>,
     /// See `main_artists_to_map` for what this does
@@ -278,6 +280,7 @@ impl Release {
         more_label: Option<String>,
         permalink: Option<Permalink>,
         source_dir: PathBuf,
+        speed_controls: bool,
         support_artists_to_map: Vec<String>,
         synopsis: Option<String>,
         theme: Theme,
@@ -308,6 +311,7 @@ impl Release {
             permalink,
             procedural_cover: None,
             source_dir,
+            speed_controls,
             support_artists: Vec::new(),
             support_artists_to_map,
             synopsis,

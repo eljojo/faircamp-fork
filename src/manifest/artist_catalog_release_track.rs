@@ -42,6 +42,7 @@ pub const ARTIST_CATALOG_RELEASE_TRACK_OPTIONS: &[&str] = &[
     "more",
     "more_label",
     "payment_info",
+    "speed_controls",
     "streaming_quality",
     "synopsis",
     "tags",
@@ -290,6 +291,29 @@ pub fn read_artist_catalog_release_track_option(
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
+        }
+        "speed_controls" => 'speed_controls: {
+            if let Ok(field) = element.as_field() {
+                if let Ok(result) = field.value() {
+                    if let Some(value) = result {
+                        match value {
+                            "disabled" => overrides.speed_controls = false,
+                            "enabled" => overrides.speed_controls = true,
+                            _ => {
+                                let message = format!("The value '{value}' is not supported (allowed are: 'enabled' or 'disabled'");
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
+                            }
+                        }
+                    }
+
+                    break 'speed_controls;
+                }
+            }
+
+            let message = "speed_controls needs to be provided as a field with the value 'enabled' or 'disabled' (e.g. 'speed_controls: enabled')";
+            let error = element_error_with_snippet(element, manifest_path, message);
+            build.error(&error);
         }
         "streaming_quality" => 'streaming_quality: {
             if let Ok(field) = element.as_field() {

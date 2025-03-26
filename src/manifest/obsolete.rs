@@ -4,7 +4,7 @@
 use std::path::Path;
 
 use enolib::{Attribute, SectionElement};
-use indoc::formatdoc;
+use indoc::indoc;
 
 use crate::Build;
 
@@ -42,7 +42,7 @@ pub fn read_obsolete_option(
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             } else {
-                let message = formatdoc!("
+                let message = indoc!("
                     Since faircamp 1.0, '# artist' sections are not used anymore. Remove the line '# artist' and pick one of these two options:
 
                     1) If you only need to set the name, permalink, and alias(es) you can use the new artist field inside a 'catalog.eno' or 'release.eno' manifest file (this only defines the artist, assigning an artist to a release happens with the 'release_artist(s)' field now):
@@ -55,7 +55,7 @@ pub fn read_obsolete_option(
 
                     2) For a full-fledged artist definition (including image, long text etc.), move all options you had inside the '# artist' section to a file called 'artist.eno', inside a separate directory dedicated to the artist only.
                 ");
-                let error = element_error_with_snippet(element, manifest_path, &message);
+                let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
         }
@@ -87,7 +87,7 @@ pub fn read_obsolete_option(
             build.error(&error);
         }
         "download" if element.is_section() => {
-            let message = formatdoc!("
+            let message = indoc!("
                 Since faircamp 1.0, the '# download' section is obsolete - its options have changed a bit and are now put directly into the 'catalog.eno' and 'release.eno' manifest files. Some examples follow:
 
                 *) Free downloads in mp3 and opus (for free downloads you only need to set the download formats!):
@@ -130,7 +130,7 @@ pub fn read_obsolete_option(
 
                   downloads: disabled
             ");
-            let error = element_error_with_snippet(element, manifest_path, &message);
+            let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
         "embedding" if element.is_section() => {
@@ -180,7 +180,7 @@ pub fn read_obsolete_option(
             build.error(&error);
         }
         "payment" if element.is_section() => {
-            let message = formatdoc!("
+            let message = indoc!("
                 Since faircamp 1.0, specify payment options directly in an artist.eno, catalog.eno or release.eno manifest using the single 'payment_info' field. Example with context:
 
                   downloads: paycurtain
@@ -193,7 +193,7 @@ pub fn read_obsolete_option(
                   Pay via my [donations page](https://example.com)
                   -- payment_info
             ");
-            let error = element_error_with_snippet(element, manifest_path, &message);
+            let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }
         "payment_text" => {

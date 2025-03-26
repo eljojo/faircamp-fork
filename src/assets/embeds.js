@@ -26,6 +26,8 @@ const player = {
     playbackButton: playerContainer.querySelector('button.playback'),
     previousTrackButton: playerContainer.querySelector('button.previous_track'),
     progress: playerContainer.querySelector('.progress'),
+    speedButton: playerContainer.querySelector('button.speed'),
+    speedMultiplier: playerContainer.querySelector('button.speed .multiplier'),
     timeline: playerContainer.querySelector('.timeline'),
     timelineInput: playerContainer.querySelector('.timeline input'),
     titleWrapper: playerContainer.querySelector('.title_wrapper'),
@@ -36,6 +38,10 @@ const player = {
 };
 
 let globalUpdatePlayHeadInterval;
+
+// We internally manage speed as (integer) percent values to avoid having to
+// deal with float rounding issues.
+let speed = 100;
 
 const volume = {
     container: document.querySelector('.volume'),
@@ -392,6 +398,12 @@ function setActive(track) {
     activeTrack = track;
 }
 
+function setSpeed(track) {
+    // Our internal speed representation is in percent so we translate to a
+    // multiplication factor here
+    track.audio.playbackRate = speed / 100;
+}
+
 function setVolume(track) {
     if (volume.finegrained) {
         track.audio.muted = false;
@@ -408,6 +420,11 @@ function updatePlayhead(track, reset = false) {
     player.progress.style.setProperty('width', `${factor * 100}%`);
     player.currentTime.textContent = formatTime(audio.currentTime);
     player.timelineInput.value = audio.currentTime;
+}
+
+function updateSpeed() {
+    player.speedMultiplier.textContent = (speed / 100).toFixed(1);
+    setSpeed(activeTrack);
 }
 
 function updateVolume(restoreLevel = null) {
@@ -523,6 +540,49 @@ if (player.previousTrackButton) {
     });
 }
 
+// Only available when enabled
+if (player.speedButton) {
+    player.speedButton.addEventListener('auxclick', event => {
+        event.preventDefault();
+        speed = 100;
+        updateSpeed();
+    });
+
+    player.speedButton.addEventListener('click', () => {
+        if (speed < 100) {
+            speed = 100;
+        } else if (speed < 120) {
+            speed = 120;
+        } else if (speed < 140) {
+            speed = 140;
+        } else if (speed < 160) {
+            speed = 160;
+        } else if (speed < 180) {
+            speed = 180;
+        } else if (speed < 200) {
+            speed = 200;
+        } else {
+            speed = 100;
+        }
+
+        updateSpeed();
+    });
+
+    // Prevent context menu from opening when using right-click to reset
+    // playback speed.
+    player.speedButton.addEventListener('contextmenu', event => event.preventDefault());
+
+    player.speedButton.addEventListener('wheel', () => {
+        if (event.deltaY < 0 && speed < 300) {
+            speed += 10;
+        } else if (event.deltaY > 0 && speed > 30) {
+            speed -= 10;
+        }
+
+        updateSpeed();
+    });
+}
+
 player.timeline.addEventListener('click', () => {
     const factor = (event.clientX - player.timeline.getBoundingClientRect().x) / player.timeline.getBoundingClientRect().width;
     const seekTo = factor * player.timelineInput.max;
@@ -545,6 +605,15 @@ player.timelineInput.addEventListener('keydown', event => {
         requestPlaybackChange(activeTrack);
     }
 });
+
+volume.container.addEventListener('auxclick', event => {
+    event.preventDefault();
+    volume.level = 1;
+    updateVolume();
+});
+
+// Prevent context menu from opening when using right-click to reset volume.
+volume.container.addEventListener('contextmenu', event => event.preventDefault());
 
 volume.container.addEventListener('wheel', event => {
     event.preventDefault();

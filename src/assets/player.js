@@ -37,6 +37,8 @@ const dockedPlayer = {
     number: dockedPlayerContainer.querySelector('.number'),
     playbackButton: dockedPlayerContainer.querySelector('button.playback'),
     progress: dockedPlayerContainer.querySelector('.progress'),
+    speedButton: dockedPlayerContainer.querySelector('button.speed'),
+    speedMultiplier: dockedPlayerContainer.querySelector('button.speed .multiplier'),
     status: document.querySelector('.docked_player_status'),
     timeline: dockedPlayerContainer.querySelector('.timeline'),
     timelineInput: dockedPlayerContainer.querySelector('.timeline input'),
@@ -48,6 +50,10 @@ const dockedPlayer = {
 };
 
 let globalUpdatePlayHeadInterval;
+
+// We internally manage speed as (integer) percent values to avoid having to
+// deal with float rounding issues.
+let speed = 100;
 
 const volume = {
     container: document.querySelector('.volume'),
@@ -263,6 +269,7 @@ function play(track) {
         // flag is not set - these we know to originate from the
         // system/browser.
         track.solicitedPlayback = true;
+        setSpeed(track);
         setVolume(track);
         track.audio.play();
     }
@@ -433,6 +440,12 @@ function setActive(track) {
     track.container.classList.add('active');
 }
 
+function setSpeed(track) {
+    // Our internal speed representation is in percent so we translate to a
+    // multiplication factor here
+    track.audio.playbackRate = speed / 100;
+}
+
 function setVolume(track) {
     if (volume.finegrained) {
         track.audio.muted = false;
@@ -455,6 +468,11 @@ function updatePlayhead(track, reset = false) {
         track.waveform.svg.querySelector('linearGradient.playback stop:nth-child(2)').setAttribute('offset', factor + 0.0001);
         track.waveform.input.value = audio.currentTime;
     }
+}
+
+function updateSpeed() {
+    dockedPlayer.speedMultiplier.textContent = (speed / 100).toFixed(1);
+    setSpeed(activeTrack);
 }
 
 function updateVolume(restoreLevel = null) {
@@ -561,6 +579,49 @@ if (dockedPlayer.nextTrackButton) {
     });
 }
 
+// Only available when enabled
+if (dockedPlayer.speedButton) {
+    dockedPlayer.speedButton.addEventListener('auxclick', event => {
+        event.preventDefault();
+        speed = 100;
+        updateSpeed();
+    });
+
+    dockedPlayer.speedButton.addEventListener('click', () => {
+        if (speed < 100) {
+            speed = 100;
+        } else if (speed < 120) {
+            speed = 120;
+        } else if (speed < 140) {
+            speed = 140;
+        } else if (speed < 160) {
+            speed = 160;
+        } else if (speed < 180) {
+            speed = 180;
+        } else if (speed < 200) {
+            speed = 200;
+        } else {
+            speed = 100;
+        }
+
+        updateSpeed();
+    });
+
+    // Prevent context menu from opening when using right-click to reset
+    // playback speed.
+    dockedPlayer.speedButton.addEventListener('contextmenu', event => event.preventDefault());
+
+    dockedPlayer.speedButton.addEventListener('wheel', () => {
+        if (event.deltaY < 0 && speed < 300) {
+            speed += 10;
+        } else if (event.deltaY > 0 && speed > 30) {
+            speed -= 10;
+        }
+
+        updateSpeed();
+    });
+}
+
 dockedPlayer.timeline.addEventListener('click', () => {
     const factor = (event.clientX - dockedPlayer.timeline.getBoundingClientRect().x) / dockedPlayer.timeline.getBoundingClientRect().width;
     const seekTo = factor * dockedPlayer.timelineInput.max;
@@ -583,6 +644,15 @@ dockedPlayer.timelineInput.addEventListener('keydown', event => {
         requestPlaybackChange(activeTrack);
     }
 });
+
+volume.container.addEventListener('auxclick', event => {
+    event.preventDefault();
+    volume.level = 1;
+    updateVolume();
+});
+
+// Prevent context menu from opening when using right-click to reset volume.
+volume.container.addEventListener('contextmenu', event => event.preventDefault());
 
 volume.container.addEventListener('wheel', event => {
     event.preventDefault();

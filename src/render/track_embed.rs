@@ -14,6 +14,7 @@ use crate::{
 use crate::icons;
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
+use super::SPEED_CONTROLS;
 use super::EmbedLayout;
 
 pub fn track_embed_html(
@@ -70,8 +71,10 @@ pub fn track_embed_html(
         </div>
     "#);
 
+    let speed_controls = if track.speed_controls { SPEED_CONTROLS } else { "" };
+
     let play_icon = icons::play(&build.locale.translations.play);
-    let volume_icon = icons::volume();
+    let volume_icon = icons::VOLUME;
     let t_playback_position = &build.locale.translations.playback_position;
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
@@ -86,6 +89,7 @@ pub fn track_embed_html(
                 <button class="playback">
                     {play_icon}
                 </button>
+                {speed_controls}
                 <div class="volume">
                     <button>
                         {volume_icon}

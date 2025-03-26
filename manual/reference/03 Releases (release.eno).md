@@ -6,7 +6,7 @@
 
 # Release manifests – release.eno
 
-> All options at a glance: [artist](#artist), [copy_link](#copy_link), [cover](#cover), [date](#date), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [release_artist(s)](#release_artists), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlisted](#unlisted), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [copy_link](#copy_link), [cover](#cover), [date](#date), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [permalink](#permalink), [release_artist(s)](#release_artists), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlisted](#unlisted), [unlock_info](#unlock_info)
 
 In your release manifests you can specify options that apply to
 a specific release only. Simply create a (plain text) file called
@@ -477,6 +477,22 @@ The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 - `KRW 9080` (Exactly 9080 south korean won)
 - `INR 230+` (230 indian rupees or more)
 - `JPY 400-800` (Between 400 and 800 japanese yen)
+
+## <a name="speed_controls"></a> `speed_controls`
+
+By default, faircamp's audio player(s) provide no playback speed controls,
+assuming that it's intended for your audience to listen to the material at
+its original speed only (e.g. for music, where this is usually the norm).
+
+If you publish (e.g.) a narrative podcast or audio book and want people to
+listen to the narration at their desired speed, you can enable playback speed
+controls with this option:
+
+```eno
+speed_controls: enabled
+```
+
+By using `disabled` as value this setting can also be reverted.
 
 ## <a name="streaming_quality"></a> `streaming_quality`
 

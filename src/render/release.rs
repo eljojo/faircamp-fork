@@ -17,6 +17,7 @@ use crate::{
 use crate::icons;
 use crate::util::{format_time, html_escape_outside_attribute};
 
+use super::SPEED_CONTROLS;
 use super::{Layout, Truncation};
 use super::{
     copy_button,
@@ -79,7 +80,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     t_downloads_permalink.hash(hasher);
                 });
 
-                let download_icon = icons::download();
+                let download_icon = icons::DOWNLOAD;
                 let t_download = &translations.download;
                 formatdoc!(r#"
                     <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
@@ -332,7 +333,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     if build.base_url.is_some() {
         if release.m3u  {
             let t_m3u_playlist = &translations.m3u_playlist;
-            let stream_icon = icons::stream();
+            let stream_icon = icons::STREAM;
 
             let m3u_playlist_link = formatdoc!(r#"
                 <a href="playlist.m3u">
@@ -419,8 +420,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         (false, false) => "compact"
     };
 
+    let speed_controls = if release.speed_controls { SPEED_CONTROLS } else { "" };
+
     let next_track_icon = icons::next_track(&translations.next_track);
-    let volume_icon = icons::volume();
+    let volume_icon = icons::VOLUME;
     let t_volume = &translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
@@ -456,6 +459,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <button class="next_track">
                     {next_track_icon}
                 </button>
+                {speed_controls}
                 <div class="volume">
                     <button>
                         {volume_icon}

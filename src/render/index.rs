@@ -100,7 +100,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
 
         if catalog.m3u  {
             let t_m3u_playlist = &translations.m3u_playlist;
-            let stream_icon = icons::stream();
+            let stream_icon = icons::STREAM;
 
             let m3u_playlist_link = formatdoc!(r#"
                 <a href="playlist.m3u">

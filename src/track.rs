@@ -54,6 +54,8 @@ pub struct Track {
     /// track page and points to additional long-form content for the track.
     /// For tracks this label is also displayed in the track list on a release page.
     pub more_label: Option<String>,
+    /// Whether players should offer speed controls for this track
+    pub speed_controls: bool,
     pub streaming_quality: StreamingQuality,
     pub synopsis: Option<String>,
     /// Describes if/how audio file tags (metadata) should be written to the
@@ -95,6 +97,7 @@ impl Track {
         links: Vec<Link>,
         more: Option<HtmlAndStripped>,
         more_label: Option<String>,
+        speed_controls: bool,
         streaming_quality: StreamingQuality,
         synopsis: Option<String>,
         tag_agenda: TagAgenda,
@@ -117,6 +120,7 @@ impl Track {
             links,
             more,
             more_label,
+            speed_controls,
             streaming_quality,
             synopsis,
             tag_agenda,

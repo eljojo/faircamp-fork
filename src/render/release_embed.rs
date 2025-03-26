@@ -15,6 +15,7 @@ use crate::{
 use crate::icons;
 use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
+use super::SPEED_CONTROLS;
 use super::{EmbedLayout, Truncation};
 use super::list_track_artists;
 
@@ -101,10 +102,12 @@ pub fn release_embed_html(
 
     let tall = if release.varying_track_artists() { "tall" } else { "" };
 
+    let speed_controls = if release.speed_controls { SPEED_CONTROLS } else { "" };
+
     let next_track_icon = icons::next_track(&build.locale.translations.next_track);
     let play_icon = icons::play(&build.locale.translations.play);
     let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
-    let volume_icon = icons::volume();
+    let volume_icon = icons::VOLUME;
     let t_playback_position = &build.locale.translations.playback_position;
     let t_volume = &build.locale.translations.volume;
     let body = formatdoc!(r##"
@@ -125,6 +128,7 @@ pub fn release_embed_html(
                 <button class="next_track">
                     {next_track_icon}
                 </button>
+                {speed_controls}
                 <div class="volume">
                     <button>
                         {volume_icon}

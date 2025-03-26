@@ -17,6 +17,7 @@ use crate::{
 use crate::icons;
 use crate::util::{format_time, html_escape_outside_attribute};
 
+use super::SPEED_CONTROLS;
 use super::{Layout, Truncation};
 use super::{
     copy_button,
@@ -87,7 +88,7 @@ pub fn track_html(
                     t_downloads_permalink.hash(hasher);
                 });
 
-                let download_icon = icons::download();
+                let download_icon = icons::DOWNLOAD;
                 let t_downloads = &translations.downloads;
 
                 Some(formatdoc!(r#"
@@ -383,7 +384,9 @@ pub fn track_html(
 
     let track_number_formatted = release.track_numbering.format(track_number);
 
-    let volume_icon = icons::volume();
+    let speed_controls = if track.speed_controls { SPEED_CONTROLS } else { "" };
+
+    let volume_icon = icons::VOLUME;
     let t_volume = &translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
@@ -420,6 +423,7 @@ pub fn track_html(
                 <button class="playback">
                     {play_icon}
                 </button>
+                {speed_controls}
                 <div class="volume">
                     <button>
                         {volume_icon}

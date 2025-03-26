@@ -647,6 +647,11 @@ pre { margin: 0; }
     opacity: 0;
     pointer-events: none;
 }
+.speed .multiplier {
+    font-size: .9em;
+    font-variant: tabular-nums;
+}
+.speed .x { font-size: .7em; }
 svg {
     display: block;
     fill: currentColor;

@@ -5,7 +5,7 @@
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
-use indoc::formatdoc;
+use indoc::{formatdoc, indoc};
 
 use translations::Translations;
 
@@ -49,6 +49,14 @@ mod layout;
 
 use embed_layout::EmbedLayout;
 use layout::Layout;
+
+/// Static reusable markup for a speed button we put into the release, track
+/// and embedded players
+pub const SPEED_CONTROLS: &str = indoc!(r#"
+    <button class="speed">
+        <span class="multiplier">1.0</span><span class="x">x</span>
+    </button>
+"#);
 
 struct TruncatedList {
     pub html: String,
@@ -203,7 +211,7 @@ fn compact_track_identifier(
 /// A button enriched with data attributes that client scripting can use
 /// to copy the content (embed code or link) to clipboard and display success/failure state.
 pub fn copy_button(content_key: &str, content_value: &str, label: &str) -> String {
-    let copy_icon = icons::copy();
+    let copy_icon = icons::COPY;
     formatdoc!(r##"
         <button data-{content_key}="{content_value}" data-copy>
             <span class="icon">{copy_icon}</span>
