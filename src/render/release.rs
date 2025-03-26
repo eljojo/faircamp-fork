@@ -3,7 +3,6 @@
 
 use std::hash::Hash;
 
-use chrono::Datelike;
 use indoc::formatdoc;
 
 use crate::{
@@ -275,11 +274,6 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
         primary_actions.push(more_link);
 
-        let release_year = match release.date {
-            Some(naive_date) => format!("({})", naive_date.year()),
-            None => String::new()
-        };
-
         let r_more = match &release.more {
             Some(html_and_stripped) => format!(
                 r#"<div class="text">{}</div>"#,
@@ -293,7 +287,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <div class="page_center">
                     <div class="page_more">
                         <div class="release_info">
-                            <h1>{release_title_escaped} {release_year}</h1>
+                            <h1>{release_title_escaped}</h1>
                             <div class="release_artists">{artists}</div>
                         </div>
                         {r_more}
