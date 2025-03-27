@@ -83,6 +83,7 @@ Damian Szetela<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
 [n00q](https://codeberg.org/n00q)<br>
 [OniriCorpe](https://oniricorpe.eu)<br>
+[Patricio Maripani](https://enemigo.cl/)<br>
 [Patrik Wallström](https://mastodon.social/@pawal)<br>
 [Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
