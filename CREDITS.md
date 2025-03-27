@@ -77,6 +77,7 @@ Damian Szetela<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [n3wjack](https://n3wjack.net/)<br>
+[N4ta](https://codeberg.org/N4ta)<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
 [n00q](https://codeberg.org/n00q)<br>
 [OniriCorpe](https://oniricorpe.eu)<br>
