@@ -15,6 +15,7 @@ mod lt;
 mod nb;
 mod nl;
 mod pl;
+mod pt_pt;
 mod ru;
 mod sr_cyrl;
 mod sr_latn;
@@ -34,6 +35,7 @@ pub use lt::LT;
 pub use nb::NB;
 pub use nl::NL;
 pub use pl::PL;
+pub use pt_pt::PT_PT;
 pub use ru::RU;
 pub use sr_cyrl::SR_CYRL;
 pub use sr_latn::SR_LATN;
@@ -57,6 +59,7 @@ pub fn all_languages() -> Vec<LabelledTranslations> {
         LabelledTranslations { code: "nb", name: "Norwegian Bokmål", translations: NB },
         LabelledTranslations { code: "nl", name: "Dutch", translations: NL },
         LabelledTranslations { code: "pl", name: "Polish", translations: PL },
+        LabelledTranslations { code: "pt-pt", name: "Portuguese (European)", translations: PT_PT },
         LabelledTranslations { code: "ru", name: "Russian", translations: RU },
         LabelledTranslations { code: "sr-cyrl", name: "Serbian (Cyrillic)", translations: SR_CYRL },
         LabelledTranslations { code: "sr-latn", name: "Serbian (Latin)", translations: SR_LATN },
@@ -577,9 +580,28 @@ impl Translations {
 fn check_translations() {
     use sanitize_filename::sanitize;
 
-    let locales = [CA, DE, EN, ES, FR, HE, IT, JA, LT, NB, NL, PL, RU, SR_CYRL, SR_LATN, SV, TR];
+    const LOCALES: [Translations] = [
+        CA,
+        DE,
+        EN,
+        ES,
+        FR,
+        HE,
+        IT,
+        JA,
+        LT,
+        NB,
+        NL,
+        PL,
+        PT_PT,
+        RU,
+        SR_CYRL,
+        SR_LATN,
+        SV,
+        TR
+    ];
 
-    for translations in &locales {
+    for translations in &LOCALES {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));
         assert!(&translations.javascript_is_disabled_listen_at_xxx.contains("{link}"));
         assert!(&translations.nothing_found_for_xxx.contains("{query}"));

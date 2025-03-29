@@ -402,6 +402,7 @@ Faircamp currently ships with these languages:
 - Lithuanian `lt`
 - Norwegian Bokmål `nb`
 - Polish `pl`
+- Portuguese (European) `pt-pt`
 - Russian `ru`
 - Spanish `es`
 - Serbian (Cyrillic) `sr-cyrl`

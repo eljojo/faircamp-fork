@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 N4ta
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations, Unreviewed};
+use super::{Reviewed, Translations};
 
 pub const PT_PT: Translations = Translations {
     audio_format_alac: Reviewed("Comprimido e sem perda de dados, se tú usas exclusivamente produtos da Apple, escolhe este em vez de FLAC"),
@@ -19,7 +19,7 @@ pub const PT_PT: Translations = Translations {
     buy: Reviewed("Comprar"),
     close: Reviewed("Fechar"),
     confirm: Reviewed("Confirmar"),
-    continue: Reviewed("Continuar"),
+    r#continue: Reviewed("Continuar"),
     copied: Reviewed("Copiado"),
     copy: Reviewed("Copiar"),
     copy_link: Reviewed("Copiar link"),
@@ -36,7 +36,6 @@ pub const PT_PT: Translations = Translations {
     extras: Reviewed("Extras"),
     failed: Reviewed("Fracasso"),
     feed: Reviewed("Feed"),
-    feeds_permalink: Reviewed("feeds"),
     fixed_price: Reviewed("Preço fixo:"),
     generic_rss: Reviewed("RSS genérico"),
     image_descriptions: Reviewed("Descrições das Imagens"),
@@ -69,6 +68,7 @@ pub const PT_PT: Translations = Translations {
     showing_xxx_results_for_xxx: Reviewed("A mostrar {count} resultados para '{query}'"),
     skip_to_main_content: Reviewed("Saltar para o conteúdo principal"),
     subscribe: Reviewed("Subscrever"),
+    subscribe_permalink: Reviewed("subscrever"),
     unlisted: Reviewed("Não listado"),
     unlock: Reviewed("Desbloquear"),
     unlock_downloads: Reviewed("Desbloquear downloads"),
@@ -83,4 +83,5 @@ pub const PT_PT: Translations = Translations {
     xxx_minutes: Reviewed("{xxx} minutos"),
     xxx_or_more: Reviewed("{xxx} ou mais"),
     xxx_seconds: Reviewed("{xxx} segundos"),
+    ..Translations::UNTRANSLATED
 };
