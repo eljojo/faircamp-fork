@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Vac
+// SPDX-FileCopyrightText: 2024-2025 Vac
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use super::{Reviewed, Translations};
@@ -37,6 +37,7 @@ pub const LT: Translations = Translations {
     failed: Reviewed("Nepavyko"),
     feed: Reviewed("Kanalas"),
     fixed_price: Reviewed("Nustatyta kaina:"),
+    generic_rss: Reviewed("Bendrasis RSS"),
     image_descriptions: Reviewed("Vaizdų aprašymai"),
     image_descriptions_guide: Reviewed("Milijonai žmonių naršo internete naudodamiesi ekrano skaitytuvais, nes nemato (arba mato nepakankamai gerai). Vaizdai be tekstinių aprašymų jiems yra neprieinami, todėl turėtume stengtis pateikti jiems vaizdų aprašymus.<br><br>Kaip pridėti vaizdų aprašymus, rasite „Faircamp“ README faile – tai paprasta ir yra gerumo veiksmas.<br><br>Štai keletas patarimų, kaip rašyti gerus vaizdų aprašymus:<br>- Bet koks aprašymas yra geriau nei jokio aprašymo, nesijaudinkite, kad tai padarysite neteisingai.<br>- Aprašykite jį glaustai. Rašykite tiek, kiek reikia, bet tuo pat metu kuo trumpiau.<br>- Neinterpretuokite. Aprašykite tai, kas ten yra ir svarbu jo supratimui, neanalizuokite plačiau.<br>- Galite naudoti spalvas ten, kur tai prasminga – daugelis žmonių tik vėliau praradę regėjimą supranta ir vertina spalvas."),
     image_descriptions_permalink: Reviewed("vaizdu-aprasymai"),
@@ -57,6 +58,7 @@ pub const LT: Translations = Translations {
     playback_position: Reviewed("Įrašo peržiūros vieta"),
     player_closed: Reviewed("Leistuvė užverta"),
     player_open_playing_xxx: Reviewed("Leistuvė atverta, leidžiama {title}"),
+    player_open_with_xxx: Reviewed("Leistuvė atverta su {title}"),
     previous_track: Reviewed("Ankstesnis takelis"),
     purchase_downloads: Reviewed("Pirkti atsisiuntimus"),
     purchase_permalink: Reviewed("pirkti"),
@@ -65,10 +67,12 @@ pub const LT: Translations = Translations {
     showing_featured_items: Reviewed("Rodomi rekomenduojami elementai"),
     showing_xxx_results_for_xxx: Reviewed("Rodoma {count} rezultatų užklausai „{query}“"),
     skip_to_main_content: Reviewed("Praleisti į pagrindinį turinį"),
+    subscribe: Reviewed("Prenumeruoti"),
+    subscribe_permalink: Reviewed("prenumeruoti"),
     unlisted: Reviewed("Neįtrauktas į sąrašą"),
     unlock: Reviewed("Atrakinti"),
     unlock_downloads: Reviewed("Atrakinti atsisiuntimus"),
-    unlock_manual_instructions: Reviewed("Kad atrakintumėte atsisiuntimą, atlikite toliau apibūdintus adreso pakeitimus naršyklės adresų juostoje.<br><br>Prieš pradėdami tai daryti, turėkite omenyje, kad neteisingi kodai arba adreso pakeitimai nuves į 404 puslapį. Tokiu atveju naudokite mygtuką Atgal ir dar kartą atidžiai sekite instrukcijas.<br><br>Pakeiskite paskutinę adreso dalį – /{unlock_permalink}/{page_hash}{index_suffix} – į /{downloads_permalink}/[your-unlock-code]{index_suffix} ir paspauskite Įvesti."),
+    unlock_manual_instructions: Reviewed("Kad atrakintumėte atsisiuntimą, atlikite toliau apibūdintus adreso pakeitimus naršyklės adresų juostoje.<br><br>Prieš pradėdami tai daryti, turėkite omenyje, kad neteisingi kodai arba adreso pakeitimai nuves į 404 puslapį. Tokiu atveju naudokite mygtuką Atgal ir dar kartą atidžiai sekite instrukcijas.<br><br>Pakeiskite paskutinę adreso dalį – /{unlock_permalink}/{page_hash}{index_suffix} – į /{downloads_permalink}/[jusu-atsisiuntimo-kodas]{index_suffix} ir paspauskite Įvesti."),
     unlock_permalink: Reviewed("atrakinti"),
     unmute: Reviewed("Įjungti garsą"),
     up_to_xxx: Reviewed("Iki {xxx}"),
