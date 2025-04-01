@@ -875,6 +875,44 @@ pub fn unlisted_badge(build: &Build) -> String {
     format!(r#"<span class="unlisted">{t_unlisted}</span>"#)
 }
 
+/// Markup for volume controls as used/shared by the release, track and
+/// embedded players
+fn volume_controls(translations: &Translations) -> String {
+    let volume_icon = icons::VOLUME;
+    let t_volume = &translations.volume;
+
+    formatdoc!(r#"
+        <div class="volume">
+            <button>
+                {volume_icon}
+            </button>
+            <span class="slider">
+                <input aria-label="{t_volume}" aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
+                <svg width="3em" height=".75em" version="1.1" viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="gradient_level">
+                            <stop offset="0.999"></stop>
+                            <stop offset="1"></stop>
+                        </linearGradient>
+                        <linearGradient id="gradient_level_decrease">
+                            <stop offset="0"></stop>
+                            <stop offset="0.0001"></stop>
+                        </linearGradient>
+                        <linearGradient id="gradient_level_increase">
+                            <stop offset="0"></stop>
+                            <stop offset="0.0001"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path class="base" d="M0,140H600V10Z"/>
+                    <path class="level_increase" d="M0,150H600V10Z" fill="url(#gradient_level_increase)"/>
+                    <path d="M0,150H600V10Z" fill="url(#gradient_level)"/>
+                    <path class="level_decrease" d="M0,150H600V10Z" fill="url(#gradient_level_decrease)"/>
+                </svg>
+            </span>
+        </div>
+    "#)
+}
+
 fn waveform(track: &Track) -> String {
     let peaks_base64 = track.transcodes.borrow().source_meta.peaks
         .iter()

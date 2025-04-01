@@ -24,6 +24,7 @@ use super::{
     list_track_artists,
     release_cover_image,
     unlisted_badge,
+    volume_controls,
     waveform
 };
 
@@ -415,10 +416,9 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     };
 
     let speed_controls = if release.speed_controls { SPEED_CONTROLS } else { "" };
+    let r_volume_controls = volume_controls(translations);
 
     let next_track_icon = icons::next_track(&translations.next_track);
-    let volume_icon = icons::VOLUME;
-    let t_volume = &translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
             <div class="page_split">
@@ -454,14 +454,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     {next_track_icon}
                 </button>
                 {speed_controls}
-                <div class="volume">
-                    <button>
-                        {volume_icon}
-                    </button>
-                    <span class="slider">
-                        <input aria-label="{t_volume}" aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
-                    </span>
-                </div>
+                {r_volume_controls}
                 <span class="track_info">
                     <span class="number"></span>
                     <span class="title_wrapper"></span>

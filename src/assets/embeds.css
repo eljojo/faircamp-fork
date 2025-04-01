@@ -270,10 +270,15 @@ button:not(.link).disabled,
     align-items: center;
     display: flex;
 }
-.volume input {
+.volume .slider {
     opacity: 0;
-    margin-inline-end: 0;
-    transition: opacity 200ms ease, margin-inline-end 200ms ease, width 200ms ease;
+    overflow-x: clip;
+    padding-block: .6rem;
+    position: relative;
+    transition:
+        margin-inline-end 200ms ease,
+        padding-inline 200ms ease,
+        width 200ms ease;
     width: 0;
 }
 .volume button { color: var(--fg-1); }
@@ -281,13 +286,37 @@ button:not(.link).disabled,
 .volume button.muted path.knob { display: none; }
 .volume button:not(.muted) path.strike_out { display: none; }
 .volume:not(.finegrained) input { display: none; }
-.volume:hover input,
-.volume input:focus-visible,
-.volume button:focus-visible + .slider input {
-    opacity: 1;
+.volume.hover .slider { opacity: .8; }
+.volume.hover .slider,
+.volume .slider.dragging,
+.volume .slider.focus {
     margin-inline-end: .6rem;
-    width: 6rem;
+    padding-inline: .6rem;
+    width: 3em;
 }
+.volume .slider:hover,
+.volume .slider.dragging,
+.volume .slider.focus {
+    opacity: 1;
+}
+.volume .slider input {
+    height: 100%;
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+.volume .slider linearGradient stop:nth-child(2) { stop-color: transparent; }
+.volume .slider linearGradient#gradient_level stop:nth-child(1) { stop-color: var(--fg-1); }
+.volume .slider linearGradient#gradient_level_decrease stop:nth-child(1) { stop-color: var(--fg-1); }
+.volume .slider linearGradient#gradient_level_increase stop:nth-child(1) { stop-color: var(--bg-mg); }
+.volume .slider:not(.decrease) linearGradient#gradient_level_decrease { display: none; }
+.volume .slider:not(.increase) linearGradient#gradient_level_increase { display: none; }
+.volume .slider path.base { fill: var(--bg-3); }
+.volume .slider.decrease linearGradient#gradient_level stop:nth-child(1) { stop-color: var(--fg-2); }
 .js_notice {
     align-items: center;
     background: var(--bg-1);

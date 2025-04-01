@@ -23,6 +23,7 @@ use super::{
     list_track_artists,
     release_cover_image,
     track_cover_image,
+    volume_controls,
     waveform
 };
 
@@ -379,9 +380,8 @@ pub fn track_html(
     let track_number_formatted = release.track_numbering.format(track_number);
 
     let speed_controls = if track.speed_controls { SPEED_CONTROLS } else { "" };
+    let r_volume_controls = volume_controls(translations);
 
-    let volume_icon = icons::VOLUME;
-    let t_volume = &translations.volume;
     let body = formatdoc!(r##"
         <div class="page">
             <div class="page_split">
@@ -418,14 +418,7 @@ pub fn track_html(
                     {play_icon}
                 </button>
                 {speed_controls}
-                <div class="volume">
-                    <button>
-                        {volume_icon}
-                    </button>
-                    <span class="slider">
-                        <input aria-label="{t_volume}" aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
-                    </span>
-                </div>
+                {r_volume_controls}
                 <span class="track_info">
                     <span class="title_wrapper"></span>
                 </span>

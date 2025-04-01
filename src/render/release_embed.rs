@@ -17,7 +17,7 @@ use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 use super::SPEED_CONTROLS;
 use super::{EmbedLayout, Truncation};
-use super::list_track_artists;
+use super::{list_track_artists, volume_controls};
 
 pub fn release_embed_html(
     base_url: &SiteUrl,
@@ -28,6 +28,7 @@ pub fn release_embed_html(
     let index_suffix = build.index_suffix();
     let release_prefix = "../../";
     let root_prefix = "../../../";
+    let translations = &build.locale.translations;
 
     let varying_track_artists = release.varying_track_artists();
 
@@ -103,13 +104,12 @@ pub fn release_embed_html(
     let tall = if release.varying_track_artists() { "tall" } else { "" };
 
     let speed_controls = if release.speed_controls { SPEED_CONTROLS } else { "" };
+    let r_volume_controls = volume_controls(translations);
 
-    let next_track_icon = icons::next_track(&build.locale.translations.next_track);
-    let play_icon = icons::play(&build.locale.translations.play);
-    let previous_track_icon = icons::previous_track(&build.locale.translations.previous_track);
-    let volume_icon = icons::VOLUME;
-    let t_playback_position = &build.locale.translations.playback_position;
-    let t_volume = &build.locale.translations.volume;
+    let next_track_icon = icons::next_track(&translations.next_track);
+    let play_icon = icons::play(&translations.play);
+    let previous_track_icon = icons::previous_track(&translations.previous_track);
+    let t_playback_position = &translations.playback_position;
     let body = formatdoc!(r##"
         {tracks_rendered}
         <div class="player {tall}">
@@ -129,14 +129,7 @@ pub fn release_embed_html(
                     {next_track_icon}
                 </button>
                 {speed_controls}
-                <div class="volume">
-                    <button>
-                        {volume_icon}
-                    </button>
-                    <span class="slider">
-                        <input aria-label="{t_volume}" aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
-                    </span>
-                </div>
+                {r_volume_controls}
                 <span class="track_info">
                     <span class="number"></span>
                     <span class="title_wrapper"></span>

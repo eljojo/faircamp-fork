@@ -16,6 +16,7 @@ use crate::util::{html_escape_inside_attribute, html_escape_outside_attribute};
 
 use super::SPEED_CONTROLS;
 use super::EmbedLayout;
+use super::volume_controls;
 
 pub fn track_embed_html(
     base_url: &SiteUrl,
@@ -26,6 +27,7 @@ pub fn track_embed_html(
 ) -> String {
     let release_prefix = "../../";
     let root_prefix = "../../../";
+    let translations = &build.locale.translations;
 
     let audio_sources = track.streaming_quality
         .formats()
@@ -72,11 +74,10 @@ pub fn track_embed_html(
     "#);
 
     let speed_controls = if track.speed_controls { SPEED_CONTROLS } else { "" };
+    let r_volume_controls = volume_controls(translations);
 
-    let play_icon = icons::play(&build.locale.translations.play);
-    let volume_icon = icons::VOLUME;
-    let t_playback_position = &build.locale.translations.playback_position;
-    let t_volume = &build.locale.translations.volume;
+    let play_icon = icons::play(&translations.play);
+    let t_playback_position = &translations.playback_position;
     let body = formatdoc!(r##"
         {track_rendered}
         <div class="player">
@@ -90,14 +91,7 @@ pub fn track_embed_html(
                     {play_icon}
                 </button>
                 {speed_controls}
-                <div class="volume">
-                    <button>
-                        {volume_icon}
-                    </button>
-                    <span class="slider">
-                        <input aria-label="{t_volume}" aria-valuetext="" autocomplete="off" max="1" min="0" step="any" type="range" value="1">
-                    </span>
-                </div>
+                {r_volume_controls}
                 <span class="track_info">
                     <span class="title_wrapper"></span>
                 </span>

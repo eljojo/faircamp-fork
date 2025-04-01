@@ -32,9 +32,14 @@ const player = {
     timelineInput: playerContainer.querySelector('.timeline input'),
     titleWrapper: playerContainer.querySelector('.title_wrapper'),
     totalTime: playerContainer.querySelector('.time .total'),
-    volumeButton: playerContainer.querySelector('.volume button'),
-    volumeInput: playerContainer.querySelector('.volume input'),
-    volumeSvgTitle: playerContainer.querySelector('.volume svg title')
+    volume: {
+        container: playerContainer.querySelector('.volume'),
+        knob: playerContainer.querySelector('.volume button'),
+        knobSvgTitle: playerContainer.querySelector('.volume button svg title'),
+        slider: playerContainer.querySelector('.volume .slider'),
+        sliderInput: playerContainer.querySelector('.volume .slider input'),
+        sliderSvg: playerContainer.querySelector('.volume .slider svg')
+    }
 };
 
 let globalUpdatePlayHeadInterval;
@@ -44,7 +49,6 @@ let globalUpdatePlayHeadInterval;
 let speed = 100;
 
 const volume = {
-    container: document.querySelector('.volume'),
     finegrained: false,
     level: 1
 };
@@ -61,8 +65,9 @@ const volume = {
 // audio elements.
 let volumeProbe = new Audio();
 const volumeProbeHandler = () => {
-    volume.container.classList.add('finegrained');
+    player.volume.container.classList.add('finegrained');
     volume.finegrained = true;
+    updateVolume(false);
     volumeProbe.removeEventListener('volumechange', volumeProbeHandler);
     volumeProbe = null;
 };
@@ -76,7 +81,7 @@ if (persistedVolume !== null) {
         volume.level = level;
     }
 }
-updateVolume();
+updateVolume(false);
 
 // While the underlying data model of the playhead (technically the invisible
 // range input and visible svg representation) change granularly, we only
@@ -413,6 +418,19 @@ function setVolume(track) {
     }
 }
 
+function toggleMute() {
+    if (volume.level > 0) {
+        volume.restoreLevel = volume.level;
+        volume.level = 0;
+    } else if (volume.restoreLevel) {
+        volume.level = volume.restoreLevel;
+        delete volume.restoreLevel;
+    } else {
+        volume.level = 1;
+    }
+    updateVolume();
+}
+
 function updatePlayhead(track, reset = false) {
     const { audio } = track;
     const factor = reset ? 0 : audio.currentTime / track.duration;
@@ -427,14 +445,14 @@ function updateSpeed() {
     setSpeed(activeTrack);
 }
 
-function updateVolume(restoreLevel = null) {
+function updateVolume(persist = true) {
     // We may only unmute and make the track audible if its playback is
     // currently solicited by us (see other comments on solicitedPlaback).
     if (activeTrack && activeTrack.solicitedPlayback) {
         setVolume(activeTrack);
     }
 
-    localStorage.setItem('faircampEmbedVolume', volume.level.toString());
+    // Render volume button
 
     const RADIUS = 32;
     const degToRad = deg => (deg * Math.PI) / 180;
@@ -477,35 +495,44 @@ function updateVolume(restoreLevel = null) {
 
     const displayedLevel = volume.finegrained ? volume.level : (volume.level > 0 ? 1 : 0);
 
-    player.volumeButton.classList.toggle('muted', displayedLevel === 0);
-    player.volumeSvgTitle.textContent = displayedLevel > 0 ? EMBEDS_JS_T.mute : EMBEDS_JS_T.unmute;
+    player.volume.knob.classList.toggle('muted', displayedLevel === 0);
+    player.volume.knobSvgTitle.textContent = displayedLevel > 0 ? EMBEDS_JS_T.mute : EMBEDS_JS_T.unmute;
 
     const beginAngle = -135;
     const arcAngle = displayedLevel * 270;
 
     const knobAngle = beginAngle + arcAngle;
-    player.volumeButton.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
+    player.volume.knob.querySelector('path.knob').setAttribute('transform', `rotate(${knobAngle} 32 32)`);
 
     const activeD = displayedLevel > 0 ? segmentD(beginAngle, arcAngle) : '';
-    player.volumeButton.querySelector('path.active_range').setAttribute('d', activeD);
+    player.volume.knob.querySelector('path.active_range').setAttribute('d', activeD);
 
     const inactiveD = displayedLevel < 1 ? segmentD(beginAngle + arcAngle, 270 - arcAngle) : '';
-    player.volumeButton.querySelector('path.inactive_range').setAttribute('d', inactiveD);
+    player.volume.knob.querySelector('path.inactive_range').setAttribute('d', inactiveD);
 
     const percent = displayedLevel * 100;
     const percentFormatted = percent % 1 > 0.1 ? (Math.trunc(percent * 10) / 10) : Math.trunc(percent);
-    player.volumeInput.setAttribute('aria-valuetext', `${EMBEDS_JS_T.volume} ${percentFormatted}%`);
-    player.volumeInput.value = displayedLevel;
+    player.volume.sliderInput.setAttribute('aria-valuetext', `${EMBEDS_JS_T.volume} ${percentFormatted}%`);
+    player.volume.sliderInput.value = displayedLevel;
 
-    if (restoreLevel === null) {
-        delete volume.restoreLevel;
-    } else {
-        volume.restoreLevel = restoreLevel;
+    // Render volume slider
+
+    // TODO: Pre-store the two querySelector results (also elsewhere)
+    player.volume.slider.querySelector('linearGradient#gradient_level stop:nth-child(1)').setAttribute('offset', displayedLevel);
+    player.volume.slider.querySelector('linearGradient#gradient_level stop:nth-child(2)').setAttribute('offset', displayedLevel + 0.0001);
+
+    // These are be re-applied from the respective mousemove handler if
+    // needed, until then they are removed to avoid potential visual state
+    // indication conflicts (as were observed).
+    player.volume.slider.classList.remove('decrease', 'increase');
+
+    if (persist) {
+        localStorage.setItem('faircampEmbedVolume', volume.level.toString());
     }
 }
 
 player.container.addEventListener('keydown', event => {
-    if (event.target === player.volumeInput) return;
+    if (event.target === player.volume.sliderInput) return;
 
     if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -572,6 +599,21 @@ if (player.speedButton) {
     // playback speed.
     player.speedButton.addEventListener('contextmenu', event => event.preventDefault());
 
+    player.speedButton.addEventListener('keydown', event => {
+        if (event.key === 'ArrowDown' && speed > 30) {
+            speed -= 10;
+        } else if (event.key === 'ArrowUp' && speed < 300) {
+            speed += 10;
+        } else {
+            return;
+        }
+
+        updateSpeed();
+
+        event.preventDefault();
+        event.stopPropagation();
+    });
+
     player.speedButton.addEventListener('wheel', () => {
         if (event.deltaY < 0 && speed < 300) {
             speed += 10;
@@ -606,16 +648,25 @@ player.timelineInput.addEventListener('keydown', event => {
     }
 });
 
-volume.container.addEventListener('auxclick', event => {
+player.volume.container.addEventListener('auxclick', event => {
     event.preventDefault();
-    volume.level = 1;
+    volume.level = volume.level < 1 ? 1 : 0;
     updateVolume();
 });
 
 // Prevent context menu from opening when using right-click to reset volume.
-volume.container.addEventListener('contextmenu', event => event.preventDefault());
+player.volume.container.addEventListener('contextmenu', event => event.preventDefault());
 
-volume.container.addEventListener('wheel', event => {
+player.volume.container.addEventListener('mouseenter', () => {
+    player.volume.container.classList.add('hover');
+});
+
+player.volume.container.addEventListener('mouseleave', () => {
+    player.volume.container.classList.remove('hover');
+    player.volume.slider.classList.remove('decrease', 'increase');
+});
+
+player.volume.container.addEventListener('wheel', event => {
     event.preventDefault();
 
     if (volume.finegrained) {
@@ -637,29 +688,91 @@ volume.container.addEventListener('wheel', event => {
     updateVolume();
 });
 
-player.volumeButton.addEventListener('click', () => {
-    if (volume.level > 0) {
-        const restoreLevel = volume.level;
-        volume.level = 0;
-        updateVolume(restoreLevel);
+player.volume.knob.addEventListener('click', () => toggleMute());
+
+player.volume.knob.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown') {
+        volume.level -= 0.02;
+    } else if (event.key === 'ArrowUp') {
+        volume.level += 0.02;
     } else {
-        volume.level = volume.restoreLevel ?? 1;
-        updateVolume();
+        return;
+    }
+
+    if (volume.level > 1) {
+        volume.level = 1;
+    } else if (volume.level < 0) {
+        volume.level = 0;
+    }
+
+    updateVolume();
+
+    event.preventDefault();
+    event.stopPropagation();
+});
+
+player.volume.slider.addEventListener('mousedown', event => {
+    if (event.button === 0 /* === primary button */) {
+        const clickAndDragHandler = event => {
+            const svgRect = player.volume.sliderSvg.getBoundingClientRect()
+            const clampedMouseX = Math.min(Math.max(0, event.clientX - svgRect.x), svgRect.width);
+            volume.level = clampedMouseX / svgRect.width;
+            updateVolume();
+        };
+
+        clickAndDragHandler(event);
+
+        window.addEventListener('mousemove', clickAndDragHandler);
+        player.volume.slider.classList.add('dragging');
+
+        window.addEventListener('mouseup', () => {
+            window.removeEventListener('mousemove', clickAndDragHandler);
+            player.volume.slider.classList.remove('dragging');
+        }, { once: true });
     }
 });
 
-player.volumeInput.addEventListener('input', () => {
-    volume.level = parseFloat(player.volumeInput.valueAsNumber);
+player.volume.slider.addEventListener('mousemove', event => {
+    const svgRect = player.volume.sliderSvg.getBoundingClientRect()
+    const clampedMouseX = Math.min(Math.max(0, event.clientX - svgRect.x), svgRect.width);
+    const mouseLevel = clampedMouseX / svgRect.width;
+
+    if (mouseLevel > volume.level) {
+        player.volume.slider.classList.remove('decrease');
+        player.volume.slider.classList.add('increase');
+        player.volume.slider.querySelector('linearGradient#gradient_level_increase stop:nth-child(1)').setAttribute('offset', mouseLevel);
+        player.volume.slider.querySelector('linearGradient#gradient_level_increase stop:nth-child(2)').setAttribute('offset', mouseLevel + 0.0001);
+    } else {
+        player.volume.slider.classList.remove('increase');
+        player.volume.slider.classList.add('decrease');
+        player.volume.slider.querySelector('linearGradient#gradient_level_decrease stop:nth-child(1)').setAttribute('offset', mouseLevel);
+        player.volume.slider.querySelector('linearGradient#gradient_level_decrease stop:nth-child(2)').setAttribute('offset', mouseLevel + 0.0001);
+    }
+
+});
+
+player.volume.sliderInput.addEventListener('blur', () => {
+    player.volume.slider.classList.remove('focus');
+});
+
+player.volume.sliderInput.addEventListener('focus', () => {
+    player.volume.slider.classList.add('focus');
+});
+
+player.volume.sliderInput.addEventListener('input', () => {
+    volume.level = parseFloat(player.volume.sliderInput.valueAsNumber);
     updateVolume();
 });
 
 // This was observed to jump between 0 and 1 without a single step in between,
 // hence we disable the default behavior and handle it ourselves
-player.volumeInput.addEventListener('keydown', event => {
+player.volume.sliderInput.addEventListener('keydown', event => {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
         volume.level -= 0.02;
     } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
         volume.level += 0.02;
+    } else if (event.key === 'Enter' || event.key === ' ') {
+        toggleMute();
     } else {
         return;
     }
@@ -677,7 +790,7 @@ player.volumeInput.addEventListener('keydown', event => {
 
 // This was observed to "scroll" between 0 and 1 without a single step in between,
 // hence we disable the default behavior and let the event bubble up to our own handler
-player.volumeInput.addEventListener('wheel', event => event.preventDefault());
+player.volume.sliderInput.addEventListener('wheel', event => event.preventDefault());
 
 navigator.mediaSession.setActionHandler('play', () => {
     requestPlaybackChange(activeTrack);
@@ -802,6 +915,13 @@ for (const container of document.querySelectorAll('.track')) {
     trackIndex++;
     tracks.push(track);
 }
+
+window.addEventListener('keydown', event => {
+    if (event.key === 'm') {
+        toggleMute();
+        event.preventDefault();
+    }
+});
 
 // Set active track (and optionally set seekTo)
 const params = parseHashParams();
