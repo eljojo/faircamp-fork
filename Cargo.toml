@@ -11,29 +11,36 @@ rust-version = "1.76.0"
 version = "1.2.0"
 
 [build-dependencies]
-oxc_allocator = "0.60.0"
-oxc_codegen = "0.60.0"
-oxc_mangler = "0.60.0"
-oxc_minifier = "0.60.0"
-oxc_parser = "0.60.0"
-oxc_span = "0.60.0"
-oxc_transformer = "0.60.0"
+oxc_allocator = { optional = true, version = "0.62.0" }
+oxc_codegen = { optional = true, version = "0.62.0" }
+oxc_mangler = { optional = true, version = "0.62.0" }
+oxc_minifier = { optional = true, version = "0.62.0" }
+oxc_parser = { optional = true, version = "0.62.0" }
+oxc_span = { optional = true, version = "0.62.0" }
+oxc_transformer = { optional = true, version = "0.62.0" }
 
 [dependencies]
 actix-files = "0.6.6"
-actix-web = "4.9.0"
+actix-web = "4.10.2"
 alac = "0.5.0"
 base64 = "0.22.1"
+# bincode 2.x is available but it includes breaking changes (on the API level,
+# encoded data is "completely compatible if the same configuration is used")
+# and raises the MSRV to 1.85.0 (!) therefore we'll wait a good bit until we
+# update. By February 2026, Rust 1.85.0 will have been out about a year, this
+# would about reflect our MSRV time distance at the time of writing
+# (April 2025, where our MSRV for libvips builds is 1.76.0), so maybe around
+# that time is a good future point for re-evaluating this.
 bincode = "1.3.3"
-chrono = { features = ["serde"], version = "0.4.39" }
-clap = { features = ["derive"], version = "4.5.28" }
+chrono = { features = ["serde"], version = "0.4.40" }
+clap = { features = ["derive"], version = "4.5.35" }
 claxon = "0.4.3"
 enolib = { git = "https://codeberg.org/simonrepp/enolib-rs", tag = "0.5.0" }
 hound = "3.5.1"
-id3 = "1.16.0"
-image = { optional = true, version = "0.25.5" }
-indoc = "2.0.5"
-iso_currency = "0.5.1"
+id3 = "1.16.2"
+image = { optional = true, version = "0.25.6" }
+indoc = "2.0.6"
+iso_currency = "0.5.3"
 lewton = "0.10.2"
 # We intentionally pin and keep libvips at an old version because
 # newer versions significantly limit the range of systems on which
@@ -49,25 +56,36 @@ opus_headers = "0.1.2"
 # We intentionally pin and keep pacmog at an old version because
 # newer versions significantly raise the minimum supported rust version.
 pacmog = "=0.4.1"
-pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.12.2" }
+pulldown-cmark = { default-features = false, features = ["html", "simd"], version = "0.13.0" }
 rand = "0.9.0"
 rand_chacha = "0.9.0"
 rmp3 = { features = ["float", "simd"], version = "0.3.1" }
 sanitize-filename = "0.6.0"
 seahash = "4.1.0"
-serde = "1.0.217"
-serde_derive = "1.0.217"
+serde = "1.0.219"
+serde_derive = "1.0.219"
 slug = "0.1.6"
 tiny-skia = "0.11.4"
-tokio = { features = ["macros", "rt-multi-thread"], version = "1.43.0" }
+tokio = { features = ["macros", "rt-multi-thread"], version = "1.44.1" }
 translations = { path = "translations" }
 url = "2.5.4"
 urlencoding = "2.1.3"
 uuid = { features = ["v5"], version = "1.16.0" }
-webbrowser = "1.0.3"
-zip = { features = ["deflate"], version = "2.2.2" }
+webbrowser = "1.0.4"
+zip = { features = ["deflate"], version = "2.5.0" }
 
 [features]
 image = ["dep:image"]
 libvips = ["dep:libvips"]
-no-minify = []
+# Asset minification using the oxc crates has a high price as it raises
+# the MSRV to 1.85.0, therefore we keep this an opt-in build feature right
+# now.
+minify = [
+	"dep:oxc_allocator",
+	"dep:oxc_codegen",
+	"dep:oxc_mangler",
+	"dep:oxc_minifier",
+	"dep:oxc_parser",
+	"dep:oxc_span",
+	"dep:oxc_transformer"
+]

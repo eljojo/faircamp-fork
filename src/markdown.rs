@@ -227,6 +227,8 @@ impl<'a> StrippedRenderer<'a> {
                 self.ordered_list_item_number = ordered_list_item_number;
             }
             Tag::Strong => {}
+            Tag::Subscript => {}
+            Tag::Superscript => {}
             // All these below are not enabled/supported in faircamp
             Tag::FootnoteDefinition(_) |
             Tag::MetadataBlock(_) |
@@ -261,6 +263,8 @@ impl<'a> StrippedRenderer<'a> {
                 self.cursor = Cursor::EndOfLine;
             }
             TagEnd::Strong => {}
+            TagEnd::Subscript => {}
+            TagEnd::Superscript => {}
             // Never encountered here (consumed in render_image())
             TagEnd::Image => {}
             // All these below are not enabled/supported in faircamp

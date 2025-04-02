@@ -32,6 +32,15 @@ fn main() {
     println!("cargo:rustc-env=FAIRCAMP_VERSION_DETAILED={version_detailed}");
     println!("cargo:rustc-env=FAIRCAMP_VERSION_DISPLAY={version_display}");
 
+    #[cfg(all(feature = "libvips", feature = "minify"))]
+    println!("cargo:rustc-env=FAIRCAMP_FEATURES=compiled with libvips and minified assets");
+    #[cfg(all(feature = "libvips", not(feature = "minify")))]
+    println!("cargo:rustc-env=FAIRCAMP_FEATURES=compiled with libvips, without minified assets");
+    #[cfg(all(not(feature = "libvips"), feature = "minify"))]
+    println!("cargo:rustc-env=FAIRCAMP_FEATURES=compiled without libvips, with minified assets");
+    #[cfg(all(not(feature = "libvips"), not(feature = "minify")))]
+    println!("cargo:rustc-env=FAIRCAMP_FEATURES=compiled without libvips or minified assets");
+
     preprocess_js("browser.js", include_str!("src/assets/browser.js"), "FAIRCAMP_BROWSER_JS");
     preprocess_js("clipboard.js", include_str!("src/assets/clipboard.js"), "FAIRCAMP_CLIPBOARD_JS");
     preprocess_js("embeds.js", include_str!("src/assets/embeds.js"), "FAIRCAMP_EMBEDS_JS");
@@ -45,16 +54,16 @@ fn preprocess_js(filename: &str, input: &str, varname: &str) {
         .unwrap()
         .to_string();
 
-    #[cfg(feature = "no-minify")]
+    #[cfg(not(feature = "minify"))]
     let _ = fs::write(&target_path, input);
 
-    #[cfg(not(feature = "no-minify"))]
+    #[cfg(feature = "minify")]
     let _ = fs::write(&target_path , minify::minify(input));
 
     println!("cargo:rustc-env={varname}={target_path}");
 }
 
-#[cfg(not(feature = "no-minify"))]
+#[cfg(feature = "minify")]
 mod minify {
     const SOURCE_TYPE: SourceType = SourceType::cjs();
 
