@@ -849,7 +849,10 @@ impl Catalog {
                 extras.push(Extra::new(file_meta));
             }
 
-            let download_access = finalized_overrides.release_download_access.assemble(finalized_overrides);
+            let download_access = finalized_overrides.release_download_access.assemble(
+                finalized_overrides,
+                &finalized_overrides.release_price
+            );
 
             let release_dir_relative_to_catalog = fair_dir.path.strip_prefix(&build.catalog_dir).unwrap().to_path_buf();
 
@@ -897,7 +900,11 @@ impl Catalog {
             transcodes.borrow().source_meta.artists.to_vec()
         };
 
-        let download_access = overrides.track_download_access.assemble(overrides);
+        let download_access = overrides.track_download_access.assemble(
+            overrides,
+            &overrides.track_price
+        );
+
         let theme = overrides.theme.clone();
 
         Track::new(

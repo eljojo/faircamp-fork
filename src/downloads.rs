@@ -54,7 +54,11 @@ pub struct Price {
 impl DownloadAccessOption {
     /// Combines DownloadAccess with payment, price and/or unlock info
     /// in order to form the final DownloadAccess data.
-    pub fn assemble(&self, overrides: &Overrides) -> DownloadAccess {
+    pub fn assemble(
+        &self,
+        overrides: &Overrides,
+        price: &Price
+    ) -> DownloadAccess {
         match &self {
             DownloadAccessOption::Code => DownloadAccess::Code {
                 download_codes: overrides.download_codes.clone(),
@@ -65,7 +69,7 @@ impl DownloadAccessOption {
             DownloadAccessOption::Free => DownloadAccess::Free,
             DownloadAccessOption::Paycurtain => DownloadAccess::Paycurtain {
                 payment_info: overrides.payment_info.clone(),
-                price: overrides.release_price.clone()
+                price: price.clone()
             }
         }
     }
