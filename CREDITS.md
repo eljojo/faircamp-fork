@@ -54,6 +54,7 @@ Damian Szetela<br>
 [fREW Schmidt](https://blog.afoolishmanifesto.com/)<br>
 [Friedrich](https://codeberg.org/Friedrich)<br>
 [Fugue State Audio](https://www.fstateaudio.com/)<br>
+[Gavin Gamboa](https://gavart.ist/)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [Harald Eilertsen](https://volse.net/)<br>
 [invadeuse](https://codeberg.org/invadeuse)<br>
@@ -82,11 +83,13 @@ Damian Szetela<br>
 [N4ta](https://codeberg.org/N4ta)<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
 [n00q](https://codeberg.org/n00q)<br>
+[Oliver](https://microhive.social/oliver)<br>
 [OniriCorpe](https://oniricorpe.eu)<br>
 [Patricio Maripani](https://enemigo.cl/)<br>
 [Patrik Wallström](https://mastodon.social/@pawal)<br>
 [Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
+[pulusound](https://pulusound.fi/)<br>
 [rakoo](https://codeberg.org/rakoo)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Samæ](https://samae.demer.se/)<br>
