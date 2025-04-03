@@ -813,7 +813,7 @@ input[type="text"].disabled,
 .volume button path.inactive_range { color: var(--bg-3); }
 .volume button.muted path.knob { display: none; }
 .volume button:not(.muted) path.strike_out { display: none; }
-.volume:not(.finegrained) input { display: none; }
+.volume:not(.finegrained) .slider { display: none; }
 .volume.hover .slider { opacity: .8; }
 .volume.hover .slider,
 .volume .slider.dragging,
