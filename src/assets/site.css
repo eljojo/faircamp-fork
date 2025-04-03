@@ -841,8 +841,8 @@ input[type="text"].disabled,
 .volume .slider linearGradient#gradient_level stop:nth-child(1) { stop-color: var(--fg-1); }
 .volume .slider linearGradient#gradient_level_decrease stop:nth-child(1) { stop-color: var(--fg-1); }
 .volume .slider linearGradient#gradient_level_increase stop:nth-child(1) { stop-color: var(--bg-mg); }
-.volume .slider:not(.decrease) linearGradient#gradient_level_decrease { display: none; }
-.volume .slider:not(.increase) linearGradient#gradient_level_increase { display: none; }
+.volume .slider:not(.decrease) path.level_decrease { display: none; }
+.volume .slider:not(.increase) path.level_increase { display: none; }
 .volume .slider path.base { fill: var(--bg-3); }
 .volume .slider.decrease linearGradient#gradient_level stop:nth-child(1) { stop-color: var(--fg-2); }
 .vpad {
