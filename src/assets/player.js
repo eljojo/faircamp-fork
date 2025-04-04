@@ -158,6 +158,14 @@ function formatTimeWrittenOut(seconds) {
     }
 }
 
+// In most cases, hover capability remains constant during runtime, however
+// during testing in desktop browsers with device simulation and possibly in
+// some edge cases in real usage, hover capability might change at runtime,
+// therefore we always query this capability dynamically.
+function hoverAvailable() {
+    return window.matchMedia('(hover: hover)').matches;
+}
+
 // Open the docked player and update its various subelements to display the
 // given track. If track.seekTo is set a seek is indicated by advancing both
 // the track's own progress indicator and the docked player progress bar to
@@ -720,12 +728,22 @@ dockedPlayer.volume.container.addEventListener('auxclick', event => {
 dockedPlayer.volume.container.addEventListener('contextmenu', event => event.preventDefault());
 
 dockedPlayer.volume.container.addEventListener('mouseenter', () => {
-    dockedPlayer.volume.container.classList.add('hover');
+    // On Chromium we observed that in mobile device simulation, touch events
+    // on entirely unrelated elements (e.g. the global "Listen" button) could
+    // trigger mouseenter/mouseleave events on the volume container.
+    // Therefore we make sure not to process these events when there is no
+    // hover capability.
+    if (hoverAvailable()) {
+        dockedPlayer.volume.container.classList.add('hover');
+    }
 });
 
 dockedPlayer.volume.container.addEventListener('mouseleave', () => {
-    dockedPlayer.volume.container.classList.remove('hover');
-    dockedPlayer.volume.slider.classList.remove('decrease', 'increase');
+    // See note for mouseenter
+    if (hoverAvailable()) {
+        dockedPlayer.volume.container.classList.remove('hover');
+        dockedPlayer.volume.slider.classList.remove('decrease', 'increase');
+    }
 });
 
 dockedPlayer.volume.container.addEventListener('wheel', event => {
@@ -750,7 +768,16 @@ dockedPlayer.volume.container.addEventListener('wheel', event => {
     updateVolume();
 });
 
-dockedPlayer.volume.knob.addEventListener('click', () => toggleMute());
+dockedPlayer.volume.knob.addEventListener('click', () => {
+    if (hoverAvailable() || !volume.finegrained) {
+        toggleMute();
+    } else {
+        // On mobiles/tablets with finegrained volume but without hover
+        // capability, hover (for revealing the volume slider) is emulated by
+        // clicking the volume knob.
+        dockedPlayer.volume.container.classList.toggle('hover');
+    }
+});
 
 dockedPlayer.volume.knob.addEventListener('keydown', event => {
     if (event.key === 'ArrowDown') {
@@ -812,6 +839,20 @@ dockedPlayer.volume.slider.addEventListener('mousemove', event => {
     }
 
 });
+
+const handleTouch = event => {
+    for (const touch of event.changedTouches) {
+        const svgRect = dockedPlayer.volume.sliderSvg.getBoundingClientRect()
+        const clampedTouchX = Math.min(Math.max(0, touch.clientX - svgRect.x), svgRect.width);
+        volume.level = clampedTouchX / svgRect.width;
+        updateVolume();
+    }
+};
+
+dockedPlayer.volume.slider.addEventListener('touchcancel', handleTouch);
+dockedPlayer.volume.slider.addEventListener('touchend', handleTouch);
+dockedPlayer.volume.slider.addEventListener('touchmove', handleTouch);
+dockedPlayer.volume.slider.addEventListener('touchstart', handleTouch);
 
 dockedPlayer.volume.sliderInput.addEventListener('blur', () => {
     dockedPlayer.volume.slider.classList.remove('focus');
