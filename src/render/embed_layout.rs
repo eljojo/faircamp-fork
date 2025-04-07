@@ -4,6 +4,7 @@
 use indoc::formatdoc;
 
 use crate::{
+    AssetHashes,
     Build,
     GENERATOR_INFO,
     SiteUrl,
@@ -30,7 +31,7 @@ impl EmbedLayout {
         let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
         let display_link_url = SiteUrl::pretty_display(link_url);
-        let embeds_css_hash = build.asset_hashes.embeds_css.as_ref().unwrap();
+        let embeds_css_hash = AssetHashes::EMBEDS_CSS;
         let embeds_js_hash = build.asset_hashes.embeds_js.as_ref().unwrap();
 
         let external_icon = icons::external(&translations.external_link);

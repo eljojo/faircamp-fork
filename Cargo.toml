@@ -11,6 +11,8 @@ rust-version = "1.76.0"
 version = "1.3.0"
 
 [build-dependencies]
+base64 = "0.22.1"
+lightningcss = { optional = true, version = "1.0.0-alpha.65" }
 oxc_allocator = { optional = true, version = "0.62.0" }
 oxc_codegen = { optional = true, version = "0.62.0" }
 oxc_mangler = { optional = true, version = "0.62.0" }
@@ -81,6 +83,7 @@ libvips = ["dep:libvips"]
 # the MSRV to 1.85.0, therefore we keep this an opt-in build feature right
 # now.
 minify = [
+	"dep:lightningcss",
 	"dep:oxc_allocator",
 	"dep:oxc_codegen",
 	"dep:oxc_mangler",

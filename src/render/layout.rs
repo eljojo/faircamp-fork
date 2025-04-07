@@ -4,6 +4,7 @@
 use indoc::formatdoc;
 
 use crate::{
+    AssetHashes,
     Build,
     Catalog,
     GENERATOR_INFO,
@@ -215,11 +216,17 @@ impl Layout {
         let mut templates = String::new();
         let translations = &build.locale.translations;
 
-        let feed_meta_links = if build.base_url.is_some() {
-            catalog.feeds.meta_link_tags(root_prefix, translations)
-        } else {
-            String::new()
+        let mut extra_meta = String::new();
+
+        let mut add_extra_meta = |tags: &str| {
+            extra_meta.push_str(tags);
+            extra_meta.push('\n');
         };
+
+        if build.base_url.is_some() && catalog.feeds.any_requested() {
+            let feed_tags = catalog.feeds.meta_link_tags(root_prefix, translations);
+            add_extra_meta(&feed_tags);
+        }
 
         let dir_attribute = if build.locale.text_direction.is_rtl() { r#"dir="rtl""# } else { "" };
 
@@ -248,12 +255,11 @@ impl Layout {
             None => String::from("")
         };
 
-        let mut extra_scripts = String::new();
-
         if self.clipboard_script {
-            let clipboard_js_hash = build.asset_hashes.clipboard_js.as_ref().unwrap();
-            let script_tag = format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#);
-            extra_scripts.push_str(&script_tag);
+            let clipboard_js_hash = AssetHashes::CLIPBOARD_JS;
+            let clipboard_script_tag = format!(r#"<script defer src="{root_prefix}clipboard.js?{clipboard_js_hash}"></script>"#);
+
+            add_extra_meta(&clipboard_script_tag);
 
             let copy_icon = icons::COPY;
             let failed_icon = icons::failure(&translations.failed);
@@ -274,8 +280,9 @@ impl Layout {
 
         if self.player_script {
             let player_js_hash = build.asset_hashes.player_js.as_ref().unwrap();
-            let script_tag = format!(r#"<script defer src="{root_prefix}player.js?{player_js_hash}"></script>"#);
-            extra_scripts.push_str(&script_tag);
+            let player_script_tag = format!(r#"<script defer src="{root_prefix}player.js?{player_js_hash}"></script>"#);
+
+            add_extra_meta(&player_script_tag);
 
             templates.push_str(&player_icon_templates(translations));
         }
@@ -284,19 +291,22 @@ impl Layout {
         let browser_js_hash = build.asset_hashes.browser_js.as_ref().unwrap();
         let catalog_title = html_escape_outside_attribute(&catalog.title());
 
-        let crawler_meta = match self.no_indexing {
-            true => r#"<meta name="robots" content="noindex, nofollow">"#,
-            false => ""
-        };
+
+        if self.no_indexing {
+            add_extra_meta(r#"<meta name="robots" content="noindex, nofollow">"#);
+        }
+
+        if let Some(favicon_tags) = catalog.favicon.header_tags(build, root_prefix) {
+            add_extra_meta(&favicon_tags);
+        }
 
         let faircamp_icon = icons::faircamp(Some("Faircamp"));
-        let favicon_links = catalog.favicon.header_tags(build, root_prefix);
         let lang = &build.locale.language;
 
-        let opengraph_meta = self.opengraph_meta
-            .as_ref()
-            .map(|meta| meta.tags(build, catalog))
-            .unwrap_or(String::new());
+        if let Some(meta) = &self.opengraph_meta {
+            let opengraph_tags = meta.tags(build, catalog);
+            add_extra_meta(&opengraph_tags);
+        }
 
         let site_css_hash = build.asset_hashes.site_css.as_ref().unwrap();
         let theme_css_hash = build.asset_hashes.theme_css.get(&theme.stylesheet_filename()).unwrap();
@@ -317,6 +327,12 @@ impl Layout {
         let t_search = &translations.search;
         let t_skip_to_main_content = &translations.skip_to_main_content;
 
+        // User-supplied site metadata is appended last in order to guarantee
+        // its precendence when overriding (e.g.) native styles.
+        if let Some(site_metadata) = &catalog.site_metadata {
+            add_extra_meta(&site_metadata.render(root_prefix));
+        }
+
         formatdoc!(r##"
             <!DOCTYPE html>
             <html {dir_attribute} lang="{lang}">
@@ -326,14 +342,10 @@ impl Layout {
                     <meta name="description" content="{title_escaped_inside_attribute}">
                     <meta name="generator" content="{GENERATOR_INFO}">
                     <meta name="viewport" content="width=device-width, initial-scale=1">
-                    {crawler_meta}
-                    {opengraph_meta}
-                    {favicon_links}
-                    {feed_meta_links}
                     <link href="{root_prefix}{theme_stylesheet_filename}?{theme_css_hash}" rel="stylesheet">
                     <link href="{root_prefix}site.css?{site_css_hash}" rel="stylesheet">
                     <script defer src="{root_prefix}browser.js?{browser_js_hash}"></script>
-                    {extra_scripts}
+                    {extra_meta}
                 </head>
                 <body>
                     <script>document.body.classList.add('js_enabled');</script>

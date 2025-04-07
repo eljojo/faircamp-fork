@@ -3,6 +3,7 @@
 
 use indoc::formatdoc;
 
+use crate::M3U_PLAYLIST_FILENAME;
 use crate::{
     Build,
     Catalog,
@@ -103,7 +104,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
             let stream_icon = icons::STREAM;
 
             let m3u_playlist_link = formatdoc!(r#"
-                <a href="playlist.m3u">
+                <a href="{M3U_PLAYLIST_FILENAME}">
                     {stream_icon}
                     <span>{t_m3u_playlist}</span>
                 </a>

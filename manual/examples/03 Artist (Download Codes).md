@@ -49,7 +49,6 @@ accent_hue = 163
 base = light
 base_chroma = 14
 base_hue = 116
-custom_font = MagicSansV1.3-Book.woff2
 ```
 
 ## `saythemagicword/saythemagicword-ep/release.eno`:

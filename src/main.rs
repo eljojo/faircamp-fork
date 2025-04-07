@@ -6,6 +6,7 @@ use std::fs;
 use std::process::ExitCode;
 
 use clap::Parser;
+use indoc::formatdoc;
 
 #[macro_use]
 mod message;
@@ -43,6 +44,7 @@ mod release;
 mod render;
 mod rsync;
 mod server;
+mod site_metadata;
 mod site_url;
 mod source_file_signature;
 mod streaming_quality;
@@ -61,7 +63,7 @@ use artist::{Artist, ArtistRc};
 use asset::{Asset, AssetIntent};
 use audio_format::{AudioFormat, AudioFormatFamily};
 use audio_meta::AudioMeta;
-use build::{Build, GENERATOR_INFO, PostBuildAction};
+use build::{AssetHashes, Build, GENERATOR_INFO, PostBuildAction};
 use cache::{Cache, CacheOptimization, View};
 use catalog::Catalog;
 use cover_generator::{CoverGenerator, ProceduralCover, ProceduralCoverAsset, ProceduralCoverRc};
@@ -74,11 +76,13 @@ use heuristic_audio_meta::HeuristicAudioMeta;
 use crate::image::{DescribedImage, FeedImageAsset, Image, ImageProcessor, ImageRc, ImageRcView, ImgAttributes};
 use link::Link;
 use locale::Locale;
+use m3u::M3U_PLAYLIST_FILENAME;
 use manifest::{LocalOptions, Overrides};
 use markdown::HtmlAndStripped;
 use opengraph::{OpenGraphImage, OpenGraphMeta};
 use permalink::{Permalink, PermalinkUsage};
 use release::{Extra, Release, ReleaseRc, TRACK_NUMBERS};
+use site_metadata::{SiteAsset, SiteMetadata};
 use site_url::SiteUrl;
 use source_file_signature::{FileMeta, SourceHash};
 use streaming_quality::StreamingQuality;
@@ -163,32 +167,38 @@ fn main() -> ExitCode {
     styles::generate(&mut build, &catalog);
     catalog.favicon.write(&mut build);
 
-    if let Some(base_url) = &build.base_url {
+    if build.base_url.is_some() {
         // Render M3U playlist
         if catalog.m3u {
-            let r_m3u = m3u::generate_for_catalog(base_url, &build, &catalog);
-            fs::write(build.build_dir.join("playlist.m3u"), r_m3u).unwrap();
+            let r_m3u = m3u::generate_for_catalog(&build, &catalog);
+            fs::write(build.build_dir.join(M3U_PLAYLIST_FILENAME), r_m3u).unwrap();
+            build.reserve_filename(M3U_PLAYLIST_FILENAME);
         }
 
         if catalog.feeds.any_requested() {
             // Render feed (xml) files (Atom, Generic RSS, Media RSS, Podcast RSS, as enabled)
-            catalog.feeds.generate(base_url, &build, &catalog);
+            catalog.feeds.generate(&mut build, &catalog);
 
             // Render subscription choices page
-            let subscribe_dir = build.build_dir.join(catalog.subscribe_permalink.as_ref().unwrap());
+            let subscribe_permalink = catalog.subscribe_permalink.as_ref().unwrap();
+            let subscribe_dir = build.build_dir.join(subscribe_permalink);
             util::ensure_dir_all(&subscribe_dir);
-            let subscribe_html = render::subscribe::subscribe_html(base_url, &build, &catalog);
+            let subscribe_html = render::subscribe::subscribe_html(&build, &catalog);
             fs::write(subscribe_dir.join("index.html"), subscribe_html).unwrap();
+            build.reserve_filename(subscribe_permalink);
         }
     }
 
     // Render homepage (page for all releases)
     let index_html = render::index::index_html(&build, &catalog);
     fs::write(build.build_dir.join("index.html"), index_html).unwrap();
+    build.reserve_filename("index.html");
 
     // Render pages for each release (including playlists, track pages, embeds, etc.)
     for release in &catalog.releases {
-        release.borrow_mut().write_pages_and_playlist_files(&mut build, &catalog);
+        let release_mut = release.borrow_mut();
+        release_mut.write_pages_and_playlist_files(&mut build, &catalog);
+        build.reserve_filename(release_mut.permalink.slug.clone());
     }
 
     // Render pages for featured artists (these are populated only in label mode)
@@ -202,12 +212,13 @@ fn main() -> ExitCode {
         if let Some(base_url) = &build.base_url {
             if artist_ref.m3u {
                 let r_m3u = m3u::generate_for_artist(&artist_ref, base_url, &build);
-                fs::write(artist_dir.join("playlist.m3u"), r_m3u).unwrap();
+                fs::write(artist_dir.join(M3U_PLAYLIST_FILENAME), r_m3u).unwrap();
             }
         }
 
         let artist_html = render::artist::artist_html(&artist_ref, &build, &catalog);
         fs::write(artist_dir.join("index.html"), artist_html).unwrap();
+        build.reserve_filename(artist_ref.permalink.slug.clone());
     }
 
     // Render image descriptions page (when needed)
@@ -217,6 +228,25 @@ fn main() -> ExitCode {
         let image_descriptions_html = render::image_descriptions::image_descriptions_html(&build, &catalog);
         fs::create_dir(&image_descriptions_dir).unwrap();
         fs::write(image_descriptions_dir.join("index.html"), image_descriptions_html).unwrap();
+        build.reserve_filename(t_image_descriptions_permalink);
+    }
+
+    // Must be the last step because we need to check for collisions against
+    // everything we wrote to the build directory ourselves beforehand.
+    if let Err(collisions) = catalog.write_user_assets(&mut build) {
+        let collisions_joined = collisions
+            .iter()
+            .map(|filename| format!("'{filename}'"))
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        let message = formatdoc!(r#"
+            One or more filenames of your custom site assets collide with filenames already used by faircamp itself: {collisions_joined}
+            Please rename the respective site assets, making sure to update all references pointing to it (both in site_metadata and in your own files, if applies).
+        "#);
+
+        error!("{}", message);
+        return ExitCode::FAILURE;
     }
 
     if build.base_url.is_none() {

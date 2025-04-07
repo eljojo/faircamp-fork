@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use translations::Translations;
+use crate::{Build, Catalog};
 
-use crate::{Build, Catalog, SiteUrl};
+use translations::Translations;
 
 mod atom;
 mod generic_rss;
@@ -86,26 +86,25 @@ impl Feeds {
     }
 
     /// Generate all enabled feeds, writing them to the build directory.
-    pub fn generate(
-        &self,
-        base_url: &SiteUrl,
-        build: &Build,
-        catalog: &Catalog
-    ) {
+    pub fn generate(&self, build: &mut Build, catalog: &Catalog) {
         if self.atom {
-            atom::atom(base_url, build, catalog);
+            atom::atom(build, catalog);
+            build.reserve_filename(Feeds::ATOM_FILENAME);
         }
 
         if self.generic_rss {
-            generic_rss::generic_rss(base_url, build, catalog);
+            generic_rss::generic_rss(build, catalog);
+            build.reserve_filename(Feeds::GENERIC_RSS_FILENAME);
         }
 
         if self.media_rss {
-            media_rss::media_rss(base_url, build, catalog);
+            media_rss::media_rss(build, catalog);
+            build.reserve_filename(Feeds::MEDIA_RSS_FILENAME);
         }
 
         if self.podcast_rss {
-            podcast_rss::podcast_rss(base_url, build, catalog);
+            podcast_rss::podcast_rss(build, catalog);
+            build.reserve_filename(Feeds::PODCAST_RSS_FILENAME);
         }
     }
 

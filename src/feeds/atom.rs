@@ -22,11 +22,8 @@ use crate::util::html_escape_outside_attribute;
 
 use super::Feeds;
 
-pub fn atom(
-    base_url: &SiteUrl,
-    build: &Build,
-    catalog: &Catalog
-) {
+pub fn atom(build: &Build, catalog: &Catalog) {
+    let base_url = build.base_url_unchecked();
     let atom_feed_url = base_url.join_file(Feeds::ATOM_FILENAME);
 
     let author = if catalog.label_mode {

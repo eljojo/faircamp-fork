@@ -16,11 +16,8 @@ use crate::{
 use super::Feeds;
 use super::rss::rss;
 
-pub fn generic_rss(
-    base_url: &SiteUrl,
-    build: &Build,
-    catalog: &Catalog
-) {
+pub fn generic_rss(build: &Build, catalog: &Catalog) {
+    let base_url = build.base_url_unchecked();
     let url = base_url.join_file(Feeds::GENERIC_RSS_FILENAME);
 
     // The generic RSS feed just re-uses the generic RSS base markup in the

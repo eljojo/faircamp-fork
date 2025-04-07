@@ -3,6 +3,9 @@
 
 //! Specification from the Podcast Standards Project as reference:
 //! https://github.com/Podcast-Standards-Project/PSP-1-Podcast-RSS-Specification
+//!
+//! "A Podcaster’s Guide to RSS" from apple as reference:
+//! https://help.apple.com/itc/podcasts_connect/#/itcb54353390
 
 use std::fs;
 use std::hash::Hash;
@@ -113,11 +116,8 @@ pub fn item_extensions(
     extensions.join("\n")
 }
 
-pub fn podcast_rss(
-    base_url: &SiteUrl,
-    build: &Build,
-    catalog: &Catalog
-) {
+pub fn podcast_rss(build: &Build, catalog: &Catalog) {
+    let base_url = build.base_url_unchecked();
     let url = base_url.join_file(Feeds::PODCAST_RSS_FILENAME);
 
     let mut extensions = Vec::new();

@@ -32,6 +32,8 @@ use crate::{
     ProceduralCoverAsset,
     Release,
     ReleaseRc,
+    SiteAsset,
+    SiteMetadata,
     TagMapping,
     Theme,
     Track,
@@ -74,6 +76,14 @@ pub struct Catalog {
     pub opengraph: bool,
     pub releases: Vec<ReleaseRc>,
     pub show_support_artists: bool,
+    /// Files specified through the site_assets option that are meant to be
+    /// included in the build, e.g. to reference/include them from custom
+    /// site_metadata.
+    pub site_assets: Vec<SiteAsset>,
+    /// Arbitrary html content with interpolated filenames like {{example.css}}
+    /// specified through the site_metadata option that is injected into the
+    /// <head>…</head> section on all rendered pages.
+    pub site_metadata: Option<SiteMetadata>,
     /// The page presenting subscription choices for the catalog competes with all
     /// artist+release permalinks, therefore we do a run-time computation to
     /// determine a conflict-free permalink for it (which starts with our
@@ -125,7 +135,9 @@ pub fn write_background_image(build: &mut Build, image: &ImageRcView) {
     let background_asset = image_mut.background_asset(build, source_path);
 
     let hashed_filename = format!("background-{}.jpg", url_safe_hash_base64(&background_asset.filename));
-    let hashed_path = build.build_dir.join(hashed_filename);
+    let hashed_path = build.build_dir.join(&hashed_filename);
+
+    build.reserve_filename(hashed_filename);
 
     if !hashed_path.exists() {
         util::hard_link_or_copy(
@@ -349,6 +361,8 @@ impl Catalog {
             opengraph: false,
             releases: Vec::new(),
             show_support_artists: false,
+            site_assets: Vec::new(),
+            site_metadata: None,
             subscribe_permalink: None,
             support_artists: Vec::new(),
             synopsis: None,
@@ -433,6 +447,17 @@ impl Catalog {
         if !catalog.validate_permalinks(build) {
             warn!("The build has been aborted because permalink conflicts were found, this kind of error needs to be resolved and cannot be ignored.");
             return Err(());
+        }
+
+        if let Some(site_metadata) = &mut catalog.site_metadata {
+            if let Err(missing_filenames) = site_metadata.resolve_filename_references(&catalog.site_assets) {
+                for filename in &missing_filenames {
+                    error!("The filename reference {{{}}} inside site_metadata could not be resolved.", filename)
+                }
+
+                warn!("The build has been aborted because {} filenames in site_metadata could not be resolved, this kind of error needs to be resolved and cannot be ignored.", missing_filenames.len());
+                return Err(());
+            }
         }
 
         catalog.compute_asset_basenames();
@@ -1322,6 +1347,7 @@ impl Catalog {
     /// Writes all images (catalog home image, release/track covers, theme
     /// background images) and streaming audio files.
     pub fn write_assets(&mut self, build: &mut Build, cache: &mut Cache) {
+        // Write catalog theme background image
         if let Some(image) = &self.theme.background_image {
             write_background_image(build, image);
         }
@@ -1333,11 +1359,14 @@ impl Catalog {
             let poster_assets = image_mut.artist_assets(build, source_path);
 
             for asset in &poster_assets.all() {
+                let target_filename = asset.target_filename();
+
                 util::hard_link_or_copy(
                     build.cache_dir.join(&asset.filename),
-                    build.build_dir.join(asset.target_filename())
+                    build.build_dir.join(&target_filename)
                 );
 
+                build.reserve_filename(target_filename);
                 build.stats.add_image(asset.filesize_bytes);
             }
 
@@ -1351,6 +1380,7 @@ impl Catalog {
                     build.build_dir.join(FeedImageAsset::TARGET_FILENAME)
                 );
 
+                build.reserve_filename(FeedImageAsset::TARGET_FILENAME);
                 build.stats.add_image(feed_image_asset.filesize_bytes);
             }
 
@@ -1361,8 +1391,12 @@ impl Catalog {
             let artist_ref = artist.borrow();
 
             if let Some(described_image) = &artist_ref.image {
+                // Write artist dir
                 let artist_dir = build.build_dir.join(&artist_ref.permalink.slug);
+                build.reserve_filename(artist_ref.permalink.slug.clone());
                 util::ensure_dir_all(&artist_dir);
+
+                // Write artist image as poster image
 
                 let mut image_mut = described_image.borrow_mut();
                 let source_path = &described_image.file_meta.path;
@@ -1380,6 +1414,7 @@ impl Catalog {
                 image_mut.persist_to_cache(&build.cache_dir);
             }
 
+            // Write artist theme background image
             if let Some(image) = &artist_ref.theme.background_image {
                 write_background_image(build, image);
             }
@@ -1394,8 +1429,9 @@ impl Catalog {
         for release in &self.releases {
             let mut release_mut = release.borrow_mut();
 
+            // Write release dir
             let release_dir = build.build_dir.join(&release_mut.permalink.slug);
-
+            build.reserve_filename(release_mut.permalink.slug.clone());
             util::ensure_dir_all(&release_dir);
 
             // Write release theme background image
@@ -1533,6 +1569,30 @@ impl Catalog {
             }
 
             release_mut.write_downloadable_files(build);
+        }
+    }
+
+    // Writing user-provided extra site assets entails detecting collisions
+    // against all the directories/files we wrote ourselves already (which can
+    // only be done after we have written them, hence this should be called
+    // as the last build step).
+    pub fn write_user_assets(&mut self, build: &mut Build) -> Result<(), Vec<String>> {
+        let mut collisions = Vec::new();
+
+        for site_asset in self.site_assets.iter_mut() {
+            if build.reserve_filename(site_asset.filename.clone()) {
+                util::hard_link_or_copy(
+                    &site_asset.path,
+                    build.build_dir.join(&site_asset.filename)
+                );
+            } else {
+                collisions.push(site_asset.filename.clone());
+            }
+        }
+
+        match collisions.is_empty() {
+            true => Ok(()),
+            false => Err(collisions)
         }
     }
 }

@@ -4,6 +4,8 @@
 use std::fs;
 use std::path::Path;
 
+use indoc::indoc;
+
 use crate::{
     Build,
     Cache,
@@ -15,6 +17,8 @@ use crate::{
     LocalOptions,
     Locale,
     Overrides,
+    SiteAsset,
+    SiteMetadata,
     SiteUrl
 };
 use crate::util::uid;
@@ -53,6 +57,8 @@ const CATALOG_OPTIONS: &[&str] = &[
     "opengraph",
     "rotate_download_urls",
     "show_support_artists",
+    "site_assets",
+    "site_metadata",
     "title"
 ];
 
@@ -288,7 +294,15 @@ pub fn read_catalog_manifest(
                     }
                 }
 
-                let message = "feeds needs to be provided either as a field with a value (e.g. 'feeds: all', with available options being 'all', 'atom', 'generic_rss', 'media_rss', 'podcast_rss' and 'disabled') or as a field with items, e.g.:\n\nfeeds:\n- media_rss\n- podcast_rss\n\n(available options here being: 'atom', 'generic_rss', 'media_rss' and 'podcast_rss')";
+                let message = indoc!("
+                    feeds needs to be provided either as a field with a value (e.g. 'feeds: all', with available options being 'all', 'atom', 'generic_rss', 'media_rss', 'podcast_rss' and 'disabled') or as a field with items, e.g.:
+
+                    feeds:
+                    - media_rss
+                    - podcast_rss
+
+                    (available options here being: 'atom', 'generic_rss', 'media_rss' and 'podcast_rss')
+                ");
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
@@ -351,7 +365,13 @@ pub fn read_catalog_manifest(
                     }
                 }
 
-                let message = "home_image needs to be provided as a field with attributes, e.g.:\n\nhome_image:\ndescription = Alice, looking amused\nfile = alice.jpg";
+                let message = indoc!("
+                    home_image needs to be provided as a field with attributes, e.g.:
+
+                    home_image:
+                    description = Alice, looking amused
+                    file = alice.jpg
+                ");
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
@@ -464,6 +484,83 @@ pub fn read_catalog_manifest(
                     let error = element_error_with_snippet(element, manifest_path, message);
                     build.error(&error);
                 }
+            }
+            "site_assets" => 'site_assets: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            let absolute_path = dir.join(value);
+                            if absolute_path.exists() {
+                                let site_asset = SiteAsset::new(absolute_path);
+                                catalog.site_assets.push(site_asset);
+                            } else {
+                                let message = format!("The referenced file {} was not found", absolute_path.display());
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
+                            }
+                        }
+
+                        break 'site_assets;
+                    } else if let Ok(items) = field.items() {
+                        catalog.site_assets.clear();
+
+                        for item in items {
+                            if let Some(value) = item.value() {
+                                let absolute_path = dir.join(value);
+                                if absolute_path.exists() {
+                                    let site_asset = SiteAsset::new(absolute_path);
+                                    catalog.site_assets.push(site_asset);
+                                } else {
+                                    let message = format!("The referenced file {} was not found", absolute_path.display());
+                                    let error = element_error_with_snippet(element, manifest_path, &message);
+                                    build.error(&error);
+                                }
+                            }
+                        }
+
+                        break 'site_assets;
+                    }
+                }
+
+                let message = indoc!(r#"
+                    site_assets needs to be provided as a field with a value or a field with items, for instance:
+
+                    site_assets: custom.css
+
+                    site_assets:
+                    - custom.css
+                    - custom.js
+                "#);
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
+            }
+            "site_metadata" => 'site_metadata: {
+                if let Ok(embed) = element.as_embed() {
+                    if let Some(value) = embed.value() {
+                        match SiteMetadata::parse(value) {
+                            Ok(site_metadata) => {
+                                catalog.site_metadata = Some(site_metadata);
+                            }
+                            Err(err) => {
+                                let message = format!("The given site_metadata has (an) issue(s): {err}");
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
+                            }
+                        }
+                    }
+
+                    break 'site_metadata;
+                }
+
+                let message = indoc!(r#"
+                    site_metadata needs to be provided as an embed, for instance:
+
+                    -- site_metadata
+                    <link href="{{styles.css}}" rel="stylesheet">
+                    -- site_metadata
+                "#);
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
             }
             "title" => 'title: {
                 if let Ok(field) = element.as_field() {

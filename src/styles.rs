@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2024 Simon Repp
+// SPDX-FileCopyrightText: 2021-2025 Simon Repp
 // SPDX-FileCopyrightText: 2024 James Fenn
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -13,6 +13,18 @@ use crate::{
     ThemeVarsHsl
 };
 use crate::util::url_safe_hash_base64;
+
+const BARLOW_FONT_FILENAME: &str = "barlow-v12-latin-regular.woff2";
+
+const EMBEDS_CSS: &str = include_str!(env!("FAIRCAMP_EMBEDS_CSS"));
+const EMBEDS_CSS_FILENAME: &str = "embeds.css";
+
+const MISSING_IMAGE_DESCRIPTIONS_CSS: &str = include_str!(env!("FAIRCAMP_MISSING_IMAGE_DESCRIPTIONS_CSS"));
+
+const THEMING_WIDGET_CSS: &str = include_str!(env!("FAIRCAMP_THEMING_WIDGET_CSS"));
+
+const SITE_CSS: &str = include_str!(env!("FAIRCAMP_SITE_CSS"));
+const SITE_CSS_FILENAME: &str = "site.css";
 
 const FALLBACK_FONT_STACK_SANS: &str = r#"-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif"#;
 const FONT_ELEMENTS_SELECTOR: &str = "body, button, input";
@@ -42,24 +54,33 @@ pub fn generate(build: &mut Build, catalog: &Catalog) {
 }
 
 fn generate_embeds_css(build: &mut Build) {
-    let css = include_str!("assets/embeds.css");
-    build.asset_hashes.embeds_css = Some(url_safe_hash_base64(&css));
-    fs::write(build.build_dir.join("embeds.css"), css).unwrap();
+    fs::write(
+        build.build_dir.join(EMBEDS_CSS_FILENAME),
+        EMBEDS_CSS
+    ).unwrap();
+
+    build.reserve_filename(EMBEDS_CSS_FILENAME);
 }
 
 fn generate_site_css(build: &mut Build) {
-    let mut css = String::from(include_str!("assets/site.css"));
+    let mut css = String::from(SITE_CSS);
 
     if build.missing_image_descriptions {
-        css.push_str(include_str!("assets/missing_image_descriptions.css"));
+        css.push_str(MISSING_IMAGE_DESCRIPTIONS_CSS);
     }
 
     if build.theming_widget {
-        css.push_str(include_str!("assets/theming_widget.css"));
+        css.push_str(THEMING_WIDGET_CSS);
     }
 
     build.asset_hashes.site_css = Some(url_safe_hash_base64(&css));
-    fs::write(build.build_dir.join("site.css"), css).unwrap();
+
+    fs::write(
+        build.build_dir.join(SITE_CSS_FILENAME),
+        css
+    ).unwrap();
+
+    build.reserve_filename(SITE_CSS_FILENAME);
 }
 
 fn generate_theme_css(build: &mut Build, theme: &Theme) {
@@ -74,6 +95,8 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
             let filename = format!("custom.{}", extension);
 
             fs::copy(path, build.build_dir.join(&filename)).unwrap();
+
+            build.reserve_filename(filename.clone());
             
             formatdoc!(r#"
                 @font-face {{
@@ -87,17 +110,19 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
         }
         ThemeFont::Default => {
             fs::write(
-                build.build_dir.join("barlow-v12-latin-regular.woff2"),
+                build.build_dir.join(BARLOW_FONT_FILENAME),
                 include_bytes!("assets/barlow-v12-latin-regular.woff2")
             ).unwrap();
-            
+
+            build.reserve_filename(BARLOW_FONT_FILENAME);
+
             formatdoc!(r#"
                 @font-face {{
                     font-display: fallback;
                     font-family: 'Barlow';
                     font-style: normal;
                     font-weight: 400;
-                    src: local('Barlow'), url('barlow-v12-latin-regular.woff2') format('woff2');
+                    src: local('Barlow'), url('{BARLOW_FONT_FILENAME}') format('woff2');
                 }}
                 {FONT_ELEMENTS_SELECTOR} {{ font-family: 'Barlow', {FALLBACK_FONT_STACK_SANS}; }}
             "#)
@@ -147,7 +172,12 @@ fn generate_theme_css(build: &mut Build, theme: &Theme) {
     
     build.asset_hashes.theme_css.insert(stylesheet_filename.clone(), url_safe_hash_base64(&css));
 
-    fs::write(build.build_dir.join(stylesheet_filename), css).unwrap();
+    fs::write(
+        build.build_dir.join(&stylesheet_filename),
+        css
+    ).unwrap();
+
+    build.reserve_filename(stylesheet_filename);
 }
 
 fn generate_vars(theme: &Theme) -> String {

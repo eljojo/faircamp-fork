@@ -5,7 +5,7 @@
 
 # The catalog manifest – catalog.eno
 
-> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [download_code(s)](#download_codes), [embedding](#embedding), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [feeds](#feeds), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
+> All options at a glance: [artist](#artist), [base_url](#base_url), [cache_optimization](#cache_optimization), [copy_link](#copy_link), [download_code(s)](#download_codes), [embedding](#embedding), [faircamp_signature](#faircamp_signature), [favicon](#favicon), [feature_support_artists](#feature_support_artists), [feeds](#feeds), [freeze_download_urls](#freeze_download_urls), [home_image](#home_image), [label_mode](#label_mode), [language](#language), [link](#link), [m3u](#m3u), [more](#more), [more_label](#more_label), [opengraph](#opengraph), [payment_info](#payment_info), [release_download_access](#release_download_access), [release_downloads](#release_downloads), [release_extras](#release_extras), [release_price](#release_price), [rotate_download_urls](#rotate_download_urls), [show_support_artists](#show_support_artists), [site_assets](#site_assets), [site_metadata](#site_metadata), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_numbering](#track_numbering), [track_price](#track_price), [unlock_info](#unlock_info)
 
 The most central place in which changes to your site can be made
 is the catalog manifest. Simply create a (plain text) file called
@@ -760,6 +760,129 @@ tracks/releases) are not listed in the interface. You can use the
 show_support_artists
 ```
 
+## <a name="site_assets"></a> `site_assets`
+
+This allows you to specify arbitrary files for inclusion in the build (more precisely,
+in the site's build root directory). Some of the most common usecases for this are for
+instance:
+
+- Providing script files for analytics
+- Providing stylesheet files that customize the style beyond faircamp's theming system
+- Providing complementary assets like font files, images, etc.
+
+For instance, To include multiple files:
+
+```eno
+site_assets:
+- analytics.js
+- custom.css
+- my_font.woff2
+```
+
+Or, to include a single file, you can also use a shorthand form:
+
+```eno
+site_assets: custom.css
+```
+
+Any files you provide will be included in the build with exactly the filename
+you specify. If your filename(s) collide with any directory or file names
+that faircamp generates, faircamp will point this out to you and abort the
+build - in this case you need to assign new, non-conflicting name(s).
+
+Note that specifying a `.css` file (for instance) does **not** mean the styles
+will be automatically applied on the page, neither does specifying a `.js`
+file lead to the script being executed on the page automatically. If you want
+to directly use the assets in this way on your faircamp page (which might not
+be your usecase, hence this is not done automatically), you additionally need
+to use the [site_metadata](#site_metadata) option to include the respective
+directives for it in the `<head>…</head>` section of your site.
+
+## <a name="site_metadata"></a> `site_metadata`
+
+This allows you to specify arbitrary tags for inclusion in the
+`<head>…</head>` section of every page on your faircamp site. Some of the
+most common usecases for this are for instance:
+
+- Including an external analytics script file
+- Specifying style customizations or linking to a stylesheet containing them
+- Adding your own site-wide `<meta …>` tags
+
+Now **before copying/pasting from the snippets** below, take note that assets
+included through [site_assets](#site_assets) must **not** be included simply
+by referring to their filename alone - instead, take their filename
+(e.g. `custom.css`) and wrap it in double curly braces, like so: `{{custom.css}}`.
+
+This way, faircamp will identify them as explicit references to your
+[site_assets](#site_assets) and replace them with the correct, relative path on every page
+(`custom.css` on the homepage, `../custom.css` on artist and release pages,
+`../../custom.css` on track pages, and so on). A side-benefit from this is
+that faircamp will ensure the reference's integrity for you - if the filename
+in your reference does not match the file on disk, you will know before the
+site is even built.
+
+For instance, to link to an analytics script file included through [site_assets](#site_assets):
+
+```eno
+site_assets: analytics.js
+
+-- site_metadata
+<script src="{{analytics.js}}"></script>
+-- site_metadata
+```
+
+To link to a custom css file that internally references a png
+file, with both of them included through [site_assets](#site_assets):
+
+```eno
+site_assets:
+- custom.css
+- marker.png
+
+-- site_metadata
+<link href="{{custom.css}}" rel="stylesheet">
+-- site_metadata
+```
+
+Note that when (for example) `custom.css` **internally** references
+`marker.png`, such internal references must **not** use the double curly
+braces otherwise used in `site_metadata`, as the `.css` and `.png` file
+always keep the same relative location to each other - and faircamp does not
+touch what's inside your site assets anyhow.
+
+To directly specify style tweaks that additionally use an svg included through [site_assets](#site_assets):
+
+```eno
+site_assets: marker.svg
+
+-- site_metadata
+<style>
+    a { text-decoration-thickness: .2em; }
+    ul {
+        list-style: georgian inside url("{{marker.svg}}");
+        padding-left: 0;
+    }
+</style>
+-- site_metadata
+```
+
+To include `fediverse:creator` metadata:
+
+```eno
+-- site_metadata
+<meta name="fediverse:creator" content="@JohnMastodon@example.com"/>
+-- site_metadata
+```
+
+Lastly, please keep in mind that modifications you make through this feature
+have the capability to break readability, accessibility, functionality, etc.
+for the visitors on your page - you are without guardrails here -
+so be considerate what changes you make. Additionally, if you make any such
+modifications on your page and at some point observe bugs on your faircamp
+site, it's strongly recommended to confirm that your modifications are not
+somehow responsible for them before reporting them, and to mention them
+alongside your bugreports as well, just to be sure.
+
 ## <a name="speed_controls"></a> `speed_controls`
 
 By default, faircamp's audio player(s) provide no playback speed controls,
@@ -986,7 +1109,8 @@ With `waveforms = enabled` you can turn this back on for specific releases if yo
 ### Font
 
 By default, faircamp bundles and uses the [Barlow](https://tribby.com/fonts/barlow/)
-font on a generated site, but this can be configured.
+font on a generated site, but alternatively you can also configure your site to only
+use your visitors' system font(s):
 
 Using the standard sans serif font from the system of the visitor:
 
@@ -1002,19 +1126,12 @@ theme:
 system_font = mono
 ```
 
-Using a specific font (by font name) from the system of the visitor (this should have a rather specific reason, normally you probably don't want to do that):
-
-```eno
-theme:
-system_font = Arial
-```
-
-Bundling and using a custom font (put a `.woff` or `.woff2` file in the same directory as the manifest - other font file types are not supported!):
-
-```eno
-theme:
-custom_font = MyCustomSans.woff2
-```
+Usage of custom fonts entails complexities and responsibilities that faircamp
+can not generically automate away, therefore this requires manual integration
+through the [site_assets](catalog-catalog-eno.html#site_assets) and
+[site_metadata](catalog-catalog-eno.html#site_metadata) options - this also
+gives a great amount of flexibility, including the possibility to use multiple
+fonts and tweak their integration down to the last detail where needed.
 
 ## <a name="title"></a> `title`
 

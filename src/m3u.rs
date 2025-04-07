@@ -19,6 +19,8 @@ use crate::{
     TRACK_NUMBERS
 };
 
+pub const M3U_PLAYLIST_FILENAME: &str = "playlist.m3u";
+
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// an artist.
 pub fn generate_for_artist(
@@ -90,11 +92,8 @@ pub fn generate_for_artist(
 
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// the catalog.
-pub fn generate_for_catalog(
-    base_url: &SiteUrl,
-    build: &Build,
-    catalog: &Catalog
-) -> String {
+pub fn generate_for_catalog(build: &Build, catalog: &Catalog) -> String {
+    let base_url = build.base_url_unchecked();
     let catalog_title = catalog.title();
 
     let r_releases = catalog.public_releases()

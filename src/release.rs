@@ -18,6 +18,7 @@ use serde_derive::{Serialize, Deserialize};
 use zip::{CompressionMethod, ZipWriter};
 use zip::write::SimpleFileOptions;
 
+use crate::M3U_PLAYLIST_FILENAME;
 use crate::{
     Archive,
     ArchivesRc,
@@ -34,17 +35,15 @@ use crate::{
     FileMeta,
     HtmlAndStripped,
     Link,
-    m3u,
     Permalink,
     ProceduralCoverRc,
-    render,
     TagMapping,
     Theme,
     Track,
-    TrackNumbering,
-    util
+    TrackNumbering
 };
-use crate::util::generic_hash;
+use crate::{m3u, render, util};
+use crate::util::{deduplicate_filename, generic_hash};
 
 /// An unbounded iterator returning track numbers (1, 2, 3, ..) which
 /// we generally use with ".zip(TRACK_NUMBERS)" to augment an iteration
@@ -62,12 +61,7 @@ fn deduplicate_extra_filename(candidate_filename: &str, used_filenames: &HashSet
     let mut filename = candidate_filename.to_string();
 
     while used_filenames.contains(&filename) {
-        // TODO: At some point expand so it does a more elegant
-        //       "foo.jpg" -> "foo(1).jpg" -> "foo(2).jpg" (or similar)
-        filename = match filename.split_once('.') {
-            Some((prefix, postfix)) => format!("{prefix}_duplicate.{postfix}"),
-            None => format!("{filename}_duplicate")
-        };
+        filename = deduplicate_filename(&filename);
     }
 
     filename
@@ -876,7 +870,7 @@ impl Release {
             // Render m3u playlist
             if self.m3u {
                 let r_m3u = m3u::generate_for_release(base_url, build, self);
-                fs::write(release_dir.join("playlist.m3u"), r_m3u).unwrap();
+                fs::write(release_dir.join(M3U_PLAYLIST_FILENAME), r_m3u).unwrap();
             }
 
             // Render release embed pages

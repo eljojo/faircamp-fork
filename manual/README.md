@@ -21,3 +21,9 @@ including references to anchors on pages, use a tool like
 `AnchorCheck` plugin enabled in
 <https://linkchecker.github.io/linkchecker/man/linkcheckerrc.html>) on the
 generated manual.
+
+For instance:
+
+```
+linkchecker [manual-path]/index.html
+```

@@ -5,13 +5,13 @@ use std::hash::Hash;
 
 use indoc::formatdoc;
 
+use crate::{M3U_PLAYLIST_FILENAME, TRACK_NUMBERS};
 use crate::{
     Build,
     Catalog,
     DownloadAccess,
     OpenGraphMeta,
-    Release,
-    TRACK_NUMBERS
+    Release
 };
 use crate::icons;
 use crate::util::{format_time, html_escape_outside_attribute};
@@ -331,7 +331,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             let stream_icon = icons::STREAM;
 
             let m3u_playlist_link = formatdoc!(r#"
-                <a href="playlist.m3u">
+                <a href="{M3U_PLAYLIST_FILENAME}">
                     {stream_icon}
                     <span>{t_m3u_playlist}</span>
                 </a>

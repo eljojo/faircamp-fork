@@ -511,7 +511,12 @@ pub fn read_artist_catalog_release_track_option(
                                     }
                                 }
                             }
+                            // Deprecated ~April 2025, eventually remove in the future
                             "custom_font" => {
+                                let message = "The 'custom_font' option has been superseded by more flexible and generic functionality provided through the 'site_assets' and 'site_metadata' options. For the time being 'custom_font' will still work, but it won't forever - make sure to update at some point.";
+                                let warning = element_error_with_snippet(element, manifest_path, message);
+                                build.warning(&warning);
+
                                 if let Some(Ok(relative_path)) = attribute.optional_value::<String>() {
                                     let absolute_path = manifest_path.parent().unwrap().join(&relative_path);
                                     if absolute_path.exists() {
@@ -560,7 +565,14 @@ pub fn read_artist_catalog_release_track_option(
                                     overrides.theme.font = match value {
                                         "sans" => ThemeFont::SystemSans,
                                         "mono" => ThemeFont::SystemMono,
-                                        _ => ThemeFont::System(value.to_string())
+                                        // Deprecated ~April 2025, eventually remove in the future
+                                        _ => {
+                                            let message = "The functionality for using 'system_font' to specify arbitrary system fonts has been superseded by more flexible and generic functionality provided through the 'site_assets' and 'site_metadata' options. For the time being 'system_font' will still work the way you're using it, but it won't forever - make sure to update at some point.";
+                                            let warning = element_error_with_snippet(element, manifest_path, message);
+                                            build.warning(&warning);
+
+                                            ThemeFont::System(value.to_string())
+                                        }
                                     };
                                 }
                             }
@@ -588,7 +600,7 @@ pub fn read_artist_catalog_release_track_option(
                                 }
                             }
                             other => {
-                                let message = format!("The attribute '{other}' is not recognized here (supported attributes are 'accent_brightening', 'accent_chroma', 'accent_hue', 'background_alpha', 'background_image', 'base', 'base_chroma', 'base_hue', 'cover_generator', 'custom_font', 'dynamic_range', 'round_corners', 'system_font' and 'waveforms')");
+                                let message = format!("The attribute '{other}' is not recognized here (supported attributes are 'accent_brightening', 'accent_chroma', 'accent_hue', 'background_alpha', 'background_image', 'base', 'base_chroma', 'base_hue', 'cover_generator', 'dynamic_range', 'round_corners', 'system_font' and 'waveforms')");
                                 let error = attribute_error_with_snippet(attribute, manifest_path, &message);
                                 build.error(&error);
                             }

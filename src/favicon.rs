@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::fs;
@@ -6,8 +6,17 @@ use std::path::PathBuf;
 
 use indoc::formatdoc;
 
-use crate::Build;
+use crate::{AssetHashes, Build};
 use crate::util::url_safe_hash_base64;
+
+const FAVICON_DARK_PNG: &[u8; 952] = include_bytes!("assets/favicon_dark.png");
+const FAVICON_DARK_PNG_FILENAME: &str = "favicon_dark.png";
+
+const FAVICON_LIGHT_PNG: &[u8; 945] = include_bytes!("assets/favicon_light.png");
+const FAVICON_LIGHT_PNG_FILENAME: &str = "favicon_light.png";
+
+const FAVICON_SVG: &[u8; 1105] = include_bytes!("assets/favicon.svg");
+const FAVICON_SVG_FILENAME: &str = "favicon.svg";
 
 #[derive(Debug)]
 pub enum Favicon {
@@ -38,24 +47,25 @@ impl Favicon {
         }
     }
 
-    pub fn header_tags(&self, build: &Build, root_prefix: &str) -> String {
+    pub fn header_tags(&self, build: &Build, root_prefix: &str) -> Option<String> {
         match self {
             Favicon::Custom { extension, .. } => {
                 let favicon_custom_hash = build.asset_hashes.favicon_custom.as_ref().unwrap();
-                format!(r#"<link href="{root_prefix}favicon.{extension}?{favicon_custom_hash}" rel="icon">"#)
+
+                Some(format!(r#"<link href="{root_prefix}favicon.{extension}?{favicon_custom_hash}" rel="icon">"#))
             }
             Favicon::Default => {
-                let favicon_svg_hash = build.asset_hashes.favicon_svg.as_ref().unwrap();
-                let favicon_dark_png_hash = build.asset_hashes.favicon_dark_png.as_ref().unwrap();
-                let favicon_light_png_hash = build.asset_hashes.favicon_light_png.as_ref().unwrap();
+                let favicon_dark_png_hash = AssetHashes::FAVICON_DARK_PNG;
+                let favicon_light_png_hash = AssetHashes::FAVICON_LIGHT_PNG;
+                let favicon_svg_hash = AssetHashes::FAVICON_SVG;
 
-                formatdoc!(r#"
-                    <link href="{root_prefix}favicon.svg?{favicon_svg_hash}" rel="icon" type="image/svg+xml">
-                    <link href="{root_prefix}favicon_light.png?{favicon_light_png_hash}" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
-                    <link href="{root_prefix}favicon_dark.png?{favicon_dark_png_hash}" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
-                "#)
+                Some(formatdoc!(r#"
+                    <link href="{root_prefix}{FAVICON_SVG_FILENAME}?{favicon_svg_hash}" rel="icon" type="image/svg+xml">
+                    <link href="{root_prefix}{FAVICON_LIGHT_PNG_FILENAME}.png?{favicon_light_png_hash}" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
+                    <link href="{root_prefix}{FAVICON_DARK_PNG_FILENAME}.png?{favicon_dark_png_hash}" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
+                "#))
             }
-            Favicon::None => String::new()
+            Favicon::None => None
         }
     }
 
@@ -64,20 +74,34 @@ impl Favicon {
             Favicon::Custom { absolute_path, extension } => {
                 let custom = fs::read(absolute_path).unwrap();
                 build.asset_hashes.favicon_custom = Some(url_safe_hash_base64(&custom));
-                fs::write(build.build_dir.join(format!("favicon.{extension}")), custom).unwrap();
+                let target_filename = format!("favicon.{extension}");
+
+                fs::write(
+                    build.build_dir.join(&target_filename),
+                    custom
+                ).unwrap();
+
+                build.reserve_filename(target_filename);
             }
             Favicon::Default => {
-                let svg = include_bytes!("assets/favicon.svg");
-                build.asset_hashes.favicon_svg = Some(url_safe_hash_base64(&svg));
-                fs::write(build.build_dir.join("favicon.svg"), svg).unwrap();
+                fs::write(
+                    build.build_dir.join(FAVICON_DARK_PNG_FILENAME),
+                    FAVICON_DARK_PNG
+                ).unwrap();
 
-                let dark_png = include_bytes!("assets/favicon_dark.png");
-                build.asset_hashes.favicon_dark_png = Some(url_safe_hash_base64(&dark_png));
-                fs::write(build.build_dir.join("favicon_dark.png"), dark_png).unwrap();
+                fs::write(
+                    build.build_dir.join(FAVICON_LIGHT_PNG_FILENAME),
+                    FAVICON_LIGHT_PNG
+                ).unwrap();
 
-                let light_png = include_bytes!("assets/favicon_light.png");
-                build.asset_hashes.favicon_light_png = Some(url_safe_hash_base64(&light_png));
-                fs::write(build.build_dir.join("favicon_light.png"), light_png).unwrap();
+                fs::write(
+                    build.build_dir.join(FAVICON_SVG_FILENAME),
+                    FAVICON_SVG
+                ).unwrap();
+
+                build.reserve_filename(FAVICON_DARK_PNG_FILENAME);
+                build.reserve_filename(FAVICON_LIGHT_PNG_FILENAME);
+                build.reserve_filename(FAVICON_SVG_FILENAME);
             }
             Favicon::None => ()
         }

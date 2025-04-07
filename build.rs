@@ -6,8 +6,20 @@
 
 use std::env;
 use std::fs;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
 use std::process::Command;
+
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+
+fn precompute_hash(content: &[u8], hash_varname: &str) {
+    let mut hasher = DefaultHasher::new();
+    content.hash(&mut hasher);
+    let hash = hasher.finish();
+    let hash_encoded = URL_SAFE_NO_PAD.encode(hash.to_le_bytes());
+    println!("cargo:rustc-env={hash_varname}={hash_encoded}");
+}
 
 fn main() {
     let version_detailed;
@@ -41,13 +53,88 @@ fn main() {
     #[cfg(all(not(feature = "libvips"), not(feature = "minify")))]
     println!("cargo:rustc-env=FAIRCAMP_FEATURES=compiled without libvips or minified assets");
 
-    preprocess_js("browser.js", include_str!("src/assets/browser.js"), "FAIRCAMP_BROWSER_JS");
-    preprocess_js("clipboard.js", include_str!("src/assets/clipboard.js"), "FAIRCAMP_CLIPBOARD_JS");
-    preprocess_js("embeds.js", include_str!("src/assets/embeds.js"), "FAIRCAMP_EMBEDS_JS");
-    preprocess_js("player.js", include_str!("src/assets/player.js"), "FAIRCAMP_PLAYER_JS");
+    preprocess_assets();
 }
 
-fn preprocess_js(filename: &str, input: &str, varname: &str) {
+fn preprocess_assets() {
+    precompute_hash(
+        include_bytes!("src/assets/favicon_dark.png"),
+        "FAIRCAMP_FAVICON_DARK_PNG_HASH"
+    );
+
+    precompute_hash(
+        include_bytes!("src/assets/favicon_light.png"),
+        "FAIRCAMP_FAVICON_LIGHT_PNG_HASH"
+    );
+
+    precompute_hash(
+        include_bytes!("src/assets/favicon.svg"),
+        "FAIRCAMP_FAVICON_SVG_HASH"
+    );
+
+    preprocess_css(
+        "embeds.css",
+        Some("FAIRCAMP_EMBEDS_CSS_HASH"),
+        include_str!("src/assets/embeds.css"),
+        "FAIRCAMP_EMBEDS_CSS"
+    );
+
+    preprocess_css(
+        "missing_image_descriptions.css",
+        None,
+        include_str!("src/assets/missing_image_descriptions.css"),
+        "FAIRCAMP_MISSING_IMAGE_DESCRIPTIONS_CSS"
+    );
+
+    preprocess_css(
+        "site.css",
+        None,
+        include_str!("src/assets/site.css"),
+        "FAIRCAMP_SITE_CSS"
+    );
+
+    preprocess_css(
+        "theming_widget.css",
+        None,
+        include_str!("src/assets/theming_widget.css"),
+        "FAIRCAMP_THEMING_WIDGET_CSS"
+    );
+
+    preprocess_js(
+        "browser.js",
+        None,
+        include_str!("src/assets/browser.js"),
+        "FAIRCAMP_BROWSER_JS"
+    );
+
+    preprocess_js(
+        "clipboard.js",
+        Some("FAIRCAMP_CLIPBOARD_JS_HASH"),
+        include_str!("src/assets/clipboard.js"),
+        "FAIRCAMP_CLIPBOARD_JS"
+    );
+
+    preprocess_js(
+        "embeds.js",
+        None,
+        include_str!("src/assets/embeds.js"),
+        "FAIRCAMP_EMBEDS_JS"
+    );
+
+    preprocess_js(
+        "player.js",
+        None,
+        include_str!("src/assets/player.js"),
+        "FAIRCAMP_PLAYER_JS"
+    );
+}
+
+fn preprocess_css(
+    filename: &str,
+    hash_varname: Option<&str>,
+    input: &str,
+    varname: &str
+) {
     let target_path = Path::new(&env::var("OUT_DIR").unwrap())
         .join(filename)
         .to_str()
@@ -55,16 +142,70 @@ fn preprocess_js(filename: &str, input: &str, varname: &str) {
         .to_string();
 
     #[cfg(not(feature = "minify"))]
-    let _ = fs::write(&target_path, input);
+    let output = input;
 
     #[cfg(feature = "minify")]
-    let _ = fs::write(&target_path , minify::minify(input));
+    let output = minify_css::minify(input);
+
+    let _ = fs::write(&target_path, &output);
 
     println!("cargo:rustc-env={varname}={target_path}");
+
+    if let Some(hash_varname) = hash_varname {
+        precompute_hash(output.as_bytes(), hash_varname);
+    }
+}
+
+fn preprocess_js(
+    filename: &str,
+    hash_varname: Option<&str>,
+    input: &str,
+    varname: &str
+) {
+    let target_path = Path::new(&env::var("OUT_DIR").unwrap())
+        .join(filename)
+        .to_str()
+        .unwrap()
+        .to_string();
+
+    #[cfg(not(feature = "minify"))]
+    let output = input;
+
+    #[cfg(feature = "minify")]
+    let output = minify_js::minify(input);
+
+    let _ = fs::write(&target_path, &output);
+
+    println!("cargo:rustc-env={varname}={target_path}");
+
+    if let Some(hash_varname) = hash_varname {
+        precompute_hash(output.as_bytes(), hash_varname);
+    }
 }
 
 #[cfg(feature = "minify")]
-mod minify {
+mod minify_css {
+    use lightningcss::stylesheet::{StyleSheet, ParserOptions, MinifyOptions, PrinterOptions};
+
+    pub fn minify(input: &str) -> String {
+        let mut stylesheet = StyleSheet::parse(input, ParserOptions::default()).unwrap();
+
+        stylesheet.minify(MinifyOptions::default()).unwrap();
+
+        let printer_options = PrinterOptions {
+            minify: true,
+            ..PrinterOptions::default()
+        };
+
+        stylesheet
+            .to_css(printer_options)
+            .unwrap()
+            .code
+    }
+}
+
+#[cfg(feature = "minify")]
+mod minify_js {
     const SOURCE_TYPE: SourceType = SourceType::cjs();
 
     use oxc_allocator::Allocator;

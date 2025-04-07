@@ -42,7 +42,8 @@ pub fn feed_choice(
 
 /// The subscription choices page, providing direct links to the feed files,
 /// info about the feed types, copy buttons, etc.
-pub fn subscribe_html(base_url: &SiteUrl, build: &Build, catalog: &Catalog) -> String {
+pub fn subscribe_html(build: &Build, catalog: &Catalog) -> String {
+    let base_url = build.base_url_unchecked();
     let root_prefix = "../";
     let translations = &build.locale.translations;
 

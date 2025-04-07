@@ -8,6 +8,18 @@ use indoc::formatdoc;
 use crate::{Build, Catalog, TRACK_NUMBERS};
 use crate::util::url_safe_hash_base64;
 
+const BROWSER_JS: &str = include_str!(env!("FAIRCAMP_BROWSER_JS"));
+const BROWSER_JS_FILENAME: &str = "browser.js";
+
+const CLIPBOARD_JS: &str = include_str!(env!("FAIRCAMP_CLIPBOARD_JS"));
+const CLIPBOARD_JS_FILENAME: &str = "clipboard.js";
+
+const EMBEDS_JS: &str = include_str!(env!("FAIRCAMP_EMBEDS_JS"));
+const EMBEDS_JS_FILENAME: &str = "embeds.js";
+
+const PLAYER_JS: &str = include_str!(env!("FAIRCAMP_PLAYER_JS"));
+const PLAYER_JS_FILENAME: &str = "player.js";
+
 pub fn generate(build: &mut Build, catalog: &Catalog) {
     generate_browser_js(build, catalog);
     generate_clipboard_js(build);
@@ -184,17 +196,25 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
         ];
     "#);
 
-    js.push_str(include_str!(env!("FAIRCAMP_BROWSER_JS")));
+    js.push_str(BROWSER_JS);
 
     build.asset_hashes.browser_js = Some(url_safe_hash_base64(&js));
 
-    fs::write(build.build_dir.join("browser.js"), js).unwrap();
+    fs::write(
+        build.build_dir.join(BROWSER_JS_FILENAME),
+        js
+    ).unwrap();
+
+    build.reserve_filename(BROWSER_JS_FILENAME);
 }
 
 pub fn generate_clipboard_js(build: &mut Build) {
-    let js = include_str!(env!("FAIRCAMP_CLIPBOARD_JS"));
-    build.asset_hashes.clipboard_js = Some(url_safe_hash_base64(&js));
-    fs::write(build.build_dir.join("clipboard.js"), js).unwrap();
+    fs::write(
+        build.build_dir.join(CLIPBOARD_JS_FILENAME),
+        CLIPBOARD_JS
+    ).unwrap();
+
+    build.reserve_filename(CLIPBOARD_JS_FILENAME);
 }
 
 pub fn generate_embeds_js(build: &mut Build) {
@@ -217,11 +237,16 @@ pub fn generate_embeds_js(build: &mut Build) {
         }};
     ");
 
-    js.push_str(include_str!(env!("FAIRCAMP_EMBEDS_JS")));
+    js.push_str(EMBEDS_JS);
 
     build.asset_hashes.embeds_js = Some(url_safe_hash_base64(&js));
 
-    fs::write(build.build_dir.join("embeds.js"), js).unwrap();
+    fs::write(
+        build.build_dir.join(EMBEDS_JS_FILENAME),
+        js
+    ).unwrap();
+
+    build.reserve_filename(EMBEDS_JS_FILENAME);
 }
 
 pub fn generate_player_js(build: &mut Build) {
@@ -254,11 +279,16 @@ pub fn generate_player_js(build: &mut Build) {
         }};
     ");
 
-    js.push_str(include_str!(env!("FAIRCAMP_PLAYER_JS")));
+    js.push_str(PLAYER_JS);
 
     build.asset_hashes.player_js = Some(url_safe_hash_base64(&js));
 
-    fs::write(build.build_dir.join("player.js"), js).unwrap();
+    fs::write(
+        build.build_dir.join(PLAYER_JS_FILENAME),
+        js
+    ).unwrap();
+
+    build.reserve_filename(PLAYER_JS_FILENAME);
 }
 
 /// Escapes `'` as `\'` and `\` as `\\`

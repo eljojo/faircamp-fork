@@ -26,10 +26,10 @@ pub fn item_extensions(
 }
 
 pub fn media_rss(
-    base_url: &SiteUrl,
     build: &Build,
     catalog: &Catalog
 ) {
+    let base_url = build.base_url_unchecked();
     let url = base_url.join_file(Feeds::MEDIA_RSS_FILENAME);
 
     // TODO: Implement

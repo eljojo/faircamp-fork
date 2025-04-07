@@ -2,7 +2,8 @@
 // SPDX-FileCopyrightText: 2025 Sandro Santilli
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::hash_map::{DefaultHasher, HashMap};
+use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::DefaultHasher;
 use std::env;
 use std::hash::{Hash, Hasher};
 use std::net::IpAddr;
@@ -29,13 +30,8 @@ pub const GENERATOR_INFO: &str = concat!("Faircamp ", env!("FAIRCAMP_VERSION_DET
 /// groups together those hashes for all assets we use.
 pub struct AssetHashes {
     pub browser_js: Option<String>,
-    pub clipboard_js: Option<String>,
-    pub embeds_css: Option<String>,
     pub embeds_js: Option<String>,
     pub favicon_custom: Option<String>,
-    pub favicon_dark_png: Option<String>,
-    pub favicon_light_png: Option<String>,
-    pub favicon_svg: Option<String>,
     pub player_js: Option<String>,
     pub site_css: Option<String>,
     pub theme_css: HashMap<String, String>
@@ -71,6 +67,7 @@ pub struct Build {
     /// This lets us know to inject optional css used for indicating these images.
     pub missing_image_descriptions: bool,
     pub post_build_action: PostBuildAction,
+    reserved_filenames: HashSet<String>,
     pub stats: Stats,
     pub theming_widget: bool,
     /// Most asset urls contain a deterministically random (=hashed) path
@@ -108,16 +105,17 @@ pub struct Stats {
 }
 
 impl AssetHashes {
+    pub const CLIPBOARD_JS: &str = env!("FAIRCAMP_CLIPBOARD_JS_HASH");
+    pub const EMBEDS_CSS: &str = env!("FAIRCAMP_EMBEDS_CSS_HASH");
+    pub const FAVICON_DARK_PNG: &str = env!("FAIRCAMP_FAVICON_DARK_PNG_HASH");
+    pub const FAVICON_LIGHT_PNG: &str = env!("FAIRCAMP_FAVICON_LIGHT_PNG_HASH");
+    pub const FAVICON_SVG: &str = env!("FAIRCAMP_FAVICON_SVG_HASH");
+
     pub fn new() -> AssetHashes {
         AssetHashes {
             browser_js: None,
-            clipboard_js: None,
-            embeds_css: None,
             embeds_js: None,
             favicon_custom: None,
-            favicon_dark_png: None,
-            favicon_light_png: None,
-            favicon_svg: None,
             player_js: None,
             site_css: None,
             theme_css: HashMap::default()
@@ -126,6 +124,13 @@ impl AssetHashes {
 }
 
 impl Build {
+    /// By using this we signal that in the respective location in the code we
+    /// expect base_url to be present (because we made sure of it). Panics if
+    /// base_url is not available.
+    pub fn base_url_unchecked(&self) -> &SiteUrl {
+        self.base_url.as_ref().unwrap()
+    }
+
     pub fn error(&mut self, error: &str) {
         error!("{}", error);
         self.errors += 1;
@@ -197,9 +202,12 @@ impl Build {
             locale,
             missing_image_descriptions: false,
             post_build_action,
+            reserved_filenames: HashSet::new(),
             stats: Stats::new(),
             theming_widget: args.theming_widget,
-            url_salt: String::from(""), // changing this can invalidate urls of already deployed faircamp sites, handle with care
+            // Changing this can invalidate urls of already deployed faircamp
+            // sites, handle with care.
+            url_salt: String::from(""),
             verbose: args.verbose,
             warnings: 0
         }
@@ -218,6 +226,16 @@ impl Build {
 
         info_stats!("{}", &self.stats.to_string());
         info_stats!("Build finished in {}", elapsed_time_string);
+    }
+
+    /// We use this to track directory and file names we write to the build.
+    /// Currently this is used solely to track files at the root directory of
+    /// the build (catalog-level). Principal use for this is to detect and
+    /// report filename collisions of user-supplied assets with our own
+    /// written files. In the future could also be used to track files at
+    /// release/track/.etc. level (using e.g. relative build directory paths).
+    pub fn reserve_filename(&mut self, filename: impl Into<String>) -> bool {
+        self.reserved_filenames.insert(filename.into())
     }
 
     pub fn warning(&mut self, warning: &str) {
