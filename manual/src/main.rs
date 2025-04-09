@@ -282,7 +282,24 @@ fn read_pages(dir: &Path) -> Vec<Page> {
             let title = match file_stem.split_once(' ') {
                 Some((prefix, suffix)) => {
                     match prefix.parse::<usize>() {
-                        Ok(_) => suffix.to_string(),
+                        Ok(_) => {
+                            // We support <U+1234> unicode literal encoding
+                            // syntax so that we can include characters that
+                            // would conflict with the filesystem.
+                            let mut suffix_parts = suffix.split("<U+");
+
+                            let mut title = suffix_parts.next().unwrap().to_string();
+
+                            for part in suffix_parts {
+                                let (code, remainder) = part.split_once('>').unwrap();
+                                let number = u32::from_str_radix(code, 16).unwrap();
+
+                                title.push(char::from_u32(number).unwrap());
+                                title.push_str(remainder);
+                            }
+
+                            title
+                        }
                         Err(_) => file_stem.to_string()
                     }
                 }
