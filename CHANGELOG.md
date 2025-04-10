@@ -5,6 +5,54 @@
 
 # Changelog
 
+## 1.3
+
+### Podcast RSS, Atom, extended feeds
+
+- Introduce Podcast RSS and Atom feeds (e2d67f1)
+- Expand feed(s) with generator info, channel image description, height and width (a182fe9)
+
+### New and improved player controls
+
+- Introduce playback speed controls (7c7001c)
+- Introduce custom volume slider, extend keyboard interaction, improve usability (e9578b0, 57e3880, b87137a, 6be02f2)
+- Fall back to mute/unmute functionality in browsers with read-only volume (limitation on apple devices) (f4c81a4)
+
+### Linking to timecodes/tracks
+
+- Support linking to timecodes/tracks from external pages (jump/seek on page load) (6b0d7e2)
+- Support linking to timecodes/tracks on release/track pages themselves (jump/seek at runtime) (c422f73)
+
+### Improved procedural covers
+
+- Switch to optimized, raster-based procedural cover images (37df168)
+- Extend cache invalidation to procedural covers (9ca7a17)
+- Implement experimental block pattern cover generator (cc51758)
+
+### Misc
+
+- Implement artist images in search, extend cache invalidation (e5b3ec7)
+- Add --preview-ip flag (Sandro Santilli, dca0365)
+- Add generator meta to pages, include git revision with detailed version output (5e91eb9)
+- Introduce compile-time minification of javascript assets as opt-in build feature (6400a67, b77d492)
+- Remove embed iframe border (7265814)
+- Remove release date year display while still officially sort-only (5c3c00f)
+- Remove redundant textual descriptions for copy icons (179cb7e)
+
+### Fixes
+
+- Differentiate release and track price when assembling download access data (ed562d6)
+- Prevent playback of multiple tracks after foregrounding the browser (bug on apple devices) (425390a, 7265814)
+- Fix linebreaks between marker and paragraph inside bullet points (4036d20)
+
+### Translations
+
+- Add portuguese (european) translations (N4ta, 3f94b4f, 6d7a6cb)
+- Update catalan translations (Elx Cat, 7fbdd42)
+- Update lithuanian translations (Vac, 5970352)
+- Update spanish translations (Patricio Maripani, b7d50fd)
+- Update swedish translations (Patrik Wallström, 4f8e7e8)
+
 ## 1.2
 
 - Introduce track directories, manifests and new discrete release/track options (c3662b5, 85fddde)
