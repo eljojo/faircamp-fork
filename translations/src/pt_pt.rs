@@ -78,7 +78,7 @@ pub const PT_PT: Translations = Translations {
     up_to_xxx: Reviewed("Até {xxx}"),
     visual_impairment: Reviewed("Dificuldade Visual"),
     volume: Reviewed("Volume"),
-    xxx_and_others: Reviewed(r#"{xxx} e <a href="others_link">outros</a>"#),
+    xxx_and_others: Reviewed(r#"{xxx} e <a href="{others_link}">outros</a>"#),
     xxx_hours: Reviewed("{xxx} horas"),
     xxx_minutes: Reviewed("{xxx} minutos"),
     xxx_or_more: Reviewed("{xxx} ou mais"),

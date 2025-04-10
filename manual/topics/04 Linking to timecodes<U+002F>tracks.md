@@ -1,3 +1,8 @@
+<!--
+    SPDX-FileCopyrightText: 2025 Simon Repp
+    SPDX-License-Identifier: CC0-1.0
+-->
+
 # Linking to timecodes/tracks
 
 From version 1.3 onwards, you can create links that directly seek/jump to a

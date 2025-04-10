@@ -580,7 +580,7 @@ impl Translations {
 fn check_translations() {
     use sanitize_filename::sanitize;
 
-    const LOCALES: [Translations] = [
+    const LOCALES: &[Translations] = &[
         CA,
         DE,
         EN,
@@ -601,7 +601,7 @@ fn check_translations() {
         TR
     ];
 
-    for translations in &LOCALES {
+    for translations in LOCALES {
         assert!(&translations.audio_player_widget_for_xxx.contains("{title}"));
         assert!(&translations.javascript_is_disabled_listen_at_xxx.contains("{link}"));
         assert!(&translations.nothing_found_for_xxx.contains("{query}"));
