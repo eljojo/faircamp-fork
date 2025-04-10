@@ -283,15 +283,16 @@ fn read_pages(dir: &Path) -> Vec<Page> {
                 Some((prefix, suffix)) => {
                     match prefix.parse::<usize>() {
                         Ok(_) => {
-                            // We support <U+1234> unicode literal encoding
-                            // syntax so that we can include characters that
-                            // would conflict with the filesystem.
-                            let mut suffix_parts = suffix.split("<U+");
+                            // We use a custom (U+1234) unicode literal
+                            // encoding syntax so that we can include
+                            // characters that would conflict with the
+                            // filesystem.
+                            let mut suffix_parts = suffix.split("(U+");
 
                             let mut title = suffix_parts.next().unwrap().to_string();
 
                             for part in suffix_parts {
-                                let (code, remainder) = part.split_once('>').unwrap();
+                                let (code, remainder) = part.split_once(')').unwrap();
                                 let number = u32::from_str_radix(code, 16).unwrap();
 
                                 title.push(char::from_u32(number).unwrap());
