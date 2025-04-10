@@ -57,6 +57,7 @@ Damian Szetela<br>
 [Gavin Gamboa](https://gavart.ist/)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [Harald Eilertsen](https://volse.net/)<br>
+[incognitothief](https://codeberg.org/incognitothief)<br>
 [invadeuse](https://codeberg.org/invadeuse)<br>
 [James](https://strangetextures.com)<br>
 [James Fenn](https://jfenn.me/)<br>
@@ -76,11 +77,12 @@ Damian Szetela<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [Miró Allard](https://www.miroallard.com/)<br>
+[n3wjack](https://n3wjack.net/)<br>
+[N4ta](https://codeberg.org/N4ta)<br>
 [naskya](https://naskya.net/)<br>
 [ncc1988](https://codeberg.org/ncc1988)<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
-[n3wjack](https://n3wjack.net/)<br>
-[N4ta](https://codeberg.org/N4ta)<br>
+[Nicolas (greenman)](https://fosstodon.org/@greenman)<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
 [n00q](https://codeberg.org/n00q)<br>
 [Oliver](https://microhive.social/oliver)<br>
