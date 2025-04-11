@@ -12,15 +12,18 @@ minutes, Faircamp builds a complete website presenting your work. The
 resulting site requires no database, no programming, no maintenance, and is
 compatible with virtually every webhost on this planet.
 
-Latest Release: **`1.2`** – Visit the [website](https://simonrepp.com/faircamp) to get started.
+Latest Release: **`1.3`** – Visit the [website](https://simonrepp.com/faircamp) to get started.
 
-<img src="https://simonrepp.com/faircamp/readme.jpg?2" alt="Screenshot of a pink/violet-colored website presenting an album called 'Valedictions EP' by artist 'Turnus'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Extra info', a short synopsis text, smaller buttons labelled 'Copy link' and 'M3U Playlist', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Distances'."/>
+<img src="https://simonrepp.com/faircamp/readme.jpg?3" alt="Screenshot of a purple-color-themed website presenting an album called 'Not What I Call Bonk Wave - Volume 003 - Disc A - Into The Bonk' by 'Bonk Knob Records'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Credits', a short synopsis text, smaller buttons labelled 'Copy link', 'M3U Playlist' and 'Embed', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Strange Data'."/>
+
+<small>Featured site: <a href="https://bonkwave.org/music/not-what-i-call-bonk-wave-volume-003-disc-a/" target="_blank">bonkwave.org/music</a></small>
 
 ## Documentation
 
 The [website](https://simonrepp.com/faircamp) is the central information hub:
 
 - Feature overview
+- Downloads
 - Tutorials for Linux, macOS and Windows
 - Community resources
 - Showcase of sites using faircamp
@@ -28,14 +31,14 @@ The [website](https://simonrepp.com/faircamp) is the central information hub:
 
 The [manual](https://simonrepp.com/faircamp/manual) covers specific aspects:
 
-- Installation
+- Usage instructions
 - Reference
-- Usage examples
+- Examples
 - Information on various topics
 
 ## Faircamp 1.0 and beyond
 
-Major developments on Faircamp (Faircamp 1.0 in 2024, and also beyond it in
+Major developments on Faircamp (Faircamp 1.0 in 2024 and beyond it in
 2025) are being financed by the European Commission's [Next Generation Internet](https://www.ngi.eu/)
 programme through the [NGI0 Entrust](https://nlnet.nl/entrust/) fund established
 by [NLnet](https://nlnet.nl/) (see the [project grant website](https://nlnet.nl/project/Faircamp/)
