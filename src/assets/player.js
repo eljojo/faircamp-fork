@@ -684,7 +684,7 @@ if (dockedPlayer.speedButton) {
         event.stopPropagation();
     });
 
-    dockedPlayer.speedButton.addEventListener('wheel', () => {
+    dockedPlayer.speedButton.addEventListener('wheel', event => {
         if (event.deltaY < 0 && speed < 300) {
             speed += 10;
         } else if (event.deltaY > 0 && speed > 30) {
@@ -692,6 +692,8 @@ if (dockedPlayer.speedButton) {
         }
 
         updateSpeed();
+
+        event.preventDefault();
     });
 }
 
