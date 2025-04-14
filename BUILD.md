@@ -258,7 +258,7 @@ package version, which is primarily used to distribute prerelase builds and
 documentation for testing with a temporary updated version such as `2.0.0~pre1`:
 
 ```
-FAIRCAMP_PKG_VERSION=2.0.0~pre1 cargo build --features libvips --locked
+FAIRCAMP_VERSION=2.0.0~pre1 cargo build --features libvips --locked
 ```
 
 
