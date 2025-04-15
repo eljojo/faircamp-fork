@@ -901,13 +901,15 @@ listenButton.addEventListener('click', () => {
     requestPlaybackChange(activeTrack);
 });
 
-navigator.mediaSession.setActionHandler('play', () => {
-    requestPlaybackChange(activeTrack);
-});
+if (navigator.mediaSession) {
+    navigator.mediaSession.setActionHandler('play', () => {
+        requestPlaybackChange(activeTrack);
+    });
 
-navigator.mediaSession.setActionHandler('pause', () => {
-    requestPlaybackChange(activeTrack);
-});
+    navigator.mediaSession.setActionHandler('pause', () => {
+        requestPlaybackChange(activeTrack);
+    });
+}
 
 const resizeObserver = new ResizeObserver(entries => {
     const minWidth = entries.reduce(

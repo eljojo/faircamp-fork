@@ -792,13 +792,15 @@ player.volume.sliderInput.addEventListener('keydown', event => {
 // hence we disable the default behavior and let the event bubble up to our own handler
 player.volume.sliderInput.addEventListener('wheel', event => event.preventDefault());
 
-navigator.mediaSession.setActionHandler('play', () => {
-    requestPlaybackChange(activeTrack);
-});
+if (navigator.mediaSession) {
+    navigator.mediaSession.setActionHandler('play', () => {
+        requestPlaybackChange(activeTrack);
+    });
 
-navigator.mediaSession.setActionHandler('pause', () => {
-    requestPlaybackChange(activeTrack);
-});
+    navigator.mediaSession.setActionHandler('pause', () => {
+        requestPlaybackChange(activeTrack);
+    });
+}
 
 let previousTrack = null;
 let trackIndex = 0;
