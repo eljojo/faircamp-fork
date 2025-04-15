@@ -31,8 +31,6 @@ pub fn generate(build: &mut Build, catalog: &Catalog) {
 }
 
 pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
-    let index_suffix = build.index_suffix();
-
     let mut releases_desc_by_date = catalog.public_releases();
 
     releases_desc_by_date.sort_by_key(|release| release.borrow().date);
@@ -65,7 +63,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                                 let artist_ref = artist.borrow();
                                 let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
                                 let artist_slug = &artist_ref.permalink.slug;
-                                format!(r#"{{ name: '{artist_name_escaped}', url: '{artist_slug}{index_suffix}' }}"#)
+                                format!(r#"{{ name: '{artist_name_escaped}', url: '{artist_slug}/' }}"#)
                             })
                             .collect::<Vec<String>>()
                             .join(",\n");
@@ -85,7 +83,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                             {r_cover}
                             number: '{track_number_formatted}',
                             title: '{track_title_escaped}',
-                            url: '{release_slug}/{track_number}{index_suffix}'
+                            url: '{release_slug}/{track_number}/'
                         }}
                     "#)
                 })
@@ -102,7 +100,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                         formatdoc!(r#"
                             {{
                                 name: '{artist_name_escaped}',
-                                url: '{artist_slug}{index_suffix}'
+                                url: '{artist_slug}/'
                             }}
                         "#)
                     })
@@ -134,7 +132,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                     tracks: [
                         {r_tracks}
                     ],
-                    url: '{release_slug}{index_suffix}'
+                    url: '{release_slug}/'
                 }}
             "#)
         })
@@ -161,7 +159,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                         {{
                             {image}
                             name: '{artist_name_escaped}',
-                            url: '{artist_slug}{index_suffix}'
+                            url: '{artist_slug}/'
                         }}
                     "#)
                 })

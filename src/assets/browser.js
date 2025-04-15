@@ -7,6 +7,7 @@ const closeButton = browser.querySelector('button');
 const searchField = browser.querySelector('input');
 const statusField = browser.querySelector('[role="status"]');
 
+const indexSuffix = window.location.pathname.endsWith('index.html') ? 'index.html' : '';
 const rootPrefix = browser.dataset.rootPrefix;
 
 function truncateArtistList(artists, othersLink)  {
@@ -38,7 +39,7 @@ function truncateArtistList(artists, othersLink)  {
                     });
 
                 const rArtists = truncatedArtists
-                    .map(artist => `<a href="${rootPrefix}${artist.url}">${artist.name}</a>`)
+                    .map(artist => `<a href="${rootPrefix}${artist.url}${indexSuffix}">${artist.name}</a>`)
                     .join(", ");
 
                 return BROWSER_JS_T.xxxAndOthers(rArtists, othersLink);
@@ -47,14 +48,14 @@ function truncateArtistList(artists, othersLink)  {
             // In artist mode we show only "[catalog artist] and others".
             // Our sorting ensures the catalog artist is the first one,
             // so we can just take that.
-            const rArtists = `<a href="${rootPrefix}${artists[0].url}">${artists[0].name}</a>`;
+            const rArtists = `<a href="${rootPrefix}${artists[0].url}${indexSuffix}">${artists[0].name}</a>`;
 
             return BROWSER_JS_T.xxxAndOthers(rArtists, othersLink);
         }
     }
 
     return artists
-        .map(artist => `<a href="${rootPrefix}${artist.url}">${artist.name}</a>`)
+        .map(artist => `<a href="${rootPrefix}${artist.url}${indexSuffix}">${artist.name}</a>`)
         .join(", ");
 }
 
@@ -70,7 +71,7 @@ for (const release of RELEASES) {
     }
 
     const aText = document.createElement('a');
-    aText.href = rootPrefix + release.url;
+    aText.href = rootPrefix + release.url + indexSuffix;
 
     const aImage = aText.cloneNode(true);
     aImage.tabIndex = -1;
@@ -108,7 +109,7 @@ for (const release of RELEASES) {
         number.textContent = track.number;
 
         const aTitle = document.createElement('a');
-        aTitle.href = rootPrefix + track.url;
+        aTitle.href = rootPrefix + track.url + indexSuffix;
 
         const aImage = aTitle.cloneNode(true);
         aImage.tabIndex = -1;
@@ -139,7 +140,7 @@ for (const release of RELEASES) {
 
 for (const artist of ARTISTS) {
     const aText = document.createElement('a');
-    aText.href = rootPrefix + artist.url;
+    aText.href = rootPrefix + artist.url + indexSuffix;
 
     let imageArtist;
     if (artist.image) {
