@@ -41,9 +41,48 @@ impl TrackNumbering {
         }
     }
 
+    // Converts a number to a roman numeral, using standard "modern" style
+    // roman numerals (i.e. with subtractive notation and in the range
+    // 1-3999).
     fn to_roman(number: usize) -> String {
-        // TODO: Implement to at least ~256 (or more) using proper algorithm
-        let roman = match number {
+        let thousands = match number / 1000 {
+            0 => "",
+            1 => "M",
+            2 => "MM",
+            3 => "MMM",
+            _ => panic!("Modern style roman numerals can only represent numbers up to 3999")
+        };
+
+        let hundreds = match (number % 1000) / 100 {
+            0 => "",
+            1 => "C",
+            2 => "CC",
+            3 => "CCC",
+            4 => "CD",
+            5 => "D",
+            6 => "DC",
+            7 => "DCC",
+            8 => "DCCC",
+            9 => "CM",
+            _ => unreachable!()
+        };
+
+        let tens = match (number % 100) / 10 {
+            0 => "",
+            1 => "X",
+            2 => "XX",
+            3 => "XXX",
+            4 => "XL",
+            5 => "L",
+            6 => "LX",
+            7 => "LXX",
+            8 => "LXXX",
+            9 => "XC",
+            _ => unreachable!()
+        };
+
+        let ones = match number % 10 {
+            0 => "",
             1 => "I",
             2 => "II",
             3 => "III",
@@ -53,40 +92,9 @@ impl TrackNumbering {
             7 => "VII",
             8 => "VIII",
             9 => "IX",
-            10 => "X",
-            11 => "XI",
-            12 => "XII",
-            13 => "XIII",
-            14 => "XIV",
-            15 => "XV",
-            16 => "XVI",
-            17 => "XVII",
-            18 => "XVIII",
-            19 => "XIX",
-            20 => "XX",
-            21 => "XXI",
-            22 => "XXII",
-            23 => "XXIII",
-            24 => "XXIV",
-            25 => "XXV",
-            26 => "XXVI",
-            27 => "XXVII",
-            28 => "XXVIII",
-            29 => "XXIX",
-            30 => "XXX",
-            31 => "XXXI",
-            32 => "XXXII",
-            33 => "XXXIII",
-            34 => "XXXIV",
-            35 => "XXXV",
-            36 => "XXXVI",
-            37 => "XXXVII",
-            38 => "XXXVIII",
-            39 => "XXXIX",
-            40 => "XL",
-            _ => unimplemented!()
+            _ => unreachable!()
         };
 
-        roman.to_string()
+        format!("{thousands}{hundreds}{tens}{ones}")
     }
 }
