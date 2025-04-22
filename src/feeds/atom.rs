@@ -29,11 +29,11 @@ pub fn atom(build: &Build, catalog: &Catalog) {
     let author = if catalog.label_mode {
         String::new()
     } else if let Some(artist) = &catalog.artist {
-        let name = &artist.borrow().name;
+        let name_escaped = html_escape_outside_attribute(&artist.borrow().name);
 
         formatdoc!(r#"
             <author>
-                <name>{name}</name>
+                <name>{name_escaped}</name>
             </author>
         "#)
     } else {
@@ -84,13 +84,12 @@ pub fn atom(build: &Build, catalog: &Catalog) {
 
     let subtitle = if let Some(synopsis) = &catalog.synopsis {
         let synopsis_escaped = html_escape_outside_attribute(synopsis);
-        format!("<summary>{synopsis_escaped}</summary>")
+        format!("<subtitle>{synopsis_escaped}</subtitle>")
     } else {
         String::new()
     };
 
-    let title = catalog.title();
-    let title_escaped = html_escape_outside_attribute(&title);
+    let title_escaped = html_escape_outside_attribute(&catalog.title());
 
     let version_detailed = env!("FAIRCAMP_VERSION_DETAILED");
     let xml = formatdoc!(r#"
@@ -133,7 +132,7 @@ fn entry(
     let build_begin_rfc3339 = build.build_begin.to_rfc3339();
 
     let author = |artist: &Artist| -> String {
-        let name = &artist.name;
+        let name_escaped = html_escape_outside_attribute(&artist.name);
         let uri = if artist.featured {
             let link = base_url.join_index(build, &artist.permalink.slug);
             format!("<uri>{link}</uri>")
@@ -145,7 +144,7 @@ fn entry(
 
         formatdoc!(r#"
             <author>
-                <name>{name}</name>
+                <name>{name_escaped}</name>
                 {uri}
             </author>
         "#)
