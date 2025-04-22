@@ -20,7 +20,7 @@ use crate::{
     SiteUrl,
     TagMapping
 };
-use crate::util::generic_hash;
+use crate::util::{generic_hash, html_escape_outside_attribute};
 
 use super::Feeds;
 use super::rss::rss;
@@ -124,9 +124,9 @@ pub fn podcast_rss(build: &Build, catalog: &Catalog) {
 
     if !catalog.label_mode {
         if let Some(artist) = &catalog.artist {
-            let name = &artist.borrow().name;
+            let name_escaped = html_escape_outside_attribute(&artist.borrow().name);
 
-            let itunes_author = format!("<itunes:author>{name}</itunes:author>");
+            let itunes_author = format!("<itunes:author>{name_escaped}</itunes:author>");
 
             extensions.push(itunes_author);
         }

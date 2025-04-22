@@ -20,7 +20,10 @@ use crate::{
     Release,
     SiteUrl
 };
-use crate::util::html_escape_outside_attribute;
+use crate::util::{
+    html_double_escape_outside_attribute,
+    html_escape_outside_attribute
+};
 
 pub fn rss(
     base_url: &SiteUrl,
@@ -51,7 +54,7 @@ pub fn rss(
         .join("\n");
 
     let description = if let Some(synopsis) = &catalog.synopsis {
-        synopsis.to_string()
+        html_double_escape_outside_attribute(synopsis)
     } else if let Some(html_and_stripped) = &catalog.more {
         html_escape_outside_attribute(html_and_stripped.html.as_str())
     } else {
@@ -60,10 +63,9 @@ pub fn rss(
         format!("Faircamp {}", env!("FAIRCAMP_VERSION_DISPLAY"))
     };
 
-    let title = catalog.title();
-    let title_escaped = html_escape_outside_attribute(&title);
-
     let link = base_url.index(build);
+
+    let channel_title = html_double_escape_outside_attribute(&catalog.title());
 
     let image = if let Some(home_image) = &catalog.home_image {
         let image_ref = home_image.borrow();
@@ -75,16 +77,16 @@ pub fn rss(
         let url = base_url.join_file(format!("{filename}?{hash}"));
         let edge_size = feed_asset.edge_size;
 
-        let title = match &home_image.description {
-            Some(description) => html_escape_outside_attribute(description),
-            None => title_escaped.clone()
+        let image_title = match &home_image.description {
+            Some(description) => html_double_escape_outside_attribute(description),
+            None => channel_title.clone()
         };
 
         formatdoc!(r#"
             <image>
                 <height>{edge_size}</height>
                 <link>{link}</link>
-                <title>{title}</title>
+                <title>{image_title}</title>
                 <url>{url}</url>
                 <width>{edge_size}</width>
             </image>
@@ -115,7 +117,7 @@ pub fn rss(
                 <language>{language}</language>
                 <lastBuildDate>{last_build_date}</lastBuildDate>
                 <link>{link}</link>
-                <title>{title_escaped}</title>
+                <title>{channel_title}</title>
                 {channel_extensions}
                 {items}
             </channel>
@@ -155,8 +157,8 @@ fn item(
     let artists_and_title = format!("{artists_list} – {}", release.title);
 
     let description = if let Some(synopsis) = &release.synopsis {
-        let synopsis_escapd = html_escape_outside_attribute(synopsis);
-        format!("<description>{synopsis_escapd}</description>")
+        let synopsis_escaped = html_double_escape_outside_attribute(synopsis);
+        format!("<description>{synopsis_escaped}</description>")
     } else if let Some(html_and_stripped) = &release.more {
         let more_html_escaped = html_escape_outside_attribute(html_and_stripped.html.as_str());
         format!("<description>{more_html_escaped}</description>")
@@ -166,7 +168,7 @@ fn item(
 
     let link = base_url.join_index(build, release_slug);
 
-    let title = html_escape_outside_attribute(&artists_and_title);
+    let title = html_double_escape_outside_attribute(&artists_and_title);
 
     // Execute closure that may add e.g. media rss or podcast rss specific
     // markup.

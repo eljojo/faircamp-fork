@@ -139,6 +139,17 @@ pub fn html_double_escape_inside_attribute(string: &str) -> String {
         .replace('&', "&amp;")
 }
 
+/// Given e.g. "me&you", it will first turn the input into "me&amp;you", then
+/// into "me&amp;amp;you". When this is rendered for rss feed readers, the
+/// first layer of escaping enables nesting of html markup inside xml, and
+/// the second layer of escaping differentiates html-reserved characters to
+/// not be interpreted as html characters (but rather just displayed
+/// verbatim). Used to render various rss feed content.
+pub fn html_double_escape_outside_attribute(string: &str) -> String {
+    html_escape_outside_attribute(string)
+        .replace('&', "&amp;")
+}
+
 /// Escape e.g. "me&you" so it can be rendered into an attribute,
 /// e.g. as <img alt="me&quot;you" src="...">
 pub fn html_escape_inside_attribute(string: &str) -> String {
