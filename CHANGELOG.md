@@ -5,6 +5,26 @@
 
 # Changelog
 
+## 1.4
+
+## Custom assets and metadata
+
+- Introduce site_assets and site_metadata options for site-wide custom assets/metadata (023996f)
+
+## Misc
+
+- Extend roman numeral range from 40 to 3999 using modern subtractive notation (a2adfd3)
+- Rename optional FAIRCAMP_PKG_VERSION build parameter to FAIRCAMP_VERSION (e3f1e1c)
+- Add css minification in minify feature (023996f)
+
+## Fixes
+
+- Work around browsers with missing Media Session API support (Sunny, 06c5291)
+- Fix incorrect url construction in browse/search when clean urls are disabled (f0dcf39)
+- Double-escape html-like plain text in generic rss, escape names in podcast rss (2cd6544)
+- Escape names and replace accidental summary tag with subtitle tag in atom feed (eb052ad)
+- Prevent scrolling during playback speed button mouse wheel interaction (4e660e2)
+
 ## 1.3
 
 ### Podcast RSS, Atom, extended feeds

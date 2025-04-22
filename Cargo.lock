@@ -1198,7 +1198,7 @@ dependencies = [
 
 [[package]]
 name = "faircamp"
-version = "1.3.0"
+version = "1.4.0"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -3916,7 +3916,7 @@ dependencies = [
 
 [[package]]
 name = "translations"
-version = "1.3.0"
+version = "1.4.0"
 dependencies = [
  "base64",
  "indoc",
