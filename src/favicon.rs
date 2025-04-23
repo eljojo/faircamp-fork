@@ -15,7 +15,12 @@ const FAVICON_DARK_PNG_FILENAME: &str = "favicon_dark.png";
 const FAVICON_LIGHT_PNG: &[u8; 945] = include_bytes!("assets/favicon_light.png");
 const FAVICON_LIGHT_PNG_FILENAME: &str = "favicon_light.png";
 
+#[cfg(not(target_os = "windows"))]
 const FAVICON_SVG: &[u8; 1105] = include_bytes!("assets/favicon.svg");
+
+#[cfg(target_os = "windows")]
+const FAVICON_SVG: &[u8; 1109] = include_bytes!("assets/favicon.svg");
+
 const FAVICON_SVG_FILENAME: &str = "favicon.svg";
 
 #[derive(Debug)]
