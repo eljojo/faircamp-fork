@@ -12,7 +12,7 @@ minutes, Faircamp builds a complete website presenting your work. The
 resulting site requires no database, no programming, no maintenance, and is
 compatible with virtually every webhost on this planet.
 
-Latest Release: **`1.3`** – Visit the [website](https://simonrepp.com/faircamp) to get started.
+Latest Release: **`1.4`** – Visit the [website](https://simonrepp.com/faircamp) to get started.
 
 <img src="https://simonrepp.com/faircamp/readme.jpg?3" alt="Screenshot of a purple-color-themed website presenting an album called 'Not What I Call Bonk Wave - Volume 003 - Disc A - Into The Bonk' by 'Bonk Knob Records'. The most prominent features are big buttons labelled 'Pause', 'Download' and 'Credits', a short synopsis text, smaller buttons labelled 'Copy link', 'M3U Playlist' and 'Embed', a list of tracks decorated with delicate lines resembling waveforms and at the very bottom a YouTube-like control bar for playing/pausing, going to the next track, setting the volume, or seeking in the track. One track is playing, it's name is 'Strange Data'."/>
 
@@ -38,8 +38,8 @@ The [manual](https://simonrepp.com/faircamp/manual) covers specific aspects:
 
 ## Faircamp 1.0 and beyond
 
-Major developments on Faircamp (Faircamp 1.0 in 2024 and beyond it in
-2025) are being financed by the European Commission's [Next Generation Internet](https://www.ngi.eu/)
+Major developments on Faircamp (Faircamp 1.0 in 2024 up to Faircamp 1.4 in
+2025) have been financed and supported by the European Commission's [Next Generation Internet](https://www.ngi.eu/)
 programme through the [NGI0 Entrust](https://nlnet.nl/entrust/) fund established
 by [NLnet](https://nlnet.nl/) (see the [project grant website](https://nlnet.nl/project/Faircamp/)
 for more details). On behalf of myself and all the people and communities benefitting
