@@ -1135,8 +1135,8 @@ fonts and tweak their integration down to the last detail where needed.
 
 ## <a name="title"></a> `title`
 
-The value of [title](#title) appears in multiple
-places on the site, inside the RSS Feed, etc.
+The over-all title of your site, which appears in the header, footer, inside
+the RSS Feed, etc.
 
 ```eno
 title: My music

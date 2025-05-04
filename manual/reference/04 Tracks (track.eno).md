@@ -6,7 +6,7 @@
 
 # Track manifests – track.eno
 
-> All options at a glance: [copy_link](#copy_link), [cover](#cover), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_price](#track_price), [unlock_info](#unlock_info)
+> All options at a glance: [copy_link](#copy_link), [cover](#cover), [download_code(s)](#download_codes), [embedding](#embedding), [link](#link), [more](#more), [more_label](#more_label), [payment_info](#payment_info), [speed_controls](#speed_controls), [streaming_quality](#streaming_quality), [synopsis](#synopsis), [tags](#tags), [theme](#theme), [title](#title), [track_artist(s)](#track_artists), [track_download_access](#track_download_access), [track_downloads](#track_downloads), [track_extras](#track_extras), [track_price](#track_price), [unlock_info](#unlock_info)
 
 Track manifests are an optional way to specify metadata and settings at the
 track level. A `track.eno` manifest **must** be placed inside a track
@@ -434,6 +434,16 @@ through the [site_assets](catalog-catalog-eno.html#site_assets) and
 [site_metadata](catalog-catalog-eno.html#site_metadata) options - this also
 gives a great amount of flexibility, including the possibility to use multiple
 fonts and tweak their integration down to the last detail where needed.
+
+## <a name="title"></a> `title`
+
+The track title is automatically derived from the audio file metadata
+(title tag) or filename of the track, however you can also override it with
+this option.
+
+```eno
+title: Is it Friday yet?
+```
 
 ## <a name="track_artists"></a> `track_artist(s)`
 
