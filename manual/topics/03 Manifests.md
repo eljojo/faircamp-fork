@@ -7,22 +7,24 @@
 
 Four different types of so called *manifests* are used in order to specify
 metadata and settings:
-- A single `catalog.eno` file, which always is placed at the root of the
-  catalog directory, provides settings that apply to the site in general, as
-  well as to all releases, tracks and artists on that site.
-- The `release.eno` manifests, which are always placed alongside audio files
-  (that is, in release directories), allow specifying options that apply to
-  that specific release only, and they can override options that were set
-  in the `catalog.eno` file.
-- The `track.eno` manifests, which can be used to set and override options
-  on specific tracks if needed. In order to use this type of manifest,
-  wrap an audio file in a release into its own track directory and place
-  the `track.eno` file next to it, within its track directory.
-- The `artist.eno` manifests each go into a separate directory that is
-  dedicated to a single artist (note that this is mostly relevant if you
-  have a site that features multiple artists and uses *label mode*. As
-  you'd expect, this is where you specify options and metadata for that
-  specific artist.
+- A single [catalog.eno](catalog-catalog-eno.html) file which always is
+  placed at the root of the catalog directory provides settings that apply
+  to the site in general, as well as to all releases, tracks and artists on
+  that site.
+- The [release.eno](releases-release-eno.html) manifests which are always
+  placed alongside audio files (that is, in release directories), allow
+  specifying options that apply to that specific release only, and they can
+  override options that were set in the `catalog.eno` file.
+- The [track.eno](tracks-track-eno.html) manifests, which can be used to set
+  and override options on specific tracks if needed. In order to use this
+  type of manifest, wrap an audio file in a release into its own track
+  directory and place the `track.eno` file next to it, within its track
+  directory.
+- The [artist.eno](artists-artist-eno.html) manifests each go into a separate
+  directory that is dedicated to a single artist (note that this is mostly
+  relevant if you have a site that features multiple artists and uses
+  [label mode](catalog-catalog-eno.html#label_mode)). As you'd expect,
+  this is where you specify options and metadata for that specific artist.
 
 ```
 Catalog/
