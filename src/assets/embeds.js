@@ -920,8 +920,12 @@ for (const container of document.querySelectorAll('.track')) {
 
 window.addEventListener('keydown', event => {
     if (event.key === 'm') {
-        toggleMute();
-        event.preventDefault();
+        const { target } = event;
+
+        if (target.tagName !== 'INPUT' || (target.type !== 'search' && target.type !== 'text')) {
+            toggleMute();
+            event.preventDefault();
+        }
     }
 });
 

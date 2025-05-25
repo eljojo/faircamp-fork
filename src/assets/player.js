@@ -1169,8 +1169,12 @@ window.addEventListener('hashchange', event => {
 
 window.addEventListener('keydown', event => {
     if (event.key === 'm') {
-        toggleMute();
-        event.preventDefault();
+        const { target } = event;
+
+        if (target.tagName !== 'INPUT' || (target.type !== 'search' && target.type !== 'text')) {
+            toggleMute();
+            event.preventDefault();
+        }
     }
 });
 
