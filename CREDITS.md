@@ -29,6 +29,7 @@ Thanks everyone for your support.
 [AxWax](https://axwax.eu/)<br>
 [bran(...)pos](https://www.soundcrack.net/)<br>
 [Christian Pacaud](https://www.christianpacaud.com/)<br>
+[Clemens Pitschke](https://clemenspitschke.de/)<br>
 [controlfreak](https://control.org/)<br>
 [Crocuta](https://crocutaband.org/)<br>
 [DaforLynx](https://dafor.link/)<br>
@@ -71,6 +72,7 @@ Damian Szetela<br>
 [lnicola](https://dend.ro/)<br>
 [Lorenzo Miniero](https://fosstodon.org/@lminiero)<br>
 [Lorenzo's Music](https://www.lorenzosmusic.com)<br>
+[Luca Mancini](https://www.lucamancini.com/)<br>
 [Mac Chaffee](https://www.macchaffee.com)<br>
 [Mahlon E. Smith](https://martini.nu/)<br>
 [marqh](https://codeberg.org/marqh)<br>
@@ -111,5 +113,6 @@ Damian Szetela<br>
 [Yonder](https://spacey.space/@yonder)<br>
 [Wesley Sinks](https://linuxcreative.com)<br>
 [wileyfoxyx](https://codeberg.org/wileyfoxyx)<br>
+[Will Chatham](https://www.willchatham.com/)<br>
 [Wolfgang Dorninger](https://dorninger.servus.at)<br>
 [zzkt](https://fo.am/people/nik)
