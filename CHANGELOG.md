@@ -5,7 +5,7 @@
 
 # Changelog
 
-## 1.4
+## 1.4 (2025-04-22)
 
 ## Custom assets and metadata
 
@@ -25,7 +25,7 @@
 - Escape names and replace accidental summary tag with subtitle tag in atom feed (eb052ad)
 - Prevent scrolling during playback speed button mouse wheel interaction (4e660e2)
 
-## 1.3
+## 1.3 (2025-04-10)
 
 ### Podcast RSS, Atom, extended feeds
 
@@ -73,7 +73,7 @@
 - Update spanish translations (Patricio Maripani, b7d50fd)
 - Update swedish translations (Patrik Wallström, 4f8e7e8)
 
-## 1.2
+## 1.2 (2025-02-11)
 
 - Introduce track directories, manifests and new discrete release/track options (c3662b5, 85fddde)
 - Hide volume controls when volume is read-only (primarily for browsers on iOS) (5aedf10)
@@ -82,14 +82,14 @@
 - Update polish translations (janinainfa, 3f463fc)
 - Update italian translations (Tommaso Croce, ad1ad9f)
 
-## 1.1.1
+## 1.1.1 (2025-01-09)
 
 - Update french translations (Élie Khalil, 1173b6b)
 - Open release embed track links in parent context (Sunny, 65128dc)
 - Fix critical artist M3U playlist generation issue (Sunny, 3336f57)
 - Fix release embed track links (Sunny, 5aa03e3)
 
-## 1.1
+## 1.1 (2025-01-07)
 
 ### New functionality
 
@@ -111,7 +111,7 @@
 - Update swedish translations (Filip, cc0dc7e)
 - Update norwegian translations (Mathias, d80e5a6)
 
-## 1.0
+## 1.0 (2024-12-26)
 
 ### Manifests
 
@@ -172,7 +172,7 @@
 - Pin libvips crate dependency to an exact version (281c447)
 - Mirror version in translations subcrate to work around build/tooling issues (f9904d2)
 
-## 0.23.0
+## 0.23.0 (2024-12-07)
 
 - Implement hybrid ltr/rtl layouting and better space usage for docked and embedded players (8f8b3c4, 0198081)
 - Communicate muted state through the volume icon, remove dimmed volume hint (242e289)
@@ -191,11 +191,11 @@
 - Update italian translations (Tommaso Croce, efe02fa)
 - Update lithuanian translations (Vac, b2e4547)
 
-## 0.22.1
+## 0.22.1 (2024-11-24)
 
 - Fix critical build issue related to accidental commit of a subcrate versioning change (31a4b0f)
 
-## 0.22.0
+## 0.22.0 (2024-11-24)
 
 - Reimplement handling of disabled js for player, browser and copy link buttons (099272c)
 - Reimplement handling of disabled js for purchase/unlock flows (f04687f)
@@ -203,7 +203,7 @@
 - Expand "more" section to full width on narrow viewports (bfef577)
 - Map support artists also when main artists are explicitly set (91c5f26)
 
-## 0.21.0
+## 0.21.0 (2024-11-18)
 
 - Introduce configurable M3U playlist option for the entire catalog (0cebc42)
 - Add hash-based cache invalidation for all linked assets and images (041cf4f, 482f9ba)
@@ -216,11 +216,11 @@
 - Update italian translations (Tommaso Croce, b510376)
 - Update lithuanian translations (Vac, 3cff359)
 
-## 0.20.1
+## 0.20.1 (2024-11-14)
 
 - Exclude featured but unlisted artists from browsing/searching (b298804)
 
-## 0.20.0
+## 0.20.0 (2024-11-14)
 
 - Introduce global browse/search feature (23b7c68, 061391c)
 - Introduce external downloads (9f17493)
@@ -257,7 +257,7 @@
 - Dynamically toggle textual mute/unmute label for volume button at runtime (817d446)
 - Apply blur/darkening to docked player backdrop (529cff2)
 
-## 0.19.0
+## 0.19.0 (2024-10-30)
 
 - Introduce M3U playlists for releases (b5ecf9f)
 - Introduce link fields for catalog and releases (dab361e)
@@ -272,12 +272,12 @@
 - Remove scroll hints (6c419f7)
 - Visually widen download icon (5b682f5)
 
-## 0.18.1
+## 0.18.1 (2024-10-22)
 
 - Unbreak theming widget scripting after ESM import changes (52f3e24)
 - Fix missing alpha in overlay colors during interactive theming (81c4fda)
 
-## 0.18.0
+## 0.18.0 (2024-10-21)
 
 - Rewrite and complete embed implementation (d856595, 6979d4a, 63c74b3, ac74250)
 - Transform external inline/auto links in markdown texts to open in new tabs (96a569d)
@@ -289,7 +289,7 @@
 - Fix links in the RSS feed not following --no-clean-urls setting (94b873f)
 - Refine italian translations (Tommaso Croce, 548b03c)
 
-## 0.17.0
+## 0.17.0 (2024-10-09)
 
 - Introduce support for writing embedded cover images for flac and mp3 (45f6881)
 - Reduce layout spacing, making consecutive sections come out above the fold again (3fbbab8)
@@ -300,13 +300,13 @@
 - Prevent payment confirmation toggle being filled out by autocomplete (1c1de89)
 - Restore occasionally missing button styles after theme redesign (f5865f0)
 
-## 0.16.1
+## 0.16.1 (2024-10-06)
 
 - Add italian translations (Tommaso Croce, 9502586)
 - Fix title not being displayed in the docked player on track pages (2919dc4)
 - Fix listen button toggling playback only for the first track on release pages (2edf0f2)
 
-## 0.16.0
+## 0.16.0 (2024-10-03)
 
 - Read dynamic_range option from manifests (64253fc)
 - Add Turkish translation (atomkarinca, ee4e130)
@@ -364,12 +364,12 @@
 - Enable keyboard control and accessible readout of the player waveform element (4b0c05f)
 - Implement proof of concept for dedicated artist directories/manifests (1f19b90)
 
-## 0.15.1
+## 0.15.1 (2024-07-17)
 
 - Ensure that tags are correctly copied/written by ffmpeg for any possible source/target format combination (7127c61)
 - Update outdated tag configuration hints for manifest field deprecations/errors (724eebb)
 
-## 0.15.0
+## 0.15.0 (2024-07-04)
 
 - Apply round corners to home/artist images when shown detached (b87802d)
 - Underline links in catalog and release texts (f4b542f)
@@ -389,7 +389,7 @@
 - Introduce compliance with REUSE (832d26a)
 - Fix client-side time formatting for tracks longer than an hour (0e0dc9e)
 
-## 0.14.0
+## 0.14.0 (2024-04-11)
 
 - Disallow crawling/indexing on unlisted and auxiliary pages (91a64e6)
 - Introduce unlisted releases (683b11d)
@@ -405,7 +405,7 @@
 - Add translations for polish (Damian Szetela, 4a7a928)
 - Alphabetically sort featured artists on homepage in label mode (d9821df)
 
-## 0.13.0
+## 0.13.0 (2024-02-16)
 
 - Introduce support for alac as input format (234b345)
 - Released round_corners theme option (c91d048)
@@ -418,7 +418,7 @@
 - Fix track waveform width determination at transitional viewport widths (1f72a82)
 - Pull in enolib patch fixing missing line breaks in manual (8fa4905)
 
-## 0.12.0
+## 0.12.0 (2024-01-26)
 
 - Make the disable_relative_waveforms theme option public (5e00ddf)
 - Update eno parser, removing field/attribute/item continuations (b2a4201)
@@ -427,20 +427,20 @@
 - Enforce configured price range in "name your price" flow, skip payment step for 0 amount (2dba5e4)
 - Add locale lang attribute to html tags (James Fenn, 0094959)
 
-## 0.11.0
+## 0.11.0 (2023-12-02)
 
 - Support disabling the favicon altogether (e2983bd)
 - Encode filenames of archives, tracks and extras in href/src attributes (a333b57)
 - Add translations for norwegian bokmaal (Harald Eilertsen, c84262d)
 - Introduce markdown to plaintext rendering and html escapes for feed content (cb9f540)
 
-## 0.10.1
+## 0.10.1 (2023-11-10)
 
 - Revert release date as rss item pubDate for further consideration (d006bd9)
 - Include error message on ffmpeg process failing to execute (c6c8e83)
 - Drop unused color-cover styles and variables (8785c9a)
 
-## 0.10.0
+## 0.10.0 (2023-11-10)
 
 - Augment permalink conflict errors with release directory paths (9d376b1)
 - Expose release date as item pubDate in rss feed (Default Media Transmitter, a2d8c5f)
@@ -451,15 +451,15 @@
 - Disregard case in cover selection heuristic (121551d)
 - Patch upstream slash parsing issue for ID3v2.2/2.3 tagged files (c25acad)
 
-## 0.9.2
+## 0.9.2 (2023-11-04)
 
 - Update enolib, pulling in a critical unicode char width parsing fix (57c3f81)
 
-## 0.9.1
+## 0.9.1 (2023-11-01)
 
 - Prevent cover image from being included in release archive twice (5c9b109)
 
-## 0.9.0
+## 0.9.0 (2023-11-01)
 
 - Improved french translation (Florian Antoine, 4ad9d87)
 - Support aif/aifc extensions for input audio files (f0293d7)
@@ -470,6 +470,6 @@
 - Introduce optional single file downloads, redesign downloads page (778c2d2)
 - Add dutch locale (9f60b20)
 
-## 0.8.0
+## 0.8.0 (2023-10-13)
 
 First versioned release
