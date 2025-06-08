@@ -31,6 +31,28 @@ That's it! If you want to uninstall faircamp at any point, run:
 cargo uninstall faircamp
 ```
 
+## Void Linux
+
+Install all required dependencies (if you manually installed rust via [rustup](https://rustup.rs/) remove it from the list):
+
+```bash
+sudo xbps-install -S cmake gcc git ffmpeg libvips libvips-devel opus rust cargo
+```
+
+Now check out, build and install faircamp:
+
+```bash
+git clone https://codeberg.org/simonrepp/faircamp.git
+cd faircamp
+cargo install --features libvips --locked --path .
+```
+
+That's it! If you want to uninstall faircamp at any point, run:
+
+```bash
+cargo uninstall faircamp
+```
+
 ## Debian 12, elementary OS 8, Linux Mint 22, Ubuntu 23.04 - 24.10
 
 Install rust through the official [rustup](https://rustup.rs/) installer,
