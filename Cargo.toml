@@ -8,7 +8,7 @@ name = "faircamp"
 publish = false
 # rust-version here applies to --features libvips, with --features image it is 1.79.0
 rust-version = "1.76.0"
-version = "1.4.1"
+version = "1.4.2"
 
 [build-dependencies]
 base64 = "0.22.1"
