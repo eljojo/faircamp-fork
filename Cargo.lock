@@ -1183,7 +1183,7 @@ dependencies = [
 
 [[package]]
 name = "faircamp"
-version = "1.4.0"
+version = "1.4.1"
 dependencies = [
  "actix-files",
  "actix-web",

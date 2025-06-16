@@ -98,6 +98,7 @@ Janina Hofmann<br>
 [pulusound](https://pulusound.fi/)<br>
 [rakoo](https://codeberg.org/rakoo)<br>
 [Robert Pfotenhauer](https://pftnhr.xyz)<br>
+[Robin Syl](https://robinsyl.dev/)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Samæ](https://samae.demer.se/)<br>
 [Sandro Santilli](https://strk.kbt.io/)<br>

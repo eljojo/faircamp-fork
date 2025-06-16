@@ -5,6 +5,12 @@
 
 # Changelog
 
+## 1.4.1 (2025-06-16)
+
+- Prevent mute shortcut handler from capturing 'm' keypresses in text/search inputs (ecde3c1)
+- Simplify "fixed price" to "price", shorten german translation for "continue" (92d1304)
+- Account for minor file size difference in favicon static import on windows (d2cb916)
+
 ## 1.4 (2025-04-22)
 
 ## Custom assets and metadata
