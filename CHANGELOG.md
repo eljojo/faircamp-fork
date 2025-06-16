@@ -5,6 +5,10 @@
 
 # Changelog
 
+## 1.4.2 (2025-06-16)
+
+- Add lockfile change missing in the 1.4.1 release (0ae1b54)
+
 ## 1.4.1 (2025-06-16)
 
 - Prevent mute shortcut handler from capturing 'm' keypresses in text/search inputs (ecde3c1)
