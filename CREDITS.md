@@ -68,6 +68,7 @@ Janina Hofmann<br>
 [keef](https://key13.uk)<br>
 [kel](https://mastodon.online/@kel)<br>
 [Kristoffer Lislegaard](https://lisleg.com/)<br>
+[Lee Tusman](https://leetusman.com/)<br>
 [Léon van Kammen](https://2wa.isvery.ninja)<br>
 [Lime Bar](https://mastodon.social/@limebar)<br>
 [lnicola](https://dend.ro/)<br>
