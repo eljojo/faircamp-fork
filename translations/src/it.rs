@@ -36,7 +36,6 @@ pub const IT: Translations = Translations {
     extras: Reviewed("Extra"),
     failed: Reviewed("Fallito"),
     feed: Reviewed("Feed"),
-    fixed_price: Reviewed("Prezzo fisso:"),
     image_descriptions: Reviewed("Descrizioni delle immagini"),
     image_descriptions_guide: Reviewed("\
 Milioni di persone navigano in rete utilizzando lettori di schermo \
@@ -72,6 +71,7 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     player_closed: Reviewed("Lettore audio chiuso"),
     player_open_playing_xxx: Reviewed("Lettore audio aperto, in riproduzione {title}"),
     previous_track: Reviewed("Traccia Precedente"),
+    price: Reviewed("Prezzo:"),
     purchase_downloads: Reviewed("Acquista download"),
     purchase_permalink: Reviewed("acquista"),
     recommended_format: Reviewed("Formato consigliato"),

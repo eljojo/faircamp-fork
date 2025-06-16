@@ -35,7 +35,6 @@ pub const TR: Translations = Translations {
     extras: Reviewed("Ekstralar"),
     failed: Reviewed("Başarısız oldu"),
     feed: Reviewed("Kaynak"),
-    fixed_price: Reviewed("Sabit fiyat:"),
     image_descriptions: Reviewed("Görüntü Açıklamaları"),
     image_descriptions_guide: Reviewed("\
 Milyonlarca insan, göremedikleri için (ya da yeterince \
@@ -70,6 +69,7 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     player_closed: Reviewed("Oynatıcı kapalı"),
     player_open_playing_xxx: Reviewed("Oynatıcı açık, {title} oynatılıyor"),
     previous_track: Reviewed("Önceki Parça"),
+    price: Unreviewed("Sabit fiyat:"),
     purchase_downloads: Reviewed("İndirmeleri satın al"),
     purchase_permalink: Reviewed("satin-al"),
     recommended_format: Reviewed("Tavsiye edilen dosya türü"),

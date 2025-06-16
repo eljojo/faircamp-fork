@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -37,7 +37,6 @@ pub const EN: Translations = Translations {
     extras: Reviewed("Extras"),
     failed: Reviewed("Failed"),
     feed: Reviewed("Feed"),
-    fixed_price: Reviewed("Fixed price:"),
     generic_rss: Reviewed("Generic RSS"),
     image_descriptions: Reviewed("Image Descriptions"),
     image_descriptions_guide: Reviewed("\
@@ -76,6 +75,7 @@ Here are some tips for writing good image descriptions:<br>\
     player_open_playing_xxx: Reviewed("Player open, playing {title}"),
     player_open_with_xxx: Reviewed("Player open with {title}"),
     previous_track: Reviewed("Previous Track"),
+    price: Reviewed("Price:"),
     purchase_downloads: Reviewed("Purchase downloads"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("Recommended Format"),

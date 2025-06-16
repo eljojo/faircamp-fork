@@ -38,7 +38,6 @@ pub const ES: Translations = Translations {
     extras: Unreviewed("Extras"),
     failed: Unreviewed("Falló"),
     feed: Unreviewed("Feed"),
-    fixed_price: Unreviewed("Precio fijo:"),
     image_descriptions: Unreviewed("Descripciones de imágenes"),
     image_descriptions_guide: Unreviewed("\
 Millones de personas navegan el web usando lectores de pantalla \
@@ -71,6 +70,7 @@ Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>\
     play: Unreviewed("Reproducir"),
     player_closed: Reviewed("Reproductor cerrado"),
     previous_track: Reviewed("Canción previa"),
+    price: Unreviewed("Precio:"),
     purchase_downloads: Unreviewed("Comprar descargas"),
     purchase_permalink: Unreviewed("comprar"),
     recommended_format: Unreviewed("Formato recomendado"),

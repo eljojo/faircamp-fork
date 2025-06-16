@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 naskya
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const JA: Translations = Translations {
     audio_format_alac: Reviewed("可逆圧縮 – FLAC よりも Apple 製品の利用者に適した形式"),
@@ -36,7 +36,6 @@ pub const JA: Translations = Translations {
     extras: Reviewed("特典"),
     failed: Reviewed("失敗しました"),
     feed: Reviewed("フィード"),
-    fixed_price: Reviewed("定価："),
     image_descriptions: Reviewed("画像の説明文"),
     image_descriptions_guide: Reviewed("\
 視覚障害などの理由から、数百万人もの人々が\
@@ -71,6 +70,7 @@ pub const JA: Translations = Translations {
     player_closed: Reviewed("プレーヤーを閉じました"),
     player_open_playing_xxx: Reviewed("プレーヤーを起動、「{title}」を再生中"),
     previous_track: Reviewed("前のトラック"),
+    price: Unreviewed("定価："),
     purchase_downloads: Reviewed("購入してダウンロードする"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("推奨の形式"),

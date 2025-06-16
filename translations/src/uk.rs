@@ -34,7 +34,6 @@ pub const UK: Translations = Translations {
     extras: Reviewed("Додатки"),
     failed: Reviewed("Помилка"),
     feed: Reviewed("Стрічка"),
-    fixed_price: Reviewed("Фіксована ціна:"),
     image_descriptions: Reviewed("Описи зображень"),
     image_descriptions_guide: Reviewed("\
 Мільйони людей використовують веб за допомогою програм \
@@ -63,6 +62,7 @@ pub const UK: Translations = Translations {
     pause: Reviewed("Призупинити"),
     play: Reviewed("Відтворити"),
     previous_track: Reviewed("Попередня доріжка"),
+    price: Unreviewed("Фіксована ціна:"),
     purchase_downloads: Reviewed("Купити завантаження"),
     purchase_permalink: Reviewed("purchase"),
     recommended_format: Reviewed("Рекомендований формат"),

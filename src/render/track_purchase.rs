@@ -83,9 +83,9 @@ pub fn track_purchase_html(
         r_price_display = price_display(&placeholder);
         r_price_input = price_input(&price.range, &placeholder);
     } else if price.range.start == price.range.end {
-        let t_fixed_price = &build.locale.translations.fixed_price;
+        let t_price = &build.locale.translations.price;
         let price = &price.range.start;
-        let text = format!("{t_fixed_price} {currency_symbol}{price} {currency_code}");
+        let text = format!("{t_price} {currency_symbol}{price} {currency_code}");
         r_price_display = price_display(&text);
         r_price_input = text;
     } else if price.range.start > 0.0 {

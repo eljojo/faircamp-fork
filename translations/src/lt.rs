@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Vac
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const LT: Translations = Translations {
     audio_format_alac: Reviewed("Nenuostolingas ir suglaudintas. Jei naudojate tik „Apple“ produktus, rinkitės šį, o ne FLAC."),
@@ -36,7 +36,6 @@ pub const LT: Translations = Translations {
     extras: Reviewed("Papildomi"),
     failed: Reviewed("Nepavyko"),
     feed: Reviewed("Kanalas"),
-    fixed_price: Reviewed("Nustatyta kaina:"),
     generic_rss: Reviewed("Bendrasis RSS"),
     image_descriptions: Reviewed("Vaizdų aprašymai"),
     image_descriptions_guide: Reviewed("Milijonai žmonių naršo internete naudodamiesi ekrano skaitytuvais, nes nemato (arba mato nepakankamai gerai). Vaizdai be tekstinių aprašymų jiems yra neprieinami, todėl turėtume stengtis pateikti jiems vaizdų aprašymus.<br><br>Kaip pridėti vaizdų aprašymus, rasite „Faircamp“ README faile – tai paprasta ir yra gerumo veiksmas.<br><br>Štai keletas patarimų, kaip rašyti gerus vaizdų aprašymus:<br>- Bet koks aprašymas yra geriau nei jokio aprašymo, nesijaudinkite, kad tai padarysite neteisingai.<br>- Aprašykite jį glaustai. Rašykite tiek, kiek reikia, bet tuo pat metu kuo trumpiau.<br>- Neinterpretuokite. Aprašykite tai, kas ten yra ir svarbu jo supratimui, neanalizuokite plačiau.<br>- Galite naudoti spalvas ten, kur tai prasminga – daugelis žmonių tik vėliau praradę regėjimą supranta ir vertina spalvas."),
@@ -60,6 +59,7 @@ pub const LT: Translations = Translations {
     player_open_playing_xxx: Reviewed("Leistuvė atverta, leidžiama {title}"),
     player_open_with_xxx: Reviewed("Leistuvė atverta su {title}"),
     previous_track: Reviewed("Ankstesnis takelis"),
+    price: Unreviewed("Nustatyta kaina:"),
     purchase_downloads: Reviewed("Pirkti atsisiuntimus"),
     purchase_permalink: Reviewed("pirkti"),
     recommended_format: Reviewed("Rekomenduojamas formatas"),

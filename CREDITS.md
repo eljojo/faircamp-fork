@@ -62,6 +62,7 @@ Damian Szetela<br>
 [invadeuse](https://codeberg.org/invadeuse)<br>
 [James](https://strangetextures.com)<br>
 [James Fenn](https://jfenn.me/)<br>
+Janina Hofmann<br>
 [JΛПIПΛIПFΛ](https://janinainfa.surge.sh/)<br>
 [jd42](https://codeberg.org/jd42)<br>
 [keef](https://key13.uk)<br>
@@ -95,6 +96,7 @@ Damian Szetela<br>
 [protman](https://protman.com/)<br>
 [pulusound](https://pulusound.fi/)<br>
 [rakoo](https://codeberg.org/rakoo)<br>
+[Robert Pfotenhauer](https://pftnhr.xyz)<br>
 [Rotfarm](https://eldritch.cafe/@rotfarm)<br>
 [Samæ](https://samae.demer.se/)<br>
 [Sandro Santilli](https://strk.kbt.io/)<br>

@@ -35,7 +35,6 @@ pub const PL: Translations = Translations {
     extras: Reviewed("Ekstra"),
     failed: Reviewed("Niepowodzenie"),
     feed: Reviewed("Żródło RSS"),
-    fixed_price: Reviewed("Stała cena:"),
     image_descriptions: Reviewed("Opisy obrazka"),
     image_descriptions_guide: Reviewed("\
 Miliony ludzi przeglądają sieć przez czytniki dla niewidomych \
@@ -68,6 +67,7 @@ Tutaj są rady jak pisać dobre opisy obrazków:<br>\
     pause: Reviewed("Pauza"),
     play: Reviewed("Odtwórz"),
     previous_track: Reviewed("Poprzednia ścieżka"),
+    price: Unreviewed("Stała cena:"),
     purchase_downloads: Reviewed("Kup pobranie"),
     purchase_permalink: Reviewed("zakup"),
     recommended_format: Reviewed("Polecany Format"),

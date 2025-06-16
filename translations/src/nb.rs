@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Harald Eilertsen
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const NB: Translations = Translations {
     audio_format_alac: Reviewed("Tapsfritt og komprimert, velg dette over FLAC dersom du kun bruker Apple produkter"),
@@ -36,7 +36,6 @@ pub const NB: Translations = Translations {
     extras: Reviewed("Ekstra"),
     failed: Reviewed("Feilet"),
     feed: Reviewed("Abonner"),
-    fixed_price: Reviewed("Fast pris:"),
     image_descriptions: Reviewed("Bildebeskrivelser"),
     image_descriptions_guide: Reviewed("\
 Millioner av mennesker leser weben ved hjelp av skjermlesere \
@@ -73,6 +72,7 @@ Her er noen tips for å lage gode bildebeskrivelser:<br>\
     player_closed: Reviewed("Spiller lukket"),
     player_open_playing_xxx: Reviewed("Spiller åpen, spiller {title}"),
     previous_track: Reviewed("Forrige spor"),
+    price: Unreviewed("Pris:"),
     purchase_downloads: Reviewed("Kjøp nedlastinger"),
     purchase_permalink: Reviewed("kjop"),
     recommended_format: Reviewed("Anbefalt format"),

@@ -137,7 +137,7 @@ impl FairDir {
                                 } else if SUPPORTED_IMAGE_EXTENSIONS.contains(&&extension[..]) {
                                     fair_dir.image_files.push(path);
                                 } else if UNSUPPORTED_AUDIO_EXTENSIONS.contains(&&extension[..]) {
-                                    let error = format!("Support for reading audio files with the extension '{extension}' from the catalog is not yet supported - please get in touch or open an issue if you need this");
+                                    let error = format!("Support for reading audio files with the extension '{extension}' from the catalog is not yet supported - please get in touch if you need this");
                                     build.error(&error);
                                 } else {
                                     fair_dir.extra_files.push(path);

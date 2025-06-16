@@ -1,4 +1,5 @@
-// SPDX-FileCopyrightText: 2023-2024 Simon Repp
+// SPDX-FileCopyrightText: 2023-2025 Simon Repp
+// SPDX-FileCopyrightText: 2025 Robert Pfotenhauer
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -23,7 +24,7 @@ pub const DE: Translations = Translations {
     copy: Reviewed("Kopieren"),
     copy_link: Reviewed("Link kopieren"),
     confirm: Reviewed("Bestätigen"),
-    r#continue: Reviewed("Fortfahren"),
+    r#continue: Reviewed("Weiter"),
     cover_image: Reviewed("Cover Bild"),
     default_unlock_info: Reviewed("Du musst einen Code eingeben um diese Downloads freizuschalten. Frag bei den Seitenbetreiber*innen nach wie du einen bekommst."),
     download: Reviewed("Downloaden"),
@@ -37,7 +38,6 @@ pub const DE: Translations = Translations {
     extras: Reviewed("Extras"),
     failed: Reviewed("Fehler"),
     feed: Reviewed("Feed"),
-    fixed_price: Reviewed("Fixer Preis:"),
     generic_rss: Reviewed("Generisches RSS"),
     image_descriptions: Reviewed("Bildbeschreibungen"),
     image_descriptions_guide: Reviewed("\
@@ -76,6 +76,7 @@ Hier ein paar Tipps zum Schreiben guter Bildbeschreibungen:<br>\
     player_open_playing_xxx: Reviewed("Player offen, spielt {title}"),
     player_open_with_xxx: Reviewed("Player offen mit {title}"),
     previous_track: Reviewed("Vorheriger Track"),
+    price: Reviewed("Preis:"),
     purchase_downloads: Reviewed("Downloads bezahlen"),
     purchase_permalink: Reviewed("bezahlen"),
     recommended_format: Reviewed("Empfohlenes Format"),

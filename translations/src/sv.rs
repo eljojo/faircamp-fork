@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: 2024 Miró Allard
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations};
+use super::{Reviewed, Translations, Unreviewed};
 
 pub const SV: Translations = Translations {
     audio_format_alac: Reviewed("Förlustfri komprimering, om du uteslutande använder Apple-produkter, välj detta format till förmån för FLAC"),
@@ -38,7 +38,6 @@ pub const SV: Translations = Translations {
     extras: Reviewed("Extramaterial"),
     failed: Reviewed("Misslyckade"),
     feed: Reviewed("Flöde"),
-    fixed_price: Reviewed("Fast pris:"),
     image_descriptions: Reviewed("Bildbeskrivning"),
     image_descriptions_guide: Reviewed("Miljoner människor navigerar internet med hjälp av skärmläsare på grund av synnedsättningar. Bilder utan bildbeskrivningar är otillgängliga för dem. Det är därför viktigt att ange bildbeskrivningar så att alla kan ta åt sig av bildernas innehåll.<br><br>Läs README-filen för information om bildbeskrivningar. Det är enkelt och bidrar till att skapa ett bättre internet för alla.<br><br> Här är några tips för hur en skriver bra bildbeskrivningar:<br>- Det är alltid bättre med någon än ingen, oroa dig inte för att göra fel.<br>- Håll dig kortfattad. Försök att enbart beskriva det väsentliga.<br>- Tolka inte bildens innehåll. Beskriv det som är relevant för att förstå bilden utan personlig analys.<br>- Du kan beskriva färger om så är lämpligt. Många personer får synfel först senare i livet och förstår och uppskattar färg."),
     image_descriptions_permalink: Reviewed("bildbeskrivningar"),
@@ -60,6 +59,7 @@ pub const SV: Translations = Translations {
     player_closed: Reviewed("Spelare stängd"),
     player_open_playing_xxx: Reviewed("Spelare öppnad, spelar {title}"),
     previous_track: Reviewed("Tidigare spår"),
+    price: Unreviewed("Pris:"),
     purchase_downloads: Reviewed("Köp nedladdningar"),
     purchase_permalink: Reviewed("betala"),
     recommended_format: Reviewed("Rekommenderat format"),
