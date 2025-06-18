@@ -228,11 +228,10 @@ Install [libopus](https://opus-codec.org/), e.g. from [this page](https://opus-c
 **2. Optionally install libvips**
 
 Faircamp will run perfectly fine without libvips, but compiling with libvips
-adds certain image processing benefits:
+adds two image processing benefits:
 
-- Significantly faster and more robust image processing
-- Slightly better image quality
-- Support for HEIF images
+1. Faster image processing
+2. Support for HEIF images
 
 As installing libvips (and the right version of it - at least
 [v8.13.3](https://github.com/libvips/libvips/releases/tag/v8.13.3))
