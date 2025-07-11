@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Tommaso Croce
+// SPDX-FileCopyrightText: 2024-2025 Tommaso Croce
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use super::{Reviewed, Translations};
@@ -36,6 +36,7 @@ pub const IT: Translations = Translations {
     extras: Reviewed("Extra"),
     failed: Reviewed("Fallito"),
     feed: Reviewed("Feed"),
+    generic_rss: Reviewed("RSS generico"),
     image_descriptions: Reviewed("Descrizioni delle immagini"),
     image_descriptions_guide: Reviewed("\
 Milioni di persone navigano in rete utilizzando lettori di schermo \
@@ -70,6 +71,7 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     playback_position: Reviewed("Posizione di riproduzione"),
     player_closed: Reviewed("Lettore audio chiuso"),
     player_open_playing_xxx: Reviewed("Lettore audio aperto, in riproduzione {title}"),
+    player_open_with_xxx: Reviewed("Avvia il lettore con {title}"),
     previous_track: Reviewed("Traccia Precedente"),
     price: Reviewed("Prezzo:"),
     purchase_downloads: Reviewed("Acquista download"),
@@ -79,6 +81,8 @@ Ecco alcuni consigli per scrivere buone descrizioni per le immagini:<br>\
     showing_featured_items: Reviewed("Mostrando gli elementi in evidenza"),
     showing_xxx_results_for_xxx: Reviewed("Mostrando {count} risultati per '{query}'"),
     skip_to_main_content: Reviewed("Salta al contenuto principale"),
+    subscribe: Reviewed("Iscriviti"),
+    subscribe_permalink: Reviewed("iscriviti"),
     unlisted: Reviewed("Non elencato"),
     unlock: Reviewed("Sblocca"),
     unlock_downloads: Reviewed("Sblocca download"),
