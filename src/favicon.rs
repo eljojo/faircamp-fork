@@ -66,8 +66,8 @@ impl Favicon {
 
                 Some(formatdoc!(r#"
                     <link href="{root_prefix}{FAVICON_SVG_FILENAME}?{favicon_svg_hash}" rel="icon" type="image/svg+xml">
-                    <link href="{root_prefix}{FAVICON_LIGHT_PNG_FILENAME}.png?{favicon_light_png_hash}" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
-                    <link href="{root_prefix}{FAVICON_DARK_PNG_FILENAME}.png?{favicon_dark_png_hash}" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
+                    <link href="{root_prefix}{FAVICON_LIGHT_PNG_FILENAME}?{favicon_light_png_hash}" rel="icon" type="image/png" media="(prefers-color-scheme: light)">
+                    <link href="{root_prefix}{FAVICON_DARK_PNG_FILENAME}?{favicon_dark_png_hash}" rel="icon" type="image/png"  media="(prefers-color-scheme: dark)">
                 "#))
             }
             Favicon::None => None
