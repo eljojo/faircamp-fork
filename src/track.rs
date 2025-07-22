@@ -156,7 +156,7 @@ impl Track {
         build: &Build,
         asset_intent: AssetIntent,
         tag_mapping: &TagMapping,
-        cover_path: &Option<PathBuf>
+        cover_path: Option<&PathBuf>
     ) {
         let mut transcodes_mut = self.transcodes.borrow_mut();
 

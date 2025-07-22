@@ -92,7 +92,7 @@ fn apply_tag_write_flags(
 }
 
 pub fn transcode(
-    cover_path: &Option<PathBuf>,
+    cover_path: Option<&PathBuf>,
     input_file: &Path,
     output_file: &Path,
     source_format_family: AudioFormatFamily,
@@ -113,7 +113,7 @@ pub fn transcode(
         }
         TagMapping::Custom { album, album_artist, artist, image, title, track } => {
             if let Some(ImageEmbed::Write(_))  = image {
-                command.arg("-i").arg(cover_path.as_ref().unwrap());
+                command.arg("-i").arg(cover_path.unwrap());
             }
 
             command.arg("-map_metadata").arg("-1");

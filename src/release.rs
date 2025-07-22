@@ -415,7 +415,7 @@ impl Release {
                                 build,
                                 AssetIntent::Deliverable,
                                 tag_mapping,
-                                &cover_path
+                                cover_path.as_ref()
                             );
 
                             track.transcodes.borrow().persist_to_cache(&build.cache_dir);
@@ -545,7 +545,7 @@ impl Release {
                                     build,
                                     AssetIntent::Intermediate,
                                     tag_mapping,
-                                    &cover_path
+                                    cover_path.as_ref()
                                 );
 
                                 track.transcodes.borrow().persist_to_cache(&build.cache_dir);

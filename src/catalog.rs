@@ -1485,7 +1485,8 @@ impl Catalog {
                 release_mut.procedural_cover = Some(procedural_cover);
             }
 
-            let cover_path = release_mut.cover
+            // Prepare release cover image for optional embed usage
+            let release_cover_path = release_mut.cover
                 .as_ref()
                 .map(|described_image| build.catalog_dir.join(&described_image.file_meta.path));
 
@@ -1523,6 +1524,11 @@ impl Catalog {
                     image_mut.persist_to_cache(&build.cache_dir);
                 }
 
+                // Prepare track cover image for optional embed usage
+                let track_cover_path = track.cover
+                    .as_ref()
+                    .map(|described_image| build.catalog_dir.join(&described_image.file_meta.path));
+
                 // Write track streaming audio files
                 for streaming_format in track.streaming_quality.formats() {
                     let streaming_format_dir = track_dir.join(streaming_format.asset_dirname());
@@ -1534,7 +1540,7 @@ impl Catalog {
                         build,
                         AssetIntent::Deliverable,
                         tag_mapping,
-                        &cover_path
+                        track_cover_path.as_ref().or(release_cover_path.as_ref())
                     );
 
                     let track_filename = format!(
