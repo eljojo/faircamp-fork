@@ -16,6 +16,7 @@ use super::Layout;
 use super::{
     artist_image,
     copy_button,
+    link_action,
     releases,
     unlisted_badge
 };
@@ -33,7 +34,7 @@ pub fn artist_html(artist: &Artist, build: &Build, catalog: &Catalog) -> String 
 
     let r_more = match &artist.more {
         Some(html_and_stripped) => {
-            let more_icon = icons::more(&translations.more);
+            let more_icon = icons::more(Some(&translations.more));
             let more_label = match &artist.more_label {
                 Some(label) => label,
                 None => *translations.more
@@ -75,21 +76,7 @@ pub fn artist_html(artist: &Artist, build: &Build, catalog: &Catalog) -> String 
     }
 
     for link in &artist.links {
-        let external_icon = icons::external(&translations.external_link);
-
-        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
-        let url = &link.url;
-
-        let r_link = if link.hidden {
-            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
-        } else {
-            let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(label);
-            formatdoc!(r#"
-                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
-            "#)
-        };
-
+        let r_link = link_action(link, translations);
         actions.push(r_link);
     }
 

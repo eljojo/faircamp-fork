@@ -15,6 +15,7 @@ use crate::{
     Catalog,
     DescribedImage,
     ImgAttributes,
+    Link,
     Release,
     ReleaseRc,
     Track
@@ -332,6 +333,33 @@ fn embed_code(embed_url: &str, title: &str) -> (String, String) {
     "#);
 
     (copy_code, display_code)
+}
+
+/// Generic link with icon as we render it in the "actions" section on various
+/// pages
+fn link_action(link: &Link, translations: &Translations) -> String {
+    match link {
+        Link::Anchor { id, label } => {
+            let more_icon = icons::more(None);
+            let e_label = html_escape_outside_attribute(label);
+            format!(r#"<a href="{id}">{more_icon} {e_label}</a>"#)
+        }
+        Link::Full { hidden, label, rel_me, url } => {
+            // TODO: Technically the label "External link" is not 100% accurate, as this
+            //       might also be a full link pointing to _this_ site itself.
+            let external_icon = icons::external(&translations.external_link);
+            let rel_me = if *rel_me { r#"rel="me""# } else { "" };
+
+            if *hidden {
+                format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
+            } else {
+                let e_label = html_escape_outside_attribute(label);
+                formatdoc!(r#"
+                    <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
+                "#)
+            }
+        }
+    }
 }
 
 /// Render the artists of a release in the style of "Alice, Bob", where each

@@ -4,6 +4,7 @@
 use std::path::Path;
 
 use enolib::SectionElement;
+use indoc::{formatdoc, indoc};
 use url::Url;
 
 use crate::{
@@ -170,15 +171,30 @@ pub fn read_artist_catalog_release_track_option(
             if let Ok(field) = element.as_field() {
                 if let Ok(result) = field.value() {
                     if let Some(value) = result {
-                        match Url::parse(value) {
-                            Ok(_) => {
-                                let link = Link::new(false, None, false, value);
-                                local_options.links.push(link);
-                            }
-                            Err(err) => {
-                                let message = format!("The url supplied for the link seems to be malformed ({err})");
-                                let error = element_error_with_snippet(element, manifest_path, &message);
-                                build.error(&error);
+                        if value.starts_with('#') {
+                            let message = formatdoc!(r#"
+                                For internal, anchor-only links it is mandatory to provide a label, therefore please use the extended form as a field with attributes, e.g.:
+
+                                link:
+                                label = Some label
+                                url = {value}
+                            "#);
+                            let error = element_error_with_snippet(element, manifest_path, &message);
+                            build.error(&error);
+                        } else {
+                            match Url::parse(value) {
+                                Ok(_) => {
+                                    let link = Link::url(value);
+                                    local_options.links.push(link);
+                                }
+                                Err(err) => {
+                                    let message = formatdoc!(r##"
+                                        The url supplied for the link seems to be malformed ({err}).
+                                        Full urls (e.g. "https://example.com") and internal references (e.g. "#example") are supported.
+                                    "##);
+                                    let error = element_error_with_snippet(element, manifest_path, &message);
+                                    build.error(&error);
+                                }
                             }
                         }
                     }
@@ -199,12 +215,19 @@ pub fn read_artist_catalog_release_track_option(
                             }
                             "url" => {
                                 if let Some(value) = attribute.value() {
-                                    match Url::parse(value) {
-                                        Ok(_) => url = Some(value.to_string()),
-                                        Err(err) => {
-                                            let message = format!("The url supplied for the link seems to be malformed ({err})");
-                                            let error = attribute_error_with_snippet(attribute, manifest_path, &message);
-                                            build.error(&error);
+                                    if value.starts_with('#') {
+                                        url = Some(value.to_string());
+                                    } else {
+                                        match Url::parse(value) {
+                                            Ok(_) => url = Some(value.to_string()),
+                                            Err(err) => {
+                                                let message = formatdoc!(r##"
+                                                    The url supplied for the link seems to be malformed ({err}).
+                                                    Full urls (e.g. "https://example.com") and internal references (e.g. "#example") are supported.
+                                                "##);
+                                                let error = attribute_error_with_snippet(attribute, manifest_path, &message);
+                                                build.error(&error);
+                                            }
                                         }
                                     }
                                 }
@@ -237,8 +260,29 @@ pub fn read_artist_catalog_release_track_option(
                     }
 
                     if let Some(url) = url {
-                        let link = Link::new(hidden, label, rel_me, url);
-                        local_options.links.push(link);
+                        if url.starts_with('#') {
+                            if hidden || rel_me {
+                                let message = format!("For internal, anchor-only links the verification option is not supported, please remove it from your link to '{url}'.");
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
+                            } else if label.is_none() {
+                                let message = formatdoc!(r#"
+                                    For internal, anchor-only links it is mandatory to provide a label, therefore please provide one for your link to '{url}' like this:
+
+                                    link:
+                                    label = Some label
+                                    url = {url}
+                                "#);
+                                let error = element_error_with_snippet(element, manifest_path, &message);
+                                build.error(&error);
+                            } else {
+                                let link = Link::anchor(url, label.unwrap());
+                                local_options.links.push(link);
+                            }
+                        } else {
+                            let link = Link::full(hidden, label, rel_me, url);
+                            local_options.links.push(link);
+                        }
                     } else {
                         let message = "The link option must supply an url attribute at least, e.g.:\n\nlink:\nurl = https://example.com";
                         let error = element_error_with_snippet(element, manifest_path, message);
@@ -249,7 +293,13 @@ pub fn read_artist_catalog_release_track_option(
                 }
             }
 
-            let message = "link must be provided as a basic field with a value (e.g. 'link: https://example.com') or in its extended form as a field with attributes, e.g.:\n\nlink:\nurl = https://example.com\nlabel = Example";
+            let message = indoc!(r#"
+                link must be provided as a basic field with a value (e.g. 'link: https://example.com') or in its extended form as a field with attributes, e.g.:
+
+                link:
+                label = Example
+                url = https://example.com
+            "#);
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
         }

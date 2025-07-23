@@ -13,7 +13,12 @@ use crate::icons;
 use crate::util::html_escape_outside_attribute;
 
 use super::Layout;
-use super::{artist_image, copy_button, releases};
+use super::{
+    artist_image,
+    copy_button,
+    link_action,
+    releases
+};
 
 pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let index_suffix = build.index_suffix();
@@ -41,7 +46,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     let r_more = match &catalog.more {
         Some(html_and_stripped) => {
             let more = &html_and_stripped.html;
-            let more_icon = icons::more(&translations.more);
+            let more_icon = icons::more(Some(&translations.more));
             let more_label = match &catalog.more_label {
                 Some(label) => label,
                 None => *translations.more
@@ -115,21 +120,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     }
 
     for link in &catalog.links {
-        let external_icon = icons::external(&translations.external_link);
-
-        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
-        let url = &link.url;
-
-        let r_link = if link.hidden {
-            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
-        } else {
-            let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(label);
-            formatdoc!(r#"
-                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
-            "#)
-        };
-
+        let r_link = link_action(link, translations);
         actions.push(r_link);
     }
 

@@ -20,6 +20,7 @@ use super::SPEED_CONTROLS;
 use super::{Layout, Truncation};
 use super::{
     copy_button,
+    link_action,
     list_release_artists,
     list_track_artists,
     release_cover_image,
@@ -118,7 +119,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
     let t_play = &translations.play;
 
-    let more_icon = icons::more(&translations.more);
+    let more_icon = icons::more(Some(&translations.more));
     let play_icon = icons::play(t_play);
 
     let varying_track_artists = release.varying_track_artists();
@@ -356,21 +357,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
     }
 
     for link in &release.links {
-        let external_icon = icons::external(&translations.external_link);
-
-        let rel_me = if link.rel_me { r#"rel="me""# } else { "" };
-        let url = &link.url;
-
-        let r_link = if link.hidden {
-            format!(r#"<a href="{url}" {rel_me} style="display: none;">hidden</a>"#)
-        } else {
-            let label = link.pretty_label();
-            let e_label = html_escape_outside_attribute(label);
-            formatdoc!(r#"
-                <a href="{url}" {rel_me} target="_blank">{external_icon} <span>{e_label}</span></a>
-            "#)
-        };
-
+        let r_link = link_action(link, translations);
         secondary_actions.push(r_link);
     }
 

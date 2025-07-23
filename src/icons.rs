@@ -107,10 +107,15 @@ pub fn loading(label: &str) -> String {
 }
 
 /// Three horizontal dots
-pub fn more(label: &str) -> String {
+pub fn more(label: Option<&str>) -> String {
+    let (aria_hidden, title) = match label {
+        Some(label) => ("", format!("<title>{label}</title>")),
+        None => (r#"aria-hidden="true""#, String::new())
+    };
+
     formatdoc!(r#"
-        <svg width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-            <title>{label}</title>
+        <svg {aria_hidden} width="1em" height="1em" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            {title}
             <path d="m14.951 26.651a5.351 5.351 0 0 0-5.3498 5.3512 5.351 5.351 0 0 0 5.3498 5.3512 5.351 5.351 0 0 0 5.3512-5.3512 5.351 5.351 0 0 0-5.3512-5.3512zm17.049 0a5.351 5.351 0 0 0-5.3512 5.3512 5.351 5.351 0 0 0 5.3512 5.3512 5.351 5.351 0 0 0 5.3512-5.3512 5.351 5.351 0 0 0-5.3512-5.3512zm17.049 0a5.351 5.351 0 0 0-5.3512 5.3512 5.351 5.351 0 0 0 5.3512 5.3512 5.351 5.351 0 0 0 5.3512-5.3512 5.351 5.351 0 0 0-5.3512-5.3512z"/>
         </svg>
     "#)

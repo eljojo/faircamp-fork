@@ -194,6 +194,10 @@ label = A review of the artist
 url = https://example.com/some-blog/some-review/
 
 link:
+label = Discography
+url = #discography
+
+link:
 url = https://social.example.com/@account-a
 verification = rel-me
 
@@ -203,10 +207,12 @@ verification = rel-me-hidden
 ```
 
 You can supply any number of `link` fields, these are prominently displayed in
-the header/landing area of your artist page. A `link` must at least
-provide a url, either as a simple value or as an `url` attribute. Optionally
-you can also supply a `label` which is what is visibly displayed instead of
-the `url`, when given.
+the header/landing area of your artist page. Links can be full urls (e.g.
+"https://example.com") or references within the page (e.g. "#imprint").
+
+A `link` must at least provide a url, either as a simple value or as an `url` attribute.
+You can also supply a `label` which is what is visibly displayed instead of
+the `url`, when given - for anchors this label is mandatory.
 
 Additionally, you can configure [rel="me"](https://microformats.org/wiki/rel-me)
 linking, by supplying the attribute `verification = rel-me`.
