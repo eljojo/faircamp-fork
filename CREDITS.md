@@ -90,6 +90,7 @@ Janina Hofmann<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
 [n00q](https://codeberg.org/n00q)<br>
 [Oliver](https://microhive.social/oliver)<br>
+[Oliver Geer](https://oliver.geer.im)<br>
 [OniriCorpe](https://oniricorpe.eu)<br>
 [Patricio Maripani](https://enemigo.cl/)<br>
 [Patrik Wallström](https://mastodon.social/@pawal)<br>
