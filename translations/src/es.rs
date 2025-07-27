@@ -39,7 +39,6 @@ pub const ES: Translations = Translations {
     extras: Unreviewed("Extras"),
     failed: Unreviewed("Falló"),
     feed: Unreviewed("Feed"),
-    fixed_price: Unreviewed("Precio fijo:"),
     generic_rss: Unreviewed("RSS genérico"),
     image_descriptions: Unreviewed("Descripciones de imágenes"),
     image_descriptions_guide: Unreviewed("Millones de personas navegan el web usando lectores de pantalla porque no pueden ver, o no pueden ver lo suficientemente bien. Imágenes sin descripciones textuales no están asequibles a ellas, y por eso debemos hacer el esfuerzo de proporcionar descripciones de imágenes a ellas. <br><br>Consulta el README de faircamp para aprender como añadir descripciones de imágenes, está facil y un acto de bondad. <br><br>Aquí hay algunos consejos para escribir buenas descripciones de imágenes:<br>- Cualquier descripción está mejor que no tener uno, no te preocupes por hacerlo mal.<br>- Sé concisa. Escribe tanto como sea necesario, pero también mantenlo lo más corto posible.<br>- No interpretes. Describe lo que hay en la imagen pero no analices más allá de eso.<br>- Puedes usar colores cuando tiene sentido - mucha gente solo perdieron la vista más tarde y entienden y aprecian los colores."),
