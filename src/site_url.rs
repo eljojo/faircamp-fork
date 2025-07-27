@@ -65,7 +65,7 @@ impl SiteUrl {
     /// Returns the passed url without http(s):// and without trailing slash.
     pub fn pretty_display(url: &str) -> &str {
         match url.split_once("://") {
-            Some((leading, trailing)) => trailing.trim_end_matches('/'),
+            Some((_leading, trailing)) => trailing.trim_end_matches('/'),
             None => url
         }
     }
