@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2024 atomkarinca
+// SPDX-FileCopyrightText: 2024-2025 atomkarinca
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations, Unreviewed};
+use super::{Reviewed, Translations};
 
 pub const TR: Translations = Translations {
     audio_format_alac: Reviewed("Kayıpsız ve sıkıştırılmış, eğer yalnızca Apple ürünleri kullanıyorsanız FLAC yerine bunu seçin"),
@@ -15,6 +15,7 @@ pub const TR: Translations = Translations {
     audio_player_widget_for_xxx: Reviewed(r#""{title}" için oynatma aygıtı"#),
     auto_generated_cover: Reviewed("Otomatik oluşturulmuş albüm kapağı"),
     available_formats: Reviewed("Mevcut dosya türleri:"),
+    browse: Reviewed("Gözat"),
     buy: Reviewed("Satın al"),
     close: Reviewed("Kapat"),
     copied: Reviewed("Kopyalandı"),
@@ -25,7 +26,7 @@ pub const TR: Translations = Translations {
     cover_image: Reviewed("Albüm Kapağı"),
     default_unlock_info: Reviewed("Bu indirmelere ulaşmak için kod girişi yapmanız gerekiyor. Site yöneticilerine danışarak buna ulaşabilirsiniz."),
     download: Reviewed("İndir"),
-    download_code_seems_incorrect: Unreviewed("Kilit açma kodu yanlış görünüyor, lütfen yazım hatası olup olmadığını kontrol edin."),
+    download_code_seems_incorrect: Reviewed("İndirme kodu yanlış görünüyor, lütfen yazım hatası olup olmadığını kontrol edin."),
     downloads: Reviewed("İndirelenler"),
     downloads_permalink: Reviewed("indirilenler"),
     embed: Reviewed("Sayfaya göm"),
@@ -35,6 +36,7 @@ pub const TR: Translations = Translations {
     extras: Reviewed("Ekstralar"),
     failed: Reviewed("Başarısız oldu"),
     feed: Reviewed("Kaynak"),
+    generic_rss: Reviewed("Basit RSS"),
     image_descriptions: Reviewed("Görüntü Açıklamaları"),
     image_descriptions_guide: Reviewed("\
 Milyonlarca insan, göremedikleri için (ya da yeterince \
@@ -54,6 +56,8 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
 - Yorum yapmayın. Olanı ve olanın anlaşılması için gerekenleri tarif edin, bunun ötesinde analiz yapmayın.<br>\
 - Mantıklı olan yerlerde renk kullanabilirsiniz - çoğu insan görme yeteneğini sonradan kaybetmiştir ve renkleri anlayıp değerlendirebilir."),
     image_descriptions_permalink: Reviewed("goruntu-aciklamalari"),
+    javascript_is_disabled_listen_at_xxx: Reviewed("JavaScript etkin değil - {link} bağlantısından dinleyin"),
+    javascript_is_disabled_text: Reviewed("JavaScript etkin değil - Bazı özellikler mevcut değil"),
     listen: Reviewed("Dinle"),
     loading: Reviewed("Yükleniyor"),
     m3u_playlist: Reviewed("M3U Oynatma Listesi"),
@@ -63,17 +67,24 @@ Kaliteli görüntü açıklamaları yazmak için birkaç öneri:<br>\
     mute: Reviewed("Sesi kapat"),
     name_your_price: Reviewed("Tutar girin"),
     next_track: Reviewed("Sonraki Parça"),
+    nothing_found_for_xxx: Reviewed("'{query}' için sonuç bulunamadı"),
     pause: Reviewed("Duraklat"),
     play: Reviewed("Oynat"),
     playback_position: Reviewed("Oynatma pozisyonu"),
     player_closed: Reviewed("Oynatıcı kapalı"),
     player_open_playing_xxx: Reviewed("Oynatıcı açık, {title} oynatılıyor"),
+    player_open_with_xxx: Reviewed("Oynatıcı {title} ile açık"),
     previous_track: Reviewed("Önceki Parça"),
-    price: Unreviewed("Sabit fiyat:"),
+    price: Reviewed("Fiyat:"),
     purchase_downloads: Reviewed("İndirmeleri satın al"),
     purchase_permalink: Reviewed("satin-al"),
     recommended_format: Reviewed("Tavsiye edilen dosya türü"),
     search: Reviewed("Ara"),
+    showing_featured_items: Reviewed("Öne çıkan öğeler gösteriliyor"),
+    showing_xxx_results_for_xxx: Reviewed("'{query}' için {count} sonuç gösteriliyor"),
+    skip_to_main_content: Reviewed("Ana içeriğe geç"),
+    subscribe: Reviewed("Abone ol"),
+    subscribe_permalink: Reviewed("abone-ol"),
     unlisted: Reviewed("Yayınlanmamış"),
     unlock: Reviewed("Kilidi aç"),
     unlock_downloads: Reviewed("İndirmelerin kilidini aç"),
@@ -95,7 +106,9 @@ Enter tuşuna basın."),
     visual_impairment: Reviewed("Görme Bozukluğu"),
     volume: Reviewed("Ses Düzeyi"),
     xxx_and_others: Reviewed(r#"{xxx} ve <a href="{others_link}">diğerleri</a>"#),
+    xxx_hours: Reviewed("{xxx} saat"),
     xxx_minutes: Reviewed("{xxx} dakika"),
     xxx_or_more: Reviewed("{xxx} ya da daha fazlası"),
+    xxx_seconds: Reviewed("{xxx} saniye"),
     ..Translations::UNTRANSLATED
 };
