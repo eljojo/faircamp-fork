@@ -65,6 +65,7 @@ Damian Szetela<br>
 Janina Hofmann<br>
 [JΛПIПΛIПFΛ](https://janinainfa.surge.sh/)<br>
 [jd42](https://codeberg.org/jd42)<br>
+[Kari Smolander](https://karismolander.net/)<br>
 [keef](https://key13.uk)<br>
 [kel](https://mastodon.online/@kel)<br>
 [Kristoffer Lislegaard](https://lisleg.com/)<br>

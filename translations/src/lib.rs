@@ -7,6 +7,7 @@ mod ca;
 mod de;
 mod en;
 mod es;
+mod fi;
 mod fr;
 mod he;
 mod it;
@@ -27,6 +28,7 @@ pub use ca::CA;
 pub use de::DE;
 pub use en::EN;
 pub use es::ES;
+pub use fi::FI;
 pub use fr::FR;
 pub use he::HE;
 pub use it::IT;
@@ -51,6 +53,7 @@ pub fn all_languages() -> Vec<LabelledTranslations> {
         LabelledTranslations { code: "de", name: "German", translations: DE },
         LabelledTranslations { code: "en", name: "English", translations: EN },
         LabelledTranslations { code: "es", name: "Spanish", translations: ES },
+        LabelledTranslations { code: "fi", name: "Finnish", translations: FI },
         LabelledTranslations { code: "fr", name: "French", translations: FR },
         LabelledTranslations { code: "he", name: "Hebrew", translations: HE },
         LabelledTranslations { code: "it", name: "Italian", translations: IT },
@@ -585,6 +588,7 @@ fn check_translations() {
         DE,
         EN,
         ES,
+        FI,
         FR,
         HE,
         IT,

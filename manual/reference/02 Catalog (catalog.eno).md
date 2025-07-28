@@ -395,6 +395,7 @@ Faircamp currently ships with these languages:
 - Catalan `ca`
 - Dutch `nl`
 - English `en` (default)
+- Finnish `fi`
 - French `fr`
 - German `de`
 - Italian `it`
