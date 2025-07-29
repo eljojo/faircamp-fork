@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Vac
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{Reviewed, Translations, Unreviewed};
+use super::{Reviewed, Translations};
 
 pub const LT: Translations = Translations {
     audio_format_alac: Reviewed("Nenuostolingas ir suglaudintas. Jei naudojate tik „Apple“ produktus, rinkitės šį, o ne FLAC."),
@@ -59,7 +59,7 @@ pub const LT: Translations = Translations {
     player_open_playing_xxx: Reviewed("Leistuvė atverta, leidžiama {title}"),
     player_open_with_xxx: Reviewed("Leistuvė atverta su {title}"),
     previous_track: Reviewed("Ankstesnis takelis"),
-    price: Unreviewed("Nustatyta kaina:"),
+    price: Reviewed("Kaina:"),
     purchase_downloads: Reviewed("Pirkti atsisiuntimus"),
     purchase_permalink: Reviewed("pirkti"),
     recommended_format: Reviewed("Rekomenduojamas formatas"),
