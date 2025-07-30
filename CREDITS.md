@@ -64,6 +64,7 @@ Damian Szetela<br>
 [James Fenn](https://jfenn.me/)<br>
 Janina Hofmann<br>
 [JΛПIПΛIПFΛ](https://janinainfa.surge.sh/)<br>
+[jcx](https://codeberg.org/jcx)<br>
 [jd42](https://codeberg.org/jd42)<br>
 [Kari Smolander](https://karismolander.net/)<br>
 [keef](https://key13.uk)<br>
