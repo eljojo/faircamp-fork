@@ -5,6 +5,45 @@
 
 # Changelog
 
+## 1.5
+
+Released on July 30, 2025
+
+### Support for anchor/id references in the link option
+
+<video alt="A video showing how a generic link on a faircamp release page can now jump to an arbitrary section on the page, or even jump trigger playback of a specific track and timecode" autoplay controls loop muted playsinline src="https://simonrepp.com/faircamp/changes/1.5.0/links.mp4"></video>
+
+The new anchor/id references in action
+
+Before this release, the [label](https://simonrepp.com/faircamp/manual/releases-release-eno.html#link) option only supported full urls like "https://example.com".
+1.5 now supports "#some-id" style internal page references, either for linking to anchors that you manually place in your [label](https://simonrepp.com/faircamp/manual/releases-release-eno.html#more)
+section, or for using faircamp's [label](https://simonrepp.com/faircamp/manual/linking-to-timecodes-tracks.html) directly from the link option.
+
+![A screenshot of the markup in the release.eno manifest that sets up what was shown in the video earlier, with three sections pointed out specifically:  link: label = Lyrics url = #lyrics  link: label = Jump to 0:20 in track 3  url = #track=3&time=20s  <a id="lyrics"></a> ## Lyrics  This release has no lyrics at all, but just for the sake of demonstration ...  Roses are red Violets are blue A great lyricist Slumbers in you](https://simonrepp.com/faircamp/changes/1.5.0/links.png)
+
+The markup inside a release.eno manifest used for the demo above
+
+- Extend link option to support #id-based in-page references, improve errors ([1b020c5](https://codeberg.org/simonrepp/faircamp/commit/1b020c52383682d8de2abe7006ff4f74c573dbe6))
+
+### Fixes
+
+- Add missing hand-over of track cover path to track transcoding routine ([ef8cd4b](https://codeberg.org/simonrepp/faircamp/commit/ef8cd4b8ca34268113bc01a8a1a586a0cef06c96)) (with [jcx](https://codeberg.org/jcx))
+- Remove duplicate extension suffixes for default png favicon assets ([2ec9570](https://codeberg.org/simonrepp/faircamp/commit/2ec95700fdf1227a1668281b78e08b2ecae30129)) (with [keef](https://key13.uk))
+- Safely handle unexpected protocols in link urls (with [Sandro Santilli](https://strk.kbt.io))
+  * Safely handle unexpected protocols in link urls ([5531555](https://codeberg.org/simonrepp/faircamp/commit/55315550c3bb6f9904be76b4efe8bd422463f800))
+  * Resolve dead code warning after recent link url processing fix ([2c29bed](https://codeberg.org/simonrepp/faircamp/commit/2c29bedad4e0bf3066ef2a9e23972f682bbe0d2c))
+
+
+### Translations
+
+- Add finnish translations ([814cb2b](https://codeberg.org/simonrepp/faircamp/commit/814cb2b0ee2b36b96cd1b95b0f30ad671852ff21)) ([Kari Smolander](https://karismolander.net/))
+- Update italian translations ([b244919](https://codeberg.org/simonrepp/faircamp/commit/b244919a765587c56a60e2ddffaf2e87a78d67f3)) ([Tommaso Croce](https://mastodon.uno/@toctoc))
+- Update Spanish translations
+  * Update Spanish translations ([8f1e36a](https://codeberg.org/simonrepp/faircamp/commit/8f1e36a5aba310b7e5690c3f4c721fd121d61ee6)) [Oliver Geer](https://oliver.geer.im)
+  * Drop meanwhile removed fixed_price translation in spanish translations ([42bd28a](https://codeberg.org/simonrepp/faircamp/commit/42bd28a00e700da55fdc632f39b8b34e01bb9a39))
+- Update turkish translations ([a81c050](https://codeberg.org/simonrepp/faircamp/commit/a81c0506418f9dbc14e6c6c6de9233de141705ad)) ([atomkarinca](https://fe.disroot.org/users/atomkarinca))
+- Update lithuanian translations ([52d4f70](https://codeberg.org/simonrepp/faircamp/commit/52d4f70f9411614031d6a74116aca1ed856275d0)) ([Vac](https://river.group.lt/@vac))
+
 ## 1.4.2 (2025-06-16)
 
 - Add lockfile change missing in the 1.4.1 release (0ae1b54)
@@ -17,17 +56,17 @@
 
 ## 1.4 (2025-04-22)
 
-## Custom assets and metadata
+### Custom assets and metadata
 
 - Introduce site_assets and site_metadata options for site-wide custom assets/metadata (023996f)
 
-## Misc
+### Misc
 
 - Extend roman numeral range from 40 to 3999 using modern subtractive notation (a2adfd3)
 - Rename optional FAIRCAMP_PKG_VERSION build parameter to FAIRCAMP_VERSION (e3f1e1c)
 - Add css minification in minify feature (023996f)
 
-## Fixes
+### Fixes
 
 - Work around browsers with missing Media Session API support (Sunny, 06c5291)
 - Fix incorrect url construction in browse/search when clean urls are disabled (f0dcf39)
