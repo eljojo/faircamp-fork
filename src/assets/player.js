@@ -1159,6 +1159,7 @@ window.addEventListener('hashchange', event => {
 
     if (params) {
         requestSeek(params.track, params.time ?? 0);
+        params.track.playbackButton.focus();
         // TODO: This can be observed as a brief flicker in the address bar
         // (when you look for it). Possibly look for a more elegant way in
         // the future.
