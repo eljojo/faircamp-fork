@@ -473,10 +473,10 @@ displayed before the downloads are accessed.
 For example in order to ask for 4€ for accessing the downloads of a release:
 
 ```eno
-price: EUR 4+
+release_price: EUR 4+
 ```
 
-The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+The `release_price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
 
 - `USD 0+` (Name your price, including zero dollars as a valid option)
 - `3.50 GBP` (Exactly 3.50 Pounds)
@@ -926,10 +926,10 @@ displayed before the downloads are accessed.
 For example in order to ask for 4€ for accessing the downloads of a track:
 
 ```eno
-price: EUR 4+
+track_price: EUR 4+
 ```
 
-The `price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
+The `track_price` option accepts an [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code and a price range such as:
 
 - `USD 0+` (Name your price, including zero dollars as a valid option)
 - `3.50 GBP` (Exactly 3.50 Pounds)

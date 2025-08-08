@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 n3wjack
+// SPDX-FileCopyrightText: 2024-2025 n3wjack
 // SPDX-FileCopyrightText: 2023 Deborah Pickett
 // SPDX-License-Identifier: AGPL-3.0-or-later
 

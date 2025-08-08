@@ -98,8 +98,8 @@ pub fn read_obsolete_option(
 
                 *) Flac downloads protected with a download code:
 
+                  release_download_access: code
                   release_downloads: flac
-                  downloads: code
                   download_code: thesecret
                   -- unlock_info
                   Get a download code at my [shop](https://example.com)
@@ -107,11 +107,11 @@ pub fn read_obsolete_option(
 
                 *) Mp3 and flac downloads with a paycurtain:
 
+                  release_download_access: paycurtain
                   release_downloads:
                   - mp3
                   - flac
-                  downloads: paycurtain
-                  price: USD 0+
+                  release_price: USD 0+
                   -- payment_info
                   Pay via my [donations page](https://example.com)
                   -- payment_info
@@ -124,11 +124,11 @@ pub fn read_obsolete_option(
 
                 *) External downloads:
 
-                  downloads: https://example.com
+                  release_download_access: https://example.com
 
                 *) Disabled downloads (only ever needed when you somehow enabled them in a parent manifest):
 
-                  downloads: disabled
+                  release_download_access: disabled
             ");
             let error = element_error_with_snippet(element, manifest_path, message);
             build.error(&error);
@@ -183,11 +183,11 @@ pub fn read_obsolete_option(
             let message = indoc!("
                 Since faircamp 1.0, specify payment options directly in an artist.eno, catalog.eno or release.eno manifest using the single 'payment_info' field. Example with context:
 
-                  downloads: paycurtain
-                  price: EUR 4+
+                  release_download_access: paycurtain
                   release_downloads:
                   - mp3
                   - flac
+                  release_price: EUR 4+
 
                   -- payment_info
                   Pay via my [donations page](https://example.com)
