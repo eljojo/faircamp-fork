@@ -18,10 +18,10 @@ use crate::{
 pub struct Artist {
     pub aliases: Vec<String>,
     pub copy_link: bool,
-    /// This is only set when an artist is created through a short-form
-    /// definition in a manifest, and when providing a link through it.
-    /// Its presence indicates that we don't generate an internal (featured)
-    /// artist page, but instead link to the artist on an external page.
+    /// This is only set when an external_page option is specified for an
+    /// artist in a manifest. Its presence indicates that we don't generate
+    /// an internal (featured) artist page, but instead link to the artist on
+    /// an external page.
     pub external_page: Option<String>,
     /// While reading the catalog we annotate artists who are featured
     /// (i.e. get their own page) with this flag. This helps us to correctly

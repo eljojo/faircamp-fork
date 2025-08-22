@@ -39,7 +39,10 @@ function truncateArtistList(artists, othersLink)  {
                     });
 
                 const rArtists = truncatedArtists
-                    .map(artist => `<a href="${rootPrefix}${artist.url}${indexSuffix}">${artist.name}</a>`)
+                    .map(artist => {
+                        const url = artist.externalPage ?? `${rootPrefix}${artist.url}${indexSuffix}`;
+                        return `<a href="${url}">${artist.name}</a>`;
+                    })
                     .join(", ");
 
                 return BROWSER_JS_T.xxxAndOthers(rArtists, othersLink);
@@ -55,7 +58,10 @@ function truncateArtistList(artists, othersLink)  {
     }
 
     return artists
-        .map(artist => `<a href="${rootPrefix}${artist.url}${indexSuffix}">${artist.name}</a>`)
+        .map(artist => {
+            const url = artist.externalPage ?? `${rootPrefix}${artist.url}${indexSuffix}`;
+            return `<a href="${url}">${artist.name}</a>`;
+        })
         .join(", ");
 }
 
@@ -140,6 +146,10 @@ for (const release of RELEASES) {
 
 for (const artist of ARTISTS) {
     const aText = document.createElement('a');
+
+    // The herein iterated artists are all featured artists, that is, artists
+    // with their own page on this faircamp site, therefore we never need to
+    // handle an external url here.
     aText.href = rootPrefix + artist.url + indexSuffix;
 
     let imageArtist;

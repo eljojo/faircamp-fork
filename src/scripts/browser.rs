@@ -5,7 +5,7 @@ use std::fs;
 
 use indoc::formatdoc;
 
-use crate::{Build, Catalog};
+use crate::{ArtistRc, Build, Catalog};
 use crate::TRACK_NUMBERS;
 use crate::util::url_safe_hash_base64;
 
@@ -13,6 +13,19 @@ use super::js_escape_inside_single_quoted_string;
 
 const BROWSER_JS: &str = include_str!(env!("FAIRCAMP_BROWSER_JS"));
 const BROWSER_JS_FILENAME: &str = "browser.js";
+
+fn artist_js_object(artist: &ArtistRc) -> String {
+    let artist_ref = artist.borrow();
+    let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
+    let artist_slug = &artist_ref.permalink.slug;
+
+    let mut external_page = String::new();
+    if let Some(url) = &artist_ref.external_page {
+        external_page.push_str(&format!("externalPage:'{url}',"));
+    }
+
+    format!("{{{external_page}name:'{artist_name_escaped}',url:'{artist_slug}/'}}")
+}
 
 pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
     let mut releases_desc_by_date = catalog.public_releases();
@@ -43,20 +56,11 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
                     let r_artists = if catalog.label_mode {
                         let joined = track.artists
                             .iter()
-                            .map(|artist| {
-                                let artist_ref = artist.borrow();
-                                let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
-                                let artist_slug = &artist_ref.permalink.slug;
-                                format!(r#"{{ name: '{artist_name_escaped}', url: '{artist_slug}/' }}"#)
-                            })
+                            .map(artist_js_object)
                             .collect::<Vec<String>>()
                             .join(",\n");
 
-                        formatdoc!(r#"
-                            artists: [
-                                {joined}
-                            ],
-                        "#)
+                        format!("artists:[{joined}],")
                     } else {
                         String::new()
                     };
@@ -77,17 +81,7 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
             let r_artists = if catalog.label_mode {
                 let joined = release_ref.main_artists
                     .iter()
-                    .map(|artist| {
-                        let artist_ref = artist.borrow();
-                        let artist_name_escaped = js_escape_inside_single_quoted_string(&artist_ref.name);
-                        let artist_slug = &artist_ref.permalink.slug;
-                        formatdoc!(r#"
-                            {{
-                                name: '{artist_name_escaped}',
-                                url: '{artist_slug}/'
-                            }}
-                        "#)
-                    })
+                    .map(artist_js_object)
                     .collect::<Vec<String>>()
                     .join(",\n");
 
@@ -166,16 +160,9 @@ pub fn generate_browser_js(build: &mut Build, catalog: &Catalog) {
             showingXxxResultsForXxx: (count, query) => '{t_showing_xxx_results_for_xxx}'.replace('{{count}}', count).replace('{{query}}', query),
             xxxAndOthers: (xxx, othersLink) => '{t_xxx_and_others}'.replace('{{xxx}}', xxx).replace('{{others_link}}', othersLink)
         }};
-
         const LABEL_MODE = {label_mode_bool};
-
-        const ARTISTS = [
-            {r_artists}
-        ];
-
-        const RELEASES = [
-            {r_releases}
-        ];
+        const ARTISTS = [{r_artists}];
+        const RELEASES = [{r_releases}];
     "#);
 
     js.push_str(BROWSER_JS);
