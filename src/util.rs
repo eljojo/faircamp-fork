@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::ffi::OsString;
-use std::fmt::{Display, Formatter};
 use std::fs;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
@@ -15,24 +14,6 @@ const BYTES_KB: u64 = 1024;
 const BYTES_MB: u64 = 1024 * BYTES_KB; 
 const BYTES_GB: u64 = 1024 * BYTES_MB; 
 const SECONDS_HOUR: u32 = 60 * 60;
-
-/// We need some float values (e.g. in our themes) to be automatically
-/// hashable (which f32 isn't), so we use the newtype pattern to ensure this
-/// property.
-#[derive(Clone, Debug)]
-pub struct HashableF32(pub f32);
-
-impl Display for HashableF32 {
-    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
-        write!(formatter, "{}", self.0)
-    }
-}
-
-impl Hash for HashableF32 {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.to_string().hash(state);
-    }
-}
 
 /// Takes an existing filename (that has elsewhere been identified to collide
 /// with another file with the same filename) and returns the filename,
