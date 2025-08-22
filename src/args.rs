@@ -33,7 +33,7 @@ pub struct Args {
     #[clap(long = "debug-translations")]
     pub debug_translations: bool,
 
-    /// Deploys to the configured server via rsync after the build is finished
+    /// Deploys to the configured server via rsync after the build is finished. Specify the desitnation with --deploy-destination. (The full command is: `rsync -avz --delete [your_build_dir/] [deploy_destination]`)
     #[clap(long = "deploy", short = 'd')]
     pub deploy: bool,
     
