@@ -7,7 +7,7 @@
 use super::{Reviewed, Translations, Unreviewed};
 
 pub const FR: Translations = Translations {
-    audio_format_alac: Reviewed("Sans perte et compacté. Préférer à FLAC si vous n’utilisez que des produits Apple."),
+    audio_format_alac: Reviewed("Sans perte et compressé. Si vous nous n'utilisez que des produits Apple, utilisez ce format plutôt que FLAC"),
     audio_format_average: Reviewed("Compression moyenne. Adapté aux lecteurs qui ne prennent pas en charge de meilleurs formats."),
     audio_format_flac: Reviewed("Sans perte et compacté. Idéal pour l’archivage."),
     audio_format_mp3: Reviewed("Compression inefficace. Adapté si la compatibilité avec d’anciens lecteurs est nécessaire."),
@@ -39,6 +39,7 @@ pub const FR: Translations = Translations {
     extras: Reviewed("Suppléments"),
     failed: Reviewed("Échec"),
     feed: Reviewed("Flux RSS"),
+    generic_rss: Reviewed("RSS Générique"),
     image_descriptions: Reviewed("Descriptions des images"),
     image_descriptions_guide: Reviewed("Des millions des personnes naviguent sur le Web à l'aide de lecteurs d'écran parce qu'elles ne voient pas (ou pas assez bien). Les images sans descriptions textuelles leur sont inaccessibles, et c'est pourquoi nous devons faire l'effort de leur fournir des descriptions d'images. <br><br>Consultez le fichier README de Faircamp pour savoir comment ajouter des descriptions d'images. C'est facile et c'est faire preuve de bienveillance.<br><br>Voici quelques conseils pour rédiger de bonnes descriptions d'images :<br>- Une description quelle qu’elle soit vaut mieux que l’absence de description, et n’ayez pas peur de vous tromper.<br>- Soyez concis. Rédigez autant que nécessaire, tout en étant le plus bref que possible.<br>- N'interprétez pas. Décrivez ce qui est présent et pertinent pour la compréhension, n'analysez pas au-delà.<br>- Vous pouvez mentionner les couleurs lorsque ça a du sens, car beaucoup de gens qui ont perdu la vue comprennent et apprécient les couleurs."),
     image_descriptions_permalink: Reviewed("descriptions-des-images"),
@@ -59,6 +60,7 @@ pub const FR: Translations = Translations {
     playback_position: Reviewed("Position de lecture"),
     player_closed: Reviewed("Lecteur fermé"),
     player_open_playing_xxx: Reviewed("Lecteur ouvert, {title} en écoute."),
+    player_open_with_xxx: Reviewed("Lecteur ouvert avec {title}"),
     previous_track: Reviewed("Piste précédente"),
     price: Reviewed("Prix:"),
     purchase_downloads: Reviewed("Acheter des téléchargements"),
@@ -68,6 +70,8 @@ pub const FR: Translations = Translations {
     showing_featured_items: Reviewed("Affichage des éléments en vedette"),
     showing_xxx_results_for_xxx: Reviewed("Affichage de {count} résultats pour '{query}'"),
     skip_to_main_content: Reviewed("Passer au contenu principal"),
+    subscribe: Reviewed("S'inscrire"),
+    subscribe_permalink: Reviewed("s'inscrire"),
     unlisted: Reviewed("Non répertorié"),
     unlock: Reviewed("Déverouiller"),
     unlock_downloads: Reviewed("Déverouiller les téléchargements"),
