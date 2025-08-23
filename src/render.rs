@@ -315,7 +315,7 @@ fn embed_code(embed_url: &str, title: &str) -> (String, String) {
     let title_double_escaped = html_double_escape_inside_attribute(title);
     let title_escaped = html_escape_inside_attribute(title);
 
-    let inline_style = "border: none; min-width: 480px;";
+    let inline_style = "border: none; height: 49.6px; min-width: 480px;";
 
     let copy_code = html_escape_inside_attribute(
         &format!(r#"<iframe loading="lazy" src="{embed_url}" style="{inline_style}" title="{title_escaped}"></iframe>"#)

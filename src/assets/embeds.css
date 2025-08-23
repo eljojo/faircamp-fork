@@ -43,6 +43,7 @@ body {
     color: var(--fg-2);
     margin: 0;
 }
+body::before { margin-top: .3rem; }
 button {
     background: none;
     border: none;
@@ -348,7 +349,4 @@ html[dir="rtl"] .player .track_info {
 @media (max-width: 24.999rem) {
     .player .time > :not(.current) { display: none; }
     .track .time { display: none; }
-}
-@media (min-width: 30rem) {
-    .player { font-size: 1.14rem;  }
 }
