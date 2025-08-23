@@ -60,7 +60,6 @@ button.link {
     background: none;
     padding: 0;
 }
-button svg { display: inline-block; }
 .cover { display: block; }
 .cover img,
 .image img {
@@ -82,10 +81,6 @@ button svg { display: inline-block; }
     color: var(--fg-2);
 }
 .player button[disabled] { color: var(--bg-3); }
-.player button svg {
-    position: relative;
-    top: .1em;
-}
 .player .elements {
     align-items: center;
     background: var(--bg-1-overlay);
@@ -99,6 +94,11 @@ button svg { display: inline-block; }
     font-size: 1.1rem;
     font-variant: tabular-nums;
     margin-inline-start: .2rem;
+}
+.player .time,
+.player .track_info {
+    position: relative;
+    bottom: .05em;
 }
 .player .timeline {
     cursor: pointer;
