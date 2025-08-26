@@ -23,6 +23,7 @@ mod sr_latn;
 mod sv;
 mod tr;
 mod uk;
+mod zh_hans_cn;
 
 pub use ca::CA;
 pub use de::DE;
@@ -44,6 +45,7 @@ pub use sr_latn::SR_LATN;
 pub use sv::SV;
 pub use tr::TR;
 pub use uk::UK;
+pub use zh_hans_cn::ZH_HANS_CN;
 
 pub use Translation::{Reviewed, Unreviewed, Untranslated};
 
@@ -68,7 +70,8 @@ pub fn all_languages() -> Vec<LabelledTranslations> {
         LabelledTranslations { code: "sr-latn", name: "Serbian (Latin)", translations: SR_LATN },
         LabelledTranslations { code: "sv", name: "Swedish", translations: SV },
         LabelledTranslations { code: "tr", name: "Turkish", translations: TR },
-        LabelledTranslations { code: "uk", name: "Ukrainian", translations: UK }
+        LabelledTranslations { code: "uk", name: "Ukrainian", translations: UK },
+        LabelledTranslations { code: "zh_hans_cn", name: "Chinese (Simplified, Mandarin, Mainland China)", translations: ZH_HANS_CN }
     ]
 }
 
