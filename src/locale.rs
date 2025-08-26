@@ -25,7 +25,8 @@ use translations::{
     SV,
     TR,
     UK,
-    ZH_HANS_CN
+    ZH_HANS_CN,
+    ZH_HANT_TW
 };
 use translations::Translations;
 
@@ -74,6 +75,7 @@ impl Locale {
             "tr" => Locale::new("tr", TR, TextDirection::Ltr),
             "uk" => Locale::new("uk", UK, TextDirection::Ltr),
             "zh-hans-cn" => Locale::new("zh-hans-cn", ZH_HANS_CN, TextDirection::Ltr),
+            "zh-hant-tw" => Locale::new("zh-hant-tw", ZH_HANT_TW, TextDirection::Ltr),
             _ => Locale::new(language, EN, TextDirection::from_code(language))
         }
     }

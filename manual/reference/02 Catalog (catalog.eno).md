@@ -394,6 +394,7 @@ Faircamp currently ships with these languages:
 
 - Catalan `ca`
 - Chinese (Simplified, Mandarin, Mainland China) `zh-hans-cn`
+- Chinese (Traditional, Mandarin, Taiwan) `zh-hant-tw`
 - Dutch `nl`
 - English `en` (default)
 - Finnish `fi`
