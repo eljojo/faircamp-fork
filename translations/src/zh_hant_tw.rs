@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Oliver Geer
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// Traditional Chinese, using Taiwan Mandarin for pronunciation-based permalinks and dialectal character choice
+// Traditional Chinese, using Mandarin for pronunciation-based permalinks and Taiwan dialect when needed for character choice
 
 use super::{Translations, Unreviewed};
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Oliver Geer
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// Simplified Chinese, using Mainland China Mandarin for pronunciation-based permalinks and dialectal character choice
+// Simplified Chinese, using Mandarin for pronunciation-based permalinks and PRC Official Putonghua dialect when needed for character choice
 
 use super::{Translations, Unreviewed};
 
