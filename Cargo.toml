@@ -6,8 +6,8 @@ authors = ["Simon Repp"]
 edition = "2021"
 name = "faircamp"
 publish = false
-# rust-version here applies to --features libvips, with --features image it is 1.79.0
-rust-version = "1.76.0"
+# Applies with both --features libvips, and --features image currently, but might diverge again
+rust-version = "1.82"
 version = "1.5.0"
 
 [build-dependencies]
