@@ -90,12 +90,13 @@ Janina Hofmann<br>
 [ndr_brt](https://codeberg.org/ndr_brt)<br>
 [Nicolas (greenman)](https://fosstodon.org/@greenman)<br>
 [Niklas Reppel](https://parkellipsen.de)<br>
-[n00q](https://codeberg.org/n00q)<br>
+[n00q](https://n00q.net/)<br>
 [Oliver](https://microhive.social/oliver)<br>
 [Oliver Geer](https://oliver.geer.im)<br>
 [OniriCorpe](https://oniricorpe.eu)<br>
 [Patricio Maripani](https://enemigo.cl/)<br>
 [Patrik Wallström](https://mastodon.social/@pawal)<br>
+[Peter Kirn](https://mastodon.social/@pkirn)<br>
 [Porkepix](https://github.com/Porkepix)<br>
 [protman](https://protman.com/)<br>
 [pulusound](https://pulusound.fi/)<br>
