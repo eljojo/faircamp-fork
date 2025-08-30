@@ -5,6 +5,57 @@
 
 # Changelog
 
+## 1.6
+
+Released on August 30, 2025
+
+### Introducing chinese translations
+
+[Oliver Geer](https://oliver.geer.im) has put in a lot of effort to provide two first, complete
+chinese translations of Faircamp, namely in Simplified/Mandarin/PRC Official Putonghua dialect (zh-hans-cn) and
+Traditional/Mandarin/Taiwan dialect (zh-hant-tw).
+
+Oliver is not a native speaker - "just" a very skilled and highly commited polyglot! -
+so if you happen to be a native speaker and want to contribute on top of his efforts,
+you are warmly invited to review and improve the translations on Faircamp's dedicated
+[translation page](https://simonrepp.com/faircamp/translate)!
+
+- Add Chinese (Simplified, Mandarin, Mainland China) ([`ace0702`](https://codeberg.org/simonrepp/faircamp/commit/ace070213f32e4232228a5986162c553ac7ca343))
+- Add Chinese (Traditional, Mandarin, Taiwan) ([`20316d4`](https://codeberg.org/simonrepp/faircamp/commit/20316d4b22d2d3e55d032e3e074d66187b260caf))
+- Clarify meaning of geographical codes in Chinese language codes ([`ad40894`](https://codeberg.org/simonrepp/faircamp/commit/ad40894f645ca4a0680e038a9254481278a62081))
+
+### Important fix for embeds – Action Required (if you use them)
+
+This release fixes a prominent padding issue with embeds, where (without manual css tweaks)
+one could observe excessive padding above and especially below an embed.
+
+Heads up though: As the main ingredient to fixing this lies in the embed
+(iframe) code itself, you will need to first update the faircamp site, but
+then also replace the already embedded code with the updated code that
+faircamp now generates.
+
+- Statically set embedded player height, shift background below timeline padding ([`114f2e2`](https://codeberg.org/simonrepp/faircamp/commit/114f2e22ce5f568afdb2251684efc2a0af8cb1b9))
+
+### Improvements and fixes
+
+- Move focus to playback button when a track/timecode link is followed in-page ([`5761231`](https://codeberg.org/simonrepp/faircamp/commit/57612314b2e6b27c3d60f18d6da2f33c397dcb76)) (with [jcx](https://codeberg.org/jcx))
+- Pass through and link external artist pages in client-side browser script ([`101899d`](https://codeberg.org/simonrepp/faircamp/commit/101899dfe43e0b9bb30272ef07a3a48582cae7e4)) (with [徒settoセット](https://setto.basspistol.com/))
+- Fine-tune vertical alignment of elements in docked and embedded player ([`665566d`](https://codeberg.org/simonrepp/faircamp/commit/665566d8a1eef47184e2ad7408b377e1182db1cc))
+
+### Extended translations
+
+- Add additional Dutch translations. ([`fb9b660`](https://codeberg.org/simonrepp/faircamp/commit/fb9b660ccf02863b93c78b18baad57600f284da8)) ([n3wjack](https://n3wjack.net))
+- Update french translations (Élie Khalil)
+  * Update french translations ([`f612876`](https://codeberg.org/simonrepp/faircamp/commit/f6128764f4124f8d965043a01a4cf79bbbc0702c))
+  * Replace disallowed char in french subscribe permalink translation ([`3844066`](https://codeberg.org/simonrepp/faircamp/commit/3844066eb07dbfbf10468eaecb4c919ee1971f97))
+
+### Manual improvements
+
+- Update outdated documentation around download options ([`1f2c2ce`](https://codeberg.org/simonrepp/faircamp/commit/1f2c2ce20c01ec4d1a2fbb821287d73c12898566)) (with [n00q](https://n00q.net/))
+- Let --deploy flag be more explicit about it's internals. ([徒settoセット](https://setto.basspistol.com/))
+  * typo ([`88c9188`](https://codeberg.org/simonrepp/faircamp/commit/88c91888d003435c0396efe930afb215ac6081ec))
+  * Let --deploy flag be more explicit about it's internals. ([`a9b4ee3`](https://codeberg.org/simonrepp/faircamp/commit/a9b4ee303ac66f0125ef701b37a7d9891d8aea29))
+
 ## 1.5
 
 Released on July 30, 2025
@@ -15,9 +66,9 @@ Released on July 30, 2025
 
 The new anchor/id references in action
 
-Before this release, the [label](https://simonrepp.com/faircamp/manual/releases-release-eno.html#link) option only supported full urls like "https://example.com".
-1.5 now supports "#some-id" style internal page references, either for linking to anchors that you manually place in your [label](https://simonrepp.com/faircamp/manual/releases-release-eno.html#more)
-section, or for using faircamp's [label](https://simonrepp.com/faircamp/manual/linking-to-timecodes-tracks.html) directly from the link option.
+Before this release, the [link](https://simonrepp.com/faircamp/manual/releases-release-eno.html#link) option only supported full urls like "https://example.com".
+1.5 now supports "#some-id" style internal page references, either for linking to anchors that you manually place in your [more](https://simonrepp.com/faircamp/manual/releases-release-eno.html#more)
+section, or for using faircamp's [timecode/track linking](https://simonrepp.com/faircamp/manual/linking-to-timecodes-tracks.html) directly from the link option.
 
 ![A screenshot of the markup in the release.eno manifest that sets up what was shown in the video earlier, with three sections pointed out specifically:  link: label = Lyrics url = #lyrics  link: label = Jump to 0:20 in track 3  url = #track=3&time=20s  <a id="lyrics"></a> ## Lyrics  This release has no lyrics at all, but just for the sake of demonstration ...  Roses are red Violets are blue A great lyricist Slumbers in you](https://simonrepp.com/faircamp/changes/1.5.0/links.png)
 
