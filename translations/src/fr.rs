@@ -71,7 +71,7 @@ pub const FR: Translations = Translations {
     showing_xxx_results_for_xxx: Reviewed("Affichage de {count} résultats pour '{query}'"),
     skip_to_main_content: Reviewed("Passer au contenu principal"),
     subscribe: Reviewed("S'inscrire"),
-    subscribe_permalink: Reviewed("s'inscrire"),
+    subscribe_permalink: Reviewed("s-inscrire"),
     unlisted: Reviewed("Non répertorié"),
     unlock: Reviewed("Déverouiller"),
     unlock_downloads: Reviewed("Déverouiller les téléchargements"),
