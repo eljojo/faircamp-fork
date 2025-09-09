@@ -9,6 +9,13 @@ This provides simple, copy/pasteable build instructions for mainstream linux
 distributions and macOS. For BSD, Windows or other OSes orient yourself along
 the general instructions in "Other platforms" at the bottom of the page.
 
+This document always lists the *install* command for each platform, but you
+can also just *build* or *run* the application from source, see the "Notes"
+section at the bottom of the document for this.
+
+Also, for instructions on building the manual or internal code documentation,
+see the "Notes" section as well.
+
 ## Arch Linux, Manjaro
 
 Install all required dependencies (if you manually installed rust via [rustup](https://rustup.rs/) remove it from the list):
@@ -270,7 +277,9 @@ If you want to uninstall faircamp at any point, run:
 cargo uninstall faircamp
 ```
 
-## Additional build options
+## Notes
+
+### Additional build options
 
 Both the `faircamp` application and the `manual` can be built with an override
 package version, which is primarily used to distribute prerelase builds and
@@ -280,4 +289,25 @@ documentation for testing with a temporary updated version such as `2.0.0~pre1`:
 FAIRCAMP_VERSION=2.0.0~pre1 cargo build --features libvips --locked
 ```
 
+### Building and/or running faircamp without installing
 
+Some quick pointers on how to do this (for more information consult the [Cargo Book](https://doc.rust-lang.org/cargo/commands/cargo-doc.html)):
+
+```bash
+cargo install --features libvips --locked --path . # Example install command
+cargo build --features libvips # Example build command
+cargo run --features libvips -- [ARGUMENTS] # Example run command
+```
+
+### Building the manual
+
+See the instructions in `manual/README.md`.
+
+### Building the internal code documentation
+
+This will build and open docs for faircamp's codebase in your browser
+(replace `libvips` with `image` depending on your platform):
+
+```
+cargo doc --no-deps --features libvips --open
+```
