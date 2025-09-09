@@ -56,6 +56,7 @@ Damian Szetela<br>
 [Friedrich](https://codeberg.org/Friedrich)<br>
 [Fugue State Audio](https://www.fstateaudio.com/)<br>
 [Gavin Gamboa](https://gavart.ist/)<br>
+[Gewenxin Yu](https://transcendental-electroacoustic.xyz/)<br>
 [GoodTech](https://codeberg.org/GoodTech)<br>
 [Harald Eilertsen](https://volse.net/)<br>
 [incognitothief](https://codeberg.org/incognitothief)<br>
