@@ -13,15 +13,25 @@ use std::process::Command;
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
-fn precompute_hash(content: &[u8], hash_varname: &str) {
-    let mut hasher = DefaultHasher::new();
-    content.hash(&mut hasher);
-    let hash = hasher.finish();
-    let hash_encoded = URL_SAFE_NO_PAD.encode(hash.to_le_bytes());
-    println!("cargo:rustc-env={hash_varname}={hash_encoded}");
+/// Call git to determine the 7-digit short hash of the current revision.
+/// If git is not available, we fall back to "unknown revision".
+/// The output is stored in FAIRCAMP_REVISION.
+fn compute_revision() {
+    let mut git = Command::new("git");
+
+    git.args(["rev-parse", "--short", "HEAD"]);
+
+    let revision = match git.output() {
+        Ok(output) if output.status.success() => String::from_utf8(output.stdout).unwrap(),
+        _ => String::from("unknown revision")
+    };
+
+    println!("cargo:rustc-env=FAIRCAMP_REVISION={revision}");
 }
 
 fn main() {
+    compute_revision();
+
     let version_detailed;
     let version_display;
     if let Ok(override_version) = env::var("FAIRCAMP_VERSION") {
@@ -32,15 +42,7 @@ fn main() {
         version_display = concat!(env!("CARGO_PKG_VERSION_MAJOR"), '.', env!("CARGO_PKG_VERSION_MINOR")).to_string();
     }
 
-    let mut git = Command::new("git");
-    git.args(["rev-parse", "--short", "HEAD"]);
-    let revision = match git.output() {
-        Ok(output) => String::from_utf8(output.stdout).unwrap(),
-        Err(_) => String::from("unknown revision")
-    };
-
     println!("cargo:rerun-if-env-changed=FAIRCAMP_VERSION");
-    println!("cargo:rustc-env=FAIRCAMP_REVISION={revision}");
     println!("cargo:rustc-env=FAIRCAMP_VERSION_DETAILED={version_detailed}");
     println!("cargo:rustc-env=FAIRCAMP_VERSION_DISPLAY={version_display}");
 
@@ -54,6 +56,14 @@ fn main() {
     println!("cargo:rustc-env=FAIRCAMP_FEATURES=compiled without libvips or minified assets");
 
     preprocess_assets();
+}
+
+fn precompute_hash(content: &[u8], hash_varname: &str) {
+    let mut hasher = DefaultHasher::new();
+    content.hash(&mut hasher);
+    let hash = hasher.finish();
+    let hash_encoded = URL_SAFE_NO_PAD.encode(hash.to_le_bytes());
+    println!("cargo:rustc-env={hash_varname}={hash_encoded}");
 }
 
 fn preprocess_assets() {
