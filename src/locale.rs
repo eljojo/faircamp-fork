@@ -6,6 +6,7 @@
 
 use translations::{
     CA,
+    DA,
     DE,
     EN,
     ES,
@@ -55,6 +56,7 @@ impl Locale {
     pub fn from_code(language: &str) -> Locale {
         match language {
             "ca" => Locale::new("ca", CA, TextDirection::Ltr),
+            "da" => Locale::new("da", DA, TextDirection::Ltr),
             "de" => Locale::new("de", DE, TextDirection::Ltr),
             "en" => Locale::new("en", EN, TextDirection::Ltr),
             "es" => Locale::new("es", ES, TextDirection::Ltr),

@@ -5,6 +5,7 @@ use std::ops::Deref;
 
 mod ca;
 mod de;
+mod da;
 mod en;
 mod es;
 mod fi;
@@ -27,6 +28,7 @@ mod zh_hans_cn;
 mod zh_hant_tw;
 
 pub use ca::CA;
+pub use da::DA;
 pub use de::DE;
 pub use en::EN;
 pub use es::ES;
@@ -54,6 +56,7 @@ pub use Translation::{Reviewed, Unreviewed, Untranslated};
 pub fn all_languages() -> Vec<LabelledTranslations> {
     vec![
         LabelledTranslations { code: "ca", name: "Catalan", translations: CA },
+        LabelledTranslations { code: "da", name: "Danish", translations: DA },
         LabelledTranslations { code: "de", name: "German", translations: DE },
         LabelledTranslations { code: "en", name: "English", translations: EN },
         LabelledTranslations { code: "es", name: "Spanish", translations: ES },
@@ -591,6 +594,7 @@ fn check_translations() {
 
     const LOCALES: &[Translations] = &[
         CA,
+        DA,
         DE,
         EN,
         ES,

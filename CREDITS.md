@@ -84,6 +84,7 @@ Janina Hofmann<br>
 [Maxwell Volume](https://maxvolu.me/)<br>
 [Meljoann](https://www.meljoann.com/)<br>
 [Miró Allard](https://www.miroallard.com/)<br>
+[Morten Mosgaard](https://mortenmosgaard.dk/)<br>
 [n3wjack](https://n3wjack.net/)<br>
 [N4ta](https://codeberg.org/N4ta)<br>
 [naskya](https://naskya.net/)<br>
