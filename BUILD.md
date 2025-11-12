@@ -60,7 +60,7 @@ That's it! If you want to uninstall faircamp at any point, run:
 cargo uninstall faircamp
 ```
 
-## Debian 12, elementary OS 8, Linux Mint 22, Ubuntu 23.04 - 25.04
+## Debian 12 - 13, elementary OS 8, Linux Mint 22, Ubuntu 23.04 - 25.10
 
 Install rust through the official [rustup](https://rustup.rs/) installer,
 then install all required dependencies through the package manager:

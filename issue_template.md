@@ -16,7 +16,7 @@ undistracted attention on conceptualization, design and development.
 
 In other words: Please make a note of what you just by came to share! Keep it
 alive, gladly refine and revisit your thoughts in the meantime, and check
-back to share it when Faircamp again enters iits first seasonal cycle and the
+back to share it when Faircamp again enters its first seasonal cycle and the
 feature suggestions thread opens its doors again!
 
 For more information please check out the following links:
