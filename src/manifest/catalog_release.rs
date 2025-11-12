@@ -77,7 +77,7 @@ pub fn read_catalog_release_option(
                                 }
                             }
                             other => {
-                                let message = format!("The attribute '{other}' is not recognized here (supported attributes are 'alias', 'name' and 'link'");
+                                let message = format!("The attribute '{other}' is not recognized here (supported attributes are 'alias', 'external_page', 'name' and 'permalink')");
                                 let error = attribute_error_with_snippet(attribute, manifest_path, &message);
                                 build.error(&error);
                             }
