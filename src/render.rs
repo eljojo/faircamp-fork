@@ -423,7 +423,7 @@ fn list_release_artists(
         items.push((name_chars, name_escaped));
     }
 
-    if catalog.feature_support_artists {
+    if catalog.label_mode && catalog.feature_support_artists {
         for artist in &release.support_artists {
             let artist_ref = artist.borrow();
             let name_chars = artist_ref.name.chars().count();
