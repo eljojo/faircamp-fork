@@ -147,10 +147,8 @@ for (const release of RELEASES) {
 for (const artist of ARTISTS) {
     const aText = document.createElement('a');
 
-    // The herein iterated artists are all featured artists, that is, artists
-    // with their own page on this faircamp site, therefore we never need to
-    // handle an external url here.
-    aText.href = rootPrefix + artist.url + indexSuffix;
+    const url = artist.externalPage ?? `${rootPrefix}${artist.url}${indexSuffix}`;
+    aText.href = url;
 
     let imageArtist;
     if (artist.image) {

@@ -371,6 +371,20 @@ impl Catalog {
         }
     }
 
+    /// All artists in the catalog that are not unlisted
+    pub fn public_artists(&self) -> Vec<ArtistRc> {
+        self.artists
+            .iter()
+            .filter_map(|artist| {
+                match artist.borrow().unlisted {
+                    true => None,
+                    false => Some(artist.clone())
+                }
+            })
+            .collect()
+    }
+
+    /// All releases in the catalog that are not unlisted
     pub fn public_releases(&self) -> Vec<ReleaseRc> {
         self.releases
             .iter()
