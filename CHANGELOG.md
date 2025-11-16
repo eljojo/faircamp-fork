@@ -5,6 +5,34 @@
 
 # Changelog
 
+## 1.7
+
+Released on November 16, 2025
+
+### Translations
+
+- Add danish translations ([`1d858df`](https://codeberg.org/simonrepp/faircamp/commit/1d858df56f18a68f3fe8c33b54fe3f7a6b5fd039)) (with [Morten Mosgaard](https://mortenmosgaard.dk/))
+- Review zh-hans-cn translations (with [Gewenxin Yu](https://transcendental-electroacoustic.xyz/))
+  * Review zh-hans-cn translations ([`a2dbfa3`](https://codeberg.org/simonrepp/faircamp/commit/a2dbfa3a028629201606b67487218a0cfd2fbec0))
+  * Tag simplified chinese (zh_hans_cn) translations as reviewed ([`b911212`](https://codeberg.org/simonrepp/faircamp/commit/b911212df3804808067c5d4eb0170f9a239da1f2))
+- Update Ukrainian translation for 2025 ([`44aaacd`](https://codeberg.org/simonrepp/faircamp/commit/44aaacd90a93a47f1cadde833483eef2f24bcd18)) (with [Denys Nykula](https://libre.net.ua/))
+
+### Browse/Search
+
+- Auto-include artists with external pages in browse/search in label mode ([`ea292c7`](https://codeberg.org/simonrepp/faircamp/commit/ea292c74a69d3367bd732d0951f513543b23f2db)) (with [徒settoセット](https://setto.basspistol.com))
+- Serialize to more compact js code when generating browser.js ([`92700bd`](https://codeberg.org/simonrepp/faircamp/commit/92700bd07dc105b879a80bc50987062452b5357c))
+
+### Fixes
+
+- Prevent "featuring" of support artists on release pages outside of label mode ([`633f30f`](https://codeberg.org/simonrepp/faircamp/commit/633f30fb3d3c533b24aa808a963c9b6dba5de58a))
+- Correct recognized options hint for artist shorthand option key error ([`d934f25`](https://codeberg.org/simonrepp/faircamp/commit/d934f2510b720aa9a2d1d369286131660202daed))
+- Catch git rev-parse executing but not succeeding when determining revision ([`07688a2`](https://codeberg.org/simonrepp/faircamp/commit/07688a22b6adb4a41c8ac4c43f0fd6ffd482ea33))
+
+### Documentation
+
+- Provide additional notes and pointers in the build document ([`c9aecf7`](https://codeberg.org/simonrepp/faircamp/commit/c9aecf785a7374b218074ca66d6ce3495dcd4e9b))
+- Fix issue template typo, update OS versions in build documentation ([`15459c7`](https://codeberg.org/simonrepp/faircamp/commit/15459c79ba6e74e4b15f9725398dcaabc87cb2a4))
+
 ## 1.6
 
 Released on August 30, 2025
