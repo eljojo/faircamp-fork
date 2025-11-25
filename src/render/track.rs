@@ -3,6 +3,7 @@
 
 use std::hash::Hash;
 
+use chrono::Datelike;
 use indoc::formatdoc;
 
 use crate::{
@@ -280,6 +281,11 @@ pub fn track_html(
 
         primary_actions.push(more_link);
 
+        let release_year = match release.date {
+            Some(naive_date) => format!("({})", naive_date.year()),
+            None => String::new()
+        };
+
         let r_more = match &track.more {
             Some(html_and_stripped) => format!(
                 r#"<div class="text">{}</div>"#,
@@ -293,7 +299,7 @@ pub fn track_html(
                 <div class="page_center">
                     <div class="page_more">
                         <div class="release_info">
-                            <h1>{track_title_escaped}</h1>
+                            <h1>{track_title_escaped} {release_year}</h1>
                             <div class="release_artists">{artists}</div>
                         </div>
                         {r_more}
