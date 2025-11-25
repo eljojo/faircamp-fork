@@ -232,12 +232,11 @@ impl Layout {
 
         let faircamp_signature = if catalog.faircamp_signature {
             let faircamp_icon = icons::faircamp(None);
-            let faircamp_version_display = env!("FAIRCAMP_VERSION_DISPLAY");
 
             formatdoc!(r#"
-                <a class="faircamp_signature" href="https://simonrepp.com/faircamp/" target="_blank">
+                <a class="faircamp_signature" href="https://github.com/eljojo/faircamp-fork" target="_blank">
                     {faircamp_icon}
-                    <span>Faircamp {faircamp_version_display}</span>
+                    <span>Built with Faircamp</span>
                 </a>
             "#)
         } else {
