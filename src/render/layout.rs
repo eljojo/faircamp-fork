@@ -332,6 +332,21 @@ impl Layout {
             add_extra_meta(&site_metadata.render(root_prefix));
         }
 
+        let subscribe_link = if catalog.feeds.any_requested() {
+            let t_subscribe = &translations.subscribe;
+            let feed_icon = icons::feed(&translations.feed);
+            let subscribe_slug = catalog.subscribe_permalink.as_ref().unwrap();
+
+            format!(r#"
+                <a href="{root_prefix}{subscribe_slug}{index_suffix}" class="subscribe">
+                    {feed_icon}
+                    <span>{t_subscribe}</span>
+                </a>
+            "#)
+        } else {
+            "".to_string()
+        };
+
         formatdoc!(r##"
             <!DOCTYPE html>
             <html {dir_attribute} lang="{lang}">
@@ -370,6 +385,7 @@ impl Layout {
                             <span>
                                 <a href="{root_prefix}">{catalog_title}</a>
                                 <button class="browse">{browse_icon} {t_browse}</button>
+                                {subscribe_link}
                             </span>
                             {faircamp_signature}
                         </footer>

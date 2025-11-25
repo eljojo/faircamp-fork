@@ -384,7 +384,7 @@ footer a:hover,
 footer .browse:hover {
     color: var(--fg-3-focus);
 }
-footer .browse {
+footer .browse, footer .subscribe {
     align-items: center;
     color: var(--fg-3);
     column-gap: .3rem;
