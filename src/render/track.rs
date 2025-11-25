@@ -28,22 +28,16 @@ use super::{
     waveform
 };
 
-pub fn track_html(
+pub fn track_download_link(
     build: &Build,
-    catalog: &Catalog,
     release: &Release,
     track: &Track,
-    track_number: usize
-) -> String {
+    track_number: usize,
+    prefix: &str,
+) -> Option<String> {
     let index_suffix = build.index_suffix();
-    let release_slug = &release.permalink.slug;
-    let root_prefix = "../../";
     let translations = &build.locale.translations;
-
-    let mut layout = Layout::new();
-
-    layout.add_clipboard_script();
-    layout.add_player_script();
+    let release_slug = &release.permalink.slug;
 
     let download_link = match &track.download_access {
         DownloadAccess::Code { .. } => {
@@ -59,7 +53,7 @@ pub fn track_html(
                 let t_downloads = &translations.downloads;
 
                 Some(formatdoc!(r#"
-                    <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
+                    <a href="{prefix}{t_unlock_permalink}/{page_hash}{index_suffix}">
                         {unlock_icon}
                         <span>{t_downloads}</span>
                     </a>
@@ -93,7 +87,7 @@ pub fn track_html(
                 let t_downloads = &translations.downloads;
 
                 Some(formatdoc!(r#"
-                    <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
+                    <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}">
                         {download_icon}
                         <span>{t_downloads}</span>
                     </a>
@@ -114,7 +108,7 @@ pub fn track_html(
                 let buy_icon = icons::buy(&translations.buy);
                 let t_downloads = &translations.downloads;
                 Some(formatdoc!(r#"
-                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
+                    <a href="{prefix}{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
                         <span>{t_downloads}</span>
                     </a>
@@ -124,6 +118,28 @@ pub fn track_html(
             }
         }
     };
+
+    return download_link;
+}
+
+pub fn track_html(
+    build: &Build,
+    catalog: &Catalog,
+    release: &Release,
+    track: &Track,
+    track_number: usize
+) -> String {
+    let index_suffix = build.index_suffix();
+    let release_slug = &release.permalink.slug;
+    let root_prefix = "../../";
+    let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
+
+    layout.add_clipboard_script();
+    layout.add_player_script();
+
+    let download_link = track_download_link(build, release, &track, track_number, "");
 
     let audio_sources = track.streaming_quality
         .formats()
