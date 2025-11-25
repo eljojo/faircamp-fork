@@ -155,9 +155,16 @@ pub fn track_download_html(
 
                 let format_dir = download_format.as_audio_format().asset_dirname().to_string();
                 let track_filename_urlencoded = urlencoding::encode(&track_filename);
+                let track_path = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+
+                let url = if let Some(cdn_url) = &build.cdn_url {
+                    cdn_url.join_file(format!("{}/{}/{}", release.permalink.slug, track_number, track_path))
+                } else {
+                    format!("{track_prefix}{track_path}")
+                };
 
                 download_entry(
-                    format!("{track_prefix}{format_dir}/{track_hash}/{track_filename_urlencoded}"),
+                    url,
                     download_format.user_label(),
                     track.transcodes.borrow().get_unchecked(download_format.as_audio_format(), generic_hash(&tag_mapping)).asset.filesize_bytes
                 )

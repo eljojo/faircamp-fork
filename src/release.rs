@@ -866,13 +866,15 @@ impl Release {
             }
         }
 
-        if let Some(base_url) = &build.base_url {
+        if let Some(cdn_url) = &build.cdn_url {
             // Render m3u playlist
             if self.m3u {
-                let r_m3u = m3u::generate_for_release(base_url, build, self);
+                let r_m3u = m3u::generate_for_release(cdn_url, build, self);
                 fs::write(release_dir.join(M3U_PLAYLIST_FILENAME), r_m3u).unwrap();
             }
+        }
 
+        if let Some(base_url) = &build.base_url {
             // Render release embed pages
             if self.embedding {
                 let release_embed_codes_dir = release_dir.join("embed");
