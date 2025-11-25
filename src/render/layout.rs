@@ -299,7 +299,7 @@ impl Layout {
             add_extra_meta(&favicon_tags);
         }
 
-        let faircamp_icon = icons::faircamp(Some("Faircamp"));
+        let faircamp_icon = icons::faircamp(None);
         let lang = &build.locale.language;
 
         if let Some(meta) = &self.opengraph_meta {
