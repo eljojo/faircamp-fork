@@ -105,7 +105,7 @@ pub fn index_html(build: &Build, catalog: &Catalog) -> String {
     }
 
     if build.base_url.is_some() {
-        if catalog.feeds.any_requested() {
+        if catalog.feeds.any_requested() && false {
             let t_subscribe = &translations.subscribe;
             let feed_icon = icons::feed(&translations.feed);
             let subscribe_slug = catalog.subscribe_permalink.as_ref().unwrap();
