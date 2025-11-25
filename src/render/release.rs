@@ -29,16 +29,11 @@ use super::{
     waveform
 };
 
-/// The actual release page, featuring the track listing and streaming player, links
-/// to downloads, embeds, description, etc.
-pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let index_suffix = build.index_suffix();
-    let root_prefix = "../";
+pub fn release_download_link(
+    build: &Build, release: &Release
+   ) -> String {
     let translations = &build.locale.translations;
-
-    let mut layout = Layout::new();
-
-    layout.add_player_script();
+    let index_suffix = build.index_suffix();
 
     let download_link = match &release.download_access {
         DownloadAccess::Code { .. } => {
@@ -114,6 +109,22 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
             }
         }
     };
+
+    return download_link;
+}
+
+/// The actual release page, featuring the track listing and streaming player, links
+/// to downloads, embeds, description, etc.
+pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
+    let index_suffix = build.index_suffix();
+    let root_prefix = "../";
+    let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
+
+    layout.add_player_script();
+
+    let download_link = release_download_link(build, release);
 
     let longest_track_duration = release.longest_track_duration();
 
