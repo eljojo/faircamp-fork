@@ -93,7 +93,7 @@ pub fn generate_for_artist(
 /// Generate complete content of an M3U playlist for all (public) releases of
 /// the catalog.
 pub fn generate_for_catalog(build: &Build, catalog: &Catalog) -> String {
-    let base_url = build.base_url_unchecked();
+    let base_url = build.cdn_url_unchecked();
     let catalog_title = catalog.title();
 
     let r_releases = catalog.public_releases()

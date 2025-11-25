@@ -56,7 +56,12 @@ pub fn release_embed_html(
                     });
 
                     let track_filename_urlencoded = urlencoding::encode(&track_filename);
-                    let src = format!("{release_prefix}{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let track_path = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let src = if let Some(cdn_url) = &build.cdn_url {
+                        cdn_url.join_file(format!("{}/{}/{}", release.permalink.slug, track_number, track_path))
+                    } else {
+                        format!("{release_prefix}{track_path}")
+                    };
 
                     let source_type = format.source_type();
                     format!(r#"<source src="{src}" type="{source_type}">"#)

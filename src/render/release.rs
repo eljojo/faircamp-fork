@@ -149,7 +149,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     });
 
                     let track_filename_urlencoded = urlencoding::encode(&track_filename);
-                    let src = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let relative_path = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let src = if let Some(cdn_url) = &build.cdn_url {
+                        cdn_url.join_file(format!("{}/{}/{}", release.permalink.slug, track_number, relative_path))
+                    } else {
+                        relative_path
+                    };
 
                     let source_type = format.source_type();
                     format!(r#"<source src="{src}" type="{source_type}">"#)

@@ -167,14 +167,16 @@ fn main() -> ExitCode {
     styles::generate(&mut build, &catalog);
     catalog.favicon.write(&mut build);
 
-    if build.base_url.is_some() {
+    if build.cdn_url.is_some() {
         // Render M3U playlist
         if catalog.m3u {
             let r_m3u = m3u::generate_for_catalog(&build, &catalog);
             fs::write(build.build_dir.join(M3U_PLAYLIST_FILENAME), r_m3u).unwrap();
             build.reserve_filename(M3U_PLAYLIST_FILENAME);
         }
+    }
 
+    if build.base_url.is_some() {
         if catalog.feeds.any_requested() {
             // Render feed (xml) files (Atom, Generic RSS, Media RSS, Podcast RSS, as enabled)
             catalog.feeds.generate(&mut build, &catalog);
@@ -209,7 +211,7 @@ fn main() -> ExitCode {
         util::ensure_dir_all(&artist_dir);
 
         // Render m3u playlist
-        if let Some(base_url) = &build.base_url {
+        if let Some(base_url) = &build.cdn_url {
             if artist_ref.m3u {
                 let r_m3u = m3u::generate_for_artist(&artist_ref, base_url, &build);
                 fs::write(artist_dir.join(M3U_PLAYLIST_FILENAME), r_m3u).unwrap();
