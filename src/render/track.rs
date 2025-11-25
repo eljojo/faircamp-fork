@@ -34,6 +34,7 @@ pub fn track_download_link(
     track: &Track,
     track_number: usize,
     prefix: &str,
+    with_label: bool,
 ) -> Option<String> {
     let index_suffix = build.index_suffix();
     let translations = &build.locale.translations;
@@ -86,12 +87,21 @@ pub fn track_download_link(
                 let download_icon = icons::DOWNLOAD;
                 let t_downloads = &translations.downloads;
 
-                Some(formatdoc!(r#"
-                    <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}">
-                        {download_icon}
-                        <span>{t_downloads}</span>
-                    </a>
-                "#))
+                // TODO: refactor this so it also works with the other download links
+                if with_label {
+                    return Some(formatdoc!(r#"
+                        <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}">
+                            {download_icon}
+                            <span>{t_downloads}</span>
+                        </a>
+                    "#));
+                } else {
+                    return Some(formatdoc!(r#"
+                        <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}" class="button">
+                            {download_icon}
+                        </a>
+                    "#));
+                }
             } else {
                 None
             }
@@ -139,7 +149,7 @@ pub fn track_html(
     layout.add_clipboard_script();
     layout.add_player_script();
 
-    let download_link = track_download_link(build, release, &track, track_number, "");
+    let download_link = track_download_link(build, release, &track, track_number, "", true);
 
     let audio_sources = track.streaming_quality
         .formats()

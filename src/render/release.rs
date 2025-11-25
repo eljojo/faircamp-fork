@@ -29,6 +29,8 @@ use super::{
     waveform
 };
 
+use crate::render::track;
+
 pub fn release_download_link(
     build: &Build, release: &Release
    ) -> String {
@@ -225,6 +227,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 String::new()
             };
 
+            // TODO: make this optional
+            let t_download = track::track_download_link(build, release, track, track_number, &format!(r#"{track_number}/"#), false)
+                .unwrap_or_default();
+
             formatdoc!(r#"
                 <div class="track" data-duration="{duration_seconds}">
                     <button class="track_playback" tabindex="-1">
@@ -247,6 +253,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div>
                         {r_more} <span class="time">{track_duration_formatted}</span>
                     </div>
+                    {t_download}
                 </div>
             "#)
         })
