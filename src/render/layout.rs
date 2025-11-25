@@ -327,6 +327,10 @@ impl Layout {
         let t_search = &translations.search;
         let t_skip_to_main_content = &translations.skip_to_main_content;
 
+        if let Some(analytics_snippet) = &catalog.analytics_snippet {
+            add_extra_meta(&analytics_snippet);
+        }
+
         // User-supplied site metadata is appended last in order to guarantee
         // its precendence when overriding (e.g.) native styles.
         if let Some(site_metadata) = &catalog.site_metadata {

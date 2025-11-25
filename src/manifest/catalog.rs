@@ -59,7 +59,8 @@ const CATALOG_OPTIONS: &[&str] = &[
     "show_support_artists",
     "site_assets",
     "site_metadata",
-    "title"
+    "title",
+    "analytics_snippet"
 ];
 
 pub fn read_catalog_manifest(
@@ -574,6 +575,22 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "title needs to be provided as a field with a value, e.g.: 'title: My music'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
+            }
+            "analytics_snippet" => 'analytics_snippet: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            catalog.analytics_snippet = Some(value.to_string());
+                        } else {
+                            catalog.analytics_snippet = None;
+                        }
+                        break 'analytics_snippet;
+                    }
+                }
+
+                let message = "analytics_snippet needs to be provided as a field with a value, e.g.: 'analytics_snippet: <script>...</script>'";
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
