@@ -43,6 +43,7 @@ pub struct Build {
     /// a normalized form that ensures a trailing slash is always present
     /// (https://example.com/).
     pub base_url: Option<SiteUrl>,
+    pub cdn_url: Option<SiteUrl>,
     pub build_begin: DateTime<Utc>,
     pub build_dir: PathBuf,
     pub cache_dir: PathBuf,
@@ -131,6 +132,10 @@ impl Build {
         self.base_url.as_ref().unwrap()
     }
 
+    pub fn cdn_url_unchecked(&self) -> &SiteUrl {
+        self.cdn_url.as_ref().unwrap()
+    }
+
     pub fn error(&mut self, error: &str) {
         error!("{}", error);
         self.errors += 1;
@@ -187,6 +192,7 @@ impl Build {
         Build {
             asset_hashes: AssetHashes::new(),
             base_url: None,
+            cdn_url: None,
             build_begin: Utc::now(),
             build_dir,
             cache_dir,

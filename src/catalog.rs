@@ -93,6 +93,7 @@ pub struct Catalog {
     pub support_artists: Vec<ArtistRc>,
     pub synopsis: Option<String>,
     pub theme: Theme,
+    pub analytics_snippet: Option<String>,
     title: Option<String>
 }
 
@@ -367,6 +368,7 @@ impl Catalog {
             support_artists: Vec::new(),
             synopsis: None,
             theme: Theme::new(),
+            analytics_snippet: None,
             title: None
         }
     }
@@ -1383,6 +1385,15 @@ impl Catalog {
                 build.reserve_filename(target_filename);
                 build.stats.add_image(asset.filesize_bytes);
             }
+
+            // Write home image to show in index
+            let background_asset = image_mut.background_asset(build, source_path);
+            util::hard_link_or_copy(
+                build.cache_dir.join(&background_asset.filename),
+                // TODO: Address the ugly __home__ hack soon (maybe hashes are again a solution for these naming questions?)
+                build.build_dir.join(format!("home_image.jpg"))
+            );
+            build.stats.add_image(background_asset.filesize_bytes);
 
             // Write home image as feed image
             if build.base_url.is_some() && self.feeds.any_requested() {

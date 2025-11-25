@@ -3,6 +3,7 @@
 
 use std::hash::Hash;
 
+use chrono::Datelike;
 use indoc::formatdoc;
 
 use crate::{M3U_PLAYLIST_FILENAME, TRACK_NUMBERS};
@@ -29,16 +30,13 @@ use super::{
     waveform
 };
 
-/// The actual release page, featuring the track listing and streaming player, links
-/// to downloads, embeds, description, etc.
-pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
-    let index_suffix = build.index_suffix();
-    let root_prefix = "../";
+use crate::render::track;
+
+pub fn release_download_link(
+    build: &Build, release: &Release
+   ) -> String {
     let translations = &build.locale.translations;
-
-    let mut layout = Layout::new();
-
-    layout.add_player_script();
+    let index_suffix = build.index_suffix();
 
     let download_link = match &release.download_access {
         DownloadAccess::Code { .. } => {
@@ -115,6 +113,22 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
         }
     };
 
+    return download_link;
+}
+
+/// The actual release page, featuring the track listing and streaming player, links
+/// to downloads, embeds, description, etc.
+pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> String {
+    let index_suffix = build.index_suffix();
+    let root_prefix = "../";
+    let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
+
+    layout.add_player_script();
+
+    let download_link = release_download_link(build, release);
+
     let longest_track_duration = release.longest_track_duration();
 
     let t_play = &translations.play;
@@ -149,7 +163,12 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     });
 
                     let track_filename_urlencoded = urlencoding::encode(&track_filename);
-                    let src = format!("{track_number}/{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let relative_path = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+                    let src = if let Some(cdn_url) = &build.cdn_url {
+                        cdn_url.join_file(format!("{}/{}/{}", release.permalink.slug, track_number, relative_path))
+                    } else {
+                        relative_path
+                    };
 
                     let source_type = format.source_type();
                     format!(r#"<source src="{src}" type="{source_type}">"#)
@@ -209,6 +228,10 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 String::new()
             };
 
+            // TODO: make this optional
+            let t_download = track::track_download_link(build, release, track, track_number, &format!(r#"{track_number}/"#), false)
+                .unwrap_or_default();
+
             formatdoc!(r#"
                 <div class="track" data-duration="{duration_seconds}">
                     <button class="track_playback" tabindex="-1">
@@ -231,6 +254,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                     <div>
                         {r_more} <span class="time">{track_duration_formatted}</span>
                     </div>
+                    {t_download}
                 </div>
             "#)
         })
@@ -276,6 +300,11 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
 
         primary_actions.push(more_link);
 
+        let release_year = match release.date {
+            Some(naive_date) => format!("({})", naive_date.year()),
+            None => String::new()
+        };
+
         let r_more = match &release.more {
             Some(html_and_stripped) => format!(
                 r#"<div class="text">{}</div>"#,
@@ -289,7 +318,7 @@ pub fn release_html(build: &Build, catalog: &Catalog, release: &Release) -> Stri
                 <div class="page_center">
                     <div class="page_more">
                         <div class="release_info">
-                            <h1>{release_title_escaped}</h1>
+                            <h1>{release_title_escaped} {release_year}</h1>
                             <div class="release_artists">{artists}</div>
                         </div>
                         {r_more}

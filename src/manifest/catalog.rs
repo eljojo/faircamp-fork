@@ -59,7 +59,8 @@ const CATALOG_OPTIONS: &[&str] = &[
     "show_support_artists",
     "site_assets",
     "site_metadata",
-    "title"
+    "title",
+    "analytics_snippet"
 ];
 
 pub fn read_catalog_manifest(
@@ -114,6 +115,30 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "base_url needs to be provided as a field with a value, e.g.: 'base_url: https://example.com'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
+            }
+            "cdn_url" => 'cdn_url: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            match SiteUrl::parse(value) {
+                                Ok(site_url) => build.cdn_url = Some(site_url),
+                                Err(err) => {
+                                    let message = format!("The cdn_url setting value '{value}' is not a valid URL: {err}");
+                                    let error = element_error_with_snippet(element, manifest_path, &message);
+                                    build.error(&error);
+                                }
+                            }
+                        } else {
+                            build.cdn_url = None;
+                        }
+
+                        break 'cdn_url;
+                    }
+                }
+
+                let message = "cdn_url needs to be provided as a field with a value, e.g.: 'cdn_url: https://cdn.example.com'";
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }
@@ -574,6 +599,22 @@ pub fn read_catalog_manifest(
                 }
 
                 let message = "title needs to be provided as a field with a value, e.g.: 'title: My music'";
+                let error = element_error_with_snippet(element, manifest_path, message);
+                build.error(&error);
+            }
+            "analytics_snippet" => 'analytics_snippet: {
+                if let Ok(field) = element.as_field() {
+                    if let Ok(result) = field.value() {
+                        if let Some(value) = result {
+                            catalog.analytics_snippet = Some(value.to_string());
+                        } else {
+                            catalog.analytics_snippet = None;
+                        }
+                        break 'analytics_snippet;
+                    }
+                }
+
+                let message = "analytics_snippet needs to be provided as a field with a value, e.g.: 'analytics_snippet: <script>...</script>'";
                 let error = element_error_with_snippet(element, manifest_path, message);
                 build.error(&error);
             }

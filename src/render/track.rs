@@ -3,6 +3,7 @@
 
 use std::hash::Hash;
 
+use chrono::Datelike;
 use indoc::formatdoc;
 
 use crate::{
@@ -28,22 +29,17 @@ use super::{
     waveform
 };
 
-pub fn track_html(
+pub fn track_download_link(
     build: &Build,
-    catalog: &Catalog,
     release: &Release,
     track: &Track,
-    track_number: usize
-) -> String {
+    track_number: usize,
+    prefix: &str,
+    with_label: bool,
+) -> Option<String> {
     let index_suffix = build.index_suffix();
-    let release_slug = &release.permalink.slug;
-    let root_prefix = "../../";
     let translations = &build.locale.translations;
-
-    let mut layout = Layout::new();
-
-    layout.add_clipboard_script();
-    layout.add_player_script();
+    let release_slug = &release.permalink.slug;
 
     let download_link = match &track.download_access {
         DownloadAccess::Code { .. } => {
@@ -59,7 +55,7 @@ pub fn track_html(
                 let t_downloads = &translations.downloads;
 
                 Some(formatdoc!(r#"
-                    <a href="{t_unlock_permalink}/{page_hash}{index_suffix}">
+                    <a href="{prefix}{t_unlock_permalink}/{page_hash}{index_suffix}">
                         {unlock_icon}
                         <span>{t_downloads}</span>
                     </a>
@@ -92,12 +88,21 @@ pub fn track_html(
                 let download_icon = icons::DOWNLOAD;
                 let t_downloads = &translations.downloads;
 
-                Some(formatdoc!(r#"
-                    <a href="{t_downloads_permalink}/{page_hash}{index_suffix}">
-                        {download_icon}
-                        <span>{t_downloads}</span>
-                    </a>
-                "#))
+                // TODO: refactor this so it also works with the other download links
+                if with_label {
+                    return Some(formatdoc!(r#"
+                        <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}">
+                            {download_icon}
+                            <span>{t_downloads}</span>
+                        </a>
+                    "#));
+                } else {
+                    return Some(formatdoc!(r#"
+                        <a href="{prefix}{t_downloads_permalink}/{page_hash}{index_suffix}" class="button">
+                            {download_icon}
+                        </a>
+                    "#));
+                }
             } else {
                 None
             }
@@ -114,7 +119,7 @@ pub fn track_html(
                 let buy_icon = icons::buy(&translations.buy);
                 let t_downloads = &translations.downloads;
                 Some(formatdoc!(r#"
-                    <a href="{t_purchase_permalink}/{page_hash}{index_suffix}">
+                    <a href="{prefix}{t_purchase_permalink}/{page_hash}{index_suffix}">
                         {buy_icon}
                         <span>{t_downloads}</span>
                     </a>
@@ -124,6 +129,28 @@ pub fn track_html(
             }
         }
     };
+
+    return download_link;
+}
+
+pub fn track_html(
+    build: &Build,
+    catalog: &Catalog,
+    release: &Release,
+    track: &Track,
+    track_number: usize
+) -> String {
+    let index_suffix = build.index_suffix();
+    let release_slug = &release.permalink.slug;
+    let root_prefix = "../../";
+    let translations = &build.locale.translations;
+
+    let mut layout = Layout::new();
+
+    layout.add_clipboard_script();
+    layout.add_player_script();
+
+    let download_link = track_download_link(build, release, &track, track_number, "", true);
 
     let audio_sources = track.streaming_quality
         .formats()
@@ -145,7 +172,12 @@ pub fn track_html(
             });
 
             let track_filename_urlencoded = urlencoding::encode(&track_filename);
-            let src = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+            let relative_path = format!("{format_dir}/{track_hash}/{track_filename_urlencoded}");
+            let src = if let Some(cdn_url) = &build.cdn_url {
+                cdn_url.join_file(format!("{}/{}/{}", release.permalink.slug, track_number, relative_path))
+            } else {
+                relative_path
+            };
 
             let source_type = format.source_type();
              format!(r#"<source src="{src}" type="{source_type}">"#)
@@ -249,6 +281,11 @@ pub fn track_html(
 
         primary_actions.push(more_link);
 
+        let release_year = match release.date {
+            Some(naive_date) => format!("({})", naive_date.year()),
+            None => String::new()
+        };
+
         let r_more = match &track.more {
             Some(html_and_stripped) => format!(
                 r#"<div class="text">{}</div>"#,
@@ -262,7 +299,7 @@ pub fn track_html(
                 <div class="page_center">
                     <div class="page_more">
                         <div class="release_info">
-                            <h1>{track_title_escaped}</h1>
+                            <h1>{track_title_escaped} {release_year}</h1>
                             <div class="release_artists">{artists}</div>
                         </div>
                         {r_more}

@@ -17,6 +17,7 @@ pub enum DownloadFormat {
     Alac,
     Flac,
     Mp3VbrV0,
+    Mp3Orig,
     OggVorbis,
     Opus48Kbps,
     Opus96Kbps,
@@ -34,6 +35,7 @@ impl DownloadFormat {
             DownloadFormat::Aiff => AudioFormat::Aiff,
             DownloadFormat::Alac => AudioFormat::Alac,
             DownloadFormat::Flac => AudioFormat::Flac,
+            DownloadFormat::Mp3Orig => AudioFormat::Mp3Orig,
             DownloadFormat::Mp3VbrV0 => AudioFormat::Mp3VbrV0,
             DownloadFormat::OggVorbis => AudioFormat::OggVorbis,
             DownloadFormat::Opus48Kbps => AudioFormat::Opus48Kbps,
@@ -52,6 +54,7 @@ impl DownloadFormat {
             DownloadFormat::Wav => build.locale.translations.audio_format_uncompressed.to_string(),
             DownloadFormat::Alac => build.locale.translations.audio_format_alac.to_string(),
             DownloadFormat::Flac => build.locale.translations.audio_format_flac.to_string(),
+            DownloadFormat::Mp3Orig => build.locale.translations.audio_format_mp3.to_string(),
             DownloadFormat::Mp3VbrV0 => build.locale.translations.audio_format_mp3.to_string(),
             DownloadFormat::Opus48Kbps => build.locale.translations.audio_format_opus_48.to_string(),
             DownloadFormat::Opus96Kbps => build.locale.translations.audio_format_opus_96.to_string(),
@@ -65,12 +68,13 @@ impl DownloadFormat {
             DownloadFormat::Opus96Kbps => 2,
             DownloadFormat::Opus48Kbps => 3,
             DownloadFormat::Mp3VbrV0 => 4,
-            DownloadFormat::OggVorbis => 5,
-            DownloadFormat::Flac => 6,
-            DownloadFormat::Alac => 7,
-            DownloadFormat::Aac => 8,
-            DownloadFormat::Wav => 9,
-            DownloadFormat::Aiff => 10
+            DownloadFormat::Mp3Orig => 5,
+            DownloadFormat::OggVorbis => 6,
+            DownloadFormat::Flac => 7,
+            DownloadFormat::Alac => 8,
+            DownloadFormat::Aac => 9,
+            DownloadFormat::Wav => 10,
+            DownloadFormat::Aiff => 11
         }
     }
 
@@ -81,6 +85,7 @@ impl DownloadFormat {
             "alac" => Some(DownloadFormat::Alac),
             "flac" => Some(DownloadFormat::Flac),
             "mp3" => Some(DownloadFormat::Mp3VbrV0),
+            "mp3_orig" => Some(DownloadFormat::Mp3Orig),
             "ogg_vorbis" => Some(DownloadFormat::OggVorbis),
             "opus_48" => Some(DownloadFormat::Opus48Kbps),
             "opus_96" => Some(DownloadFormat::Opus96Kbps),
@@ -93,6 +98,7 @@ impl DownloadFormat {
     pub fn is_lossless(&self) -> bool {
         match self {
             DownloadFormat::Aac |
+            DownloadFormat::Mp3Orig |
             DownloadFormat::Mp3VbrV0 |
             DownloadFormat::OggVorbis |
             DownloadFormat::Opus48Kbps |
@@ -115,6 +121,7 @@ impl DownloadFormat {
                 => false,
             DownloadFormat::Alac |
             DownloadFormat::Flac |
+            DownloadFormat::Mp3Orig |
             DownloadFormat::Mp3VbrV0 |
             DownloadFormat::OggVorbis |
             DownloadFormat::Opus48Kbps |
@@ -131,6 +138,7 @@ impl DownloadFormat {
             DownloadFormat::Aiff => "AIFF",
             DownloadFormat::Alac => "ALAC",
             DownloadFormat::Flac => "FLAC",
+            DownloadFormat::Mp3Orig => "MP3",
             DownloadFormat::Mp3VbrV0 => "MP3",
             DownloadFormat::OggVorbis => "Ogg Vorbis",
             DownloadFormat::Opus48Kbps => "Opus 48Kbps",
@@ -169,6 +177,7 @@ impl Display for DownloadFormat {
             DownloadFormat::Aiff => "AIFF",
             DownloadFormat::Alac => "ALAC",
             DownloadFormat::Flac => "FLAC",
+            DownloadFormat::Mp3Orig => "MP3",
             DownloadFormat::Mp3VbrV0 => "MP3",
             DownloadFormat::OggVorbis => "Ogg Vorbis",
             DownloadFormat::Opus48Kbps => "Opus 48Kbps",

@@ -232,12 +232,11 @@ impl Layout {
 
         let faircamp_signature = if catalog.faircamp_signature {
             let faircamp_icon = icons::faircamp(None);
-            let faircamp_version_display = env!("FAIRCAMP_VERSION_DISPLAY");
 
             formatdoc!(r#"
-                <a class="faircamp_signature" href="https://simonrepp.com/faircamp/" target="_blank">
+                <a class="faircamp_signature" href="https://github.com/eljojo/faircamp-fork" target="_blank">
                     {faircamp_icon}
-                    <span>Faircamp {faircamp_version_display}</span>
+                    <span>Built with Faircamp</span>
                 </a>
             "#)
         } else {
@@ -300,7 +299,7 @@ impl Layout {
             add_extra_meta(&favicon_tags);
         }
 
-        let faircamp_icon = icons::faircamp(Some("Faircamp"));
+        let faircamp_icon = icons::faircamp(None);
         let lang = &build.locale.language;
 
         if let Some(meta) = &self.opengraph_meta {
@@ -327,11 +326,30 @@ impl Layout {
         let t_search = &translations.search;
         let t_skip_to_main_content = &translations.skip_to_main_content;
 
+        if let Some(analytics_snippet) = &catalog.analytics_snippet {
+            add_extra_meta(&analytics_snippet);
+        }
+
         // User-supplied site metadata is appended last in order to guarantee
         // its precendence when overriding (e.g.) native styles.
         if let Some(site_metadata) = &catalog.site_metadata {
             add_extra_meta(&site_metadata.render(root_prefix));
         }
+
+        let subscribe_link = if catalog.feeds.any_requested() {
+            let t_subscribe = &translations.subscribe;
+            let feed_icon = icons::feed(&translations.feed);
+            let subscribe_slug = catalog.subscribe_permalink.as_ref().unwrap();
+
+            format!(r#"
+                <a href="{root_prefix}{subscribe_slug}{index_suffix}" class="subscribe">
+                    {feed_icon}
+                    <span>{t_subscribe}</span>
+                </a>
+            "#)
+        } else {
+            "".to_string()
+        };
 
         formatdoc!(r##"
             <!DOCTYPE html>
@@ -371,6 +389,7 @@ impl Layout {
                             <span>
                                 <a href="{root_prefix}">{catalog_title}</a>
                                 <button class="browse">{browse_icon} {t_browse}</button>
+                                {subscribe_link}
                             </span>
                             {faircamp_signature}
                         </footer>
